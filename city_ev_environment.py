@@ -20,7 +20,7 @@ import numpy as np
 
 class PowerTransformer:
     def __init__(self, id, capacity, max_charging_cap, max_discharging_cap, current_capacity, location = None):
-        
+    
     
     def charge(self, power):       
         self.current_capacity += power
