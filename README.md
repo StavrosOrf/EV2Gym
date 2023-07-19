@@ -4,7 +4,9 @@ A V2X Simulation Environment for large scale EV charging optimization
 
 ## TODO short term
 
-- [ ] Do not implement the Grid model yet -> Implement the G2V/V2G EVs gym environment.
+- [ ] Implement step for ev charger and ev
+- [ ] Complete the grid action transform
+- [ ] Implement the get_observation and reward functions
 - [ ] Replace 'EV-Spawner' with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
 - [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
  
@@ -17,6 +19,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 Here, I will write down abstract ideas about the V2X problem I am trying to solve:
 - Use PandaPower to simulate the grid (use it with the power transformer class id characteristics, use the storage class to simulate the chargers fro each node **aggregate many chargers to one storage** per bus)
 - Support any kind of  MV or LV network for the PandaPower grid
+- Replace PandaPower with PowerFactory simulations for better accuracy
 
 ### Improve Problem Formulation
 - [ ] Add the **grid** as a part of the problem formulation
