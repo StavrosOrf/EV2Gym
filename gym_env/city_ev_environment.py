@@ -10,88 +10,23 @@
 # - step(): takes an action as input and returns the next state, reward, and whether the episode is done
 # - render(): renders the current state of the environment
 
-from typing import Any
 import gym
 from gym import spaces
 import numpy as np
 
 from grid import Grid
-
-class EV_Charger:
-    def __init__(self,
-                 id,
-                 connected_bus,
-                 connected_transformer,
-                 geo_location,
-                 max_power=300, #kW
-                 min_power=0,
-                 n_ports=2,
-                 charger_type="DC",
-                 bi_directional=True):
-        
-        self.id = id
-
-        #EV Charger location and grid characteristics
-        self.connected_bus = connected_bus
-        self.connected_transformer = connected_transformer
-        self.geo_location = geo_location
-        
-        #EV Charger technical characteristics
-        self.max_power = max_power
-        self.min_power = min_power
-        self.n_ports = n_ports
-        self.charger_type = charger_type
-        self.bi_directional = bi_directional
-
-        #EV Charger status
-        self.current_power_output = 0        
-        self.evs_connected = []
-
-
-    def step(self,actions):
-        #actions are in the format of (power,n_ports) positive for charging negative for discharging
-        #default to 0 if no ev is connected
-
-        #TODO: check if the power requested is within the limits of the charger, AND NORMALIZE ELSEWISE
-        #TODO: update the information of the connected EVs according to actions
-
-        return       
-    
-    def reset(self):
-        self.current_power_output = 0        
-        self.evs_connected = []
-
-
-# EV class
-class EV():
-    def __init__(self, id, location, max_capacity, current_capacity):
-        self.id = id
-        self.location = location
-        self.max_capacity = max_capacity
-        self.current_capacity = current_capacity
-
-        self.charging_cycles = 0
-
-    def charge(self, ev_id):
-        if self.current_capacity > 0:
-            self.current_capacity -= 1
-            return True
-        else:
-            return False
-
-    def recharge(self):
-        self.current_capacity = self.max_capacity
-
-# main environment class
+from ev_charger import EV_Charger
+from ev import EV
 
 
 class CityEVEnvironment(gym.Env):
     def __init__(self,
                  evs,
                  cs,
+                 ev_profiles_path=None,
+                 charger_profiles_path=None,
                  simulate_grid=True,
-                 case='default',
-                 charger_profiles_path=None):
+                 case='default',):
 
         super(CityEVEnvironment, self).__init__()
 
@@ -119,18 +54,28 @@ class CityEVEnvironment(gym.Env):
         if charger_profiles_path is None:
             for i in range(self.cs):
                 ev_charger = EV_Charger(id=i,
-                                        location=None,
                                         connected_bus=self.cs_buses[i],
-                                        connected_transformer=None,
-                                        n_ports=2,
-                                        bi_directional=True)
+                                        connected_transformer=self.cs_transformers)
+
                 self.charging_stations.append(ev_charger)
         else:
             self.charging_stations = self._load_ev_charger_profiles(
                 charger_profiles_path)
 
+        if ev_profiles_path is None:
+            self.evs = []
+            for i in range(self.evs):
+                ev = EV(id=i, connected_bus=None, connected_transformer=None)
+                self.evs.append(ev)            
+
     def _load_ev_charger_profiles(self, path):
         # TODO: Load EV charger profiles from a csv file
+        # ...
+        #
+        pass
+
+    def _load_ev_profiles(self, path):
+        # TODO: Load EV profiles from a csv file
         # ...
         #
         pass

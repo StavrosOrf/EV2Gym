@@ -5,6 +5,10 @@ A V2X Simulation Environment for large scale EV charging optimization
 ## TODO short term
 
 - [ ] Do not implement the Grid model yet -> Implement the G2V/V2G EVs gym environment.
+- [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
+ 
+## TODO long term
+- [ ] Ask about charging and discharging speed of the EVs (how much power can they charge and discharge), from the perspective of EVs and EV chargers.
 
  
 
@@ -16,8 +20,9 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 ### Improve Problem Formulation
 - [ ] Add the **grid** as a part of the problem formulation
 - [ ] Add **j number of ports** per charging station and include related constraints
-- [ ] Add the battery behavior model 0-80 fast, 70-100 slow
+- [ ] Add the battery behavior model 0-80 fast, 80-100 slow
 - [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
+- [ ] Create a highly heterogeneous EV/ EV Chager environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids)
 
 ## Limitations
 - Real **time-series** grid data are required for the PandaPower grid simulator to work, for the following parts:
@@ -30,6 +35,9 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
  - PowerFlow Problem formulation: https://invenia.github.io/blog/2020/12/04/pf-intro/
  - PandaPower MV networks: https://pandapower.readthedocs.io/en/v2.1.0/networks/cigre.html
  - PowerFactory API for python: https://thesmartinsights.com/run-digsilent-powerfactory-via-the-python-api-jump-start-to-your-powerfactory-automatization/
+ - EV battery and EV chargers characteristics: https://www.ovoenergy.com/guides/energy-guides/ev-charging-speeds-explained-slow-fast-and-rapid
+ - EV battery characteristics: https://axlewise.com/ev-car-battery/#:~:text=The%20size%20of%20an%20electric%20car%20battery%20can,depending%20on%20the%20car%E2%80%99s%20make%2C%20model%2C%20and%20year.
+ - EV charger manufacturer: https://new.abb.com/ev-charging
 
 
 # Assumptions
@@ -39,4 +47,4 @@ Assumptions regarding the EVsSimulator environment:
     2. parking lot/ building level
     3. transformer level
     4. grid level (PandaPower)
- 
+- The charging and discharging speed is related to the charger and the EV type (battery size). Otherwise, each EV can have different maximum charging and discharging speeds.
