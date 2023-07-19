@@ -3,7 +3,7 @@
 A V2X Simulation Environment for large scale EV charging optimization
 
 ## TODO short term
-
+- [ ] Research about electricity prices and how to include them in the problem formulation
 - [ ] Implement step for ev charger and ev
 - [ ] Complete the grid action transform
 - [ ] Implement the get_observation and reward functions

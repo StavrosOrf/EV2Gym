@@ -58,12 +58,14 @@ class EV_Charger:
         self.current_step = 0
 
 
-    def step(self,actions):
+    def step(self,actions, charge_price, discharge_price):
         #actions are in the format of (power,n_ports) positive for charging negative for discharging
         #default to 0 if no ev is connected
 
         costs = 0
         user_satisfaction = []
+
+        print(f'action: {actions}, charge_price: {charge_price}, discharge_price: {discharge_price}')
 
         #TODO: check if the power requested is within the limits of the charger, AND NORMALIZE ELSEWISE
         #TODO: update the information of the connected EVs according to actions

@@ -25,15 +25,27 @@ class CityEVEnvironment(gym.Env):
                  cs,
                  ev_profiles_path=None,
                  charger_profiles_path=None,
+                 electricity_prices_path=None,
                  simulate_grid=False,
                  case='default',
-                 timescale=5):
+                 timescale=5,
+                 simulation_length=1000):
 
         super(CityEVEnvironment, self).__init__()
 
         self.evs = evs  # Number of EVs
         self.cs = cs  # Number of charging stations
         self.timescale = timescale  # Timescale of the simulation (in minutes)
+        self.simulation_length = simulation_length
+
+        # Simulation time
+        self.minute = 0  # Starting minute of the simulation
+        self.hour = 8  # Starting hour of the simulation
+        self.day = 1  # Starting day of the simulation
+        self.week = 1  # Starting week of the simulation
+        self.month = 1  # Starting month of the simulation
+        self.year = 2023  # Starting year of the simulation
+
         self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
 
         # Simulate grid
@@ -63,6 +75,16 @@ class CityEVEnvironment(gym.Env):
         else:
 
             self.ev_profiles = None
+
+        # Load Electricity prices for every charging station
+        if electricity_prices_path is not None:
+            self.charge_prices, self.discharge_prices = self._load_electricity_prices(
+                electricity_prices_path)
+        else:
+            self.charge_prices = np.random.normal(
+                -50, 40, size=(self.cs, self.simulation_length))
+            self.discharge_prices = np.random.normal(
+                100, 30, size=(self.cs, self.simulation_length))
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         self.number_of_ports = np.array(
@@ -97,6 +119,12 @@ class CityEVEnvironment(gym.Env):
         #
         pass
 
+    def _load_electricity_prices(self, electricity_prices_path):
+        # TODO: Load electricity prices from a csv file
+        # ...
+        #
+        pass
+
     def reset(self):
         '''Resets the environment to its initial state'''
         self.current_step = 0
@@ -122,7 +150,9 @@ class CityEVEnvironment(gym.Env):
         for cs in self.charging_stations:
             n_ports = cs.n_ports
             costs, user_satisfaction = cs.step(
-                actions[port_counter:port_counter + n_ports])
+                actions[port_counter:port_counter + n_ports],
+                self.charge_prices[cs.id, self.current_step],
+                self.discharge_prices[cs.id, self.current_step])
 
             if len(user_satisfaction) > 0:
                 user_satisfaction_list.append(*user_satisfaction)
@@ -136,22 +166,22 @@ class CityEVEnvironment(gym.Env):
 
                 if n_ports > len(cs.evs_connected):
                     # get a random float in [0,1] to decide if spawn an EV
-                    #TODO: Replace with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
+                    # TODO: Replace with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
                     self.spawn_rate = 0.2
                     if np.random.rand() < self.spawn_rate:
                         ev = EV(id=len(cs.evs_connected),
                                 location=cs.id,
-                                battery_capacity_at_arrival= np.random.uniform(1, 50, 1),
-                                time_of_arrival = self.current_step+1,
-                                earlier_time_of_departure= self.current_step+1 + np.random.randint(5, 100, 1),)
+                                battery_capacity_at_arrival=np.random.uniform(
+                            1, 50, 1),
+                            time_of_arrival=self.current_step+1,
+                            earlier_time_of_departure=self.current_step+1 + np.random.randint(5, 100, 1),)
                         cs.spawn_ev(ev)
-                        
+
                         self.total_evs_spawned += 1
-                        self.current_ev_arrived += 1                        
+                        self.current_ev_arrived += 1
 
             # TODO: record the spawn history of EVs for reproducible results, so the evs_profiles can be loaded again
 
-        
         # Spawn EVs
         if self.ev_profiles is not None:
             # TODO: Spawn EVs based on the EV profiles onspecific chargers with fixed time of departure, and soc
@@ -175,7 +205,8 @@ class CityEVEnvironment(gym.Env):
     def visualize(self):
         # Define your own visualization function
         # ...
-        print("\nCurrent step: ", self.current_step, " ===========", f"EVs +{self.current_ev_arrived}/-{self.current_ev_departed} | fullness: {self.current_evs_parked}/{self.number_of_ports}")
+        print("\nCurrent step: ", self.current_step, " ===========",
+              f"EVs +{self.current_ev_arrived}/-{self.current_ev_departed} | fullness: {self.current_evs_parked}/{self.number_of_ports}")
         for cs in self.charging_stations:
             print(f'  - Charging station {cs.id}:')
             print(f'\t Power: {cs.current_power_output:4} kWh')
@@ -185,8 +216,8 @@ class CityEVEnvironment(gym.Env):
                     ev = cs.evs_connected[port]
                     print(f'\t\tPort {port}: {ev}')
                 else:
-                    print(f'\t\tPort {port}: -')        
-    
+                    print(f'\t\tPort {port}: -')
+
     def _get_observation(self):
         # Define your own observation function based on the current state
 
@@ -205,9 +236,8 @@ if __name__ == "__main__":
     env = CityEVEnvironment(evs=10, cs=3, timescale=5)
     state = env.reset()
 
-    for i in range(10):
+    for i in range(4):
         env.visualize()
         actions = env.action_space.sample()
         # print(f'actions: {actions}, \n actions.shape: {actions.shape}')
         new_state, reward, done = env.step(actions)
-        
