@@ -1,4 +1,4 @@
-'''
+''' =================================================================================================
 Author: Stavros Orfanoudakis 2023
 
 This file contains the EV class, which is used to represent the EVs in the environment.
@@ -9,6 +9,7 @@ The EV class contains the following attributes:
     - battery_capacity_at_arrival: the battery capacity of the EV at arrival time in kWh
     - time_of_arrival: the time of arrival of the EV in the charging station in simulation timesteps
     - earlier_time_of_departure: the earliest time of departure of the EV in the charging station in simulation timesteps (if use_probabilistic_time_of_departure is False, then earlier_time_of_departure is equal to time_of_departure)
+    - desired_capacity: the desired capacity of the EV at departure time in kWh
     - use_probabilistic_time_of_departure: whether the EV will use a probabilistic time of departure or not
     - battery_capacity: the battery capacity of the EV in kWh
     - min_desired_capacity: the minimum desired capacity of the EV in kWh to maximize battery life
@@ -20,11 +21,13 @@ The EV class contains the following attributes:
 
 The EV class contains the following status variables:
     - current_capacity: the current battery capacity of the EV in kWh
+    - current_power: the current power input of the EV in kW (positive for charging, negative for discharging)
     - charging_cycles: the number of charging/discharging cycles of the EV (useful for determining battery life parameters)
 
 The EV class contains the following methods:
+    - step: updates the EV status according to the actions taken by the EV charger
     
-    '''
+==================================================================================================='''
 
 
 class EV():
@@ -34,7 +37,8 @@ class EV():
                  battery_capacity_at_arrival,
                  time_of_arrival,
                  earlier_time_of_departure,
-                 use_probabilistic_time_of_departure=False
+                 use_probabilistic_time_of_departure=False,
+                 desired_capacity=50,  # kWh
                  battery_capacity=50,  # kWh
                  min_desired_capacity=8,  # kWh
                  max_desired_capacity=45,  # kWh
@@ -52,17 +56,23 @@ class EV():
         self.time_of_arrival = time_of_arrival
         self.earlier_time_of_departure = earlier_time_of_departure
         self.use_probabilistic_time_of_departure = use_probabilistic_time_of_departure
+        self.desired_capacity = desired_capacity  # kWh
 
         # EV technical characteristics
         self.battery_capacity = battery_capacity  # kWh
         self.min_desired_capacity = min_desired_capacity  # kWh
         self.max_desired_capacity = max_desired_capacity  # kWh
-        self.efficiency = efficiency
+        self.charge_efficiency = charge_efficiency
+        self.discharge_efficiency = discharge_efficiency
         self.v2g_enabled = v2g_enabled
 
         # EV status
         self.current_capacity = battery_capacity_at_arrival  # kWh
+        self.current_power = 0 #kWh
         self.charging_cycles = 0
+
+    def __str__(self):        
+        return f' {self.current_power} kWh | {(self.current_capacity/self.battery_capacity)[0]*100:5.1f} %'
 
     def step(self, action):
         '''

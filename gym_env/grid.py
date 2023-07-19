@@ -34,7 +34,14 @@ class Grid:
         self.charging_stations_buses = np.random.choice(
             [i for i in range(len(self.net.bus)) if i not in self.net.ext_grid.bus.values], charging_stations, replace=True)
 
+    def _get_grid_actions(self,actions):
+        # Transform ations to the format (number_of_ports,1) -> (bus, p_mw)
+
+        return actions
+    
     def step(self, actions):
+
+        actions = _get_grid_actions(actions)
 
         # reset CS actions
         for i in range(len(self.net.storage)):

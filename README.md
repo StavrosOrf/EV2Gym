@@ -5,11 +5,12 @@ A V2X Simulation Environment for large scale EV charging optimization
 ## TODO short term
 
 - [ ] Do not implement the Grid model yet -> Implement the G2V/V2G EVs gym environment.
+- [ ] Replace 'EV-Spawner' with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
 - [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
  
 ## TODO long term
 - [ ] Ask about charging and discharging speed of the EVs (how much power can they charge and discharge), from the perspective of EVs and EV chargers.
-
+- [ ] Develop a visual interface for charging stations and EVs (with small battery icons for each car showing the level. also showing the connectivity to transformers, etc.)
  
 
 ## Future Ideas

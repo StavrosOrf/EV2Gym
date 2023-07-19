@@ -18,6 +18,7 @@ The EV_Charger class contains the following attributes:
 The EV_Charger class contains the following status variables:
     - current_power_output: the current total power output of the EV charger (positive for draining energy from the grid, negative for providing energy to the grid)
     - evs_connected: the list of EVs connected to the EV charger
+    - current_step: the current simulation timestep
     
 The EV_Charger class contains the following methods:
     - step: updates the EV charger status according to the actions taken by the EVs
@@ -34,7 +35,7 @@ class EV_Charger:
                  max_discharge_power=22, #kW                 
                  n_ports=2,
                  charger_type="Type2",
-                 bi_directional=True
+                 bi_directional=True,
                  timescale=5):
         
         self.id = id
@@ -53,18 +54,30 @@ class EV_Charger:
 
         #EV Charger status
         self.current_power_output = 0        
-        self.evs_connected = []
+        self.evs_connected = []        
+        self.current_step = 0
 
 
     def step(self,actions):
         #actions are in the format of (power,n_ports) positive for charging negative for discharging
         #default to 0 if no ev is connected
 
+        costs = 0
+        user_satisfaction = []
+
         #TODO: check if the power requested is within the limits of the charger, AND NORMALIZE ELSEWISE
         #TODO: update the information of the connected EVs according to actions
 
-        return       
+        #TODO: remove departed EVs and add new EVs that just arrived
+
+        self.current_step += 1
+
+        return costs, user_satisfaction      
     
+    def spawn_ev(self,ev):
+        self.evs_connected.append(ev)
+
     def reset(self):
         self.current_power_output = 0        
         self.evs_connected = []
+        self.current_step = 0
