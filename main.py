@@ -24,7 +24,7 @@ if __name__ == "__main__":
         # actions = env.action_space.sample()   # sample random actions
         actions = np.random.uniform(-1, 1, env.number_of_ports)
         # all ports are charging instantly
-        actions = np.ones(env.number_of_ports)
+        # actions = np.ones(env.number_of_ports)
         if verbose:
             print(f'Actions: {actions}')
 
