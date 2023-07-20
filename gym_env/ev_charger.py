@@ -48,7 +48,7 @@ class EV_Charger:
                  connected_bus,
                  connected_transformer,
                  geo_location=None,
-                 max_charge_power=100,  # kW
+                 max_charge_power=300,  # kW
                  max_discharge_power=22,  # kW
                  n_ports=2,
                  charger_type="Type2",

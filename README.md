@@ -3,15 +3,15 @@
 A V2X Simulation Environment for large scale EV charging optimization
 
 ## TODO short term
-- [ ] Research about electricity prices and how to include them in the problem formulation
 - [x] Implement step for ev charger and ev
-- [ ] Complete the grid action transform
 - [x] Implement the get_observation and reward functions
+- [ ] Research about electricity prices and how to include them in the problem formulation
 - [ ] Replace 'EV-Spawner' with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
 - [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
  
 ## TODO long term
 - [ ] Ask about charging and discharging speed of the EVs (how much power can they charge and discharge), from the perspective of EVs and EV chargers.
+- [ ] Complete the simulate_grid functionality of the EVsSimulator package
 - [ ] Develop a visual interface for charging stations and EVs (with small battery icons for each car showing the level. also showing the connectivity to transformers, etc.)
  
 
