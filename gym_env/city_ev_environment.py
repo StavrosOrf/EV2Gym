@@ -1,14 +1,8 @@
-# Write code for an gym environment acor that simulates an electric vehicle charging station.
-
-# The environment should have the following properties:
-# - The environment has a fixed number of charging stations c
-# - The environment has a fixed number of electric vehicles n
-# - The environment has a fixed number of time steps t
-
-# The environment should have the following methods:
-# - reset(): resets the environment to its initial state
-# - step(): takes an action as input and returns the next state, reward, and whether the episode is done
-# - render(): renders the current state of the environment
+'''
+===================================
+Author: Stavros Orfanoudakis 2023
+===================================
+'''
 
 import gym
 from gym import spaces
@@ -20,23 +14,30 @@ from ev import EV
 
 
 class CityEVEnvironment(gym.Env):
+    '''
+    This file contains the CityEVEnvironment class, which is used to represent the environment of the city.    
+    '''
+
     def __init__(self,
-                 evs,
                  cs,
                  ev_profiles_path=None,
                  charger_profiles_path=None,
                  electricity_prices_path=None,
                  simulate_grid=False,
                  case='default',
+                 score_threshold=1,
                  timescale=5,
+                 verbose=False,
                  simulation_length=1000):
 
         super(CityEVEnvironment, self).__init__()
 
-        self.evs = evs  # Number of EVs
         self.cs = cs  # Number of charging stations
+        # Threshold for the user satisfaction score
+        self.score_threshold = score_threshold
         self.timescale = timescale  # Timescale of the simulation (in minutes)
         self.simulation_length = simulation_length
+        self.verbose = verbose  # Whether to print the simulation progress or not
 
         # Simulation time
         self.minute = 0  # Starting minute of the simulation
@@ -63,7 +64,9 @@ class CityEVEnvironment(gym.Env):
             for i in range(self.cs):
                 ev_charger = EV_Charger(id=i,
                                         connected_bus=self.cs_buses[i],
-                                        connected_transformer=self.cs_transformers)
+                                        connected_transformer=self.cs_transformers,
+                                        timescale=self.timescale,
+                                        verbose=self.verbose,)
 
                 self.charging_stations.append(ev_charger)
         else:
@@ -158,12 +161,12 @@ class CityEVEnvironment(gym.Env):
                 actions[port_counter:port_counter + n_ports],
                 self.charge_prices[cs.id, self.current_step],
                 self.discharge_prices[cs.id, self.current_step])
-            
+
             for u in user_satisfaction:
                 user_satisfaction_list.append(u)
-                
+
             total_costs += costs
-            self.current_ev_departed += len(user_satisfaction_list)
+            self.current_ev_departed += len(user_satisfaction)
 
             port_counter += n_ports
 
@@ -180,7 +183,7 @@ class CityEVEnvironment(gym.Env):
                                 battery_capacity_at_arrival=np.random.uniform(
                                     1, 49),
                                 time_of_arrival=self.current_step+1,
-                                earlier_time_of_departure=self.current_step+1 + np.random.randint(5, 10),)
+                                earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
                         cs.spawn_ev(ev)
 
                         self.total_evs_spawned += 1
@@ -203,69 +206,85 @@ class CityEVEnvironment(gym.Env):
             grid_report = self.grid.step(actions=actions)
             reward = self._calculate_reward(grid_report)
         else:
-            reward = self._calculate_reward()
+            reward = self._calculate_reward(total_costs,
+                                            user_satisfaction_list)
 
-        done = False
+        # Check if the episode is done
+        if self.current_step >= self.simulation_length or \
+                any(score < self.score_threshold for score in user_satisfaction_list):
 
-        return self._get_observation(), reward, done
+            print(f"\n Episode finished after {self.current_step} timesteps")
+
+            return self._get_observation(), reward, True
+        else:
+            return self._get_observation(), reward, False
 
     def visualize(self):
         '''Renders the current state of the environment in the terminal'''
-        print(f"\n Current step: {self.current_step} ===========" +
-              f"EVs +{self.current_ev_arrived}/-{self.current_ev_departed}" +
+        print(f"\n Current step: {self.current_step}" +
+              f" \tEVs +{self.current_ev_arrived}/-{self.current_ev_departed}" +
               f"| fullness: {self.current_evs_parked}/{self.number_of_ports}")
 
         for cs in self.charging_stations:
-            print(f'  - Charging station {cs.id}:')            
+            print(f'  - Charging station {cs.id}:')
             print(f'\t Power: {cs.current_power_output:4.1f} kWh |' +
-                  f' \u2197 {self.charge_prices[cs.id, self.current_step]:4.2f} €/kWh ' +
-                  f' \u2198 {self.discharge_prices[cs.id, self.current_step]:4.2f} €/kWh |' +
+                  f' \u2197 {self.charge_prices[cs.id, self.current_step -1 ]:4.2f} €/kWh ' +
+                  f' \u2198 {self.discharge_prices[cs.id, self.current_step - 1]:4.2f} €/kWh |' +
                   f' EVs served: {cs.total_evs_served:3d} ' +
-                  f' {cs.total_profits:4.2f} €') 
+                  f' {cs.total_profits:4.2f} €')
 
             for port in range(cs.n_ports):
                 ev = cs.evs_connected[port]
                 if ev is not None:
                     print(f'\t\tPort {port}: {ev}')
                 else:
-                    print(f'\t\tPort {port}: -')
+                    print(f'\t\tPort {port}:')
 
     def print_statistics(self):
         '''Prints the statistics of the simulation'''
-        print("\n\Simulation statistics:")
-        print(f'  - Total EVs spawned: {self.total_evs_spawned}\n')
+        total_ev_served = np.array(
+            [cs.total_evs_served for cs in self.charging_stations]).sum()
+        total_profits = np.array(
+            [cs.total_profits for cs in self.charging_stations]).sum()
+        toal_energy_charged = np.array(
+            [cs.total_energy_charged for cs in self.charging_stations]).sum()
+        total_energy_discharged = np.array(
+            [cs.total_energy_discharged for cs in self.charging_stations]).sum()
+        average_user_satisfaction = np.average(np.array(
+            [cs.get_avg_user_satisfaction() for cs in self.charging_stations]))
+
+        print(
+            "\n\n========================================================================")
+        print("Simulation statistics:")
+        print(f'  - Total EVs spawned: {self.total_evs_spawned}')
+        print(f'  - Total EVs served: {total_ev_served}')
+        print(f'  - Total profits: {total_profits:.2f} €')
+        print(
+            f'  - Average user satisfaction: {average_user_satisfaction:.2f} %')
+
+        print(f'  - Total energy charged: {toal_energy_charged:.1f} kWh')
+        print(
+            f'  - Total energy discharged: {total_energy_discharged:.1f} kWh\n')
 
         for cs in self.charging_stations:
             print(cs)
 
-    def _get_observation(self):
-        # Define your own observation function based on the current state
-        # ...
+    def _get_observation(self, include_grid=False):
+        '''Returns the current state of the environment'''
+        state = [self.current_step,
+                 self.timescale,
+                 self.cs,]
 
-        return 0
+        for cs in self.charging_stations:
+            state.append(cs.get_state())
 
-    def _calculate_reward(self, grid_report=None):
+        if include_grid:
+            state.append(self.grid.get_grid_state())
+
+        return np.hstack(state)
+
+    def _calculate_reward(self, total_costs, user_satisfaction_list):
         # Define your own reward function based on the current state and action
         # ...
-        reward = 0
+        reward = total_costs
         return reward
-
-
-# main funtion for testing
-if __name__ == "__main__":
-
-    env = CityEVEnvironment(evs=10, cs=3, timescale=5)
-    state = env.reset()
-
-    env.visualize()
-
-    for i in range(20):
-        print("-"*80)
-        # actions = env.action_space.sample()   # sample random actions
-        # actions = [a for a in actions]
-        actions = np.random.uniform(-1, 1, 6)        
-        print(f'Actions: {actions}')
-        new_state, reward, done = env.step(actions)  # takes action
-        env.visualize()
-
-    env.print_statistics()

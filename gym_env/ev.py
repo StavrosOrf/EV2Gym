@@ -1,40 +1,45 @@
-''' =================================================================================================
+'''
+===================================
 Author: Stavros Orfanoudakis 2023
+===================================
+'''
 
-This file contains the EV class, which is used to represent the EVs in the environment.
-
-The EV class contains the following attributes:
-    - id: unique identifier of the EV (uniquep per charging station)
-    - location: the location of the EV (charging station id)
-    - battery_capacity_at_arrival: the battery capacity of the EV at arrival time in kWh
-    - time_of_arrival: the time of arrival of the EV in the charging station in simulation timesteps
-    - earlier_time_of_departure: the earliest time of departure of the EV in the charging station in simulation timesteps (if use_probabilistic_time_of_departure is False, then earlier_time_of_departure is equal to time_of_departure)
-    - desired_capacity: the desired capacity of the EV at departure time in kWh
-    - use_probabilistic_time_of_departure: whether the EV will use a probabilistic time of departure or not
-    - battery_capacity: the battery capacity of the EV in kWh
-    - min_desired_capacity: the minimum desired capacity of the EV in kWh to maximize battery life
-    - max_desired_capacity: the maximum desired capacity of the EV in kWh to maximize battery life
-    - charge_efficiency: the efficiency of the EV when charging
-    - discharge_efficiency: the efficiency of the EV when discharging
-    - v2g_enabled: whether the EV can provide power to the grid or not
-    - timescale: the timescale of the simulation (useful for determining the charging speed)
-
-The EV class contains the following status variables:
-    - current_capacity: the current battery capacity of the EV in kWh
-    - current_power: the current power input of the EV in kW (positive for charging, negative for discharging)
-    - charging_cycles: the number of charging/discharging cycles of the EV (useful for determining battery life parameters)
-    - previous_power: the power input of the EV in the previous timestep in kW (positive for charging, negative for discharging)
-
-The EV class contains the following methods:
-    - step: updates the EV status according to the actions taken by the EV charger
-    - _charge: charges the EV
-    - _discharge: discharges the EV
-
-==================================================================================================='''
 import numpy as np
 
 
 class EV():
+    '''
+    This file contains the EV class, which is used to represent the EVs in the environment.
+
+    Attributes:
+        - id: unique identifier of the EV (uniquep per charging station)
+        - location: the location of the EV (charging station id)
+        - battery_capacity_at_arrival: the battery capacity of the EV at arrival time in kWh
+        - time_of_arrival: the time of arrival of the EV in the charging station in simulation timesteps
+        - earlier_time_of_departure: the earliest time of departure of the EV in the charging station in simulation timesteps (if use_probabilistic_time_of_departure is False, then earlier_time_of_departure is equal to time_of_departure)
+        - desired_capacity: the desired capacity of the EV at departure time in kWh
+        - use_probabilistic_time_of_departure: whether the EV will use a probabilistic time of departure or not
+        - battery_capacity: the battery capacity of the EV in kWh
+        - min_desired_capacity: the minimum desired capacity of the EV in kWh to maximize battery life
+        - max_desired_capacity: the maximum desired capacity of the EV in kWh to maximize battery life
+        - charge_efficiency: the efficiency of the EV when charging
+        - discharge_efficiency: the efficiency of the EV when discharging
+        - v2g_enabled: whether the EV can provide power to the grid or not
+        - timescale: the timescale of the simulation (useful for determining the charging speed)
+
+    Status variables:
+        - current_capacity: the current battery capacity of the EV in kWh
+        - current_power: the current power input of the EV in kW (positive for charging, negative for discharging)
+        - charging_cycles: the number of charging/discharging cycles of the EV (useful for determining battery life parameters)
+        - previous_power: the power input of the EV in the previous timestep in kW (positive for charging, negative for discharging)
+
+    Methods:
+        - step: updates the EV status according to the actions taken by the EV charger
+        - _charge: charges the EV
+        - _discharge: discharges the EV
+
+    '''
+
     def __init__(self,
                  id,
                  location,
@@ -74,9 +79,6 @@ class EV():
         self.current_power = 0  # kWh
         self.charging_cycles = 0
         self.previous_power = 0
-
-    def __str__(self):
-        return f' {self.current_power:5.1f} kWh | {(self.current_capacity/self.battery_capacity)*100:5.1f} %'
 
     def step(self, action):
         '''
@@ -138,8 +140,20 @@ class EV():
         Outputs: 
             - SoC: the state of charge of the EV in [0,100] %
         '''
-
         return (self.current_capacity/self.battery_capacity)*100
+
+    def get_state(self):
+        '''
+        A function that returns the state of the EV.
+        Outputs: 
+            - State: the state of the EV
+        '''
+        timestep_left = self.earlier_time_of_departure - self.time_of_arrival
+
+        return self.get_soc(), timestep_left, self.charging_cycles
+
+    def __str__(self):
+        return f' {self.current_power:5.1f} kWh | {(self.current_capacity/self.battery_capacity)*100:5.1f} %'
 
     def _charge(self, power):
         '''

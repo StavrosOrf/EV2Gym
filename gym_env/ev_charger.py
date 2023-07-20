@@ -1,50 +1,60 @@
-'''=================================================================================================
+'''
+===================================
 Author: Stavros Orfanoudakis 2023
+===================================
+'''
 
-This file contains the EV_Charger class, which is used to represent the EV chargers in the environment.
-
-The EV_Charger class contains the following attributes:
-    - id: unique identifier of the EV charger
-    - connected_bus: the bus to which the EV charger is connected
-    - connected_transformer: the transformer(s) to which the EV charger is connected
-    - geo_location: the geographical location of the EV charger
-    - max_charge_power: the maximum total power that the EV charger can provide to all EVs connected to it per hour
-    - max_discharge_power: the maximum total power that the EV charger can receive from all EVs connected to it per hour
-    - n_ports: the number of ports of the EV charger
-    - charger_type: the type of the EV charger (typ1, type2, or DC)
-    - bi_directional: whether the EV charger can provide power to the grid or not
-    - timescale: the timescale of the simulation (useful for determining the charging speed)
-
-The EV_Charger class contains the following status variables:
-    - current_power_output: the current total power output of the EV charger (positive for draining energy from the grid, negative for providing energy to the grid)
-    - evs_connected: the list of EVs connected to the EV charger
-    - n_ev_connected: the current number of EVs connected to the EV charger
-    - current_step: the current simulation timestep
-
-The EV_Charger class contains the following statistics variables:
-    - total_energy_charged: the total energy charged by the EV charger
-    - total_energy_discharged: the total energy discharged by the EV charger
-    - total_profits: the total profit of the EV charger
-    
-The EV_Charger class contains the following methods:
-    - step: updates the EV charger status according to the actions taken by the EVs
-    - reset: resets the EV charger status to the initial state
-===================================================================================================='''
 import numpy as np
 from ev import EV
 
+
 class EV_Charger:
+    '''
+    This file contains the EV_Charger class, which is used to represent the EV chargers in the environment.
+
+    Attributes:
+        - id: unique identifier of the EV charger
+        - connected_bus: the bus to which the EV charger is connected
+        - connected_transformer: the transformer(s) to which the EV charger is connected
+        - geo_location: the geographical location of the EV charger
+        - max_charge_power: the maximum total power that the EV charger can provide to all EVs connected to it per hour
+        - max_discharge_power: the maximum total power that the EV charger can receive from all EVs connected to it per hour
+        - n_ports: the number of ports of the EV charger
+        - charger_type: the type of the EV charger (typ1, type2, or DC)
+        - bi_directional: whether the EV charger can provide power to the grid or not
+        - timescale: the timescale of the simulation (useful for determining the charging speed)
+        - verbose: whether to print information about the EV charger or not
+
+    Status variables:
+        - current_power_output: the current total power output of the EV charger (positive for draining energy from the grid, negative for providing energy to the grid)
+        - evs_connected: the list of EVs connected to the EV charger
+        - n_ev_connected: the current number of EVs connected to the EV charger
+        - current_step: the current simulation timestep
+
+    Statistics variables:
+        - total_energy_charged: the total energy charged by the EV charger  
+        - total_energy_discharged: the total energy discharged by the EV charger
+        - total_profits: the total profit of the EV charger
+        - total_evs_served: the total number of EVs served by the EV charger
+        - total_user_satisfaction: the total user satisfaction of the EV charger
+
+    Methods:
+        - step: updates the EV charger status according to the actions taken by the EVs
+        - reset: resets the EV charger status to the initial state              
+'''
+
     def __init__(self,
                  id,
                  connected_bus,
                  connected_transformer,
                  geo_location=None,
-                 max_charge_power=22,  # kW
+                 max_charge_power=100,  # kW
                  max_discharge_power=22,  # kW
                  n_ports=2,
                  charger_type="Type2",
                  bi_directional=True,
-                 timescale=5):
+                 timescale=5,
+                 verbose=False):
 
         self.id = id
 
@@ -63,7 +73,7 @@ class EV_Charger:
 
         # EV Charger status
         self.current_power_output = 0
-        self.evs_connected = [None] * n_ports        
+        self.evs_connected = [None] * n_ports
         self.n_evs_connected = 0
         self.current_step = 0
         self.current_charge_price = 0
@@ -75,6 +85,8 @@ class EV_Charger:
         self.total_profits = 0
         self.total_evs_served = 0
         self.total_user_satisfaction = 0
+
+        self.verbose = verbose
 
     def step(self, actions, charge_price, discharge_price):
         '''
@@ -90,9 +102,9 @@ class EV_Charger:
         '''
         profit = 0
         user_satisfaction = []
-        self.current_power_output = 0    
+        self.current_power_output = 0
         self.current_charge_price = charge_price
-        self.current_discharge_price = discharge_price    
+        self.current_discharge_price = discharge_price
 
         assert (len(actions) == self.n_ports)
         # print(f'CS {self.id} actions: {actions}')
@@ -110,7 +122,10 @@ class EV_Charger:
         else:
             normalized_actions = actions
 
-        print(f'CS {self.id} normalized actions: {normalized_actions}')
+        if self.verbose:
+            print(f'CS {self.id} normalized actions: {normalized_actions}')
+
+        # Update EVs connected to the EV charger and get profits/costs
         for i, action in enumerate(normalized_actions):
             assert (action >= -1 and action <= 1)
 
@@ -134,42 +149,63 @@ class EV_Charger:
 
         # Check if EVs are departing
         for i, ev in enumerate(self.evs_connected):
-            if ev is not None:               
-                print(f'EV {ev.id} leaving at {ev.earlier_time_of_departure} current step {self.current_step}') 
-                if ev.is_departing(self.current_step) is not None:                    
+            if ev is not None:
+                if ev.is_departing(self.current_step) is not None:
                     self.evs_connected[i] = None
                     self.n_evs_connected -= 1
                     self.total_evs_served += 1
                     ev_user_satisfaction = ev.get_user_satisfaction()
                     self.total_user_satisfaction += ev_user_satisfaction
                     user_satisfaction.append(ev_user_satisfaction)
-                    print(f'EV {ev.id} is departing from CS {self.id} with user satisfaction {ev_user_satisfaction} (SoC: {ev.get_soc(): 3.1f}%)')
+                    if self.verbose:
+                        print(f'- EV {ev.id} is departing from CS {self.id}' +
+                              f' with user satisfaction {ev_user_satisfaction}' +
+                              f' (SoC: {ev.get_soc(): 3.1f}%)')
 
         self.current_step += 1
 
         return profit, user_satisfaction
 
+    def get_state(self):
+        '''
+        Returns the state of the EV charger
+        '''
+        state = [self.current_charge_price,
+                 self.current_discharge_price,
+                 self.max_charge_power,
+                 self.max_discharge_power,
+                 self.n_ports,
+                 self.n_evs_connected]
+
+        for EV in self.evs_connected:
+            if EV is not None:
+                state.append(EV.get_state())
+            else:
+                state.append(np.zeros(3))
+
+        return np.hstack(state)
+
     def __str__(self) -> str:
-        
+
         if self.total_evs_served == 0:
             user_satisfaction_str = ' Avg. Sat.:  - '
         else:
-            user_satisfaction_str =f' Avg. Sat.: {self.total_user_satisfaction/self.total_evs_served: 3.1f}'
+            user_satisfaction_str = f' Avg. Sat.: {self.get_avg_user_satisfaction(): 3.1f}'
 
         # f' ({self.current_step*self.timescale: 3d} mins)' + \
         return f'CS{self.id:3d}: ' + \
-                f' Served {self.total_evs_served:4d} EVs' + \
-                user_satisfaction_str + \
-                f' in {self.current_step: 4d} steps' + \
-                f' |{self.total_profits: 7.1f} €' + \
-                f' +{self.total_energy_charged: 5.1f}/' + \
-                f'-{self.total_energy_discharged: 5.1f} kWh'    
+            f' Served {self.total_evs_served:4d} EVs' + \
+            user_satisfaction_str + \
+            f' in {self.current_step: 4d} steps' + \
+            f' |{self.total_profits: 7.1f} €' + \
+            f' +{self.total_energy_charged: 5.1f}/' + \
+            f'-{self.total_energy_discharged: 5.1f} kWh'
 
-    def get_avg_user_satisfaction(self):            
+    def get_avg_user_satisfaction(self):
         if self.total_evs_served == 0:
             return 0
         else:
-            return sum([ev.get_user_satisfaction() for ev in self.evs_connected if ev is not None]) / self.total_evs_served
+            return self.total_user_satisfaction / self.total_evs_served
 
     def spawn_ev(self, ev):
         '''Adds an EV to the list of EVs connected to the EV charger
@@ -180,11 +216,13 @@ class EV_Charger:
 
         index = self.evs_connected.index(None)
         ev.id = index
-        print(f'EV connected to Charger {self.id} at port {index} leaving at {ev.earlier_time_of_departure}' + \
-              f' SoC {ev.get_soc():.1f}%')
         self.evs_connected[index] = ev
-
         self.n_evs_connected += 1
+
+        if self.verbose:
+            print(f'+ EV connected to Charger {self.id} at port {index}' +
+                  f' leaving at {ev.earlier_time_of_departure}' +
+                  f' SoC {ev.get_soc():.1f}%')
 
     def reset(self):
         '''Resets the EV charger status to the initial state'''
