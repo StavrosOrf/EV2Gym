@@ -137,7 +137,12 @@ class CityEVEnvironment(gym.Env):
     def step(self, actions):
         ''''
         Takes an action as input and returns the next state, reward, and whether the episode is done
-        actions: is a vector of size "Sum of all ports of all charging stations"
+        Inputs:
+            - actions: is a vector of size "Sum of all ports of all charging stations taking values in [-1,1]"
+        Returns:
+            - observation: is a matrix with the complete observation space
+            - reward: is a scalar value representing the reward of the current step
+            - done: is a boolean value indicating whether the episode is done or not
         '''
         total_costs = 0
         user_satisfaction_list = []
@@ -164,17 +169,17 @@ class CityEVEnvironment(gym.Env):
             # Spawn EVs
             if self.ev_profiles is None:
 
-                if n_ports > len(cs.evs_connected):
+                if n_ports > cs.n_evs_connected:
                     # get a random float in [0,1] to decide if spawn an EV
                     # TODO: Replace with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
                     self.spawn_rate = 0.2
                     if np.random.rand() < self.spawn_rate:
-                        ev = EV(id=len(cs.evs_connected),
+                        ev = EV(id=None,
                                 location=cs.id,
                                 battery_capacity_at_arrival=np.random.uniform(
-                            1, 50, 1),
-                            time_of_arrival=self.current_step+1,
-                            earlier_time_of_departure=self.current_step+1 + np.random.randint(5, 100, 1),)
+                                    1, 49, 1),
+                                time_of_arrival=self.current_step+1,
+                                earlier_time_of_departure=self.current_step+1 + np.random.randint(5, 100, 1),)
                         cs.spawn_ev(ev)
 
                         self.total_evs_spawned += 1
@@ -203,23 +208,33 @@ class CityEVEnvironment(gym.Env):
         return self._get_observation(), reward, done
 
     def visualize(self):
-        # Define your own visualization function
-        # ...
-        print("\nCurrent step: ", self.current_step, " ===========",
-              f"EVs +{self.current_ev_arrived}/-{self.current_ev_departed} | fullness: {self.current_evs_parked}/{self.number_of_ports}")
+        '''Renders the current state of the environment in the terminal'''
+        print(f"\n Current step: {self.current_step} ===========" + 
+              f"EVs +{self.current_ev_arrived}/-{self.current_ev_departed}" +  
+              f"| fullness: {self.current_evs_parked}/{self.number_of_ports}")
+        
         for cs in self.charging_stations:
             print(f'  - Charging station {cs.id}:')
-            print(f'\t Power: {cs.current_power_output:4} kWh')
-            for port in range(cs.n_ports):
-
-                if port < len(cs.evs_connected):
-                    ev = cs.evs_connected[port]
+            print(cs.current_power_output)
+            print(f'\t Power: {cs.current_power_output:4.1f} kWh')
+            for port in range(cs.n_ports):                
+                ev = cs.evs_connected[port]
+                if ev is not None:
                     print(f'\t\tPort {port}: {ev}')
                 else:
                     print(f'\t\tPort {port}: -')
 
+    def print_statistics(self):
+        '''Prints the statistics of the simulation'''
+        print("\n\Simulation statistics:")
+        print(f'  - Total EVs spawned: {self.total_evs_spawned}\n')
+
+        for cs in self.charging_stations:
+            print(cs)
+
     def _get_observation(self):
         # Define your own observation function based on the current state
+        # ...
 
         return 0
 
@@ -236,8 +251,12 @@ if __name__ == "__main__":
     env = CityEVEnvironment(evs=10, cs=3, timescale=5)
     state = env.reset()
 
-    for i in range(4):
-        env.visualize()
+    env.visualize()
+
+    for i in range(10):   
         actions = env.action_space.sample()
         # print(f'actions: {actions}, \n actions.shape: {actions.shape}')
         new_state, reward, done = env.step(actions)
+        env.visualize()
+
+    env.print_statistics()

@@ -4,7 +4,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 
 ## TODO short term
 - [ ] Research about electricity prices and how to include them in the problem formulation
-- [ ] Implement step for ev charger and ev
+- [x] Implement step for ev charger and ev
 - [ ] Complete the grid action transform
 - [ ] Implement the get_observation and reward functions
 - [ ] Replace 'EV-Spawner' with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
@@ -20,6 +20,8 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 - Use PandaPower to simulate the grid (use it with the power transformer class id characteristics, use the storage class to simulate the chargers fro each node **aggregate many chargers to one storage** per bus)
 - Support any kind of  MV or LV network for the PandaPower grid
 - Replace PandaPower with PowerFactory simulations for better accuracy
+- Discretize action space (-100%, ...-10%,0,10%, ...., 100%) for better convergence
+- Think of how to impose the constraints (e.g. the power for empty ev chargers should be zero ,the transformer should not exceed its maximum power)
 
 ### Improve Problem Formulation
 - [ ] Add the **grid** as a part of the problem formulation
@@ -27,6 +29,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 - [ ] Add the battery behavior model 0-80 fast, 80-100 slow
 - [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
 - [ ] Create a highly heterogeneous EV/ EV Chager environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids)
+- [ ] Improve the user satisfaction term
 
 ## Limitations
 - Real **time-series** grid data are required for the PandaPower grid simulator to work, for the following parts:
@@ -34,7 +37,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
     - Loads
     - Generators
     - Renewable energy sources
-    - 
+    
  ## URLs
  - PowerFlow Problem formulation: https://invenia.github.io/blog/2020/12/04/pf-intro/
  - PandaPower MV networks: https://pandapower.readthedocs.io/en/v2.1.0/networks/cigre.html

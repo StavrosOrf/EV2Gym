@@ -18,68 +18,181 @@ The EV_Charger class contains the following attributes:
 The EV_Charger class contains the following status variables:
     - current_power_output: the current total power output of the EV charger (positive for draining energy from the grid, negative for providing energy to the grid)
     - evs_connected: the list of EVs connected to the EV charger
+    - n_ev_connected: the current number of EVs connected to the EV charger
     - current_step: the current simulation timestep
+
+The EV_Charger class contains the following statistics variables:
+    - total_energy_charged: the total energy charged by the EV charger
+    - total_energy_discharged: the total energy discharged by the EV charger
+    - total_profits: the total profit of the EV charger
     
 The EV_Charger class contains the following methods:
     - step: updates the EV charger status according to the actions taken by the EVs
     - reset: resets the EV charger status to the initial state
 ===================================================================================================='''
 
+
 class EV_Charger:
     def __init__(self,
                  id,
                  connected_bus,
                  connected_transformer,
-                 geo_location = None,
-                 max_charge_power=22, #kW
-                 max_discharge_power=22, #kW                 
+                 geo_location=None,
+                 max_charge_power=22,  # kW
+                 max_discharge_power=22,  # kW
                  n_ports=2,
                  charger_type="Type2",
                  bi_directional=True,
                  timescale=5):
-        
+
         self.id = id
 
-        #EV Charger location and grid characteristics
+        # EV Charger location and grid characteristics
         self.connected_bus = connected_bus
         self.connected_transformer = connected_transformer
         self.geo_location = geo_location
-        
-        #EV Charger technical characteristics
+
+        # EV Charger technical characteristics
         self.max_charge_power = max_charge_power
         self.max_discharge_power = max_discharge_power
         self.n_ports = n_ports
         self.charger_type = charger_type
         self.bi_directional = bi_directional
+        self.timescale = timescale
 
-        #EV Charger status
-        self.current_power_output = 0        
-        self.evs_connected = []        
+        # EV Charger status
+        self.current_power_output = 0
+        self.evs_connected = [None] * n_ports        
+        self.n_evs_connected = 0
         self.current_step = 0
+        self.current_charge_price = 0
+        self.current_discharge_price = 0
 
+        # EV Charger Statistics
+        self.total_energy_charged = 0
+        self.total_energy_discharged = 0
+        self.total_profits = 0
+        self.total_evs_served = 0
+        self.total_user_satisfaction = 0
 
-    def step(self,actions, charge_price, discharge_price):
-        #actions are in the format of (power,n_ports) positive for charging negative for discharging
-        #default to 0 if no ev is connected
+    def step(self, actions, charge_price, discharge_price):
+        '''
+        Updates the EV charger status according to the actions taken by the EVs
+        Inputs:
+            - actions: a list of actions taken by the EVs connected to the EV charger in the format of (power) *n_ports positive for charging negative for discharging, default is to zer oif no ev is connected        
+            - charge_price: the price of charging per kWh in the current timestep
+            - discharge_price: the price of discharging per kWh in the current timestep
 
-        costs = 0
+        Outputs:
+            - profit: the total profit + costs of charging and discharging in the current timestep
+            - user_satisfaction: a list of user satisfaction values for each EV connected to the EV charger in the current timestep
+        '''
+        profit = 0
         user_satisfaction = []
+        self.current_power_output = 0    
+        self.current_charge_price = charge_price
+        self.current_discharge_price = discharge_price    
 
-        print(f'action: {actions}, charge_price: {charge_price}, discharge_price: {discharge_price}')
+        assert (len(actions) == self.n_ports)
 
-        #TODO: check if the power requested is within the limits of the charger, AND NORMALIZE ELSEWISE
-        #TODO: update the information of the connected EVs according to actions
+        # if no EV is connected, set action to 0
+        for i in range(len(actions)):
+            if self.evs_connected[i] is None:
+                actions[i] = 0
 
-        #TODO: remove departed EVs and add new EVs that just arrived
+        # normalize actions to sum to 1 for charging surplass or -1 for discharging surplass
+        if sum(actions) > 1:
+            normalized_actions = [action / sum(actions) for action in actions]
+        elif sum(actions) < -1:
+            normalized_actions = [- action /
+                                  sum(actions) for action in actions]
+        else:
+            normalized_actions = actions
+
+        for i, action in enumerate(normalized_actions):
+            assert (action >= -1 and action <= 1)
+
+            if action == 0:
+                continue
+            elif action > 0:
+                actual_power = self.evs_connected[i].step(
+                    action * self.max_charge_power)
+                profit += abs(actual_power) * charge_price
+                self.total_energy_charged += abs(actual_power)
+                self.current_power_output += actual_power
+
+            elif action < 0:
+                actual_power = self.evs_connected[i].step(
+                    action * self.max_discharge_power)
+                profit += abs(actual_power) * discharge_price
+                self.total_energy_discharged += abs(actual_power)
+                self.current_power_output += actual_power
+
+        self.total_profits += profit
+
+        # Check if EVs are departing
+        for i, ev in enumerate(self.evs_connected):
+            if ev is not None:
+                if ev.is_departing:
+                    print(f'EV {ev.id} is departing')
+                    self.evs_connected[i] = None
+                    self.n_evs_connected -= 1
+                    self.total_evs_served += 1
+                    ev_user_satisfaction = ev.get_user_satisfaction()
+                    self.total_user_satisfaction += ev_user_satisfaction
+                    user_satisfaction.append(ev_user_satisfaction)
 
         self.current_step += 1
 
-        return costs, user_satisfaction      
-    
-    def spawn_ev(self,ev):
-        self.evs_connected.append(ev)
+        return profit, user_satisfaction
+
+    def __str__(self) -> str:
+        
+        if self.total_evs_served == 0:
+            user_satisfaction_str = ' Avg. Sat.:  - '
+        else:
+            user_satisfaction_str =f' Avg. Sat.: {self.total_user_satisfaction/self.total_evs_served: 3.1f}'
+
+        return f'CS{self.id:3d}' + \
+                f' Served {self.total_evs_served:4d} EVs' + \
+                user_satisfaction_str + \
+                f' in {self.current_step: 4d} steps' + \
+                f' ({self.current_step*self.timescale: 3d} mins)' + \
+                f' |{self.total_profits: 7.1f} €' + \
+                f' +{self.total_energy_charged: 5.1f}/' + \
+                f'-{self.total_energy_discharged: 5.1f} kWh'    
+
+    def get_avg_user_satisfaction(self):            
+        if self.total_evs_served == 0:
+            return 0
+        else:
+            return sum([ev.get_user_satisfaction() for ev in self.evs_connected if ev is not None]) / self.total_evs_served
+
+    def spawn_ev(self, ev):
+        '''Adds an EV to the list of EVs connected to the EV charger
+        Inputs:
+            - ev: the EV to be added to the list of EVs connected to the EV charger
+        '''
+        assert (self.n_evs_connected < self.n_ports)
+
+        index = self.evs_connected.index(None)
+        ev.id = index
+        print(f'EV {ev.id} connected to EV Charger {self.id} at port {index}')
+        self.evs_connected[index] = ev
+
+        self.n_evs_connected += 1
 
     def reset(self):
-        self.current_power_output = 0        
-        self.evs_connected = []
+        '''Resets the EV charger status to the initial state'''
+
+        # EV Charger status
+        self.current_power_output = 0
+        self.evs_connected = [None] * self.n_ports
+        self.n_evs_connected = 0
         self.current_step = 0
+
+        # EV Charger Statistics
+        self.total_energy_charged = 0
+        self.total_energy_discharged = 0
+        self.total_profits = 0
+        self.total_evs_served = 0
