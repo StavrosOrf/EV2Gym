@@ -30,7 +30,8 @@ The EV_Charger class contains the following methods:
     - step: updates the EV charger status according to the actions taken by the EVs
     - reset: resets the EV charger status to the initial state
 ===================================================================================================='''
-
+import numpy as np
+from ev import EV
 
 class EV_Charger:
     def __init__(self,
@@ -94,7 +95,7 @@ class EV_Charger:
         self.current_discharge_price = discharge_price    
 
         assert (len(actions) == self.n_ports)
-
+        # print(f'CS {self.id} actions: {actions}')
         # if no EV is connected, set action to 0
         for i in range(len(actions)):
             if self.evs_connected[i] is None:
@@ -109,6 +110,7 @@ class EV_Charger:
         else:
             normalized_actions = actions
 
+        print(f'CS {self.id} normalized actions: {normalized_actions}')
         for i, action in enumerate(normalized_actions):
             assert (action >= -1 and action <= 1)
 
@@ -132,15 +134,16 @@ class EV_Charger:
 
         # Check if EVs are departing
         for i, ev in enumerate(self.evs_connected):
-            if ev is not None:
-                if ev.is_departing:
-                    print(f'EV {ev.id} is departing')
+            if ev is not None:               
+                print(f'EV {ev.id} leaving at {ev.earlier_time_of_departure} current step {self.current_step}') 
+                if ev.is_departing(self.current_step) is not None:                    
                     self.evs_connected[i] = None
                     self.n_evs_connected -= 1
                     self.total_evs_served += 1
                     ev_user_satisfaction = ev.get_user_satisfaction()
                     self.total_user_satisfaction += ev_user_satisfaction
                     user_satisfaction.append(ev_user_satisfaction)
+                    print(f'EV {ev.id} is departing from CS {self.id} with user satisfaction {ev_user_satisfaction} (SoC: {ev.get_soc(): 3.1f}%)')
 
         self.current_step += 1
 
@@ -153,11 +156,11 @@ class EV_Charger:
         else:
             user_satisfaction_str =f' Avg. Sat.: {self.total_user_satisfaction/self.total_evs_served: 3.1f}'
 
-        return f'CS{self.id:3d}' + \
+        # f' ({self.current_step*self.timescale: 3d} mins)' + \
+        return f'CS{self.id:3d}: ' + \
                 f' Served {self.total_evs_served:4d} EVs' + \
                 user_satisfaction_str + \
                 f' in {self.current_step: 4d} steps' + \
-                f' ({self.current_step*self.timescale: 3d} mins)' + \
                 f' |{self.total_profits: 7.1f} €' + \
                 f' +{self.total_energy_charged: 5.1f}/' + \
                 f'-{self.total_energy_discharged: 5.1f} kWh'    
@@ -177,7 +180,8 @@ class EV_Charger:
 
         index = self.evs_connected.index(None)
         ev.id = index
-        print(f'EV {ev.id} connected to EV Charger {self.id} at port {index}')
+        print(f'EV connected to Charger {self.id} at port {index} leaving at {ev.earlier_time_of_departure}' + \
+              f' SoC {ev.get_soc():.1f}%')
         self.evs_connected[index] = ev
 
         self.n_evs_connected += 1

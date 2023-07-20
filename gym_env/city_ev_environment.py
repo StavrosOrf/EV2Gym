@@ -82,9 +82,9 @@ class CityEVEnvironment(gym.Env):
                 electricity_prices_path)
         else:
             self.charge_prices = np.random.normal(
-                -50, 40, size=(self.cs, self.simulation_length))
+                -0.05, 0.05, size=(self.cs, self.simulation_length))
             self.discharge_prices = np.random.normal(
-                100, 30, size=(self.cs, self.simulation_length))
+                0.1, 0.05, size=(self.cs, self.simulation_length))
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         self.number_of_ports = np.array(
@@ -158,9 +158,10 @@ class CityEVEnvironment(gym.Env):
                 actions[port_counter:port_counter + n_ports],
                 self.charge_prices[cs.id, self.current_step],
                 self.discharge_prices[cs.id, self.current_step])
-
-            if len(user_satisfaction) > 0:
-                user_satisfaction_list.append(*user_satisfaction)
+            
+            for u in user_satisfaction:
+                user_satisfaction_list.append(u)
+                
             total_costs += costs
             self.current_ev_departed += len(user_satisfaction_list)
 
@@ -177,9 +178,9 @@ class CityEVEnvironment(gym.Env):
                         ev = EV(id=None,
                                 location=cs.id,
                                 battery_capacity_at_arrival=np.random.uniform(
-                                    1, 49, 1),
+                                    1, 49),
                                 time_of_arrival=self.current_step+1,
-                                earlier_time_of_departure=self.current_step+1 + np.random.randint(5, 100, 1),)
+                                earlier_time_of_departure=self.current_step+1 + np.random.randint(5, 10),)
                         cs.spawn_ev(ev)
 
                         self.total_evs_spawned += 1
@@ -198,6 +199,7 @@ class CityEVEnvironment(gym.Env):
         # Call step for the grid
         if self.simulate_grid:
             # TODO: transform actions -> grid_actions
+            raise NotImplementedError
             grid_report = self.grid.step(actions=actions)
             reward = self._calculate_reward(grid_report)
         else:
@@ -209,15 +211,19 @@ class CityEVEnvironment(gym.Env):
 
     def visualize(self):
         '''Renders the current state of the environment in the terminal'''
-        print(f"\n Current step: {self.current_step} ===========" + 
-              f"EVs +{self.current_ev_arrived}/-{self.current_ev_departed}" +  
+        print(f"\n Current step: {self.current_step} ===========" +
+              f"EVs +{self.current_ev_arrived}/-{self.current_ev_departed}" +
               f"| fullness: {self.current_evs_parked}/{self.number_of_ports}")
-        
+
         for cs in self.charging_stations:
-            print(f'  - Charging station {cs.id}:')
-            print(cs.current_power_output)
-            print(f'\t Power: {cs.current_power_output:4.1f} kWh')
-            for port in range(cs.n_ports):                
+            print(f'  - Charging station {cs.id}:')            
+            print(f'\t Power: {cs.current_power_output:4.1f} kWh |' +
+                  f' \u2197 {self.charge_prices[cs.id, self.current_step]:4.2f} €/kWh ' +
+                  f' \u2198 {self.discharge_prices[cs.id, self.current_step]:4.2f} €/kWh |' +
+                  f' EVs served: {cs.total_evs_served:3d} ' +
+                  f' {cs.total_profits:4.2f} €') 
+
+            for port in range(cs.n_ports):
                 ev = cs.evs_connected[port]
                 if ev is not None:
                     print(f'\t\tPort {port}: {ev}')
@@ -253,10 +259,13 @@ if __name__ == "__main__":
 
     env.visualize()
 
-    for i in range(10):   
-        actions = env.action_space.sample()
-        # print(f'actions: {actions}, \n actions.shape: {actions.shape}')
-        new_state, reward, done = env.step(actions)
+    for i in range(20):
+        print("-"*80)
+        # actions = env.action_space.sample()   # sample random actions
+        # actions = [a for a in actions]
+        actions = np.random.uniform(-1, 1, 6)        
+        print(f'Actions: {actions}')
+        new_state, reward, done = env.step(actions)  # takes action
         env.visualize()
 
     env.print_statistics()

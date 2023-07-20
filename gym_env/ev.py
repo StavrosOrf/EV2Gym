@@ -56,7 +56,6 @@ class EV():
         self.timescale = timescale
 
         # EV simulation characteristics
-        self.current_capacity = battery_capacity_at_arrival  # kWh
         self.time_of_arrival = time_of_arrival
         self.earlier_time_of_departure = earlier_time_of_departure
         self.use_probabilistic_time_of_departure = use_probabilistic_time_of_departure
@@ -77,20 +76,18 @@ class EV():
         self.previous_power = 0
 
     def __str__(self):
-        return f' {self.current_power:5.1f} kWh | {(self.current_capacity/self.battery_capacity)[0]*100:5.1f} %'
+        return f' {self.current_power:5.1f} kWh | {(self.current_capacity/self.battery_capacity)*100:5.1f} %'
 
     def step(self, action):
         '''
         The step method is used to update the EV's status according to the actions taken by the EV charger.
         Inputs:
-            - action: the power input in kW
-
+            - action: the power input in kW (positive for charging, negative for discharging)
         Outputs:
             - self.current_power: the current power input of the EV in kW (positive for charging, negative for discharging)
         '''
         if action == 0:
             return 0
-        action = action[0]
 
         # If the action is different than the previous action, then increase the charging cycles
         if self.previous_power == 0 or (self.previous_power/action) < 0:
@@ -98,7 +95,7 @@ class EV():
 
         if action > 0:
             self._charge(action)
-        else:
+        elif action < 0:
             self._discharge(action)
 
         self.previous_power = self.current_power
@@ -120,7 +117,7 @@ class EV():
             if np.random.poisson(lam=2.0) < timestep - self.earlier_time_of_departure:
                 return self.get_user_satisfaction()
         else:
-            if timestep == self.time_of_departure:
+            if timestep >= self.earlier_time_of_departure:
                 return self.get_user_satisfaction()
 
     def get_user_satisfaction(self):
@@ -134,6 +131,15 @@ class EV():
             return 0
         elif self.current_capacity >= self.desired_capacity:
             return 1
+
+    def get_soc(self):
+        '''
+        A function that returns the state of charge of the EV.
+        Outputs: 
+            - SoC: the state of charge of the EV in [0,100] %
+        '''
+
+        return (self.current_capacity/self.battery_capacity)*100
 
     def _charge(self, power):
         '''
@@ -166,4 +172,4 @@ class EV():
             self.current_capacity = 0
         else:
             self.current_power = giving_power
-            self.current_capacity -= giving_power
+            self.current_capacity += giving_power
