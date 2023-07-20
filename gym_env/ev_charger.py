@@ -5,7 +5,7 @@ Author: Stavros Orfanoudakis 2023
 '''
 
 import numpy as np
-from ev import EV
+from .ev import EV
 
 
 class EV_Charger:

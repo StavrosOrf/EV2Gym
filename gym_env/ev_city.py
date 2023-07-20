@@ -8,14 +8,14 @@ import gym
 from gym import spaces
 import numpy as np
 
-from grid import Grid
-from ev_charger import EV_Charger
-from ev import EV
+from .grid import Grid
+from .ev_charger import EV_Charger
+from .ev import EV
 
 
-class CityEVEnvironment(gym.Env):
+class EVCity(gym.Env):
     '''
-    This file contains the CityEVEnvironment class, which is used to represent the environment of the city.    
+    This file contains the EVCity class, which is used to represent the environment of the city.    
     '''
 
     def __init__(self,
@@ -30,7 +30,7 @@ class CityEVEnvironment(gym.Env):
                  verbose=False,
                  simulation_length=1000):
 
-        super(CityEVEnvironment, self).__init__()
+        super(EVCity, self).__init__()
 
         self.cs = cs  # Number of charging stations
         # Threshold for the user satisfaction score
@@ -225,20 +225,21 @@ class CityEVEnvironment(gym.Env):
               f" \tEVs +{self.current_ev_arrived}/-{self.current_ev_departed}" +
               f"| fullness: {self.current_evs_parked}/{self.number_of_ports}")
 
-        for cs in self.charging_stations:
-            print(f'  - Charging station {cs.id}:')
-            print(f'\t Power: {cs.current_power_output:4.1f} kWh |' +
-                  f' \u2197 {self.charge_prices[cs.id, self.current_step -1 ]:4.2f} €/kWh ' +
-                  f' \u2198 {self.discharge_prices[cs.id, self.current_step - 1]:4.2f} €/kWh |' +
-                  f' EVs served: {cs.total_evs_served:3d} ' +
-                  f' {cs.total_profits:4.2f} €')
+        if self.verbose:
+            for cs in self.charging_stations:
+                print(f'  - Charging station {cs.id}:')
+                print(f'\t Power: {cs.current_power_output:4.1f} kWh |' +
+                    f' \u2197 {self.charge_prices[cs.id, self.current_step -1 ]:4.2f} €/kWh ' +
+                    f' \u2198 {self.discharge_prices[cs.id, self.current_step - 1]:4.2f} €/kWh |' +
+                    f' EVs served: {cs.total_evs_served:3d} ' +
+                    f' {cs.total_profits:4.2f} €')
 
-            for port in range(cs.n_ports):
-                ev = cs.evs_connected[port]
-                if ev is not None:
-                    print(f'\t\tPort {port}: {ev}')
-                else:
-                    print(f'\t\tPort {port}:')
+                for port in range(cs.n_ports):
+                    ev = cs.evs_connected[port]
+                    if ev is not None:
+                        print(f'\t\tPort {port}: {ev}')
+                    else:
+                        print(f'\t\tPort {port}:')
 
     def print_statistics(self):
         '''Prints the statistics of the simulation'''
