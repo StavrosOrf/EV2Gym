@@ -78,6 +78,12 @@ class Grid:
 
         # solve the power flow
         pp.runpp(self.net, numba=False)
+    
+    def get_grid_state(self):
+        '''
+        TODO: return the grid state
+        '''
+        pass
 
     def get_charging_stations_buses(self):
         return self.charging_stations_buses
