@@ -51,7 +51,7 @@ class EV_Charger:
                  max_charge_power=300,  # kW
                  max_discharge_power=22,  # kW
                  n_ports=2,
-                 charger_type="Type2",
+                 charger_type="DC",
                  bi_directional=True,
                  timescale=5,
                  verbose=False):

@@ -7,6 +7,7 @@ Author: Stavros Orfanoudakis 2023
 import gym
 from gym import spaces
 import numpy as np
+import datetime
 
 from .grid import Grid
 from .ev_charger import EV_Charger
@@ -27,10 +28,14 @@ class EVCity(gym.Env):
                  case='default',
                  score_threshold=1,
                  timescale=5,
+                 date=(2023, 7, 21),  # (year, month, day)
+                 hour=(18, 0),  # (hour, minute) 24 hour format
                  verbose=False,
                  simulation_length=1000):
 
         super(EVCity, self).__init__()
+
+        print(f'Initializing EVCity environment...')
 
         self.cs = cs  # Number of charging stations
         # Threshold for the user satisfaction score
@@ -40,12 +45,11 @@ class EVCity(gym.Env):
         self.verbose = verbose  # Whether to print the simulation progress or not
 
         # Simulation time
-        self.minute = 0  # Starting minute of the simulation
-        self.hour = 8  # Starting hour of the simulation
-        self.day = 1  # Starting day of the simulation
-        self.week = 1  # Starting week of the simulation
-        self.month = 1  # Starting month of the simulation
-        self.year = 2023  # Starting year of the simulation
+        self.sim_date = datetime.datetime(date[0],
+                                          date[1],
+                                          date[2],
+                                          hour[0],
+                                          hour[1])
 
         self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
 
@@ -196,6 +200,7 @@ class EVCity(gym.Env):
             raise NotImplementedError
 
         self.current_step += 1
+        self._step_date()
         self.current_evs_parked += self.current_ev_arrived - self.current_ev_departed
 
         # Call step for the grid
@@ -220,7 +225,8 @@ class EVCity(gym.Env):
 
     def visualize(self):
         '''Renders the current state of the environment in the terminal'''
-        print(f"\n Current step: {self.current_step}" +
+        print(f"\n Step: {self.current_step}" +
+              f" | {self.sim_date.hour}:{self.sim_date.minute}:{self.sim_date.second} |" +
               f" \tEVs +{self.current_ev_arrived}/-{self.current_ev_departed}" +
               f"| fullness: {self.current_evs_parked}/{self.number_of_ports}")
 
@@ -253,8 +259,7 @@ class EVCity(gym.Env):
         average_user_satisfaction = np.average(np.array(
             [cs.get_avg_user_satisfaction() for cs in self.charging_stations]))
 
-        print(
-            "\n\n========================================================================")
+        print("\n\n==============================================================")
         print("Simulation statistics:")
         print(f'  - Total EVs spawned: {self.total_evs_spawned}')
         print(f'  - Total EVs served: {total_ev_served}')
@@ -268,6 +273,11 @@ class EVCity(gym.Env):
 
         for cs in self.charging_stations:
             print(cs)
+
+    def _step_date(self):
+        '''Steps the simulation date by one timestep'''
+        self.sim_date = self.sim_date + \
+            datetime.timedelta(minutes=self.timescale)
 
     def _get_observation(self, include_grid=False):
         '''Returns the current state of the environment'''
@@ -284,7 +294,6 @@ class EVCity(gym.Env):
         return np.hstack(state)
 
     def _calculate_reward(self, total_costs, user_satisfaction_list):
-        # Define your own reward function based on the current state and action
-        # ...
+        '''Calculates the reward for the current step'''
         reward = total_costs
         return reward

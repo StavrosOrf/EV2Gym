@@ -31,6 +31,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 
 ### Improve Problem Formulation
 - [ ] Add the **grid** as a part of the problem formulation
+- [ ] Add power limit as part fo the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
 - [ ] Add **j number of ports** per charging station and include related constraints
 - [ ] Add the battery behavior model 0-80 fast, 80-100 slow
 - [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
@@ -46,15 +47,20 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 
 ## Datasets
  - EV charging transactions: https://platform.elaad.io/download-data/
-
+ - EV charing prices and transactions [Not free]: https://www.chargeprice.app/
 
 ## URLs
+
+#### Articles
  - PowerFlow Problem formulation: https://invenia.github.io/blog/2020/12/04/pf-intro/
  - PandaPower MV networks: https://pandapower.readthedocs.io/en/v2.1.0/networks/cigre.html
  - PowerFactory API for python: https://thesmartinsights.com/run-digsilent-powerfactory-via-the-python-api-jump-start-to-your-powerfactory-automatization/
  - EV battery and EV chargers characteristics: https://www.ovoenergy.com/guides/energy-guides/ev-charging-speeds-explained-slow-fast-and-rapid
  - EV battery characteristics: https://axlewise.com/ev-car-battery/#:~:text=The%20size%20of%20an%20electric%20car%20battery%20can,depending%20on%20the%20car%E2%80%99s%20make%2C%20model%2C%20and%20year.
  - EV charger manufacturer: https://new.abb.com/ev-charging
+  
+  #### Code repositories
+  - EV simulator and datasets: https://github.com/zach401/acnportal
 
 
 # Assumptions
