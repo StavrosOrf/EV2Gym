@@ -13,6 +13,8 @@ A V2X Simulation Environment for large scale EV charging optimization
 
 #### PyOmo Optimization
 - [ ] Implement the Pyomo optimization problem formulation
+  - [ ] Add constraints
+  - [ ] Add objective function  
 - [ ] Solve optimally using gurbi based on saved track of simulation
  
 ## TODO long term

@@ -26,6 +26,7 @@ class EVCity(gym.Env):
                  electricity_prices_path=None,
                  simulate_grid=False,
                  case='default',
+                 number_of_ports_per_cs=2,
                  score_threshold=1,
                  timescale=5,
                  date=(2023, 7, 21),  # (year, month, day)
@@ -40,6 +41,7 @@ class EVCity(gym.Env):
         self.cs = cs  # Number of charging stations
         # Threshold for the user satisfaction score
         self.score_threshold = score_threshold
+        self.number_of_ports_per_cs = number_of_ports_per_cs
         self.timescale = timescale  # Timescale of the simulation (in minutes)
         self.simulation_length = simulation_length
         self.verbose = verbose  # Whether to print the simulation progress or not
@@ -69,6 +71,7 @@ class EVCity(gym.Env):
                 ev_charger = EV_Charger(id=i,
                                         connected_bus=self.cs_buses[i],
                                         connected_transformer=self.cs_transformers,
+                                        n_ports=self.number_of_ports_per_cs,
                                         timescale=self.timescale,
                                         verbose=self.verbose,)
 
