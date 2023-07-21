@@ -172,7 +172,6 @@ class EVCity(gym.Env):
 
             # Spawn EVs
             if self.ev_profiles is None:
-
                 if n_ports > cs.n_evs_connected:
                     # get a random float in [0,1] to decide if spawn an EV
                     # TODO: Replace with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
@@ -229,10 +228,10 @@ class EVCity(gym.Env):
             for cs in self.charging_stations:
                 print(f'  - Charging station {cs.id}:')
                 print(f'\t Power: {cs.current_power_output:4.1f} kWh |' +
-                    f' \u2197 {self.charge_prices[cs.id, self.current_step -1 ]:4.2f} €/kWh ' +
-                    f' \u2198 {self.discharge_prices[cs.id, self.current_step - 1]:4.2f} €/kWh |' +
-                    f' EVs served: {cs.total_evs_served:3d} ' +
-                    f' {cs.total_profits:4.2f} €')
+                      f' \u2197 {self.charge_prices[cs.id, self.current_step -1 ]:4.2f} €/kWh ' +
+                      f' \u2198 {self.discharge_prices[cs.id, self.current_step - 1]:4.2f} €/kWh |' +
+                      f' EVs served: {cs.total_evs_served:3d} ' +
+                      f' {cs.total_profits:4.2f} €')
 
                 for port in range(cs.n_ports):
                     ev = cs.evs_connected[port]

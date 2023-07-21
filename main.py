@@ -8,10 +8,11 @@ if __name__ == "__main__":
 
     verbose = False
     number_of_charging_stations = 200
-    steps = 100
+    steps = 100000
+    timescale = 5 #(5 minutes per step)
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
-                            timescale=5,
+                            timescale=timescale,
                             verbose=verbose,
                             simulation_length=steps)
     state = env.reset()
