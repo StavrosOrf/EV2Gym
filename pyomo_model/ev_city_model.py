@@ -20,45 +20,75 @@ class EV_City_Math_Model():
         self.sim_length = env.simulation_length
         self.n_cs = env.cs
         self.number_of_ports_per_cs = env.number_of_ports_per_cs
+        self.timescale = env.timescale
+
+        dt = self.timescale / 60  # time step
 
         # TODO: Load environment parameters of the simulation
         # !!!!!! make sure to zerrofill the data when there are no evs !!!!!!
-        charge_prices = np.ones(self.n_cs, self.sim_length)  # charge prices
-        discharge_prices = np.ones(self.n_cs,
-                                   self.sim_length)  # discharge prices
-        port_enabled = np.zeros(self.number_of_ports,
+        charge_prices = np.ones([self.n_cs, self.sim_length])  # charge prices
+        discharge_prices = np.ones([self.n_cs,
+                                   self.sim_length])  # discharge prices
+        port_max_power = np.ones([self.n_cs,
+                                 self.sim_length]) * 22 * dt  # charger max power
+        port_min_power = np.zeros([self.n_cs,
+                                  self.sim_length]) * dt  # charger min power
+        cs_ch_efficiency = np.zeros([self.n_cs,
+                                    self.sim_length])  # charging efficiency
+        cs_dis_efficiency = np.zeros([self.n_cs,
+                                     self.sim_length])  # discharging efficiency
+        ev_max_energy = np.ones([self.number_of_ports_per_cs,
                                 self.n_cs,
-                                self.sim_length)  # port enabled
-        port_max_power = np.ones(self.n_cs,
-                                 self.sim_length)*22  # charger max power
-        port_min_power = np.zeros(self.n_cs,
-                                  self.sim_length)  # charger min power
-        cs_efficiency = np.zeros(self.n_cs,
-                                 self.sim_length)  # charger min power
-        ev_max_power = np.ones(self.number_of_ports_per_cs,
-                               self.n_cs,
-                               self.sim_length)  # ev max power
-        ev_min_power = np.zeros(self.number_of_ports_per_cs,
+                                self.sim_length])  # ev max battery capacity, 0 if no ev is there
+        ev_min_energy = np.zeros([self.number_of_ports_per_cs,
+                                 self.n_cs,
+                                 self.sim_length])  # ev min battery capacity, 0 if no ev is there
+        ev_max_ch_power = np.ones([self.number_of_ports_per_cs,
+                                  self.n_cs,
+                                  self.sim_length]) * dt  # ev max charging power, 0 if no ev is there
+        ev_min_ch_power = np.ones([self.number_of_ports_per_cs,
+                                  self.n_cs,
+                                  self.sim_length]) * dt   # ev min charging power, 0 if no ev is there
+        ev_max_dis_power = np.ones([self.number_of_ports_per_cs,
+                                   self.n_cs,
+                                   self.sim_length]) * dt  # ev max discharging power, 0 if no ev is there
+        ev_min_dis_power = np.ones([self.number_of_ports_per_cs,
+                                   self.n_cs,
+                                   self.sim_length]) * dt  # ev min discharging power, 0 if no ev is there
+        u = np.zeros([self.number_of_ports_per_cs,
+                     self.n_cs,
+                     self.sim_length])  # u is 0 if port is empty and 1 if port is occupied
+        t_dep = np.ones([self.number_of_ports_per_cs,
+                        self.n_cs,
+                        self.sim_length])  # time of departure of the ev, 0 if port is empty
+        ev_des_energy = np.ones([self.number_of_ports_per_cs,
                                 self.n_cs,
-                                self.sim_length)  # ev min power
+                                self.sim_length])  # desired energy of the ev, 0 if port is empty
 
         # create model
         m = gp.Model("ev_city")
 
-        power_output = m.addVars(self.number_of_ports,
+        power_output = m.addVars(self.number_of_ports_per_cs,
                                  self.self.n_cs,
                                  self.sim_length,
                                  vtype=GRB.CONTINUOUS,
                                  name='output')
-        # Mode variable for the charging station: 1 for Charging and 0 for discharging
-        mode = m.addVars(self.self.n_cs,
+        # Mode variable for the EV: 1 for Charging and 0 for discharging
+        mode = m.addVars(self.number_of_ports_per_cs,
+                         self.self.n_cs,
                          self.sim_length,
                          vtype=GRB.Binary,
-                         name='cs_mode')
+                         name='ev_mode')
 
-        energy = m.addVars(self.number_of_ports,
+        mode_cs = m.addVars(self.self.n_cs,
+                            self.sim_length,
+                            vtype=GRB.Binary,
+                            name='cs_mode_cs')
+
+        energy = m.addVars(self.number_of_ports_per_cs,
                            self.self.n_cs,
                            self.sim_length,
+                           lb=0,
                            vtype=GRB.CONTINUOUS,
                            name='energy')
 
@@ -75,72 +105,95 @@ class EV_City_Math_Model():
 
         # Help variable definitions
 
-        total_power_output_per_cs = gp.quicksum(
+        power_output_per_cs = gp.quicksum(
             sum(power_output[p, :, :]) for p in range(self.number_of_ports_per_cs))
 
-        # set cost function
-        # 1 cost of generator
-        # cost_gen = gp.quicksum((a_para[g]*gen_output[g, t]*gen_output[g, t]+b_para[g] *
-        #                         gen_output[g, t]+c_para[g]*on_off[g, t])for t in range(period) for g in range(NUM_GEN))
+        total_charging_profits = gp.quicksum(
+            (charge_prices[p, i, t]*abs(power_output[p, i, t])*mode_cs)
+            for p in range(self.number_of_ports_per_cs)
+            for i in range(self.n_cs)
+            for t in range(self.sim_length))
 
-        # cost_grid_import = gp.quicksum(
-        #     grid_energy_import[t]*price[t] for t in range(period))
-        # cost_grid_export = gp.quicksum(
-        #     grid_energy_export[t]*price[t]*env.sell_coefficient for t in range(period))
+        total_discharging_profits = gp.quicksum(
+            (discharge_prices[p, i, t]*abs(power_output[p, i, t])*(1-mode_cs))
+            for p in range(self.number_of_ports_per_cs)
+            for i in range(self.n_cs)
+            for t in range(self.sim_length))
 
         # Constrains
 
-        # charging station binary "mode" variable constraint
-        m.addConstrs(((total_power_output_per_cs[i, t] > 0 and mode[i, t] == 1) or
-                      (total_power_output_per_cs[i, t]
-                       <= 0 and mode[i, t] == 0)
+        # charging station binary "mode_cs" variable constraint
+        m.addConstrs(((power_output_per_cs[i, t] > 0 and mode_cs[i, t] == 1) or
+                      (power_output_per_cs[i, t] <= 0 and mode_cs[i, t] == 0)
                       for i in range(self.n_cs)
                       for t in range(self.sim_length)), name='cs_mode')
-        # energy of EVs after charge/discharge constraint #TODO:check if it makes sense
-        # probably remove?
-        m.addConstrs((energy[p, i, t+1] == energy[p, i, t] +
-                      cs_efficiency[i, t] * power_output[p, i, t]
+
+        # EV binary "mode" variable constraint
+        m.addConstrs(((power_output[p, i, t] > 0 and mode[p, i, t] == 1) or
+                      (power_output[p, i, t] <= 0 and mode[p, i, t] == 0)
                       for p in range(self.number_of_ports_per_cs)
                       for i in range(self.n_cs)
-                      for t in range(self.sim_length-1)), name='ev_energy')
-        
-        # energy level of EVs
-        m.addConstrs((energy[p, i, t] >= ev_min_power[p, i, t] and
-                      energy[p, i, t] <= ev_max_power[p, i, t]
+                      for t in range(self.sim_length)), name='ev_mode')
+
+        # charging station power output constraint
+        m.addConstrs((power_output_per_cs[i, t] >= port_min_power[i, t] and
+                      power_output_per_cs[i, t] <= port_max_power[i, t]
+                      for i in range(self.n_cs)
+                      for t in range(self.sim_length)), name='cs_power_output')
+
+        # ev charging power constraint
+        m.addConstrs((power_output[p, i, t]*mode[p, i, t]*u[p, i, t]
+                      >= ev_min_ch_power[p, i, t]*mode[p, i, t]*u[p, i, t] and
+                      power_output[p, i, t]*mode[p, i, t]*u[p, i, t]
+                      <= ev_max_ch_power[p, i, t]*mode[p, i, t]*u[p, i, t]
+                      for p in range(self.number_of_ports_per_cs)
+                      for i in range(self.n_cs)
+                      for t in range(self.sim_length)), name='ev_ch_power')
+
+        # ev discharging power constraint
+        m.addConstrs((power_output[p, i, t] * (1-mode[p, i, t]) * u[p, i, t]
+                      >= ev_max_dis_power[p, i, t] * (1-mode[p, i, t])*u[p, i, t] and
+                      power_output[p, i, t] * (1-mode[p, i, t])*u[p, i, t]
+                      <= ev_min_dis_power[p, i, t] * (1-mode[p, i, t])*u[p, i, t]
+                      for p in range(self.number_of_ports_per_cs)
+                      for i in range(self.n_cs)
+                      for t in range(self.sim_length)), name='ev_dis_power')
+
+        # ev charge power if empty port constraint
+        m.addConstrs((power_output[p, i, t] == 0 and u[p, i, t] == 0 or u[p, i, t] == 1
+                      for p in range(self.number_of_ports_per_cs)
+                      for i in range(self.n_cs)
+                      for t in range(self.sim_length)), name='ev_empty_port')
+
+        # energy of EVs after charge/discharge constraint
+        m.addConstrs((energy[p, i, t+1] == (energy[p, i, t] +
+                      mode[p, i, t]*cs_ch_efficiency[i, t] * power_output[p, i, t] +
+                      (1-mode[p, i, t])*cs_dis_efficiency[i, t] *
+                      power_output[p, i, t]) and u[p, i, t] == 1
+                      or (energy[p, i, t] == 0 and u[p, i, t] == 0)
                       for p in range(self.number_of_ports_per_cs)
                       for i in range(self.n_cs)
                       for t in range(self.sim_length-1)), name='ev_energy')
 
-        # 1. add balance constrain
-        m.addConstrs(((sum(gen_output[g, t] for g in range(NUM_GEN))+pv[t]+grid_energy_import[t] >= load[t] +
-                       battery_energy_change[t]+grid_energy_export[t]) for t in range(period)), name='powerbalance')
-        # 2. add constrain for p max pmin
-        m.addConstrs((gen_output[g, t] <= on_off[g, t]*p_max[g]
-                      for g in range(NUM_GEN) for t in range(period)), 'output_max')
-        m.addConstrs((gen_output[g, t] >= on_off[g, t]*p_min[g]
-                      for g in range(NUM_GEN) for t in range(period)), 'output_min')
-        # 3. add constrain for ramping up ramping down
-        m.addConstrs((gen_output[g, t+1]-gen_output[g, t] <= ramping_up[g]
-                      for g in range(NUM_GEN) for t in range(period-1)), 'ramping_up')
-        m.addConstrs((gen_output[g, t]-gen_output[g, t+1] <= ramping_down[g]
-                      for g in range(NUM_GEN) for t in range(period-1)), 'ramping_down')
-        # 4. add constrains for SOC
-        m.addConstr(battery_capacity*soc[0] == battery_capacity*initial_soc+(
-            battery_energy_change[0]*battery_efficiency), name='soc0')
-        m.addConstrs((battery_capacity*soc[t] == battery_capacity*soc[t-1]+(
-            battery_energy_change[t]*battery_efficiency)for t in range(1, period)), name='soc update')
+        # energy level of EVs constraint
+        m.addConstrs((energy[p, i, t] >= ev_min_energy[p, i, t] and
+                      energy[p, i, t] <= ev_max_energy[p, i, t]
+                      for p in range(self.number_of_ports_per_cs)
+                      for i in range(self.n_cs)
+                      for t in range(self.sim_length-1)), name='ev_energy_level')
 
-        m.setObjective((cost_gen+cost_grid_import -
-                       cost_grid_export), GRB.MINIMIZE)
+        # time of departure of EVs
+        m.addConstrs((t_dep[p, i, t] == t and energy[p, i, t] >= ev_des_energy[p, i, t] or
+                      t_dep[p, i, t] != t
+                      for p in range(self.number_of_ports_per_cs)
+                      for i in range(self.n_cs)
+                      for t in range(self.sim_length-1)), name='ev_time_of_departure')
+
+        # Objective function
+
+        m.setObjective((total_charging_profits +
+                       total_discharging_profits), GRB.MAXIMIZE)
         m.optimize()
-
-        def get_dg_info(parameters):
-            p_max = []
-            for name, gen_info in parameters.items():
-                p_max.append(gen_info['power_output_max'])
-
-            return p_max, p_min, ramping_up, ramping_down, a_para, b_para, c_para
-
 
 if __name__ == "__main__":
 

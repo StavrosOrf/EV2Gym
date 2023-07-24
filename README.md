@@ -12,9 +12,9 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
 
 #### PyOmo Optimization
-- [ ] Implement the Pyomo optimization problem formulation
-  - [ ] Add constraints
-  - [ ] Add objective function  
+- [x] Implement the Pyomo optimization problem formulation
+  - [x] Add constraints
+  - [x] Add objective function  
 - [ ] Solve optimally using gurbi based on saved track of simulation
  
 ## TODO long term

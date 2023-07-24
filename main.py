@@ -1,4 +1,5 @@
 from gym_env import ev_city
+from pyomo_model import ev_city_model
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,6 +17,9 @@ if __name__ == "__main__":
                             verbose=verbose,
                             simulation_length=steps)
     state = env.reset()
+
+    math_model = ev_city_model.EV_City_Math_Model(env)
+    exit()
     
     env.visualize()
     rewards = []
