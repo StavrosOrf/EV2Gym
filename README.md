@@ -15,8 +15,8 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [x] Implement the Pyomo optimization problem formulation
   - [x] Add constraints
   - [x] Add objective function  
-- [ ] Debug the Pyomo optimization problem formulation
-- [ ] Save the data from the gym simulation to a file so they can be read
+- [x] Debug the Pyomo optimization problem formulation
+- [ ] Save the data from the gym simulation to a file so they can be read 
 - [ ] Solve optimally using gurbi based on saved track of simulation
  
 ## TODO long term

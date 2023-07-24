@@ -26,7 +26,7 @@ class EV_City_Math_Model():
 
         # TODO: Load environment parameters of the simulation
         # !!!!!! make sure to zerrofill the data when there are no evs !!!!!!
-        charge_prices = np.ones([self.n_cs, self.sim_length])  # charge prices
+        charge_prices = np.ones([self.n_cs, self.sim_length])*-1  # charge prices
         discharge_prices = np.ones([self.n_cs,
                                    self.sim_length])  # discharge prices
         port_max_power = np.ones([self.n_cs,
@@ -204,8 +204,6 @@ class EV_City_Math_Model():
                       for p in range(self.number_of_ports_per_cs)
                       for i in range(self.n_cs)
                       for t in range(self.sim_length)), name='ev_dis_power2')
-        # print constraints
-        m.write("model.lp")
 
         # ev charge power if empty port constraint
         for t in range(self.sim_length):
@@ -254,6 +252,9 @@ class EV_City_Math_Model():
         # Objective function
         m.setObjective((total_charging_profits +
                        total_discharging_profits), GRB.MAXIMIZE)
+        
+        # print constraints
+        m.write("model.lp")
         m.optimize()
 
 
