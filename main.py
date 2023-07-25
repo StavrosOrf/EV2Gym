@@ -8,17 +8,17 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    number_of_charging_stations = 1
-    steps = 3
+    number_of_charging_stations = 3
+    steps = 10
     timescale = 5 #(5 minutes per step)
 
-    env = ev_city.EVCity(cs=number_of_charging_stations,
-                            timescale=timescale,
-                            verbose=verbose,
-                            simulation_length=steps)
-    state = env.reset()
+    # env = ev_city.EVCity(cs=number_of_charging_stations,
+    #                         timescale=timescale,
+    #                         verbose=verbose,
+    #                         simulation_length=steps)
+    # state = env.reset()
 
-    math_model = ev_city_model.EV_City_Math_Model(env)
+    math_model = ev_city_model.EV_City_Math_Model(sim_file_path="replay/replay_ev_city_10_2023-07-25_13-39.pkl")
     exit()
     
     env.visualize()
@@ -45,6 +45,8 @@ if __name__ == "__main__":
     
     if verbose:
         env.print_statistics()
+    
+    exit()
 
     # Plot the commulative reward in subplot 1
     plt.subplot(2, 1, 1)

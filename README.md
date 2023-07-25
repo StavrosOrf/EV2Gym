@@ -16,7 +16,7 @@ A V2X Simulation Environment for large scale EV charging optimization
   - [x] Add constraints
   - [x] Add objective function  
 - [x] Debug the Pyomo optimization problem formulation
-- [ ] Save the data from the gym simulation to a file so they can be read 
+- [x] Save the data from the gym simulation to a file so they can be read 
 - [ ] Solve optimally using gurbi based on saved track of simulation
  
 ## TODO long term
@@ -36,7 +36,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 ### Improve Problem Formulation
 - [ ] Add the **grid** as a part of the problem formulation
 - [ ] Add power limit as part fo the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
-- [ ] Add **j number of ports** per charging station and include related constraints
+- [x] Add **j number of ports** per charging station and include related constraints
 - [ ] Add the battery behavior model 0-80 fast, 80-100 slow
 - [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
 - [ ] Create a highly heterogeneous EV/ EV Chager environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids)

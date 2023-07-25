@@ -8,10 +8,12 @@ import gym
 from gym import spaces
 import numpy as np
 import datetime
+import pickle
 
 from .grid import Grid
 from .ev_charger import EV_Charger
 from .ev import EV
+from .replay import EvCityReplay
 
 
 class EVCity(gym.Env):
@@ -31,6 +33,7 @@ class EVCity(gym.Env):
                  timescale=5,
                  date=(2023, 7, 21),  # (year, month, day)
                  hour=(18, 0),  # (hour, minute) 24 hour format
+                 save_replay=True,
                  verbose=False,
                  simulation_length=1000):
 
@@ -45,6 +48,8 @@ class EVCity(gym.Env):
         self.timescale = timescale  # Timescale of the simulation (in minutes)
         self.simulation_length = simulation_length
         self.verbose = verbose  # Whether to print the simulation progress or not
+        self.sim_name = f'ev_city_{self.simulation_length}_' + \
+            f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
 
         # Simulation time
         self.sim_date = datetime.datetime(date[0],
@@ -116,6 +121,11 @@ class EVCity(gym.Env):
         self.current_ev_departed = 0
         self.current_ev_arrived = 0
         self.current_evs_parked = 0
+
+        self.save_replay = save_replay
+
+        if self.save_replay:
+            self.EVs = [] #Store all of the EVs in the simulation that arrived            
 
     def _load_ev_charger_profiles(self, path):
         # TODO: Load EV charger profiles from a csv file
@@ -189,13 +199,15 @@ class EVCity(gym.Env):
                                 battery_capacity_at_arrival=np.random.uniform(
                                     1, 49),
                                 time_of_arrival=self.current_step+1,
-                                earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
+                                earlier_time_of_departure=self.current_step+1 + np.random.randint(3, 5),)
+                                # earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
                         cs.spawn_ev(ev)
 
-                        self.total_evs_spawned += 1
-                        self.current_ev_arrived += 1
+                        if self.save_replay:
+                            self.EVs.append(ev)
 
-            # TODO: record the spawn history of EVs for reproducible results, so the evs_profiles can be loaded again
+                        self.total_evs_spawned += 1
+                        self.current_ev_arrived += 1            
 
         # Spawn EVs
         if self.ev_profiles is not None:
@@ -220,7 +232,14 @@ class EVCity(gym.Env):
         if self.current_step >= self.simulation_length or \
                 any(score < self.score_threshold for score in user_satisfaction_list):
 
-            print(f"\n Episode finished after {self.current_step} timesteps")
+            print(f"\nEpisode finished after {self.current_step} timesteps")
+
+            if self.save_replay:
+                # Save replay file
+                replay = EvCityReplay(self)
+                print(f"Saving replay file at {replay.replay_path}")                                
+                with open(replay.replay_path, 'wb') as f:
+                    pickle.dump(replay, f)
 
             return self._get_observation(), reward, True
         else:
@@ -275,7 +294,7 @@ class EVCity(gym.Env):
             f'  - Total energy discharged: {total_energy_discharged:.1f} kWh\n')
 
         for cs in self.charging_stations:
-            print(cs)
+            print(cs)    
 
     def _step_date(self):
         '''Steps the simulation date by one timestep'''

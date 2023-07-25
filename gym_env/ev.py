@@ -65,6 +65,7 @@ class EV():
         self.earlier_time_of_departure = earlier_time_of_departure
         self.use_probabilistic_time_of_departure = use_probabilistic_time_of_departure
         self.desired_capacity = desired_capacity  # kWh
+        self.battery_capacity_at_arrival = battery_capacity_at_arrival  # kWh
 
         # EV technical characteristics
         self.battery_capacity = battery_capacity  # kWh
