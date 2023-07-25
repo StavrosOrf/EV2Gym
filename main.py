@@ -8,18 +8,15 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    number_of_charging_stations = 3
-    steps = 10
+    number_of_charging_stations = 2000
+    steps = 1000
     timescale = 5 #(5 minutes per step)
 
-    # env = ev_city.EVCity(cs=number_of_charging_stations,
-    #                         timescale=timescale,
-    #                         verbose=verbose,
-    #                         simulation_length=steps)
-    # state = env.reset()
-
-    math_model = ev_city_model.EV_City_Math_Model(sim_file_path="replay/replay_ev_city_10_2023-07-25_13-39.pkl")
-    exit()
+    env = ev_city.EVCity(cs=number_of_charging_stations,
+                            timescale=timescale,
+                            verbose=verbose,
+                            simulation_length=steps)
+    state = env.reset()
     
     env.visualize()
     rewards = []
@@ -45,6 +42,14 @@ if __name__ == "__main__":
     
     if verbose:
         env.print_statistics()
+    
+    math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_{env.sim_name}.pkl")    
+    #Example with t_departure
+    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_5_2023-07-25_20-23.pkl")    
+    # a 5 steps case that was solved wrong
+    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_5_2023-07-25_15-08.pkl")    
+    #a normal 5 steps case
+    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_10_2023-07-25_14-47.pkl")    
     
     exit()
 

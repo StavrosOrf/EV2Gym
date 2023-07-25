@@ -4,12 +4,16 @@ A V2X Simulation Environment for large scale EV charging optimization
 
 ## TODO short term
 
+#### General
+- [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
+- [ ] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
+
 #### Gym Environment
 - [x] Implement step for ev charger and ev
 - [x] Implement the get_observation and reward functions
+- [ ] Implement the Load_Scenario from replay file
 - [ ] Research about electricity prices and how to include them in the problem formulation
 - [ ] Replace 'EV-Spawner' with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
-- [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
 
 #### PyOmo Optimization
 - [x] Implement the Pyomo optimization problem formulation
@@ -17,7 +21,7 @@ A V2X Simulation Environment for large scale EV charging optimization
   - [x] Add objective function  
 - [x] Debug the Pyomo optimization problem formulation
 - [x] Save the data from the gym simulation to a file so they can be read 
-- [ ] Solve optimally using gurbi based on saved track of simulation
+- [x] Solve optimally using gurbi based on saved track of simulation
  
 ## TODO long term
 - [ ] Ask about charging and discharging speed of the EVs (how much power can they charge and discharge), from the perspective of EVs and EV chargers.

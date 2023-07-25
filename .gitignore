@@ -163,3 +163,4 @@ cython_debug/
 *.lp
 replay/
 model.lp
+vscode/

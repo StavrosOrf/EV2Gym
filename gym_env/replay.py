@@ -1,61 +1,18 @@
-# This is a class that saves the reaply of a ev_city simulation,
-# so it can be replayed later or solved optimally using the mathematical model
+'''
+===================================
+Author: Stavros Orfanoudakis 2023
+===================================
+'''
 
 import os
 import numpy as np
 import pickle
 
-""" These are our variables we need to save:
-        charge_prices = np.ones(
-            [self.n_cs, self.sim_length])*-1  # charge prices
-        discharge_prices = np.ones([self.n_cs,
-                                   self.sim_length])  # discharge prices
-        port_max_power = np.ones([self.n_cs,
-                                 self.sim_length]) * 22 * self.dt  # charger max power
-        port_min_power = np.zeros([self.n_cs,
-                                  self.sim_length]) * self.dt  # charger min power
-        cs_ch_efficiency = np.zeros([self.n_cs,
-                                    self.sim_length])  # charging efficiency
-        cs_dis_efficiency = np.zeros([self.n_cs,
-                                     self.sim_length])  # discharging efficiency
-        ev_max_energy = np.ones([self.number_of_ports_per_cs,
-                                self.n_cs,
-                                self.sim_length])  # ev max battery capacity, 0 if no ev is there
-        ev_min_energy = np.zeros([self.number_of_ports_per_cs,
-                                 self.n_cs,
-                                 self.sim_length])  # ev min battery capacity, 0 if no ev is there
-        ev_max_ch_power = np.ones([self.number_of_ports_per_cs,
-                                  self.n_cs,
-                                  self.sim_length]) * self.dt  # ev max charging power, 0 if no ev is there
-        ev_min_ch_power = np.ones([self.number_of_ports_per_cs,
-                                  self.n_cs,
-                                  self.sim_length]) * self.dt   # ev min charging power, 0 if no ev is there
-        ev_max_dis_power = np.ones([self.number_of_ports_per_cs,
-                                   self.n_cs,
-                                   self.sim_length]) * self.dt  # ev max discharging power, 0 if no ev is there
-        ev_min_dis_power = np.ones([self.number_of_ports_per_cs,
-                                   self.n_cs,
-                                   self.sim_length]) * self.dt  # ev min discharging power, 0 if no ev is there
-        u = np.zeros([self.number_of_ports_per_cs,
-                     self.n_cs,
-                     self.sim_length])  # u is 0 if port is empty and 1 if port is occupied
-        energy_at_arrival = np.ones([self.number_of_ports_per_cs,
-                                    self.n_cs,
-                                    self.sim_length])  # x when ev arrives at the port
-        ev_arrival = np.zeros([self.number_of_ports_per_cs,
-                               self.n_cs,
-                               self.sim_length])  # 1 when an ev arrives-> power = 0 and energy = x
-        t_dep = np.ones([self.number_of_ports_per_cs,
-                        self.n_cs,
-                        self.sim_length])  # time of departure of the ev, 0 if port is empty
-        ev_des_energy = np.ones([self.number_of_ports_per_cs,
-                                self.n_cs,
-                                self.sim_length])  # desired energy of the ev, 0 if port is empty
-
-"""
-
-
 class EvCityReplay():
+    '''
+    This class is used to save the simulation data in a pickle file.
+    The pickle file can be used to create a math model of the simulation.    
+    '''
 
     def __init__(self, env):
 
@@ -143,7 +100,7 @@ class EvCityReplay():
             self.ev_min_ch_power[port, cs_id,
                                  t_arr:t_dep] = 0
             self.ev_max_dis_power[port, cs_id,
-                                    t_arr:t_dep] = env.charging_stations[cs_id].max_discharge_power
+                                    t_arr:t_dep] = -env.charging_stations[cs_id].max_discharge_power
             self.ev_min_dis_power[port, cs_id,
                                     t_arr:t_dep] = 0
             self.u[port, cs_id, t_arr:t_dep] = 1
@@ -151,7 +108,7 @@ class EvCityReplay():
             self.ev_arrival[port, cs_id, t_arr] = 1
             if original_t_dep < self.sim_length:
                 self.t_dep[port, cs_id, t_dep] = 1
-            self.ev_des_energy[port, cs_id, t_arr:t_dep] = ev.desired_capacity
+                self.ev_des_energy[port, cs_id, t_dep] = ev.desired_capacity
 
         # print(f'u: {self.u}')
         # print(f'ev_arrival: {self.ev_arrival}')

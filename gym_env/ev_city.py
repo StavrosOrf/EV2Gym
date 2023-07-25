@@ -97,9 +97,11 @@ class EVCity(gym.Env):
                 electricity_prices_path)
         else:
             self.charge_prices = np.random.normal(
-                -0.05, 0.05, size=(self.cs, self.simulation_length))
+                -0.05, 0.05, size=(self.cs, self.simulation_length))            
+            self.charge_prices = -1 * np.abs(self.charge_prices)
             self.discharge_prices = np.random.normal(
                 0.1, 0.05, size=(self.cs, self.simulation_length))
+            self.discharge_prices = np.abs(self.discharge_prices)
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         self.number_of_ports = np.array(
@@ -192,14 +194,14 @@ class EVCity(gym.Env):
                 if n_ports > cs.n_evs_connected:
                     # get a random float in [0,1] to decide if spawn an EV
                     # TODO: Replace with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
-                    self.spawn_rate = 0.2
+                    self.spawn_rate = 0.7
                     if np.random.rand() < self.spawn_rate:
                         ev = EV(id=None,
                                 location=cs.id,
                                 battery_capacity_at_arrival=np.random.uniform(
                                     1, 49),
                                 time_of_arrival=self.current_step+1,
-                                earlier_time_of_departure=self.current_step+1 + np.random.randint(3, 5),)
+                                earlier_time_of_departure=self.current_step+1 + np.random.randint(7,15),)
                                 # earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
                         cs.spawn_ev(ev)
 
