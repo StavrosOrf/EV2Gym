@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     verbose = False
     number_of_charging_stations = 2000
-    steps = 1000
+    steps = 288 # 288 steps = 1 day with 5 minutes per step
     timescale = 5 #(5 minutes per step)
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
