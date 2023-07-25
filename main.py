@@ -1,5 +1,5 @@
 from gym_env import ev_city
-from pyomo_model import ev_city_model
+from math_model import ev_city_model
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    number_of_charging_stations = 2000
-    steps = 288 # 288 steps = 1 day with 5 minutes per step
+    number_of_charging_stations = 1000
+    steps = 100 # 288 steps = 1 day with 5 minutes per step
     timescale = 5 #(5 minutes per step)
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
@@ -44,6 +44,7 @@ if __name__ == "__main__":
         env.print_statistics()
     
     math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_{env.sim_name}.pkl")    
+    actions = math_model.get_actions()
     #Example with t_departure
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_5_2023-07-25_20-23.pkl")    
     # a 5 steps case that was solved wrong

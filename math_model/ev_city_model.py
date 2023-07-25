@@ -197,9 +197,9 @@ class EV_City_Math_Model():
                            for t in range(self.sim_length)), name='ev_power_mode')
 
         # # Power output of CS constraint
-        # self.m.addConstrs((power_cs_ch[i, t] * power_cs_dis[i, t] == 0
-        #                    for i in range(self.n_cs)
-        #                    for t in range(self.sim_length)), name='ev_cs_mode')
+        self.m.addConstrs((power_cs_ch[i, t] * power_cs_dis[i, t] == 0
+                           for i in range(self.n_cs)
+                           for t in range(self.sim_length)), name='ev_cs_mode')
         print('2.Ev energy constraint')
 
         # time of departure of EVs
@@ -222,21 +222,35 @@ class EV_City_Math_Model():
         self.m.params.NonConvex = 2
         self.m.optimize()
 
-        if self.m.status == GRB.Status.OPTIMAL:
-            print('Optimization finished')
-            print('Optimal objective: %g' % self.m.objVal)
-            print('Optimal power output:')
-            for v in self.m.getVars():
-                # if v.x > 0:
-                print('%s %g' % (v.varName, v.x))
+        self.power_ev_ch = power_ev_ch
+        self.power_ev_dis = power_ev_dis
+        self.ev_max_ch_power = ev_max_ch_power
+        self.ev_max_dis_power = ev_max_dis_power
+        print(
+            f'Is MIP?: {self.m.IsMIP}, IsMultiObj?: {self.m.IsMultiObj}, Is QCP?: {self.m.IsQCP}, Is QP?: {self.m.IsQP}')
+        # if self.m.status == GRB.Status.OPTIMAL:
+        #     print('Optimization finished')
+        #     print('Optimal objective: %g' % self.m.objVal)
+        #     print('Optimal power output:')
+        #     for v in self.m.getVars():
+        #         print('%s %g' % (v.varName, v.x))
 
-        print(f'number of stored solutions: {self.m.SolCount} ')
-        print(f'Is MIP?: {self.m.IsMIP} ')
-        print(f'Is quadratic?: {self.m.IsQP} ')
-        print(f'Is QCP?: {self.m.IsQCP} ')
+    def get_actions(self):
+        '''
+        This function returns the actions of the EVs in the simulation normalized to [-1, 1]
+        '''        
 
+        self.actions = np.zeros([self.number_of_ports_per_cs,
+                                 self.n_cs, self.sim_length])
 
-if __name__ == "__main__":
+        for t in range(self.sim_length):
+            for i in range(self.n_cs):
+                for p in range(self.number_of_ports_per_cs):
+                    if self.power_ev_ch[p, i, t].x > 0:
+                        self.actions[p, i, t] = self.power_ev_ch[p, i, t].x  \
+                            / self.ev_max_ch_power[p, i, t]
+                    elif self.power_ev_dis[p, i, t].x > 0:
+                        self.actions[p, i, t] = self.power_ev_dis[p, i, t].x \
+                            / self.ev_max_dis_power[p, i, t]
 
-    env = None
-    math_model = EV_City_Math_Model(env)
+        return self.actions
