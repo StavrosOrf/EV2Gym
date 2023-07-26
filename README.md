@@ -12,7 +12,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [x] Implement step for ev charger and ev
 - [x] Implement the get_observation and reward functions
 - [ ] Implement the Load_Scenario from replay file
-- [ ] Add power limit to the problem formulation and in the environment
+- [x] Add power limit to the problem formulation and in the environment
 - [ ] Add rest period so every EV has time to leave the parking lot (stop spawning EVs after a while)
 - [ ] Research about electricity prices and how to include them in the problem formulation
 - [ ] Replace 'EV-Spawner' with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
@@ -24,8 +24,8 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [x] Debug the Gurobi optimization problem formulation
 - [x] Save the data from the gym simulation to a file so they can be read 
 - [x] Solve optimally using gurbi based on saved track of simulation
-- [ ] Add power limit to the problem formulation and in the environment
-- [ ] Debug again
+- [x] Add power limit to the problem formulation and in the math model
+- [ ] Debug again using the simulation load
  
 ## TODO long term
 - [ ] Ask about charging and discharging speed of the EVs (how much power can they charge and discharge), from the perspective of EVs and EV chargers.
@@ -43,7 +43,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 
 ### Improve Problem Formulation
 - [ ] Add the **grid** as a part of the problem formulation
-- [ ] Add power limit as part fo the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
+- [x] Add power limit as part fo the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
 - [x] Add **j number of ports** per charging station and include related constraints
 - [ ] Add the battery behavior model 0-80 fast, 80-100 slow
 - [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)

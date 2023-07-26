@@ -6,7 +6,7 @@ Author: Stavros Orfanoudakis 2023
 
 import os
 import numpy as np
-import pickle
+
 
 class EvCityReplay():
     '''
@@ -23,6 +23,7 @@ class EvCityReplay():
         self.replay_path = 'replay/replay_' + env.sim_name + '.pkl'
         self.sim_length = env.simulation_length
         self.n_cs = env.cs
+        self.n_transformers = env.number_of_transformers
         self.timescale = env.timescale
         self.score_threshold = env.score_threshold
 
@@ -32,10 +33,18 @@ class EvCityReplay():
         self.charge_prices = env.charge_prices
         self.discharge_prices = env.discharge_prices
 
+        self.tra_max_power = np.ones([self.n_transformers, self.sim_length])
+        self.tra_min_power = np.ones([self.n_transformers, self.sim_length])
+
+        for i, tra in enumerate(env.transformers):
+            self.tra_max_power[i, :] = tra.max_power
+            self.tra_min_power[i, :] = tra.min_power
+
         self.port_max_power = np.ones([self.n_cs, self.sim_length])
         self.port_min_power = np.ones([self.n_cs, self.sim_length])
         self.cs_ch_efficiency = np.ones([self.n_cs, self.sim_length])
         self.cs_dis_efficiency = np.ones([self.n_cs, self.sim_length])
+        self.cs_transformer = np.ones([self.n_cs])
 
         self.max_n_ports = 0
 
@@ -44,6 +53,7 @@ class EvCityReplay():
             self.port_min_power[i, :] = - cs.max_discharge_power
             if cs.n_ports > self.max_n_ports:
                 self.max_n_ports = cs.n_ports
+            self.cs_transformer[i] = cs.connected_transformer
 
         self.ev_max_energy = np.zeros([self.max_n_ports,
                                       self.n_cs,
@@ -87,11 +97,11 @@ class EvCityReplay():
             # print(f'EV {i} is at port {port} of CS {cs_id} from {t_arr} to {original_t_dep}')
 
             if t_arr >= self.sim_length:
-                continue            
+                continue
             if original_t_dep >= self.sim_length:
                 t_dep = self.sim_length
             else:
-                t_dep = original_t_dep            
+                t_dep = original_t_dep
 
             self.ev_max_energy[port, cs_id, t_arr:t_dep] = ev.battery_capacity
             # self.ev_min_energy[port, cs_id, t_arr:t_dep] = ev.battery_capacity * ev.min_soc
@@ -100,11 +110,12 @@ class EvCityReplay():
             self.ev_min_ch_power[port, cs_id,
                                  t_arr:t_dep] = 0
             self.ev_max_dis_power[port, cs_id,
-                                    t_arr:t_dep] = -env.charging_stations[cs_id].max_discharge_power
+                                  t_arr:t_dep] = -env.charging_stations[cs_id].max_discharge_power
             self.ev_min_dis_power[port, cs_id,
-                                    t_arr:t_dep] = 0
+                                  t_arr:t_dep] = 0
             self.u[port, cs_id, t_arr:t_dep] = 1
-            self.energy_at_arrival[port, cs_id, t_arr] = ev.battery_capacity_at_arrival
+            self.energy_at_arrival[port, cs_id,
+                                   t_arr] = ev.battery_capacity_at_arrival
             self.ev_arrival[port, cs_id, t_arr] = 1
             if original_t_dep < self.sim_length:
                 self.t_dep[port, cs_id, t_dep] = 1
@@ -117,7 +128,3 @@ class EvCityReplay():
         # print(f'ev_max_energy: {self.ev_max_energy}')
         # print(f'ev_max_ch_power: {self.ev_max_ch_power}')
         # print(f'ev_max_dis_power: {self.ev_max_dis_power}')
-
-
-
-            

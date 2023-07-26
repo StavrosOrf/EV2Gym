@@ -23,12 +23,16 @@ class EV_City_Math_Model():
         self.sim_length = replay.sim_length
         self.n_cs = replay.n_cs
         self.number_of_ports_per_cs = replay.max_n_ports
+        self.n_transformers = replay.n_transformers
         self.timescale = replay.timescale
         self.dt = replay.timescale / 60  # time step
-
+        print(f'\nGurobi MIQP solver.')
         print('Loading data...')
         charge_prices = replay.charge_prices  # Charge prices are in €/kWh
         discharge_prices = replay.discharge_prices  # Discharge prices are in €/kWh
+        tra_max_power = replay.tra_max_power * self.dt
+        tra_min_power = replay.tra_min_power * self.dt
+        cs_transformer = replay.cs_transformer
         port_max_power = replay.port_max_power * self.dt
         port_min_power = replay.port_min_power * self.dt
         cs_ch_efficiency = replay.cs_ch_efficiency
@@ -44,15 +48,6 @@ class EV_City_Math_Model():
         ev_arrival = replay.ev_arrival
         t_dep = replay.t_dep
         ev_des_energy = replay.ev_des_energy
-
-        # print(ev_des_energy)
-        # print(f'u: {u}')
-        # print(f'energy_at_arrival: {energy_at_arrival}')
-        # print(f'ev_arrival: {ev_arrival}')
-        # print(f't_dep: {t_dep}')
-        # print(f'ev_max_energy: {ev_max_energy}')
-        # print(f'ch_prices: {charge_prices}')
-        # print(f'dis_prices: {discharge_prices}')
 
         # create model
         print('Creating Gurobi model...')
@@ -85,6 +80,11 @@ class EV_City_Math_Model():
                                       vtype=GRB.CONTINUOUS,
                                       name='power_cs_dis')
 
+        power_tr = self.m.addVars(self.n_transformers,
+                                  self.sim_length,
+                                  vtype=GRB.CONTINUOUS,
+                                  name='power_tr')
+
         # Help variable definitions
         total_charging_costs = gp.quicksum(
             (charge_prices[i, t] * power_cs_ch[i, t])
@@ -97,6 +97,23 @@ class EV_City_Math_Model():
             for t in range(self.sim_length))
 
         # Constrains
+        print('Creating constraints...')        
+        # transformer power output constraint
+        for t in range(self.sim_length):
+            for i in range(self.n_transformers):
+                self.m.addConstr(
+                    (power_tr[i, t] == gp.quicksum(power_cs_ch[m, t] - power_cs_dis[m, t]
+                                                   for m in range(self.n_cs)
+                                                   if cs_transformer[m] == i)),
+                    name=f'power_tr.{i}.{t}')
+                
+        #transformer power output constraint
+        self.m.addConstrs((power_tr[i, t] <= tra_max_power[i, t]
+                            for i in range(self.n_transformers)
+                            for t in range(self.sim_length)), name='tr_power_limit_max')
+        self.m.addConstrs((power_tr[i, t] >= tra_min_power[i, t]
+                            for i in range(self.n_transformers)
+                            for t in range(self.sim_length)), name='tr_power_limit_min')
 
         # charging station total power output (sum of ports) constraint
         self.m.addConstrs((power_cs_dis[i, t] == power_ev_dis.sum('*', i, t)
@@ -238,7 +255,7 @@ class EV_City_Math_Model():
     def get_actions(self):
         '''
         This function returns the actions of the EVs in the simulation normalized to [-1, 1]
-        '''        
+        '''
 
         self.actions = np.zeros([self.number_of_ports_per_cs,
                                  self.n_cs, self.sim_length])

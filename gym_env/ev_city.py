@@ -13,6 +13,7 @@ import pickle
 from .grid import Grid
 from .ev_charger import EV_Charger
 from .ev import EV
+from .transformer import Transformer
 from .replay import EvCityReplay
 
 
@@ -26,9 +27,11 @@ class EVCity(gym.Env):
                  ev_profiles_path=None,
                  charger_profiles_path=None,
                  electricity_prices_path=None,
+                 transformer_profiles_path=None,
                  simulate_grid=False,
                  case='default',
                  number_of_ports_per_cs=2,
+                 number_of_transformers=2,
                  score_threshold=1,
                  timescale=5,
                  date=(2023, 7, 21),  # (year, month, day)
@@ -45,6 +48,7 @@ class EVCity(gym.Env):
         # Threshold for the user satisfaction score
         self.score_threshold = score_threshold
         self.number_of_ports_per_cs = number_of_ports_per_cs
+        self.number_of_transformers = number_of_transformers
         self.timescale = timescale  # Timescale of the simulation (in minutes)
         self.simulation_length = simulation_length
         self.verbose = verbose  # Whether to print the simulation progress or not
@@ -67,7 +71,17 @@ class EVCity(gym.Env):
             self.cs_transformers = self.grid.get_bus_transformers()
         else:
             self.cs_buses = [None] * cs
-            self.cs_transformers = [None] * cs
+            self.cs_transformers = np.random.randint(
+                self.number_of_transformers, size=cs)            
+
+        # Instatiate Transformers
+        self.transformers = []
+
+        if transformer_profiles_path is None:
+            for i in range(self.number_of_transformers):
+                transformer = Transformer(id=i,
+                                          cs_ids=np.where(self.cs_transformers == i)[0])
+                self.transformers.append(transformer)
 
         # Instatiate Charging Stations
         self.charging_stations = []
@@ -75,7 +89,7 @@ class EVCity(gym.Env):
             for i in range(self.cs):
                 ev_charger = EV_Charger(id=i,
                                         connected_bus=self.cs_buses[i],
-                                        connected_transformer=self.cs_transformers,
+                                        connected_transformer=self.cs_transformers[i],
                                         n_ports=self.number_of_ports_per_cs,
                                         timescale=self.timescale,
                                         verbose=self.verbose,)
@@ -97,7 +111,7 @@ class EVCity(gym.Env):
                 electricity_prices_path)
         else:
             self.charge_prices = np.random.normal(
-                -0.05, 0.05, size=(self.cs, self.simulation_length))            
+                -0.05, 0.05, size=(self.cs, self.simulation_length))
             self.charge_prices = -1 * np.abs(self.charge_prices)
             self.discharge_prices = np.random.normal(
                 0.1, 0.05, size=(self.cs, self.simulation_length))
@@ -125,9 +139,10 @@ class EVCity(gym.Env):
         self.current_evs_parked = 0
 
         self.save_replay = save_replay
+        self.done = False
 
         if self.save_replay:
-            self.EVs = [] #Store all of the EVs in the simulation that arrived            
+            self.EVs = []  # Store all of the EVs in the simulation that arrived
 
     def _load_ev_charger_profiles(self, path):
         # TODO: Load EV charger profiles from a csv file
@@ -156,7 +171,7 @@ class EVCity(gym.Env):
 
         return self._get_observation()
 
-    def step(self, actions):
+    def step(self, actions,visualize=False):
         ''''
         Takes an action as input and returns the next state, reward, and whether the episode is done
         Inputs:
@@ -166,6 +181,7 @@ class EVCity(gym.Env):
             - reward: is a scalar value representing the reward of the current step
             - done: is a boolean value indicating whether the episode is done or not
         '''
+        assert not self.done, "Episode is done, please reset the environment"
         total_costs = 0
         user_satisfaction_list = []
 
@@ -173,6 +189,11 @@ class EVCity(gym.Env):
         self.current_ev_arrived = 0
 
         port_counter = 0
+
+        # Reset current power of all transformers
+        for tr in self.transformers:
+            tr.current_power = 0
+
         # Call step for each charging station and spawn EVs where necessary
         for cs in self.charging_stations:
             n_ports = cs.n_ports
@@ -183,6 +204,9 @@ class EVCity(gym.Env):
 
             for u in user_satisfaction:
                 user_satisfaction_list.append(u)
+
+            self.transformers[cs.connected_transformer].step(
+                cs.current_power_output)
 
             total_costs += costs
             self.current_ev_departed += len(user_satisfaction)
@@ -201,15 +225,15 @@ class EVCity(gym.Env):
                                 battery_capacity_at_arrival=np.random.uniform(
                                     1, 49),
                                 time_of_arrival=self.current_step+1,
-                                earlier_time_of_departure=self.current_step+1 + np.random.randint(7,15),)
-                                # earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
+                                earlier_time_of_departure=self.current_step+1 + np.random.randint(7, 15),)
+                        # earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
                         cs.spawn_ev(ev)
 
                         if self.save_replay:
                             self.EVs.append(ev)
 
                         self.total_evs_spawned += 1
-                        self.current_ev_arrived += 1            
+                        self.current_ev_arrived += 1
 
         # Spawn EVs
         if self.ev_profiles is not None:
@@ -230,25 +254,39 @@ class EVCity(gym.Env):
             reward = self._calculate_reward(total_costs,
                                             user_satisfaction_list)
 
+        if visualize:
+            self.visualize()
+
         # Check if the episode is done
         if self.current_step >= self.simulation_length or \
-                any(score < self.score_threshold for score in user_satisfaction_list):
+                any(score < self.score_threshold for score in user_satisfaction_list) or \
+        any(tr.is_overloaded() for tr in self.transformers):
+            """Terminate if:
+                - The simulation length is reached
+                - Any user satisfaction score is below the threshold
+                - Any charging station is overloaded """
 
             print(f"\nEpisode finished after {self.current_step} timesteps")
 
             if self.save_replay:
-                # Save replay file
-                replay = EvCityReplay(self)
-                print(f"Saving replay file at {replay.replay_path}")                                
-                with open(replay.replay_path, 'wb') as f:
-                    pickle.dump(replay, f)
+                self.save_sim_replay()
+
+            self.done = True
 
             return self._get_observation(), reward, True
         else:
             return self._get_observation(), reward, False
 
+    def save_sim_replay(self):
+        '''Saves the simulation data in a pickle file'''
+        replay = EvCityReplay(self)
+        print(f"Saving replay file at {replay.replay_path}")
+        with open(replay.replay_path, 'wb') as f:
+            pickle.dump(replay, f)
+
     def visualize(self):
         '''Renders the current state of the environment in the terminal'''
+
         print(f"\n Step: {self.current_step}" +
               f" | {self.sim_date.hour}:{self.sim_date.minute}:{self.sim_date.second} |" +
               f" \tEVs +{self.current_ev_arrived}/-{self.current_ev_departed}" +
@@ -269,6 +307,9 @@ class EVCity(gym.Env):
                         print(f'\t\tPort {port}: {ev}')
                     else:
                         print(f'\t\tPort {port}:')
+            print("")
+            for tr in self.transformers:
+                print(tr)
 
     def print_statistics(self):
         '''Prints the statistics of the simulation'''
@@ -296,7 +337,8 @@ class EVCity(gym.Env):
             f'  - Total energy discharged: {total_energy_discharged:.1f} kWh\n')
 
         for cs in self.charging_stations:
-            print(cs)    
+            print(cs)
+        print("==============================================================\n\n")
 
     def _step_date(self):
         '''Steps the simulation date by one timestep'''
@@ -308,6 +350,9 @@ class EVCity(gym.Env):
         state = [self.current_step,
                  self.timescale,
                  self.cs,]
+        
+        for tr in self.transformers:
+            state.append(tr.get_state())
 
         for cs in self.charging_stations:
             state.append(cs.get_state())

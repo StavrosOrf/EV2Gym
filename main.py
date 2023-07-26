@@ -7,12 +7,14 @@ import matplotlib.pyplot as plt
 # main funtion for testing
 if __name__ == "__main__":
 
-    verbose = False
-    number_of_charging_stations = 1000
-    steps = 100 # 288 steps = 1 day with 5 minutes per step
+    verbose = True
+    n_transformers = 2
+    number_of_charging_stations = 5
+    steps = 500 # 288 steps = 1 day with 5 minutes per step
     timescale = 5 #(5 minutes per step)
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
+                         number_of_transformers=n_transformers,
                             timescale=timescale,
                             verbose=verbose,
                             simulation_length=steps)
@@ -30,9 +32,8 @@ if __name__ == "__main__":
         if verbose:
             print(f'Actions: {actions}')
 
-        new_state, reward, done = env.step(actions)  # takes action
-        rewards.append(reward)
-        env.visualize()
+        new_state, reward, done = env.step(actions,visualize=True)  # takes action        
+        rewards.append(reward)        
 
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
@@ -46,7 +47,7 @@ if __name__ == "__main__":
     math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_{env.sim_name}.pkl")    
     actions = math_model.get_actions()
     #Example with t_departure
-    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_5_2023-07-25_20-23.pkl")    
+    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_5_2023-07-26_11-00.pkl")    
     # a 5 steps case that was solved wrong
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_5_2023-07-25_15-08.pkl")    
     #a normal 5 steps case
