@@ -6,6 +6,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 
 #### General
 - [ ] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
+- [x] Implement the replay_game feature using the saved data from the simulation for actual objective value (using the gurobi optimization model)
 
 #### Gym Environment
 - [x] Implement step for ev charger and ev

@@ -89,7 +89,7 @@ class EV():
         self.current_power = 0
         self.charging_cycles = 0
         self.previous_power = 0
-        
+
     def step(self, action):
         '''
         The step method is used to update the EV's status according to the actions taken by the EV charger.
@@ -139,7 +139,8 @@ class EV():
             - Score: a value between 0 and 1
         '''
 
-        if self.current_capacity < self.desired_capacity:
+        if self.current_capacity < self.desired_capacity - 0.001:
+            print (f'EV {self.id} is departing with {self.current_capacity} kWh out of {self.desired_capacity} kWh')
             return 0
         elif self.current_capacity >= self.desired_capacity:
             return 1

@@ -297,8 +297,7 @@ class EVCity(gym.Env):
             # Spawn EVs based on the EV profiles onspecific chargers with fixed time of departure, and soc
 
             counter = self.total_evs_spawned
-            for i, ev in enumerate(self.ev_profiles[counter:]):
-                print(f"EV {i} at {ev.location} at {ev.time_of_arrival}")
+            for i, ev in enumerate(self.ev_profiles[counter:]):                
                 if ev.time_of_arrival == self.current_step + 1:
                     ev.reset()
                     self.charging_stations[ev.location].spawn_ev(ev)

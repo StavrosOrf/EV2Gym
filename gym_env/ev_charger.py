@@ -127,7 +127,8 @@ class EV_Charger:
 
         # Update EVs connected to the EV charger and get profits/costs
         for i, action in enumerate(normalized_actions):
-            assert (action >= -1 and action <= 1)
+            # print(action)
+            assert action >= -1 and action <= 1
 
             if action == 0:
                 continue
@@ -160,7 +161,7 @@ class EV_Charger:
                     if self.verbose:
                         print(f'- EV {ev.id} is departing from CS {self.id}' +
                               f' with user satisfaction {ev_user_satisfaction}' +
-                              f' (SoC: {ev.get_soc(): 3.1f}%)')
+                              f' (SoC: {ev.get_soc(): 6.3f}%)')
 
         self.current_step += 1
 
