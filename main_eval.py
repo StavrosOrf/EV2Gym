@@ -10,7 +10,7 @@ if __name__ == "__main__":
     verbose = False
     n_transformers = 3
     number_of_charging_stations = 10
-    steps = 2000  # 288 steps = 1 day with 5 minutes per step
+    steps = 25  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
 
     # steps = 100
