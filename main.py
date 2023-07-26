@@ -8,18 +8,27 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = True
-    n_transformers = 2
-    number_of_charging_stations = 5
-    steps = 500 # 288 steps = 1 day with 5 minutes per step
-    timescale = 5 #(5 minutes per step)
+    n_transformers = 3
+    number_of_charging_stations = 10
+    steps = 100  # 288 steps = 1 day with 5 minutes per step
+    timescale = 5  # (5 minutes per step)
+
+    # steps = 100
+    replay_path = "replay/replay_ev_city_100_2023-07-26_15-33.pkl"
+    replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
                          number_of_transformers=n_transformers,
-                            timescale=timescale,
-                            verbose=verbose,
-                            simulation_length=steps)
+                         load_ev_from_replay=True,
+                         load_prices_from_replay=True,
+                         load_from_replay_path=replay_path,
+                         empty_ports_at_end_of_simulation=True,
+                         generate_rnd_game=False,
+                         simulation_length=steps,
+                         timescale=timescale,
+                         verbose=verbose,)
     state = env.reset()
-    
+
     env.visualize()
     rewards = []
 
@@ -32,27 +41,23 @@ if __name__ == "__main__":
         if verbose:
             print(f'Actions: {actions}')
 
-        new_state, reward, done = env.step(actions,visualize=True)  # takes action        
-        rewards.append(reward)        
+        new_state, reward, done = env.step(
+            actions, visualize=True)  # takes action
+        rewards.append(reward)
 
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
 
         if done:
             break
-    
+
     if verbose:
         env.print_statistics()
-    
-    math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_{env.sim_name}.pkl")    
+
+    math_model = ev_city_model.EV_City_Math_Model(
+        sim_file_path=f"replay/replay_{env.sim_name}.pkl")
+    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")
     actions = math_model.get_actions()
-    #Example with t_departure
-    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_5_2023-07-26_11-00.pkl")    
-    # a 5 steps case that was solved wrong
-    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_5_2023-07-25_15-08.pkl")    
-    #a normal 5 steps case
-    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_10_2023-07-25_14-47.pkl")    
-    
     exit()
 
     # Plot the commulative reward in subplot 1

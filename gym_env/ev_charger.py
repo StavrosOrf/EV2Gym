@@ -238,3 +238,4 @@ class EV_Charger:
         self.total_energy_discharged = 0
         self.total_profits = 0
         self.total_evs_served = 0
+        self.total_user_satisfaction = 0

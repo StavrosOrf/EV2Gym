@@ -5,17 +5,16 @@ A V2X Simulation Environment for large scale EV charging optimization
 ## TODO short term
 
 #### General
-- [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
 - [ ] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
 
 #### Gym Environment
 - [x] Implement step for ev charger and ev
 - [x] Implement the get_observation and reward functions
-- [ ] Implement the Load_Scenario from replay file
+- [x] Implement the Load_Scenario from replay file
 - [x] Add power limit to the problem formulation and in the environment
-- [ ] Add rest period so every EV has time to leave the parking lot (stop spawning EVs after a while)
+- [x] Add rest period so every EV has time to leave the parking lot (stop spawning EVs after a while)
 - [ ] Research about electricity prices and how to include them in the problem formulation
-- [ ] Replace 'EV-Spawner' with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
+
 
 #### PyOmo Optimization
 - [x] Implement the Gurobi optimization problem formulation
@@ -25,9 +24,11 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [x] Save the data from the gym simulation to a file so they can be read 
 - [x] Solve optimally using gurbi based on saved track of simulation
 - [x] Add power limit to the problem formulation and in the math model
-- [ ] Debug again using the simulation load
+- [x] Debug again using the simulation load
  
 ## TODO long term
+- [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
+- [ ] Replace 'EV-Spawner' with realistic EV spawn rate using distributions for different times of the day and days of the week, and staying time
 - [ ] Ask about charging and discharging speed of the EVs (how much power can they charge and discharge), from the perspective of EVs and EV chargers.
 - [ ] Complete the simulate_grid functionality of the EVsSimulator package
 - [ ] Develop a visual interface for charging stations and EVs (with small battery icons for each car showing the level. also showing the connectivity to transformers, etc.)
@@ -51,6 +52,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 - [ ] Improve the user satisfaction term
 
 ## Limitations
+- The transformer power limit makes the problem harder to solve (more constraints) for gurobi
 - Real **time-series** grid data are required for the PandaPower grid simulator to work, for the following parts:
     - Power transformer
     - Loads

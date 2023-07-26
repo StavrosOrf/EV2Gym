@@ -62,5 +62,6 @@ class Transformer():
         return np.hstack(state)
 
     def __str__(self) -> str:
-        return f'  - Transformer {self.id}:  {self.current_power:5.1f}/{self.max_power*self.timescale / 60:5.1f} kWh' +\
+        return f'  - Transformer {self.id}:  {self.min_power*self.timescale / 60:.1f} / ' +\
+            f'{self.current_power:5.1f} /{self.max_power*self.timescale / 60:5.1f} kWh' +\
             f'\tCSs: {self.cs_ids}'

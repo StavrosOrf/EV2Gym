@@ -81,6 +81,15 @@ class EV():
         self.charging_cycles = 0
         self.previous_power = 0
 
+    def reset(self):
+        '''
+        The reset method is used to reset the EV's status to the initial state.
+        '''
+        self.current_capacity = self.battery_capacity_at_arrival
+        self.current_power = 0
+        self.charging_cycles = 0
+        self.previous_power = 0
+        
     def step(self, action):
         '''
         The step method is used to update the EV's status according to the actions taken by the EV charger.

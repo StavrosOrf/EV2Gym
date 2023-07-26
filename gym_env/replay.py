@@ -26,8 +26,13 @@ class EvCityReplay():
         self.n_transformers = env.number_of_transformers
         self.timescale = env.timescale
         self.score_threshold = env.score_threshold
-
         self.sim_date = env.sim_date
+        self.cs_transformers = env.cs_transformers
+
+        self.transformers = env.transformers
+        self.charging_stations = env.charging_stations
+        self.EVs = env.EVs
+        
         self.simulate_grid = env.simulate_grid
 
         self.charge_prices = env.charge_prices
