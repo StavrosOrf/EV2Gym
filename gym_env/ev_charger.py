@@ -130,8 +130,9 @@ class EV_Charger:
             # print(action)
             assert action >= -1 and action <= 1
 
-            if action == 0:
-                continue
+            if action == 0 and self.evs_connected[i] is not None:
+                self.evs_connected[i].step(0)                
+
             elif action > 0:
                 actual_power = self.evs_connected[i].step(
                     action * self.max_charge_power)
@@ -151,6 +152,9 @@ class EV_Charger:
         # Check if EVs are departing
         for i, ev in enumerate(self.evs_connected):
             if ev is not None:
+                # print(f'EV {ev.id} check departure step {self.current_step}' +\
+                #       f' earlier time of departure {ev.earlier_time_of_departure}' +\
+                #       f', Is departing: {ev.is_departing(self.current_step)}')
                 if ev.is_departing(self.current_step) is not None:
                     self.evs_connected[i] = None
                     self.n_evs_connected -= 1
@@ -158,10 +162,11 @@ class EV_Charger:
                     ev_user_satisfaction = ev.get_user_satisfaction()
                     self.total_user_satisfaction += ev_user_satisfaction
                     user_satisfaction.append(ev_user_satisfaction)
-                    if self.verbose:
+                    if self.verbose:                        
                         print(f'- EV {ev.id} is departing from CS {self.id}' +
+                              f' port {i}'
                               f' with user satisfaction {ev_user_satisfaction}' +
-                              f' (SoC: {ev.get_soc(): 6.3f}%)')
+                              f' (SoC: {ev.get_soc(): 6.1f}%)')
 
         self.current_step += 1
 
@@ -212,7 +217,7 @@ class EV_Charger:
         '''Adds an EV to the list of EVs connected to the EV charger
         Inputs:
             - ev: the EV to be added to the list of EVs connected to the EV charger
-        '''
+        '''        
         assert (self.n_evs_connected < self.n_ports)
 
         index = self.evs_connected.index(None)

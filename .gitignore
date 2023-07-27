@@ -163,6 +163,7 @@ cython_debug/
 *.lp
 *.mps
 replay/
+plots/
 model.lp
 vscode/
 .vscode/settings.json

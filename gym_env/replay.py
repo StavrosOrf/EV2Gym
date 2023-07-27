@@ -32,6 +32,10 @@ class EvCityReplay():
         self.transformers = env.transformers
         self.charging_stations = env.charging_stations
         self.EVs = env.EVs
+
+        self.transformer_power  = env.transformer_power
+        self.cs_power = env.cs_power
+        self.port_power = env.port_power
         
         self.simulate_grid = env.simulate_grid
 

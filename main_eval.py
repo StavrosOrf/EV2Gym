@@ -8,13 +8,12 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    n_transformers = 3
+    n_transformers = 1
     number_of_charging_stations = 10
-    steps = 25  # 288 steps = 1 day with 5 minutes per step
-    timescale = 5  # (5 minutes per step)
+    steps = 120  # 288 steps = 1 day with 5 minutes per step
+    timescale = 1  # (5 minutes per step)
 
-    # steps = 100
-    replay_path = f"replay/replay_ev_city_20_2023-07-26_16-32.pkl"
+    replay_path = "replay/replay_ev_city_50_2023-07-27_10-12.pkl"
     replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
@@ -23,17 +22,17 @@ if __name__ == "__main__":
                          load_prices_from_replay=True,
                          load_from_replay_path=replay_path,
                          empty_ports_at_end_of_simulation=True,
-                         generate_rnd_game=False,
+                         generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
                          verbose=verbose,)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
-    # new_replay_path = f"replay/replay_ev_city_20_2023-07-26_16-32.pkl"
+    # new_replay_path = replay_path
+    
     state = env.reset()
-
     env.visualize()
-    rewards = []
+    rewards = []    
 
     for i in range(steps):
         print("-"*80)
@@ -55,7 +54,9 @@ if __name__ == "__main__":
 
     if verbose:
         env.print_statistics()
-
+    
+    # env.plot()
+    
     # Solve optimally
     math_model = ev_city_model.EV_City_Math_Model(sim_file_path=new_replay_path)
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")
@@ -74,16 +75,17 @@ if __name__ == "__main__":
                          timescale=timescale,
                          verbose=verbose,)
     state = env.reset()
-
+    env.visualize()
     rewards_opt = []
+
     for i in range(steps):
         print("-"*80)
         # all ports are charging instantly
-        print(f'Optimal actions: {opt_actions[:,:,i]}')
-        print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
-        actions = opt_actions[:,:,i].T.reshape(-1)
+        # print(f'Optimal actions: {opt_actions[:,:,i]}')
+        # print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
+        actions = opt_actions[:,:,i].T.reshape(-1)        
         if verbose:
-            print(f'Actions: {actions}')
+            print(f' OptimalActions: {actions}')
 
         new_state, reward, done = env.step(
             actions, visualize=True)  # takes action
@@ -94,12 +96,14 @@ if __name__ == "__main__":
 
         if done:
             break
+    
+    env.plot()
 
     if verbose:
         env.print_statistics()
+    
 
-    env.visualize()
-
+    plt.figure(figsize=(10, 10))
     # Plot the commulative reward in subplot 1
     plt.subplot(2, 1, 1)
     plt.plot(np.cumsum(rewards))
@@ -119,5 +123,7 @@ if __name__ == "__main__":
     plt.xticks(np.arange(0, steps, 1))
     plt.title('Reward per time step')
 
-    plt.tight_layout()
-    plt.show()
+    plt.tight_layout()    
+    plt.savefig(f'plots/{env.sim_name}/RewardsComparison.html',
+                 format='svg', dpi=600, bbox_inches='tight')
+    

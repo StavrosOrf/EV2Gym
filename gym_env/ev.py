@@ -99,6 +99,7 @@ class EV():
             - self.current_power: the current power input of the EV in kW (positive for charging, negative for discharging)
         '''
         if action == 0:
+            self.current_power = 0
             return 0
 
         # If the action is different than the previous action, then increase the charging cycles
@@ -122,15 +123,16 @@ class EV():
         Outputs:
             - Returns the user satisfaction of the EV in departing else None
         '''
-        if timestep < self.earlier_time_of_departure:
+        if timestep < self.earlier_time_of_departure:            
             return None
-
+                
         if self.use_probabilistic_time_of_departure:
+            raise NotImplementedError
             if np.random.poisson(lam=2.0) < timestep - self.earlier_time_of_departure:
                 return self.get_user_satisfaction()
-        else:
-            if timestep >= self.earlier_time_of_departure:
-                return self.get_user_satisfaction()
+        else:            
+            # if timestep >= self.earlier_time_of_departure:
+            return self.get_user_satisfaction()
 
     def get_user_satisfaction(self):
         '''
@@ -142,7 +144,7 @@ class EV():
         if self.current_capacity < self.desired_capacity - 0.001:
             print (f'EV {self.id} is departing with {self.current_capacity} kWh out of {self.desired_capacity} kWh')
             return 0
-        elif self.current_capacity >= self.desired_capacity:
+        else:
             return 1
 
     def get_soc(self):
@@ -164,7 +166,10 @@ class EV():
         return self.get_soc(), timestep_left, self.charging_cycles
 
     def __str__(self):
-        return f' {self.current_power:5.1f} kWh | {(self.current_capacity/self.battery_capacity)*100:5.1f} %'
+        return f' {self.current_power:5.1f} kWh |' + \
+             f' {(self.current_capacity/self.battery_capacity)*100:5.1f} % |' + \
+                f' {self.charging_cycles:2d}  |' + \
+                f' t_dep: {self.earlier_time_of_departure}'
 
     def _charge(self, power):
         '''

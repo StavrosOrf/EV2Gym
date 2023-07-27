@@ -9,6 +9,9 @@ from gym import spaces
 import numpy as np
 import datetime
 import pickle
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
 
 from .grid import Grid
 from .ev_charger import EV_Charger
@@ -87,6 +90,7 @@ class EVCity(gym.Env):
 
             self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
 
+        self.sim_starting_date = self.sim_date
         self.sim_name = f'ev_city_{self.simulation_length}_' + \
             f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
 
@@ -132,6 +136,20 @@ class EVCity(gym.Env):
         self.current_ev_departed = 0
         self.current_ev_arrived = 0
         self.current_evs_parked = 0
+
+        self.transformer_power = np.zeros([self.number_of_transformers,
+                                           self.simulation_length])
+
+        self.cs_power = np.zeros([self.cs, self.simulation_length])
+        self.port_power = np.zeros([self.number_of_ports,
+                                    self.cs,
+                                    self.simulation_length])
+        self.port_energy_level = np.zeros([self.number_of_ports,
+                                           self.cs,
+                                           self.simulation_length])
+        self.port_charging_cycles = np.zeros([self.number_of_ports,
+                                              self.cs,
+                                              self.simulation_length])
 
         self.done = False
 
@@ -267,14 +285,14 @@ class EVCity(gym.Env):
                     self.empty_ports_at_end_of_simulation = False
                     raise ValueError(
                         "The maximum stay of an EV is greater than the simulation length! \n" +
-                          "Please increase the simulation length or disable the empty_ports_at_end_of_simulation option")
+                        "Please increase the simulation length or disable the empty_ports_at_end_of_simulation option")
 
                 if not (self.empty_ports_at_end_of_simulation and
                         self.current_step + 1 + max_stay_of_ev >= self.simulation_length) and \
                         n_ports > cs.n_evs_connected:
 
                     # get a random float in [0,1] to decide if spawn an EV
-                    self.spawn_rate = 0.8
+                    self.spawn_rate = 0.3
                     if np.random.rand() < self.spawn_rate:
                         ev = EV(id=None,
                                 location=cs.id,
@@ -297,7 +315,7 @@ class EVCity(gym.Env):
             # Spawn EVs based on the EV profiles onspecific chargers with fixed time of departure, and soc
 
             counter = self.total_evs_spawned
-            for i, ev in enumerate(self.ev_profiles[counter:]):                
+            for i, ev in enumerate(self.ev_profiles[counter:]):
                 if ev.time_of_arrival == self.current_step + 1:
                     ev.reset()
                     self.charging_stations[ev.location].spawn_ev(ev)
@@ -309,6 +327,8 @@ class EVCity(gym.Env):
 
                 elif ev.time_of_arrival > self.current_step + 1:
                     break
+
+        self.update_power_statistics()
 
         self.current_step += 1
         self._step_date()
@@ -360,6 +380,22 @@ class EVCity(gym.Env):
         with open(replay.replay_path, 'wb') as f:
             pickle.dump(replay, f)
 
+    def update_power_statistics(self):
+        '''Updates the power statistics of the simulation'''
+        for tr in self.transformers:
+            self.transformer_power[tr.id, self.current_step] = tr.current_power
+
+        for cs in self.charging_stations:
+            self.cs_power[cs.id, self.current_step] = cs.current_power_output
+
+            for port in range(cs.n_ports):
+                ev = cs.evs_connected[port]
+                if ev is not None:
+                    self.port_power[port, cs.id,
+                                    self.current_step] = ev.current_power
+                    self.port_energy_level[port, cs.id,
+                                           self.current_step] = ev.current_capacity
+
     def visualize(self):
         '''Renders the current state of the environment in the terminal'''
 
@@ -386,6 +422,148 @@ class EVCity(gym.Env):
             print("")
             for tr in self.transformers:
                 print(tr)
+
+    def plot(self):
+        '''Plots the simulation data
+
+        Plots:
+            - The total power of each transformer
+            - The power of each charging station
+        '''
+        print("Plotting simulation data at ./plots/" + self.sim_name + "/")
+        date_range = pd.date_range(start=self.sim_starting_date,
+                                   end=self.sim_date -
+                                   datetime.timedelta(
+                                       minutes=self.timescale),
+                                   freq='5min')
+        # Plot the total power of each transformer
+        plt.figure(figsize=(20, 17))
+        counter = 1
+        dim_x = int(np.ceil(np.sqrt(self.number_of_transformers)))
+        dim_y = int(np.ceil(self.number_of_transformers/dim_x))
+        for tr in self.transformers:
+
+            plt.subplot(dim_x, dim_y, counter)
+            df = pd.DataFrame([],
+                              index=date_range)
+
+            for cs in tr.cs_ids:
+                df[cs] = self.cs_power[cs, :]
+
+            # create 2 dfs, one for positive power and one for negative
+            df_pos = df.copy()
+            df_pos[df_pos < 0] = 0
+            df_neg = df.copy()
+            df_neg[df_neg > 0] = 0
+            colors = plt.cm.cubehelix(np.linspace(0.5, 0.9, len(tr.cs_ids)))
+
+            # Add another row with one datetime step to make the plot look better
+            df_pos.loc[df_pos.index[-1] +
+                       datetime.timedelta(minutes=self.timescale)] = df_pos.iloc[-1]
+            df_neg.loc[df_neg.index[-1] +
+                       datetime.timedelta(minutes=self.timescale)] = df_neg.iloc[-1]
+
+            # plot the positive and negative power with the same colors respectively
+            # get self.number_of_transformers colors
+
+            # plot the positive power
+            plt.stackplot(df_pos.index, df_pos.values.T,
+                          interpolate=True,
+                          step='post',
+                          colors=colors,
+                          linestyle='--')
+
+            df['total'] = df.sum(axis=1)
+            max_power = tr.max_power * self.timescale / 60
+            min_power = tr.min_power * self.timescale / 60
+            plt.plot([self.sim_starting_date, self.sim_date],
+                     [max_power, max_power], 'r--')
+            plt.step(df.index, df['total'], 'blue',
+                     where='post', linestyle='--', linewidth=2)
+            plt.plot([self.sim_starting_date, self.sim_date],
+                     [min_power, min_power], 'r--')
+            plt.stackplot(df_neg.index, df_neg.values.T,
+                          interpolate=True,
+                          step='post',
+                          colors=colors,
+                          linestyle='--')
+            plt.plot([self.sim_starting_date, self.sim_date], [0, 0], 'black')
+
+            # for cs in tr.cs_ids:
+            #     plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
+            plt.title(f'Transformer {tr.id}')
+            plt.xlabel(f'Time')
+            plt.ylabel('Power (kWh)')
+            plt.xlim([self.sim_starting_date, self.sim_date])
+            plt.xticks(ticks=date_range,
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range], rotation=45)
+            plt.legend([f'CS {i}' for i in tr.cs_ids] +
+                       ['Total Power Limit', 'Total Power'])
+            plt.grid(True, which='minor', axis='both')
+            counter += 1
+
+        plt.tight_layout()
+        # plt.show()
+        os.makedirs("./plots", exist_ok=True)
+        os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
+        fig_name = f'plots/{self.sim_name}/Transformer_Power.html'
+        plt.savefig(fig_name, format='svg',
+                    dpi=600, bbox_inches='tight')
+
+        # Plot the power of each charging station
+        counter = 1
+        plt.figure(figsize=(20, 17))
+        dim_x = int(np.ceil(np.sqrt(self.cs)))
+        dim_y = int(np.ceil(self.cs/dim_x))
+        for cs in self.charging_stations:
+
+            plt.subplot(dim_x, dim_y, counter)
+            df = pd.DataFrame([], index=date_range)
+
+            for port in range(cs.n_ports):
+                df[port] = self.port_power[port, cs.id, :]
+            # Add another row with one datetime step to make the plot look better
+            df.loc[df.index[-1] +
+                   datetime.timedelta(minutes=self.timescale)] = df.iloc[-1]
+
+            plt.stackplot(df.index, df.values.T,
+                          interpolate=True,
+                          step='post',
+                          labels=[f'Port {i}' for i in range(cs.n_ports)])
+            df['total'] = df.sum(axis=1)
+
+            # plot the power limit
+            max_power = cs.max_charge_power * self.timescale / 60
+            min_power = -cs.max_discharge_power * self.timescale / 60
+            plt.plot([self.sim_starting_date, self.sim_date],
+                     [max_power, max_power], 'r--')
+            plt.step(df.index, df['total'], 'blue',
+                     where='post', linestyle='--', linewidth=2)
+            plt.plot([self.sim_starting_date, self.sim_date],
+                     [min_power, min_power], 'r--')
+            plt.plot([self.sim_starting_date, self.sim_date], [0, 0], 'black')
+
+            # for i in range(cs.n_ports):
+            #     plt.step(df.index, df[i], 'grey', where='post', linestyle='--')
+
+            plt.title(f'Charging Station {cs.id}')
+            plt.xlabel(f'Time')
+            plt.ylabel('Power (kWh)')
+            plt.ylim([min_power*1.1, max_power*1.1])
+            plt.xlim([self.sim_starting_date, self.sim_date])
+
+            plt.xticks(ticks=date_range,
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range], rotation=45)
+            plt.legend([f'Port {i}' for i in range(
+                cs.n_ports)] + ['Total Power Limit',
+                                'Total Power'])
+            plt.grid(True, which='minor', axis='both')
+            counter += 1
+
+        plt.tight_layout()
+        # Save plt to html
+        fig_name = f'plots/{self.sim_name}/CS_Power.html'
+        plt.savefig(fig_name, format='svg', dpi=600, bbox_inches='tight')
 
     def print_statistics(self):
         '''Prints the statistics of the simulation'''
