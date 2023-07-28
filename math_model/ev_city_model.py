@@ -256,6 +256,7 @@ class EV_City_Math_Model():
             print(f'Optimization ended with status {self.m.status}')
             exit()
 
+
     def get_actions(self):
         '''
         This function returns the actions of the EVs in the simulation normalized to [-1, 1]
@@ -266,7 +267,7 @@ class EV_City_Math_Model():
 
         for t in range(self.sim_length):
             for i in range(self.n_cs):
-                for p in range(self.number_of_ports_per_cs):
+                for p in range(self.number_of_ports_per_cs):                    
                     if self.power_ev_ch[p, i, t].x > 0:
                         self.actions[p, i, t] = self.power_ev_ch[p, i, t].x  \
                             / self.ev_max_ch_power[p, i, t]

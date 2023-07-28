@@ -9,7 +9,6 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [x] Implement the replay_game feature using the saved data from the simulation for actual objective value (using the gurobi optimization model)
 - [x] TODO debug the replay_game feature(the spawn of EVS asserion fails assert (self.n_evs_connected < self.n_ports))
 - [x] Add more plot visualizations for the simulation about EV such as energy level and  charging cycles, etc.
-- [ ] Minimize charging cycles too?
 
 #### Debugging
 Here, I will write down the debugging tasks I am currently working on:
@@ -33,7 +32,7 @@ Here, I will write down the debugging tasks I am currently working on:
 - [x] Solve optimally using gurbi based on saved track of simulation
 - [x] Add power limit to the problem formulation and in the math model
 - [x] Debug again using the simulation load
-- [ ] Final debug with every plot and visualization
+- [x] Final debug with every plot and visualization
  
 ## TODO long term
 - [ ] Add an battery charging model curve in the problem formulation equations (0-80 fast, 80-100 slow)
@@ -42,7 +41,7 @@ Here, I will write down the debugging tasks I am currently working on:
 - [ ] Complete the simulate_grid functionality of the EVsSimulator package
 - [ ] Develop a visual interface for charging stations and EVs (with small battery icons for each car showing the level. also showing the connectivity to transformers, etc.)
 - [ ] Add a new class called **Buildings** for V2B and V2H scenarios
-
+- [ ] Minimize charging cycles too?
  
 
 ## Future Ideas
