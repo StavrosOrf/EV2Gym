@@ -1,3 +1,4 @@
+![logo](https://github.com/stavrosgreece/EVsSimulator/assets/17108978/4852f3c4-3371-4561-8e8f-661acbaf2a01)
 
 # EVsSimulator
 A V2X Simulation Environment for large scale EV charging optimization
