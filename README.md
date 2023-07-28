@@ -5,9 +5,10 @@ A V2X Simulation Environment for large scale EV charging optimization
 ## TODO short term
 
 #### General
-- [ ] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
+- [x] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
 - [x] Implement the replay_game feature using the saved data from the simulation for actual objective value (using the gurobi optimization model)
 - [ ] TODO debug the replay_game feature(the spawn of EVS asserion fails assert (self.n_evs_connected < self.n_ports))
+- [ ] Minimize charging cycles too?
 
 #### Gym Environment
 - [x] Implement step for ev charger and ev
@@ -34,6 +35,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [ ] Ask about charging and discharging speed of the EVs (how much power can they charge and discharge), from the perspective of EVs and EV chargers.
 - [ ] Complete the simulate_grid functionality of the EVsSimulator package
 - [ ] Develop a visual interface for charging stations and EVs (with small battery icons for each car showing the level. also showing the connectivity to transformers, etc.)
+- [ ] Add more plot visualizations for the simulation about EV such as charging cycles, etc.
  
 
 ## Future Ideas

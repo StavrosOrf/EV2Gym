@@ -167,7 +167,9 @@ class EVCity(gym.Env):
         if self.load_from_replay_path is None:
             for i in range(self.number_of_transformers):
                 transformer = Transformer(id=i,
-                                          cs_ids=np.where(self.cs_transformers == i)[0])
+                                          cs_ids=np.where(
+                                              self.cs_transformers == i)[0],
+                                          timescale=self.timescale,)
                 transformers.append(transformer)
         else:
             transformers = self.replay.transformers
@@ -280,7 +282,9 @@ class EVCity(gym.Env):
 
             # Spawn EVs
             if self.ev_profiles is None:
-                max_stay_of_ev = 15
+                min_stay_of_ev = int(
+                    20 * 5 / self.timescale)  # from 50 minutes
+                max_stay_of_ev = int(40 * 5 / self.timescale)  # to 100 minutes
                 if max_stay_of_ev > self.simulation_length:
                     self.empty_ports_at_end_of_simulation = False
                     raise ValueError(
@@ -292,7 +296,7 @@ class EVCity(gym.Env):
                         n_ports > cs.n_evs_connected:
 
                     # get a random float in [0,1] to decide if spawn an EV
-                    self.spawn_rate = 0.3
+                    self.spawn_rate = 0.5
                     if np.random.rand() < self.spawn_rate:
                         ev = EV(id=None,
                                 location=cs.id,
@@ -300,7 +304,8 @@ class EVCity(gym.Env):
                                     1, 49),
                                 time_of_arrival=self.current_step+1,
                                 earlier_time_of_departure=self.current_step+1
-                                + np.random.randint(7, max_stay_of_ev),)
+                                + np.random.randint(7, max_stay_of_ev),
+                                timescale=self.timescale,)
                         # earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
                         cs.spawn_ev(ev)
 
@@ -350,7 +355,7 @@ class EVCity(gym.Env):
         # Check if the episode is done
         if self.current_step >= self.simulation_length or \
                 any(score < self.score_threshold for score in user_satisfaction_list) or \
-            (any(tr.is_overloaded() for tr in self.transformers)
+        (any(tr.is_overloaded() for tr in self.transformers)
                     and not self.generate_rnd_game):
             """Terminate if:
                 - The simulation length is reached
@@ -435,7 +440,7 @@ class EVCity(gym.Env):
                                    end=self.sim_date -
                                    datetime.timedelta(
                                        minutes=self.timescale),
-                                   freq='5min')
+                                   freq=f'{self.timescale}min')
         # Plot the total power of each transformer
         plt.figure(figsize=(20, 17))
         counter = 1

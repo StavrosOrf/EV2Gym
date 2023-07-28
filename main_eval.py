@@ -9,11 +9,12 @@ if __name__ == "__main__":
 
     verbose = False
     n_transformers = 1
-    number_of_charging_stations = 10
-    steps = 120  # 288 steps = 1 day with 5 minutes per step
+    number_of_charging_stations = 50
+    steps = 250  # 288 steps = 1 day with 5 minutes per step
     timescale = 1  # (5 minutes per step)
 
     replay_path = "replay/replay_ev_city_50_2023-07-27_10-12.pkl"
+    replay_path = "replay/replay_ev_city_250_2023-07-27_16-48.pkl"
     replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
