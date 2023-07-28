@@ -26,7 +26,7 @@ class EvCityReplay():
         self.n_transformers = env.number_of_transformers
         self.timescale = env.timescale
         self.score_threshold = env.score_threshold
-        self.sim_date = env.sim_date
+        self.sim_date = env.sim_starting_date
         self.cs_transformers = env.cs_transformers
 
         self.transformers = env.transformers

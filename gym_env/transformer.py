@@ -42,9 +42,9 @@ class Transformer():
             - True if the transformer is overloaded
             - False if the transformer is not overloaded
         '''
-
-        if self.current_power > self.max_power * self.timescale / 60 \
-            or self.current_power < self.min_power * self.timescale / 60:
+        e = 0.0001
+        if self.current_power > self.max_power + e  * self.timescale / 60 \
+            or self.current_power < self.min_power - e * self.timescale / 60:
             
             return True
         else:

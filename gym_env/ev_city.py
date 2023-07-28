@@ -39,8 +39,9 @@ class EVCity(gym.Env):
                  score_threshold=1,
                  timescale=5,
                  date=(2023, 7, 21),  # (year, month, day)
-                 hour=(18, 0),  # (hour, minute) 24 hour format
+                 hour=(10, 0),  # (hour, minute) 24 hour format
                  save_replay=True,
+                 save_plots=True,
                  verbose=False,
                  simulation_length=1000):
 
@@ -54,6 +55,7 @@ class EVCity(gym.Env):
         self.load_prices_from_replay = load_prices_from_replay
         self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
         self.save_replay = save_replay
+        self.save_plots = save_plots
         self.verbose = verbose  # Whether to print the simulation progress or not
         self.simulation_length = simulation_length
 
@@ -150,8 +152,14 @@ class EVCity(gym.Env):
         self.port_charging_cycles = np.zeros([self.number_of_ports,
                                               self.cs,
                                               self.simulation_length])
+        self.port_arrival = dict({f'{j}.{i}': []
+                                  for i in range(self.number_of_ports)
+                                  for j in range(self.cs)})
 
         self.done = False
+
+        os.makedirs("./plots", exist_ok=True)
+        os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
 
         if self.save_replay:
             self.EVs = []  # Store all of the EVs in the simulation that arrived
@@ -249,6 +257,9 @@ class EVCity(gym.Env):
             - done: is a boolean value indicating whether the episode is done or not
         '''
         assert not self.done, "Episode is done, please reset the environment"
+        if self.verbose:
+            print("-"*80)
+
         total_costs = 0
         user_satisfaction_list = []
 
@@ -296,7 +307,7 @@ class EVCity(gym.Env):
                         n_ports > cs.n_evs_connected:
 
                     # get a random float in [0,1] to decide if spawn an EV
-                    self.spawn_rate = 0.5
+                    self.spawn_rate = 0.85
                     if np.random.rand() < self.spawn_rate:
                         ev = EV(id=None,
                                 location=cs.id,
@@ -304,10 +315,12 @@ class EVCity(gym.Env):
                                     1, 49),
                                 time_of_arrival=self.current_step+1,
                                 earlier_time_of_departure=self.current_step+1
-                                + np.random.randint(7, max_stay_of_ev),
+                                + np.random.randint(min_stay_of_ev, max_stay_of_ev),
                                 timescale=self.timescale,)
                         # earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
-                        cs.spawn_ev(ev)
+                        index = cs.spawn_ev(ev)
+                        self.port_arrival[f'{cs.id}.{index}'].append(
+                            (self.current_step + 1, ev.earlier_time_of_departure))
 
                         if self.save_replay:
                             self.EVs.append(ev)
@@ -323,7 +336,9 @@ class EVCity(gym.Env):
             for i, ev in enumerate(self.ev_profiles[counter:]):
                 if ev.time_of_arrival == self.current_step + 1:
                     ev.reset()
-                    self.charging_stations[ev.location].spawn_ev(ev)
+                    index = self.charging_stations[ev.location].spawn_ev(ev)
+                    self.port_arrival[f'{ev.location}.{index}'].append(
+                        (self.current_step + 1, ev.earlier_time_of_departure))
 
                     self.total_evs_spawned += 1
                     self.current_ev_arrived += 1
@@ -355,7 +370,7 @@ class EVCity(gym.Env):
         # Check if the episode is done
         if self.current_step >= self.simulation_length or \
                 any(score < self.score_threshold for score in user_satisfaction_list) or \
-        (any(tr.is_overloaded() for tr in self.transformers)
+            (any(tr.is_overloaded() for tr in self.transformers)
                     and not self.generate_rnd_game):
             """Terminate if:
                 - The simulation length is reached
@@ -366,11 +381,16 @@ class EVCity(gym.Env):
                 Carefull: if generate_rnd_game is True, 
                 the simulation might end up in infeasible problem
                 """
+            if self.verbose:
+                self.print_statistics()
 
             print(f"\nEpisode finished after {self.current_step} timesteps")
 
             if self.save_replay:
                 self.save_sim_replay()
+
+            if self.save_plots:
+                self.plot()
 
             self.done = True
 
@@ -406,8 +426,8 @@ class EVCity(gym.Env):
 
         print(f"\n Step: {self.current_step}" +
               f" | {self.sim_date.hour}:{self.sim_date.minute}:{self.sim_date.second} |" +
-              f" \tEVs +{self.current_ev_arrived}/-{self.current_ev_departed}" +
-              f"| fullness: {self.current_evs_parked}/{self.number_of_ports}")
+              f" \tEVs +{self.current_ev_arrived} / -{self.current_ev_departed}" +
+              f" | Total: {self.current_evs_parked} / {self.number_of_ports}")
 
         if self.verbose:
             for cs in self.charging_stations:
@@ -434,13 +454,75 @@ class EVCity(gym.Env):
         Plots:
             - The total power of each transformer
             - The power of each charging station
+            - The energy level of each EV in charging stations
         '''
         print("Plotting simulation data at ./plots/" + self.sim_name + "/")
+        # date_range = pd.date_range(start=self.sim_starting_date,
+        #                            end=self.sim_date -
+        #                            datetime.timedelta(
+        #                                minutes=self.timescale),
+        #                            freq=f'{self.timescale}min')
         date_range = pd.date_range(start=self.sim_starting_date,
-                                   end=self.sim_date -
+                                   end=self.sim_starting_date +
+                                   (self.simulation_length - 1) *
                                    datetime.timedelta(
                                        minutes=self.timescale),
                                    freq=f'{self.timescale}min')
+        date_range_print = pd.date_range(start=self.sim_starting_date,
+                                         end=self.sim_date,
+                                         periods=10)
+
+        # Plot the energy level of each EV for each charging station
+        plt.figure(figsize=(20, 17))
+        plt.style.use('seaborn-darkgrid')
+        plt.rcParams.update({'font.size': 16})
+        counter = 1
+        dim_x = int(np.ceil(np.sqrt(self.cs)))
+        dim_y = int(np.ceil(self.cs/dim_x))
+        for cs in self.charging_stations:
+
+            plt.subplot(dim_x, dim_y, counter)
+            df = pd.DataFrame([], index=date_range)
+
+            for port in range(cs.n_ports):
+                df[port] = self.port_energy_level[port, cs.id, :]
+
+            # Add another row with one datetime step to make the plot look better
+            df.loc[df.index[-1] +
+                   datetime.timedelta(minutes=self.timescale)] = df.iloc[-1]
+
+            for port in range(cs.n_ports):
+                for i, (t_arr, t_dep) in enumerate(self.port_arrival[f'{cs.id}.{port}']):
+                    # x = df.index[t_arr:t_dep]
+                    y = df[port].values.T[t_arr:t_dep]
+                    # fill y with 0 before and after to match the length of df
+                    y = np.concatenate(
+                        [np.zeros(t_arr), y, np.zeros(len(df) - t_dep)])
+
+                    plt.step(df.index, y, where='post')
+                    plt.fill_between(df.index,
+                                     y,
+                                     step='post',
+                                     alpha=0.7,
+                                     label=f'EV {i}, Port {port}')
+
+            plt.title(f'Charging Station {cs.id}')
+            plt.xlabel(f'Time')
+            plt.ylabel('Energy Level (kW)')
+            plt.xlim([self.sim_starting_date, self.sim_date])
+            plt.xticks(ticks=date_range_print,
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+            if len(self.port_arrival[f'{cs.id}.{port}']) < 6:
+                plt.legend()
+            plt.grid(True, which='minor', axis='both')
+            counter += 1
+
+        plt.tight_layout()
+        # Save plt to html
+        fig_name = f'plots/{self.sim_name}/EV_Energy_Level.html'
+        plt.savefig(fig_name, format='svg',
+                    dpi=600, bbox_inches='tight')
+
         # Plot the total power of each transformer
         plt.figure(figsize=(20, 17))
         counter = 1
@@ -460,7 +542,7 @@ class EVCity(gym.Env):
             df_pos[df_pos < 0] = 0
             df_neg = df.copy()
             df_neg[df_neg > 0] = 0
-            colors = plt.cm.cubehelix(np.linspace(0.5, 0.9, len(tr.cs_ids)))
+            colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)))
 
             # Add another row with one datetime step to make the plot look better
             df_pos.loc[df_pos.index[-1] +
@@ -468,29 +550,29 @@ class EVCity(gym.Env):
             df_neg.loc[df_neg.index[-1] +
                        datetime.timedelta(minutes=self.timescale)] = df_neg.iloc[-1]
 
-            # plot the positive and negative power with the same colors respectively
-            # get self.number_of_transformers colors
-
             # plot the positive power
             plt.stackplot(df_pos.index, df_pos.values.T,
                           interpolate=True,
                           step='post',
+                          alpha=0.7,
                           colors=colors,
                           linestyle='--')
 
             df['total'] = df.sum(axis=1)
+            # print(df)
             max_power = tr.max_power * self.timescale / 60
             min_power = tr.min_power * self.timescale / 60
             plt.plot([self.sim_starting_date, self.sim_date],
                      [max_power, max_power], 'r--')
-            plt.step(df.index, df['total'], 'blue',
-                     where='post', linestyle='--', linewidth=2)
+            plt.step(df.index, df['total'], 'darkgreen',
+                     where='post', linestyle='--')
             plt.plot([self.sim_starting_date, self.sim_date],
                      [min_power, min_power], 'r--')
             plt.stackplot(df_neg.index, df_neg.values.T,
                           interpolate=True,
                           step='post',
                           colors=colors,
+                          alpha=0.7,
                           linestyle='--')
             plt.plot([self.sim_starting_date, self.sim_date], [0, 0], 'black')
 
@@ -498,10 +580,10 @@ class EVCity(gym.Env):
             #     plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
             plt.title(f'Transformer {tr.id}')
             plt.xlabel(f'Time')
-            plt.ylabel('Power (kWh)')
+            plt.ylabel(f'Power (kWh per {self.timescale} min)')
             plt.xlim([self.sim_starting_date, self.sim_date])
-            plt.xticks(ticks=date_range,
-                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range], rotation=45)
+            plt.xticks(ticks=date_range_print,
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
             plt.legend([f'CS {i}' for i in tr.cs_ids] +
                        ['Total Power Limit', 'Total Power'])
             plt.grid(True, which='minor', axis='both')
@@ -509,8 +591,6 @@ class EVCity(gym.Env):
 
         plt.tight_layout()
         # plt.show()
-        os.makedirs("./plots", exist_ok=True)
-        os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
         fig_name = f'plots/{self.sim_name}/Transformer_Power.html'
         plt.savefig(fig_name, format='svg',
                     dpi=600, bbox_inches='tight')
@@ -527,14 +607,25 @@ class EVCity(gym.Env):
 
             for port in range(cs.n_ports):
                 df[port] = self.port_power[port, cs.id, :]
-            # Add another row with one datetime step to make the plot look better
-            df.loc[df.index[-1] +
-                   datetime.timedelta(minutes=self.timescale)] = df.iloc[-1]
+                       # create 2 dfs, one for positive power and one for negative
 
-            plt.stackplot(df.index, df.values.T,
+            df_pos = df.copy()
+            df_pos[df_pos < 0] = 0
+            df_neg = df.copy()
+            df_neg[df_neg > 0] = 0
+            colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, cs.n_ports))
+
+            # Add another row with one datetime step to make the plot look better
+            df_pos.loc[df_pos.index[-1] +
+                       datetime.timedelta(minutes=self.timescale)] = df_pos.iloc[-1]
+            df_neg.loc[df_neg.index[-1] +
+                       datetime.timedelta(minutes=self.timescale)] = df_neg.iloc[-1]
+
+            plt.stackplot(df_pos.index, df_pos.values.T,
                           interpolate=True,
                           step='post',
-                          labels=[f'Port {i}' for i in range(cs.n_ports)])
+                          alpha=0.7,
+                          colors=colors)
             df['total'] = df.sum(axis=1)
 
             # plot the power limit
@@ -542,10 +633,15 @@ class EVCity(gym.Env):
             min_power = -cs.max_discharge_power * self.timescale / 60
             plt.plot([self.sim_starting_date, self.sim_date],
                      [max_power, max_power], 'r--')
-            plt.step(df.index, df['total'], 'blue',
-                     where='post', linestyle='--', linewidth=2)
+            plt.step(df.index, df['total'], 'darkgreen',
+                     where='post', linestyle='--')
             plt.plot([self.sim_starting_date, self.sim_date],
                      [min_power, min_power], 'r--')
+            plt.stackplot(df_neg.index, df_neg.values.T,
+                          interpolate=True,
+                          step='post',
+                          colors=colors,
+                          alpha=0.7)
             plt.plot([self.sim_starting_date, self.sim_date], [0, 0], 'black')
 
             # for i in range(cs.n_ports):
@@ -553,12 +649,13 @@ class EVCity(gym.Env):
 
             plt.title(f'Charging Station {cs.id}')
             plt.xlabel(f'Time')
-            plt.ylabel('Power (kWh)')
+            plt.ylabel(f'Power (kWh per {self.timescale} min)')
             plt.ylim([min_power*1.1, max_power*1.1])
             plt.xlim([self.sim_starting_date, self.sim_date])
+            plt.xticks(ticks=date_range_print,
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+            # place the legend under each plot
 
-            plt.xticks(ticks=date_range,
-                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range], rotation=45)
             plt.legend([f'Port {i}' for i in range(
                 cs.n_ports)] + ['Total Power Limit',
                                 'Total Power'])
@@ -587,13 +684,13 @@ class EVCity(gym.Env):
         print("Simulation statistics:")
         print(f'  - Total EVs spawned: {self.total_evs_spawned}')
         print(f'  - Total EVs served: {total_ev_served}')
-        print(f'  - Total profits: {total_profits:.2f} €')
+        print(f'  - Total profits: {total_profits*100:.2f} €')
         print(
             f'  - Average user satisfaction: {average_user_satisfaction:.2f} %')
 
-        print(f'  - Total energy charged: {toal_energy_charged:.1f} kWh')
+        print(f'  - Total energy charged: {toal_energy_charged:.1f} kW')
         print(
-            f'  - Total energy discharged: {total_energy_discharged:.1f} kWh\n')
+            f'  - Total energy discharged: {total_energy_discharged:.1f} kW\n')
 
         for cs in self.charging_stations:
             print(cs)

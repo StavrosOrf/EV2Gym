@@ -7,11 +7,12 @@ import matplotlib.pyplot as plt
 # main funtion for testing
 if __name__ == "__main__":
 
-    verbose = False
+    verbose = True
     n_transformers = 1
-    number_of_charging_stations = 50
-    steps = 250  # 288 steps = 1 day with 5 minutes per step
-    timescale = 1  # (5 minutes per step)
+    number_of_charging_stations = 2
+    steps = 100  # 288 steps = 1 day with 5 minutes per step
+    timescale = 5  # (5 minutes per step)
+    save_plots = True
 
     replay_path = "replay/replay_ev_city_50_2023-07-27_10-12.pkl"
     replay_path = "replay/replay_ev_city_250_2023-07-27_16-48.pkl"
@@ -26,6 +27,7 @@ if __name__ == "__main__":
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
+                         save_plots=False,
                          verbose=verbose,)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
@@ -35,8 +37,7 @@ if __name__ == "__main__":
     env.visualize()
     rewards = []    
 
-    for i in range(steps):
-        print("-"*80)
+    for i in range(steps):        
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
         if verbose:
@@ -53,9 +54,6 @@ if __name__ == "__main__":
             print(f'End of simulation at step {i}')
             exit()
 
-    if verbose:
-        env.print_statistics()
-    
     # env.plot()
     
     # Solve optimally
@@ -79,8 +77,7 @@ if __name__ == "__main__":
     env.visualize()
     rewards_opt = []
 
-    for i in range(steps):
-        print("-"*80)
+    for i in range(steps):        
         # all ports are charging instantly
         # print(f'Optimal actions: {opt_actions[:,:,i]}')
         # print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
@@ -96,35 +93,30 @@ if __name__ == "__main__":
             print(f'Reward: {reward} \t Done: {done}')
 
         if done:
-            break
-    
-    env.plot()
+            break    
 
-    if verbose:
-        env.print_statistics()
-    
+    if save_plots:
+        plt.figure(figsize=(10, 10))
+        # Plot the commulative reward in subplot 1
+        plt.subplot(2, 1, 1)
+        plt.plot(np.cumsum(rewards))
+        plt.plot(np.cumsum(rewards_opt))
+        plt.legend(['Charge Immediately', 'Optimal'])
+        plt.ylabel('Cumulative reward')
+        # plt.xticks(np.arange(0, steps, 1))
+        plt.title('Cumulative reward')
 
-    plt.figure(figsize=(10, 10))
-    # Plot the commulative reward in subplot 1
-    plt.subplot(2, 1, 1)
-    plt.plot(np.cumsum(rewards))
-    plt.plot(np.cumsum(rewards_opt))
-    plt.legend(['Charge Immediately', 'Optimal'])
-    plt.ylabel('Cumulative reward')
-    plt.xticks(np.arange(0, steps, 1))
-    plt.title('Cumulative reward')
+        # Plot the reward per step in subplot 2
+        plt.subplot(2, 1, 2)
+        plt.plot(rewards)
+        plt.plot(rewards_opt)
+        plt.legend(['Charge Immediately', 'Optimal'])
+        plt.xlabel('Time step')
+        plt.ylabel('Reward')
+        # plt.xticks(np.arange(0, steps, 1))
+        plt.title('Reward per time step')
 
-    # Plot the reward per step in subplot 2
-    plt.subplot(2, 1, 2)
-    plt.plot(rewards)
-    plt.plot(rewards_opt)
-    plt.legend(['Charge Immediately', 'Optimal'])
-    plt.xlabel('Time step')
-    plt.ylabel('Reward')
-    plt.xticks(np.arange(0, steps, 1))
-    plt.title('Reward per time step')
-
-    plt.tight_layout()    
-    plt.savefig(f'plots/{env.sim_name}/RewardsComparison.html',
-                 format='svg', dpi=600, bbox_inches='tight')
-    
+        plt.tight_layout()    
+        plt.savefig(f'plots/{env.sim_name}/RewardsComparison.html',
+                    format='svg', dpi=600, bbox_inches='tight')
+        

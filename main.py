@@ -12,6 +12,7 @@ if __name__ == "__main__":
     number_of_charging_stations = 10
     steps = 20  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
+    save_plots = False
 
     # steps = 100
     replay_path = "replay/replay_ev_city_100_2023-07-26_15-33.pkl"

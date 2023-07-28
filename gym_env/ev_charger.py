@@ -48,8 +48,8 @@ class EV_Charger:
                  connected_bus,
                  connected_transformer,
                  geo_location=None,
-                 max_charge_power=180,  # kW
-                 max_discharge_power=180,  # kW
+                 max_charge_power=100,  # kW
+                 max_discharge_power=50,  # kW
                  n_ports=2,
                  charger_type="DC",
                  bi_directional=True,
@@ -127,7 +127,7 @@ class EV_Charger:
 
         # Update EVs connected to the EV charger and get profits/costs
         for i, action in enumerate(normalized_actions):
-            # print(action)
+            action = round(action, 5)
             assert action >= -1 and action <= 1
 
             if action == 0 and self.evs_connected[i] is not None:
@@ -196,16 +196,16 @@ class EV_Charger:
         if self.total_evs_served == 0:
             user_satisfaction_str = ' Avg. Sat.:  - '
         else:
-            user_satisfaction_str = f' Avg. Sat.: {self.get_avg_user_satisfaction(): 3.1f}'
+            user_satisfaction_str = f' Avg. Sat.: {self.get_avg_user_satisfaction()*100: 3.1f}%'
 
         # f' ({self.current_step*self.timescale: 3d} mins)' + \
         return f'CS{self.id:3d}: ' + \
             f' Served {self.total_evs_served:4d} EVs' + \
             user_satisfaction_str + \
             f' in {self.current_step: 4d} steps' + \
-            f' |{self.total_profits: 7.1f} €' + \
-            f' +{self.total_energy_charged: 5.1f}/' + \
-            f'-{self.total_energy_discharged: 5.1f} kWh'
+            f' |{self.total_profits: 7.1f} € |' + \
+            f' +{self.total_energy_charged: 5.1f} /' + \
+            f' -{self.total_energy_discharged: 5.1f} kW'
 
     def get_avg_user_satisfaction(self):
         if self.total_evs_served == 0:
@@ -229,6 +229,8 @@ class EV_Charger:
             print(f'+ EV connected to Charger {self.id} at port {index}' +
                   f' leaving at {ev.earlier_time_of_departure}' +
                   f' SoC {ev.get_soc():.1f}%')
+        
+        return index
 
     def reset(self):
         '''Resets the EV charger status to the initial state'''
