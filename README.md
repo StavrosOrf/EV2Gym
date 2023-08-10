@@ -10,6 +10,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [x] Implement the replay_game feature using the saved data from the simulation for actual objective value (using the gurobi optimization model)
 - [x] TODO debug the replay_game feature(the spawn of EVS asserion fails assert (self.n_evs_connected < self.n_ports))
 - [x] Add more plot visualizations for the simulation about EV such as energy level and  charging cycles, etc.
+- [ ] Implement seed in the main environment
 
 #### Debugging
 Here, I will write down the debugging tasks I am currently working on:
@@ -73,6 +74,9 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 ## Datasets
  - EV charging transactions: https://platform.elaad.io/download-data/
  - EV charing prices and transactions [Not free]: https://www.chargeprice.app/
+
+## RL Menchmarks
+ - DDPG: https://github.com/schneimo/ddpg-pytorch
 
 ## URLs
 

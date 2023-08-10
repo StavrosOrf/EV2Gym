@@ -40,6 +40,7 @@ class EVCity(gym.Env):
                  timescale=5,
                  date=(2023, 7, 21),  # (year, month, day)
                  hour=(10, 0),  # (hour, minute) 24 hour format
+                 seed = 42, #TODO: add seed
                  save_replay=True,
                  save_plots=True,
                  verbose=False,
@@ -58,6 +59,8 @@ class EVCity(gym.Env):
         self.save_plots = save_plots
         self.verbose = verbose  # Whether to print the simulation progress or not
         self.simulation_length = simulation_length
+
+        self.seed = seed
 
         if load_from_replay_path is not None:
             with open(load_from_replay_path, 'rb') as file:

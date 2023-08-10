@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 # main funtion for testing
 if __name__ == "__main__":
 
-    verbose = True
+    verbose = False
     n_transformers = 1
-    number_of_charging_stations = 2
-    steps = 100  # 288 steps = 1 day with 5 minutes per step
+    number_of_charging_stations = 3
+    steps = 70  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
     save_plots = True
 
@@ -19,6 +19,7 @@ if __name__ == "__main__":
     replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
+                         number_of_ports_per_cs=2,
                          number_of_transformers=n_transformers,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,

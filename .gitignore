@@ -167,3 +167,4 @@ plots/
 model.lp
 vscode/
 .vscode/settings.json
+runs/
