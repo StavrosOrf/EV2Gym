@@ -109,7 +109,7 @@ if __name__ == "__main__":
         args.env).reward_threshold is not None else np.inf
 
     # Set random seed for all used libraries where possible
-    env.seed(args.seed)
+    # env.seed(args.seed)
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
     random.seed(args.seed)
