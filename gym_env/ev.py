@@ -142,7 +142,7 @@ class EV():
         '''
 
         if self.current_capacity < self.desired_capacity - 0.001:
-            print (f'EV {self.id} is departing with {self.current_capacity} kWh out of {self.desired_capacity} kWh')
+            # print (f'EV {self.id} is departing with {self.current_capacity} kWh out of {self.desired_capacity} kWh')
             return 0
         else:
             return 1

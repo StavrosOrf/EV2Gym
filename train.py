@@ -102,6 +102,7 @@ if __name__ == "__main__":
                          simulation_length=steps,
                          timescale=timescale,
                          save_plots=False,
+                         save_replay=False,
                          verbose=verbose,)
 
     # Define the reward threshold when the task is solved (if existing) for model saving
@@ -150,16 +151,18 @@ if __name__ == "__main__":
     time_last_checkpoint = time.time()
 
     # Start training
-    logger.info('Train agent on {} env'.format({env.unwrapped.spec.id}))
+    logger.info('Train agent on {} env'.format({args.env}))
     logger.info('Doing {} timesteps'.format(args.timesteps))
     logger.info('Start at timestep {0} with t = {1}'.format(timestep, t))
-    logger.info('Start training at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+    logger.info('Start training at {}'.format(
+        time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
     while timestep <= args.timesteps:
         ou_noise.reset()
         epoch_return = 0
 
         state = torch.Tensor([env.reset()]).to(device)
+
         while True:
             if args.render_train:
                 env.render()
@@ -211,9 +214,11 @@ if __name__ == "__main__":
                     if args.render_eval:
                         env.render()
 
-                    action = agent.calc_action(state)  # Selection without noise
+                    # Selection without noise
+                    action = agent.calc_action(state)
 
-                    next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
+                    next_state, reward, done, _ = env.step(
+                        action.cpu().numpy()[0])
                     test_reward += reward
 
                     next_state = torch.Tensor([next_state]).to(device)
@@ -226,16 +231,20 @@ if __name__ == "__main__":
             mean_test_rewards.append(np.mean(test_rewards))
 
             for name, param in agent.actor.named_parameters():
-                writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
+                writer.add_histogram(
+                    name, param.clone().cpu().data.numpy(), epoch)
             for name, param in agent.critic.named_parameters():
-                writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
+                writer.add_histogram(
+                    name, param.clone().cpu().data.numpy(), epoch)
 
-            writer.add_scalar('test/mean_test_return', mean_test_rewards[-1], epoch)
+            writer.add_scalar('test/mean_test_return',
+                              mean_test_rewards[-1], epoch)
             logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
                         "mean reward: {}, mean test reward {}".format(epoch,
                                                                       timestep,
                                                                       rewards[-1],
-                                                                      np.mean(rewards[-10:]),
+                                                                      np.mean(
+                                                                          rewards[-10:]),
                                                                       np.mean(test_rewards)))
 
             # Save if the mean of the last three averaged rewards while testing
@@ -244,11 +253,14 @@ if __name__ == "__main__":
             if np.mean(mean_test_rewards[-3:]) >= reward_threshold:
                 agent.save_checkpoint(timestep, memory)
                 time_last_checkpoint = time.time()
-                logger.info('Saved model at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+                logger.info('Saved model at {}'.format(time.strftime(
+                    '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
         epoch += 1
 
     agent.save_checkpoint(timestep, memory)
-    logger.info('Saved model at endtime {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-    logger.info('Stopping training at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+    logger.info('Saved model at endtime {}'.format(
+        time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+    logger.info('Stopping training at {}'.format(
+        time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
     env.close()

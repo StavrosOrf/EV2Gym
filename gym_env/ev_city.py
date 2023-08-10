@@ -40,7 +40,7 @@ class EVCity(gym.Env):
                  timescale=5,
                  date=(2023, 7, 21),  # (year, month, day)
                  hour=(10, 0),  # (hour, minute) 24 hour format
-                 seed = 42, #TODO: add seed
+                 seed=42,  # TODO: add seed
                  save_replay=True,
                  save_plots=True,
                  verbose=False,
@@ -124,40 +124,25 @@ class EVCity(gym.Env):
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         self.number_of_ports = np.array(
             [cs.n_ports for cs in self.charging_stations]).sum()
-        self.action_space = spaces.Box(
-            low=-1, high=1, shape=(self.number_of_ports, 1), dtype=np.float32)
+        
+        high = np.ones([self.number_of_ports])
+        self.action_space = spaces.Box(low=-high, high=high, dtype=np.float32)
 
         # Observation space: is a matrix of size ("Sum of all ports of all charging stations",n_features)
-        n_features = 5
-        self.observation_space = (self.number_of_ports, n_features)
-        # TODO: Observation space is different when simulating the grid
+        obs_dim = 4 + \
+            cs * (6 + 3*number_of_ports_per_cs) + \
+            number_of_transformers * 3
+
+        print(f'Observation space dimension: {obs_dim}')
+
+        high = np.inf*np.ones([obs_dim])
+        self.observation_space = spaces.Box(
+            low=-high, high=high, dtype=np.float32)        
 
         # Observation mask: is a vector of size ("Sum of all ports of all charging stations") showing in which ports an EV is connected
         self.observation_mask = np.zeros(self.number_of_ports)
 
-        self.current_step = 0
-        self.total_evs_spawned = 0
-
-        self.current_ev_departed = 0
-        self.current_ev_arrived = 0
-        self.current_evs_parked = 0
-
-        self.transformer_power = np.zeros([self.number_of_transformers,
-                                           self.simulation_length])
-
-        self.cs_power = np.zeros([self.cs, self.simulation_length])
-        self.port_power = np.zeros([self.number_of_ports,
-                                    self.cs,
-                                    self.simulation_length])
-        self.port_energy_level = np.zeros([self.number_of_ports,
-                                           self.cs,
-                                           self.simulation_length])
-        self.port_charging_cycles = np.zeros([self.number_of_ports,
-                                              self.cs,
-                                              self.simulation_length])
-        self.port_arrival = dict({f'{j}.{i}': []
-                                  for i in range(self.number_of_ports)
-                                  for j in range(self.cs)})
+        self.init_statistic_variables()
 
         self.done = False
 
@@ -247,7 +232,41 @@ class EVCity(gym.Env):
         for cs in self.charging_stations:
             cs.reset()
 
+        self.sim_date = self.sim_starting_date
+        self.sim_name = f'ev_city_{self.simulation_length}_' + \
+            f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
+        
+        #TODO reset grid if implemented
+        self.init_statistic_variables()
+
         return self._get_observation()
+
+    def init_statistic_variables(self):
+        self.current_step = 0
+        self.total_evs_spawned = 0
+
+        self.current_ev_departed = 0
+        self.current_ev_arrived = 0
+        self.current_evs_parked = 0
+
+        self.transformer_power = np.zeros([self.number_of_transformers,
+                                           self.simulation_length])
+
+        self.cs_power = np.zeros([self.cs, self.simulation_length])
+        self.port_power = np.zeros([self.number_of_ports,
+                                    self.cs,
+                                    self.simulation_length])
+        self.port_energy_level = np.zeros([self.number_of_ports,
+                                           self.cs,
+                                           self.simulation_length])
+        self.port_charging_cycles = np.zeros([self.number_of_ports,
+                                              self.cs,
+                                              self.simulation_length])
+        self.port_arrival = dict({f'{j}.{i}': []
+                                  for i in range(self.number_of_ports)
+                                  for j in range(self.cs)})
+
+        self.done = False                
 
     def step(self, actions, visualize=False):
         ''''
@@ -373,7 +392,7 @@ class EVCity(gym.Env):
         # Check if the episode is done
         if self.current_step >= self.simulation_length or \
                 any(score < self.score_threshold for score in user_satisfaction_list) or \
-            (any(tr.is_overloaded() for tr in self.transformers)
+        (any(tr.is_overloaded() for tr in self.transformers)
                     and not self.generate_rnd_game):
             """Terminate if:
                 - The simulation length is reached
@@ -397,9 +416,9 @@ class EVCity(gym.Env):
 
             self.done = True
 
-            return self._get_observation(), reward, True
+            return self._get_observation(), reward, True, None
         else:
-            return self._get_observation(), reward, False
+            return self._get_observation(), reward, False, None
 
     def save_sim_replay(self):
         '''Saves the simulation data in a pickle file'''
@@ -610,7 +629,7 @@ class EVCity(gym.Env):
 
             for port in range(cs.n_ports):
                 df[port] = self.port_power[port, cs.id, :]
-                       # create 2 dfs, one for positive power and one for negative
+                # create 2 dfs, one for positive power and one for negative
 
             df_pos = df.copy()
             df_pos[df_pos < 0] = 0
@@ -708,7 +727,8 @@ class EVCity(gym.Env):
         '''Returns the current state of the environment'''
         state = [self.current_step,
                  self.timescale,
-                 self.cs,]
+                 self.cs,
+                 self.number_of_transformers,]
 
         for tr in self.transformers:
             state.append(tr.get_state())
@@ -719,7 +739,7 @@ class EVCity(gym.Env):
         if include_grid:
             state.append(self.grid.get_grid_state())
 
-        return np.hstack(state)
+        return np.array(np.hstack(state))  # .reshape(-1)
 
     def _calculate_reward(self, total_costs, user_satisfaction_list):
         '''Calculates the reward for the current step'''
