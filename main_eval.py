@@ -44,7 +44,7 @@ if __name__ == "__main__":
         if verbose:
             print(f'Actions: {actions}')
 
-        new_state, reward, done = env.step(
+        new_state, reward, done, _ = env.step(
             actions, visualize=True)  # takes action
         rewards.append(reward)
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         if verbose:
             print(f' OptimalActions: {actions}')
 
-        new_state, reward, done = env.step(
+        new_state, reward, done, _ = env.step(
             actions, visualize=True)  # takes action
         rewards_opt.append(reward)
 

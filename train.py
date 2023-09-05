@@ -101,7 +101,7 @@ if __name__ == "__main__":
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
-                         save_plots=False,
+                         save_plots=True,
                          save_replay=False,
                          verbose=verbose,)
 

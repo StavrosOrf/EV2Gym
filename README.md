@@ -5,6 +5,8 @@ A V2X Simulation Environment for large scale EV charging optimization
 
 ## TODO short term
 
+- [ ] Experiment with DDPG for this problem
+
 #### General
 - [x] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
 - [x] Implement the replay_game feature using the saved data from the simulation for actual objective value (using the gurobi optimization model)
@@ -25,7 +27,7 @@ Here, I will write down the debugging tasks I am currently working on:
 - [ ] Research about electricity prices and how to include them in the problem formulation
 
 
-#### PyOmo Optimization
+#### PyOmo/ Gurobi Optimization
 - [x] Implement the Gurobi optimization problem formulation
   - [x] Add constraints
   - [x] Add objective function  
