@@ -233,8 +233,8 @@ class EVCity(gym.Env):
             cs.reset()
 
         self.sim_date = self.sim_starting_date
-        self.sim_name = f'ev_city_{self.simulation_length}_' + \
-            f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
+        # self.sim_name = f'ev_city_{self.simulation_length}_' + \
+            # f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
         
         #TODO reset grid if implemented
         self.init_statistic_variables()
@@ -688,6 +688,7 @@ class EVCity(gym.Env):
         # Save plt to html
         fig_name = f'plots/{self.sim_name}/CS_Power.html'
         plt.savefig(fig_name, format='svg', dpi=600, bbox_inches='tight')
+        plt.close('all')
 
     def print_statistics(self):
         '''Prints the statistics of the simulation'''

@@ -66,7 +66,8 @@ if __name__ == "__main__":
 
     # Define the directory where to save and load models
     checkpoint_dir = args.save_dir + args.env
-    writer = SummaryWriter('runs/run_1')
+    #name the run accordign to time
+    writer = SummaryWriter('runs/r_' + time.strftime("%Y%m%d-%H%M%S"))
 
     # Create the env
     kwargs = dict()
@@ -81,9 +82,10 @@ if __name__ == "__main__":
 
     verbose = False
     n_transformers = 1
-    number_of_charging_stations = 3
-    steps = 70  # 288 steps = 1 day with 5 minutes per step
+    number_of_charging_stations = 1
+    steps = 200  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
+    score_threshold = 0 # [0,1] 1 means fully charged, 0 means empty
     save_plots = True
     replay_path = None
 
@@ -101,7 +103,8 @@ if __name__ == "__main__":
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
-                         save_plots=True,
+                         score_threshold=score_threshold,
+                         save_plots=False,
                          save_replay=False,
                          verbose=verbose,)
 
@@ -161,12 +164,18 @@ if __name__ == "__main__":
         ou_noise.reset()
         epoch_return = 0
 
+        # print(env.reset().shape)
+        # state = np.array(env.reset().reshape(-1))
+        # state = torch.Tensor(state).to(device)
+        # print(f'state shape: {state.shape}'')
         state = torch.Tensor([env.reset()]).to(device)
-
+        #Normalize the state
+        state = state / torch.norm(state)        
+        # print(f'state: {state}')
+        
         while True:
             if args.render_train:
-                env.render()
-
+                env.render()            
             action = agent.calc_action(state, ou_noise)
             next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
             timestep += 1
