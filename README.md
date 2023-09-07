@@ -5,6 +5,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 
 ## TODO short term
 
+- [ ] Linearize the User Satisfaction constraint as a negative infinite reward.
 - [ ] Experiment with DDPG for this problem
 
 #### General

@@ -85,7 +85,7 @@ if __name__ == "__main__":
     number_of_charging_stations = 1
     steps = 200  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
-    score_threshold = 0 # [0,1] 1 means fully charged, 0 means empty
+    score_threshold = 0.1 # [0,1] 1 means fully charged, 0 means empty
     save_plots = True
     replay_path = None
 
