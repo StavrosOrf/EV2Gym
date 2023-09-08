@@ -60,6 +60,8 @@ class EVCity(gym.Env):
         self.verbose = verbose  # Whether to print the simulation progress or not
         self.simulation_length = simulation_length
 
+        self.score_threshold = score_threshold
+
         self.seed = seed
 
         if load_from_replay_path is not None:
@@ -73,14 +75,14 @@ class EVCity(gym.Env):
             # self.simulation_length = self.replay.sim_length
             self.cs = self.replay.n_cs
             self.number_of_transformers = self.replay.n_transformers
-            self.score_threshold = self.replay.score_threshold
+            # self.score_threshold = self.replay.score_threshold
             self.number_of_ports_per_cs = self.replay.max_n_ports
 
         else:
             assert cs is not None, "Please provide the number of charging stations"
             self.cs = cs  # Number of charging stations
             # Threshold for the user satisfaction score
-            self.score_threshold = score_threshold
+            
             self.number_of_ports_per_cs = number_of_ports_per_cs
             self.number_of_transformers = number_of_transformers
             # Timescale of the simulation (in minutes)
@@ -390,7 +392,12 @@ class EVCity(gym.Env):
         if visualize:
             self.visualize()
 
-        # Check if the episode is done
+        return self.check_termination(user_satisfaction_list, reward)
+        
+
+
+    def check_termination(self,user_satisfaction_list, reward):
+        # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
                 any(score < self.score_threshold for score in user_satisfaction_list) or \
         (any(tr.is_overloaded() for tr in self.transformers)
@@ -405,7 +412,7 @@ class EVCity(gym.Env):
                 the simulation might end up in infeasible problem
                 """
             if self.verbose:
-                self.print_statistics()
+                self.print_statistics()            
 
             print(f"\nEpisode finished after {self.current_step} timesteps")
 
@@ -420,6 +427,7 @@ class EVCity(gym.Env):
             return self._get_observation(), reward, True, None
         else:
             return self._get_observation(), reward, False, None
+
 
     def save_sim_replay(self):
         '''Saves the simulation data in a pickle file'''
@@ -748,9 +756,9 @@ class EVCity(gym.Env):
 
     def _calculate_reward(self, total_costs, user_satisfaction_list):
         '''Calculates the reward for the current step'''
-        reward = total_costs
+        reward = total_costs*10
         # print(f'total_costs: {total_costs}')
         # print(f'user_satisfaction_list: {user_satisfaction_list}')
         for score in user_satisfaction_list:
             reward -= 15 * (1 - score)
-        return reward
+        return reward / 100

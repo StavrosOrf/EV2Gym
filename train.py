@@ -107,6 +107,7 @@ if __name__ == "__main__":
                          save_plots=False,
                          save_replay=False,
                          verbose=verbose,)
+                         
 
     # Define the reward threshold when the task is solved (if existing) for model saving
     reward_threshold = gym.spec(args.env).reward_threshold if gym.spec(
@@ -219,7 +220,7 @@ if __name__ == "__main__":
         writer.add_scalar('epoch/return', epoch_return, epoch)
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
-        if timestep >= 1000 * t:
+        if timestep >= 5000 * t:
             t += 1
             test_rewards = []
             for _ in range(args.n_test_cycles):
