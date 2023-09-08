@@ -54,11 +54,13 @@ class EV():
                  charge_efficiency=1,
                  discharge_efficiency=1,
                  v2g_enabled=True,
-                 timescale=5,):
+                 timescale=5,
+                 simulation_length=150,):
 
         self.id = id
         self.location = location
         self.timescale = timescale
+        self.simulation_length = simulation_length
 
         # EV simulation characteristics
         self.time_of_arrival = time_of_arrival
@@ -155,15 +157,15 @@ class EV():
         '''
         return (self.current_capacity/self.battery_capacity)*100
 
-    def get_state(self):
+    def get_state(self,current_step):
         '''
         A function that returns the state of the EV.
         Outputs: 
             - State: the state of the EV
         '''
-        timestep_left = self.earlier_time_of_departure - self.time_of_arrival
+        timestep_left = self.earlier_time_of_departure - current_step
 
-        return self.get_soc(), timestep_left, self.charging_cycles
+        return self.get_soc()/100, timestep_left / 150 #, self.charging_cycles
 
     def __str__(self):
         return f' {self.current_power:5.1f} kWh |' + \

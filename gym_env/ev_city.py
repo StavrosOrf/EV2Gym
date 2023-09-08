@@ -121,7 +121,9 @@ class EVCity(gym.Env):
         self.ev_profiles = self._load_ev_profiles()
 
         # Load Electricity prices for every charging station
-        self.charge_prices, self.discharge_prices = self._load_electricity_prices()
+        # self.charge_prices, self.discharge_prices = self._load_electricity_prices()
+        self.charge_prices = np.ones((self.cs, self.simulation_length)) * -0.01
+        self.discharge_prices = np.ones((self.cs, self.simulation_length)) * 0.1
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         self.number_of_ports = np.array(
@@ -131,9 +133,9 @@ class EVCity(gym.Env):
         self.action_space = spaces.Box(low=-high, high=high, dtype=np.float32)
 
         # Observation space: is a matrix of size ("Sum of all ports of all charging stations",n_features)
-        obs_dim = 4 + \
-            cs * (6 + 3*number_of_ports_per_cs) + \
-            number_of_transformers * 3
+        obs_dim = 1 + \
+            cs * (2 + 2*number_of_ports_per_cs)
+            # + number_of_transformers * 3
 
         print(f'Observation space dimension: {obs_dim}')
 
@@ -286,6 +288,7 @@ class EVCity(gym.Env):
             print("-"*80)
 
         total_costs = 0
+        total_invalid_action_punishment = 0
         user_satisfaction_list = []
 
         self.current_ev_departed = 0
@@ -300,7 +303,7 @@ class EVCity(gym.Env):
         # Call step for each charging station and spawn EVs where necessary
         for cs in self.charging_stations:
             n_ports = cs.n_ports
-            costs, user_satisfaction = cs.step(
+            costs, user_satisfaction, invalid_action_punishment = cs.step(
                 actions[port_counter:port_counter + n_ports],
                 self.charge_prices[cs.id, self.current_step],
                 self.discharge_prices[cs.id, self.current_step])
@@ -312,6 +315,7 @@ class EVCity(gym.Env):
                 cs.current_power_output)
 
             total_costs += costs
+            total_invalid_action_punishment += invalid_action_punishment
             self.current_ev_departed += len(user_satisfaction)
 
             port_counter += n_ports
@@ -387,7 +391,8 @@ class EVCity(gym.Env):
             reward = self._calculate_reward(grid_report)
         else:
             reward = self._calculate_reward(total_costs,
-                                            user_satisfaction_list)
+                                            user_satisfaction_list,
+                                            total_invalid_action_punishment)
 
         if visualize:
             self.visualize()
@@ -753,27 +758,37 @@ class EVCity(gym.Env):
 
     def _get_observation(self, include_grid=False):
         '''Returns the current state of the environment'''
-        state = [self.current_step,
-                 self.timescale,
-                 self.cs,
-                 self.number_of_transformers,]
+        state = [self.current_step / self.simulation_length,
+                #  self.timescale,
+                #  self.cs,
+                #  self.number_of_transformers,
+                 ]
 
-        for tr in self.transformers:
-            state.append(tr.get_state())
+        # for tr in self.transformers:
+        #     state.append(tr.get_state())
 
         for cs in self.charging_stations:
             state.append(cs.get_state())
 
         if include_grid:
             state.append(self.grid.get_grid_state())
+        
+        state = np.array(np.hstack(state))
+        
+        np.set_printoptions(suppress=True)        
+        
+        # print(f'state: {state}')
+        return state # .reshape(-1)
 
-        return np.array(np.hstack(state))  # .reshape(-1)
-
-    def _calculate_reward(self, total_costs, user_satisfaction_list):
+    def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''
-        reward = total_costs*10
+        reward = total_costs
         # print(f'total_costs: {total_costs}')
         # print(f'user_satisfaction_list: {user_satisfaction_list}')
         for score in user_satisfaction_list:
-            reward = -1000 * (1 - score)
-        return reward / 100
+            reward -= 100  * (1 - score)
+        
+        # Punish invalid actions (actions that try to charge or discharge when there is no EV connected)
+        # reward -= invalid_action_punishment
+
+        return reward

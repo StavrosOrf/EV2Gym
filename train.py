@@ -50,7 +50,7 @@ parser.add_argument("--gamma", default=0.99,
                     help="Discount factor (default: 0.99)")
 parser.add_argument("--tau", default=0.001,
                     help="Update factor for the soft update of the target networks (default: 0.001)")
-parser.add_argument("--noise_stddev", default=0.3, type=int,
+parser.add_argument("--noise_stddev", default=0.2, type=int,
                     help="Standard deviation of the OU-Noise (default: 0.2)")
 parser.add_argument("--hidden_size", nargs=2, default=[64, 64], type=tuple,
                     help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     number_of_charging_stations = 1
     steps = 150  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
-    score_threshold = 0  # [0,1] 1 means fully charged, 0 means empty
+    score_threshold = 1  # [0,1] 1 means fully charged, 0 means empty
     save_plots = True
     # replay_path = "replay/replay_ev_city_288_2023-09-08_09-33.pkl"
     replay_path = "replay/replay_ev_city_150_2023-09-08_11-44.pkl"
@@ -165,15 +165,16 @@ if __name__ == "__main__":
         ou_noise.reset()
         epoch_return = 0
 
-        print(f'Epoch: {epoch} timestep: {timestep} ')
+        print(f'Epoch: {epoch} timestep: {timestep}')
 
         # print(env.reset().shape)
         # state = np.array(env.reset().reshape(-1))
         # state = torch.Tensor(state).to(device)
         # print(f'state shape: {state.shape}'')
         state = torch.Tensor([env.reset()]).to(device)
+        # print(f'State: {state}')
         # Normalize the state
-        state = state / torch.norm(state)
+        # state = state / torch.norm(state)
         # print(f'state: {state}')
 
         while True:
@@ -188,9 +189,10 @@ if __name__ == "__main__":
             epoch_return += reward
 
             mask = torch.Tensor([done]).to(device)
-            reward = torch.Tensor([reward]).to(device)
+            reward = torch.Tensor([reward]).to(device)            
             next_state = torch.Tensor([next_state]).to(device)
-            next_state = next_state / torch.norm(next_state)
+            # print(f'State: {next_state}')
+            # next_state = next_state / torch.norm(next_state)
 
             memory.push(state, action, mask, next_state, reward)
 
@@ -250,6 +252,9 @@ if __name__ == "__main__":
                     next_state, reward, done, stats = env.step(
                         action.cpu().numpy()[0])
                     test_reward += reward
+
+                    print('Action',action.detach().cpu().numpy(),reward)
+                    print('State',next_state)
 
                     next_state = torch.Tensor([next_state]).to(device)
 
