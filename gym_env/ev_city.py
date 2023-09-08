@@ -82,7 +82,7 @@ class EVCity(gym.Env):
             assert cs is not None, "Please provide the number of charging stations"
             self.cs = cs  # Number of charging stations
             # Threshold for the user satisfaction score
-            
+
             self.number_of_ports_per_cs = number_of_ports_per_cs
             self.number_of_transformers = number_of_transformers
             # Timescale of the simulation (in minutes)
@@ -126,7 +126,7 @@ class EVCity(gym.Env):
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         self.number_of_ports = np.array(
             [cs.n_ports for cs in self.charging_stations]).sum()
-        
+
         high = np.ones([self.number_of_ports])
         self.action_space = spaces.Box(low=-high, high=high, dtype=np.float32)
 
@@ -139,7 +139,7 @@ class EVCity(gym.Env):
 
         high = np.inf*np.ones([obs_dim])
         self.observation_space = spaces.Box(
-            low=-high, high=high, dtype=np.float32)        
+            low=-high, high=high, dtype=np.float32)
 
         # Observation mask: is a vector of size ("Sum of all ports of all charging stations") showing in which ports an EV is connected
         self.observation_mask = np.zeros(self.number_of_ports)
@@ -236,9 +236,9 @@ class EVCity(gym.Env):
 
         self.sim_date = self.sim_starting_date
         # self.sim_name = f'ev_city_{self.simulation_length}_' + \
-            # f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
-        
-        #TODO reset grid if implemented
+        # f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
+
+        # TODO reset grid if implemented
         self.init_statistic_variables()
 
         return self._get_observation()
@@ -268,7 +268,7 @@ class EVCity(gym.Env):
                                   for i in range(self.number_of_ports)
                                   for j in range(self.cs)})
 
-        self.done = False                
+        self.done = False
 
     def step(self, actions, visualize=False):
         ''''
@@ -281,7 +281,7 @@ class EVCity(gym.Env):
             - done: is a boolean value indicating whether the episode is done or not
         '''
         assert not self.done, "Episode is done, please reset the environment"
-        
+
         if self.verbose:
             print("-"*80)
 
@@ -393,14 +393,12 @@ class EVCity(gym.Env):
             self.visualize()
 
         return self.check_termination(user_satisfaction_list, reward)
-        
 
-
-    def check_termination(self,user_satisfaction_list, reward):
+    def check_termination(self, user_satisfaction_list, reward):
         # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
                 any(score < self.score_threshold for score in user_satisfaction_list) or \
-        (any(tr.is_overloaded() for tr in self.transformers)
+            (any(tr.is_overloaded() for tr in self.transformers)
                     and not self.generate_rnd_game):
             """Terminate if:
                 - The simulation length is reached
@@ -412,7 +410,7 @@ class EVCity(gym.Env):
                 the simulation might end up in infeasible problem
                 """
             if self.verbose:
-                self.print_statistics()            
+                self.print_statistics()
 
             print(f"\nEpisode finished after {self.current_step} timesteps")
 
@@ -424,10 +422,27 @@ class EVCity(gym.Env):
 
             self.done = True
 
-            return self._get_observation(), reward, True, None
+            # create an objext with statistics about the simulation for vizualization
+            total_ev_served = np.array(
+                [cs.total_evs_served for cs in self.charging_stations]).sum()
+            total_profits = np.array(
+                [cs.total_profits for cs in self.charging_stations]).sum()
+            toal_energy_charged = np.array(
+                [cs.total_energy_charged for cs in self.charging_stations]).sum()
+            total_energy_discharged = np.array(
+                [cs.total_energy_discharged for cs in self.charging_stations]).sum()
+            average_user_satisfaction = np.average(np.array(
+                [cs.get_avg_user_satisfaction() for cs in self.charging_stations]))
+
+            stats = {'total_ev_served': total_ev_served,
+                     'total_profits': total_profits,
+                     'toal_energy_charged': toal_energy_charged,
+                     'total_energy_discharged': total_energy_discharged,
+                     'average_user_satisfaction': average_user_satisfaction}
+
+            return self._get_observation(), reward, True, stats
         else:
             return self._get_observation(), reward, False, None
-
 
     def save_sim_replay(self):
         '''Saves the simulation data in a pickle file'''
@@ -524,14 +539,14 @@ class EVCity(gym.Env):
 
             for port in range(cs.n_ports):
                 for i, (t_arr, t_dep) in enumerate(self.port_arrival[f'{cs.id}.{port}']):
-                                        
+
                     if t_dep > len(df):
                         t_dep = len(df)
                     # x = df.index[t_arr:t_dep]
-                    y = df[port].values.T[t_arr:t_dep]                                        
+                    y = df[port].values.T[t_arr:t_dep]
                     # fill y with 0 before and after to match the length of df
                     y = np.concatenate(
-                        [np.zeros(t_arr), y, np.zeros(len(df) - t_dep)])                    
+                        [np.zeros(t_arr), y, np.zeros(len(df) - t_dep)])
 
                     plt.step(df.index, y, where='post')
                     plt.fill_between(df.index,
@@ -760,5 +775,5 @@ class EVCity(gym.Env):
         # print(f'total_costs: {total_costs}')
         # print(f'user_satisfaction_list: {user_satisfaction_list}')
         for score in user_satisfaction_list:
-            reward -= 15 * (1 - score)
+            reward = -1000 * (1 - score)
         return reward / 100

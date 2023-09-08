@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     # Define the directory where to save and load models
     checkpoint_dir = args.save_dir + args.env
-    #name the run accordign to time
+    # name the run accordign to time
     writer = SummaryWriter('runs/r_' + time.strftime("%Y%m%d-%H%M%S"))
 
     # Create the env
@@ -83,11 +83,12 @@ if __name__ == "__main__":
     verbose = False
     n_transformers = 1
     number_of_charging_stations = 1
-    steps = 288  # 288 steps = 1 day with 5 minutes per step
+    steps = 150  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
-    score_threshold = 0 # [0,1] 1 means fully charged, 0 means empty
+    score_threshold = 0  # [0,1] 1 means fully charged, 0 means empty
     save_plots = True
-    replay_path = "replay/replay_ev_city_288_2023-09-08_09-33.pkl"
+    # replay_path = "replay/replay_ev_city_288_2023-09-08_09-33.pkl"
+    replay_path = "replay/replay_ev_city_150_2023-09-08_11-44.pkl"
 
     args.env = 'evcity-v0'
 
@@ -107,7 +108,6 @@ if __name__ == "__main__":
                          save_plots=False,
                          save_replay=False,
                          verbose=verbose,)
-                         
 
     # Define the reward threshold when the task is solved (if existing) for model saving
     reward_threshold = gym.spec(args.env).reward_threshold if gym.spec(
@@ -172,17 +172,17 @@ if __name__ == "__main__":
         # state = torch.Tensor(state).to(device)
         # print(f'state shape: {state.shape}'')
         state = torch.Tensor([env.reset()]).to(device)
-        #Normalize the state
-        state = state / torch.norm(state)        
+        # Normalize the state
+        state = state / torch.norm(state)
         # print(f'state: {state}')
-        
+
         while True:
             env.save_plots = False
             if args.render_train:
-                env.render()            
+                env.render()
             action = agent.calc_action(state, ou_noise)
             # print(f'action: {action}')
-            next_state, reward, done, _ = env.step(action.cpu().numpy()[0])            
+            next_state, reward, done, stats = env.step(action.cpu().numpy()[0])
 
             timestep += 1
             epoch_return += reward
@@ -190,7 +190,7 @@ if __name__ == "__main__":
             mask = torch.Tensor([done]).to(device)
             reward = torch.Tensor([reward]).to(device)
             next_state = torch.Tensor([next_state]).to(device)
-            next_state = next_state / torch.norm(next_state)    
+            next_state = next_state / torch.norm(next_state)
 
             memory.push(state, action, mask, next_state, reward)
 
@@ -218,6 +218,19 @@ if __name__ == "__main__":
         value_losses.append(epoch_value_loss)
         policy_losses.append(epoch_policy_loss)
         writer.add_scalar('epoch/return', epoch_return, epoch)
+        #  stats = {'total_ev_served': total_ev_served,
+        #              'total_profits': total_profits,
+        #              'toal_energy_charged': toal_energy_charged,
+        #              'total_energy_discharged': total_energy_discharged,
+        #              'average_user_satisfaction': average_user_satisfaction}
+        writer.add_scalar('epoch/ev_served', stats['total_ev_served'], epoch)
+        writer.add_scalar('epoch/profits', stats['total_profits'], epoch)
+        writer.add_scalar('epoch/energy_charged',
+                          stats['toal_energy_charged'], epoch)
+        writer.add_scalar('epoch/energy_discharged',
+                          stats['total_energy_discharged'], epoch)
+        writer.add_scalar('epoch/user_satisfaction',
+                          stats['average_user_satisfaction'], epoch)
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 5000 * t:
@@ -232,9 +245,9 @@ if __name__ == "__main__":
                         env.save_plots = True
 
                     # Selection without noise
-                    action = agent.calc_action(state)                    
+                    action = agent.calc_action(state)
 
-                    next_state, reward, done, _ = env.step(
+                    next_state, reward, done, stats = env.step(
                         action.cpu().numpy()[0])
                     test_reward += reward
 
@@ -256,6 +269,13 @@ if __name__ == "__main__":
 
             writer.add_scalar('test/mean_test_return',
                               mean_test_rewards[-1], epoch)
+            writer.add_scalar('test/total_ev_served',
+                              stats['total_ev_served'], epoch)
+            writer.add_scalar('test/total_profits', stats['total_profits'], epoch)
+            writer.add_scalar('test/toal_energy_charged', stats['toal_energy_charged'], epoch)
+            writer.add_scalar('test/total_energy_discharged', stats['total_energy_discharged'], epoch)
+            writer.add_scalar('test/average_user_satisfaction', stats['average_user_satisfaction'], epoch)
+
             logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
                         "mean reward: {}, mean test reward {}".format(epoch,
                                                                       timestep,
