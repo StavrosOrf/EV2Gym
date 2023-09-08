@@ -32,7 +32,7 @@ parser.add_argument("--env", default="RoboschoolInvertedPendulumSwingup-v1",
                          "(Default: RoboschoolInvertedPendulumSwingup-v1)")
 parser.add_argument("--render_train", default=False, type=bool,
                     help="Render the training steps (default: False)")
-parser.add_argument("--render_eval", default=False, type=bool,
+parser.add_argument("--render_eval", default=True, type=bool,
                     help="Render the evaluation steps (default: False)")
 parser.add_argument("--load_model", default=False, type=bool,
                     help="Load a pretrained model (default: False)")
@@ -42,19 +42,19 @@ parser.add_argument("--seed", default=0, type=int,
                     help="Random seed (default: 0)")
 parser.add_argument("--timesteps", default=1e6, type=int,
                     help="Num. of total timesteps of training (default: 1e6)")
-parser.add_argument("--batch_size", default=64, type=int,
+parser.add_argument("--batch_size", default=128, type=int,
                     help="Batch size (default: 64; OpenAI: 128)")
-parser.add_argument("--replay_size", default=1e6, type=int,
+parser.add_argument("--replay_size", default=1e5, type=int,
                     help="Size of the replay buffer (default: 1e6; OpenAI: 1e5)")
 parser.add_argument("--gamma", default=0.99,
                     help="Discount factor (default: 0.99)")
 parser.add_argument("--tau", default=0.001,
                     help="Update factor for the soft update of the target networks (default: 0.001)")
-parser.add_argument("--noise_stddev", default=0.2, type=int,
+parser.add_argument("--noise_stddev", default=0.3, type=int,
                     help="Standard deviation of the OU-Noise (default: 0.2)")
-parser.add_argument("--hidden_size", nargs=2, default=[400, 300], type=tuple,
+parser.add_argument("--hidden_size", nargs=2, default=[64, 64], type=tuple,
                     help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
-parser.add_argument("--n_test_cycles", default=10, type=int,
+parser.add_argument("--n_test_cycles", default=1, type=int,
                     help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 args = parser.parse_args()
 
@@ -83,11 +83,11 @@ if __name__ == "__main__":
     verbose = False
     n_transformers = 1
     number_of_charging_stations = 1
-    steps = 200  # 288 steps = 1 day with 5 minutes per step
+    steps = 288  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
-    score_threshold = 0.1 # [0,1] 1 means fully charged, 0 means empty
+    score_threshold = 0 # [0,1] 1 means fully charged, 0 means empty
     save_plots = True
-    replay_path = None
+    replay_path = "replay/replay_ev_city_288_2023-09-08_09-33.pkl"
 
     args.env = 'evcity-v0'
 
@@ -164,6 +164,8 @@ if __name__ == "__main__":
         ou_noise.reset()
         epoch_return = 0
 
+        print(f'Epoch: {epoch} timestep: {timestep} ')
+
         # print(env.reset().shape)
         # state = np.array(env.reset().reshape(-1))
         # state = torch.Tensor(state).to(device)
@@ -174,16 +176,20 @@ if __name__ == "__main__":
         # print(f'state: {state}')
         
         while True:
+            env.save_plots = False
             if args.render_train:
                 env.render()            
             action = agent.calc_action(state, ou_noise)
-            next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
+            # print(f'action: {action}')
+            next_state, reward, done, _ = env.step(action.cpu().numpy()[0])            
+
             timestep += 1
             epoch_return += reward
 
             mask = torch.Tensor([done]).to(device)
             reward = torch.Tensor([reward]).to(device)
             next_state = torch.Tensor([next_state]).to(device)
+            next_state = next_state / torch.norm(next_state)    
 
             memory.push(state, action, mask, next_state, reward)
 
@@ -213,7 +219,7 @@ if __name__ == "__main__":
         writer.add_scalar('epoch/return', epoch_return, epoch)
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
-        if timestep >= 10000 * t:
+        if timestep >= 1000 * t:
             t += 1
             test_rewards = []
             for _ in range(args.n_test_cycles):
@@ -221,10 +227,11 @@ if __name__ == "__main__":
                 test_reward = 0
                 while True:
                     if args.render_eval:
-                        env.render()
+                        # env.render()
+                        env.save_plots = True
 
                     # Selection without noise
-                    action = agent.calc_action(state)
+                    action = agent.calc_action(state)                    
 
                     next_state, reward, done, _ = env.step(
                         action.cpu().numpy()[0])

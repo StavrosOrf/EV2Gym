@@ -8,6 +8,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [ ] Linearize the User Satisfaction constraint as a negative infinite reward.
 - [ ] Experiment with DDPG for this problem
 
+
 #### General
 - [x] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
 - [x] Implement the replay_game feature using the saved data from the simulation for actual objective value (using the gurobi optimization model)
@@ -18,6 +19,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 #### Debugging
 Here, I will write down the debugging tasks I am currently working on:
 - [x] Why is transformer total power always positive? (changed math model formulation)
+- [ ] Why does it terminate earlier even if trheshold is 0
 
 #### Gym Environment
 - [x] Implement step for ev charger and ev

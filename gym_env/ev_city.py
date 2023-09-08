@@ -279,6 +279,7 @@ class EVCity(gym.Env):
             - done: is a boolean value indicating whether the episode is done or not
         '''
         assert not self.done, "Episode is done, please reset the environment"
+        
         if self.verbose:
             print("-"*80)
 
@@ -515,11 +516,14 @@ class EVCity(gym.Env):
 
             for port in range(cs.n_ports):
                 for i, (t_arr, t_dep) in enumerate(self.port_arrival[f'{cs.id}.{port}']):
+                                        
+                    if t_dep > len(df):
+                        t_dep = len(df)
                     # x = df.index[t_arr:t_dep]
-                    y = df[port].values.T[t_arr:t_dep]
+                    y = df[port].values.T[t_arr:t_dep]                                        
                     # fill y with 0 before and after to match the length of df
                     y = np.concatenate(
-                        [np.zeros(t_arr), y, np.zeros(len(df) - t_dep)])
+                        [np.zeros(t_arr), y, np.zeros(len(df) - t_dep)])                    
 
                     plt.step(df.index, y, where='post')
                     plt.fill_between(df.index,
@@ -745,4 +749,8 @@ class EVCity(gym.Env):
     def _calculate_reward(self, total_costs, user_satisfaction_list):
         '''Calculates the reward for the current step'''
         reward = total_costs
+        # print(f'total_costs: {total_costs}')
+        # print(f'user_satisfaction_list: {user_satisfaction_list}')
+        for score in user_satisfaction_list:
+            reward -= 15 * (1 - score)
         return reward
