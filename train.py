@@ -10,6 +10,7 @@ import numpy as np
 from gym_env import ev_city
 import torch
 from torch.utils.tensorboard import SummaryWriter
+import wandb
 
 from ddpg import DDPG
 from utils.noise import OrnsteinUhlenbeckActionNoise
@@ -56,6 +57,9 @@ parser.add_argument("--hidden_size", nargs=2, default=[64, 64], type=tuple,
                     help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
 parser.add_argument("--n_test_cycles", default=1, type=int,
                     help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
+parser.add_argument("--wandb", default=True, type=bool,
+                    help="Enable logging to wandb (default: True)")
+
 args = parser.parse_args()
 
 # if gpu is to be used
@@ -67,7 +71,8 @@ if __name__ == "__main__":
     # Define the directory where to save and load models
     checkpoint_dir = args.save_dir + args.env
     # name the run accordign to time
-    writer = SummaryWriter('runs/r_' + time.strftime("%Y%m%d-%H%M%S"))
+    run_name = 'r_' + time.strftime("%Y%m%d-%H%M%S")
+    writer = SummaryWriter("runs/"+run_name)
 
     # Create the env
     kwargs = dict()
@@ -80,6 +85,7 @@ if __name__ == "__main__":
     # env = gym.make(args.env, **kwargs)
     # env = NormalizedActions(env)
 
+    log_to_wandb = args.wandb
     verbose = False
     n_transformers = 1
     number_of_charging_stations = 1
@@ -133,6 +139,18 @@ if __name__ == "__main__":
                  env.action_space,
                  checkpoint_dir=checkpoint_dir
                  )
+    
+
+    if log_to_wandb:
+        wandb.init(
+            name=run_name,
+            group="group",
+            project='EVsSimulator',
+            # config=variant
+        )
+        wandb.watch(agent.actor) 
+        wandb.watch(agent.critic)
+
 
     # Initialize replay memory
     memory = ReplayMemory(int(args.replay_size))
@@ -233,6 +251,14 @@ if __name__ == "__main__":
                           stats['total_energy_discharged'], epoch)
         writer.add_scalar('epoch/user_satisfaction',
                           stats['average_user_satisfaction'], epoch)
+        
+        if log_to_wandb:
+                wandb.log({'epoch/return': epoch_return,
+                           'epoch/ev_served': stats['total_ev_served'],
+                           'epoch/profits': stats['total_profits'],
+                           'epoch/energy_charged': stats['toal_energy_charged'],
+                           'epoch/energy_discharged': stats['total_energy_discharged'],
+                           'epoch/user_satisfaction': stats['average_user_satisfaction']})
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 5000 * t:
@@ -280,6 +306,15 @@ if __name__ == "__main__":
             writer.add_scalar('test/toal_energy_charged', stats['toal_energy_charged'], epoch)
             writer.add_scalar('test/total_energy_discharged', stats['total_energy_discharged'], epoch)
             writer.add_scalar('test/average_user_satisfaction', stats['average_user_satisfaction'], epoch)
+
+
+            if log_to_wandb:
+                wandb.log({'test/mean_test_return': mean_test_rewards[-1],
+                           'test/total_ev_served': stats['total_ev_served'],
+                           'test/total_profits': stats['total_profits'],
+                           'test/toal_energy_charged': stats['toal_energy_charged'],
+                           'test/total_energy_discharged': stats['total_energy_discharged'],
+                           'test/average_user_satisfaction': stats['average_user_satisfaction']})                
 
             logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
                         "mean reward: {}, mean test reward {}".format(epoch,
