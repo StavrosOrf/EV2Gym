@@ -5,8 +5,15 @@ A V2X Simulation Environment for large scale EV charging optimization
 
 ## TODO short term
 
-- [ ] Linearize the User Satisfaction constraint as a negative infinite reward.
+- [x] Linearize the User Satisfaction constraint as a negative infinite reward.
 - [ ] Experiment with DDPG for this problem
+  - [ ] Create a pipeline that quickly compares the Developed algorithm(DDPG in this case) with the optimal solution and baseline solution
+    - [ ] Vizuallize the results in the same figures, get statistics, etc.
+  - [ ] Try to improve as much as possible the 1 cs 150 timesteps problem
+  - [ ] Develop statistics that can average the perforamnce of the algorithm for multiple evaluation scenarios
+  - [ ] Then, enable dynamic prices,
+  - [ ] Then, enable dynamic EV spawn rate
+-[ ] Create a business as usual baseline solution for comparison (check literature)
 
 
 #### General
