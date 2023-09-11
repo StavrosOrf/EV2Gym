@@ -140,13 +140,26 @@ if __name__ == "__main__":
                  checkpoint_dir=checkpoint_dir
                  )
     
-
     if log_to_wandb:
         wandb.init(
             name=run_name,
-            group="group",
+            group="1cs_2ports_1transformer_static_prices",
             project='EVsSimulator',
-            # config=variant
+            config= {"batch_size": args.batch_size,
+                     "replay_size": args.replay_size,
+                     "gamma": args.gamma,
+                     "tau": args.tau,
+                     "noise_stddev": args.noise_stddev,
+                     "hidden_size": args.hidden_size,
+                     "n_test_cycles": args.n_test_cycles,
+                     "seed": args.seed,
+                     "score_threshold": score_threshold,
+                     "timescale": timescale,
+                     "steps": steps,
+                     "number_of_charging_stations": number_of_charging_stations,
+                     "replay_path": replay_path,
+                     "n_transformers": n_transformers,                  
+                     }
         )
         wandb.watch(agent.actor) 
         wandb.watch(agent.critic)
@@ -171,6 +184,8 @@ if __name__ == "__main__":
     epoch = 0
     t = 0
     time_last_checkpoint = time.time()
+
+    highest_profits = -np.inf
 
     # Start training
     logger.info('Train agent on {} env'.format({args.env}))
@@ -297,6 +312,18 @@ if __name__ == "__main__":
             for name, param in agent.critic.named_parameters():
                 writer.add_histogram(
                     name, param.clone().cpu().data.numpy(), epoch)
+                
+
+            # Save if the mean of the last three averaged rewards while testing
+            # is greater than the specified reward threshold
+            # TODO: Option if no reward threshold is given
+            if stats['total_profits'] > highest_profits and stats['average_user_satisfaction'] == 1:
+                highest_profits = stats['total_profits']                
+                agent.save_checkpoint(timestep, memory,run_name+"_best")
+                time_last_checkpoint = time.time()
+                logger.info('Saved model at {}'.format(time.strftime(
+                    '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+
 
             writer.add_scalar('test/mean_test_return',
                               mean_test_rewards[-1], epoch)
@@ -305,8 +332,7 @@ if __name__ == "__main__":
             writer.add_scalar('test/total_profits', stats['total_profits'], epoch)
             writer.add_scalar('test/toal_energy_charged', stats['toal_energy_charged'], epoch)
             writer.add_scalar('test/total_energy_discharged', stats['total_energy_discharged'], epoch)
-            writer.add_scalar('test/average_user_satisfaction', stats['average_user_satisfaction'], epoch)
-
+            writer.add_scalar('test/average_user_satisfaction', stats['average_user_satisfaction'], epoch)            
 
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
@@ -314,7 +340,8 @@ if __name__ == "__main__":
                            'test/total_profits': stats['total_profits'],
                            'test/toal_energy_charged': stats['toal_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
-                           'test/average_user_satisfaction': stats['average_user_satisfaction']})                
+                           'test/average_user_satisfaction': stats['average_user_satisfaction'],
+                           'test/higher_profits': highest_profits})                
 
             logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
                         "mean reward: {}, mean test reward {}".format(epoch,
@@ -323,19 +350,9 @@ if __name__ == "__main__":
                                                                       np.mean(
                                                                           rewards[-10:]),
                                                                       np.mean(test_rewards)))
-
-            # Save if the mean of the last three averaged rewards while testing
-            # is greater than the specified reward threshold
-            # TODO: Option if no reward threshold is given
-            if np.mean(mean_test_rewards[-3:]) >= reward_threshold:
-                agent.save_checkpoint(timestep, memory)
-                time_last_checkpoint = time.time()
-                logger.info('Saved model at {}'.format(time.strftime(
-                    '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-
         epoch += 1
 
-    agent.save_checkpoint(timestep, memory)
+    agent.save_checkpoint(timestep, memory, run_name)
     logger.info('Saved model at endtime {}'.format(
         time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
     logger.info('Stopping training at {}'.format(

@@ -155,7 +155,7 @@ class DDPG(object):
 
         return value_loss.item(), policy_loss.item()
 
-    def save_checkpoint(self, last_timestep, replay_buffer):
+    def save_checkpoint(self, last_timestep, replay_buffer,run_name):
         """
         Saving the networks and all parameters to a file in 'checkpoint_dir'
 
@@ -163,7 +163,7 @@ class DDPG(object):
             last_timestep:  Last timestep in training before saving
             replay_buffer:  Current replay buffer
         """
-        checkpoint_name = self.checkpoint_dir + '/ep_{}.pth.tar'.format(last_timestep)
+        checkpoint_name = self.checkpoint_dir + '/ep_{}_{}.pth.tar'.format(last_timestep,run_name)
         logger.info('Saving checkpoint...')
         checkpoint = {
             'last_timestep': last_timestep,
