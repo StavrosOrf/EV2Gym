@@ -51,11 +51,11 @@ parser.add_argument("--gamma", default=0.99,
                     help="Discount factor (default: 0.99)")
 parser.add_argument("--tau", default=0.001,
                     help="Update factor for the soft update of the target networks (default: 0.001)")
-parser.add_argument("--noise_stddev", default=0.2, type=int,
+parser.add_argument("--noise_stddev", default=0.3, type=int,
                     help="Standard deviation of the OU-Noise (default: 0.2)")
 parser.add_argument("--hidden_size", nargs=2, default=[64, 64], type=tuple,
                     help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
-parser.add_argument("--n_test_cycles", default=1, type=int,
+parser.add_argument("--n_test_cycles", default=10, type=int,
                     help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 parser.add_argument("--wandb", default=True, type=bool,
                     help="Enable logging to wandb (default: True)")
@@ -95,6 +95,7 @@ if __name__ == "__main__":
     save_plots = True
     # replay_path = "replay/replay_ev_city_288_2023-09-08_09-33.pkl"
     replay_path = "replay/replay_ev_city_150_2023-09-08_11-44.pkl"
+    replay_path = None
 
     args.env = 'evcity-v0'
 
@@ -142,7 +143,8 @@ if __name__ == "__main__":
     
     if log_to_wandb:
         wandb.init(
-            name=run_name,
+            name="randomEV"+run_name,
+            # group="1cs_2ports_1transformer_static_prices",
             group="1cs_2ports_1transformer_static_prices",
             project='EVsSimulator',
             config= {"batch_size": args.batch_size,

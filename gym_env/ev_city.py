@@ -786,9 +786,9 @@ class EVCity(gym.Env):
         # print(f'total_costs: {total_costs}')
         # print(f'user_satisfaction_list: {user_satisfaction_list}')
         for score in user_satisfaction_list:
-            reward -= 100  * (1 - score)
+            reward -= 100 * (1 - score)
         
         # Punish invalid actions (actions that try to charge or discharge when there is no EV connected)
-        # reward -= invalid_action_punishment
+        reward -= 2 * (invalid_action_punishment/self.number_of_ports)
 
         return reward
