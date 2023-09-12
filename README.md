@@ -13,7 +13,8 @@ A V2X Simulation Environment for large scale EV charging optimization
   - [ ] Develop statistics that can average the perforamnce of the algorithm for multiple evaluation scenarios
   - [ ] Then, enable dynamic prices,
   - [ ] Then, enable dynamic EV spawn rate
--[ ] Create a business as usual baseline solution for comparison (check literature)
+- [ ] Apply DT transformer on simple cases
+- [ ] Create a business as usual baseline solution for comparison (check literature)
 
 
 #### General
