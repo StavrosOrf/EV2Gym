@@ -9,7 +9,7 @@ import numpy as np
 # import roboschool
 from gym_env import ev_city
 import torch
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 import wandb
 
 from ddpg import DDPG
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     checkpoint_dir = args.save_dir + args.env
     # name the run accordign to time
     run_name = 'r_' + time.strftime("%Y%m%d-%H%M%S")
-    writer = SummaryWriter("runs/"+run_name)
+    # writer = SummaryWriter("runs/"+run_name)
 
     # Create the env
     kwargs = dict()
@@ -153,8 +153,7 @@ if __name__ == "__main__":
     
     if log_to_wandb:
         wandb.init(
-            name="randomEV"+run_name,            
-            group="1cs_2ports_1transformer_static_prices",
+            name="randomEV"+run_name,                        
             group=f'{number_of_charging_stations}cs_{n_transformers}tr_static_prices{static_prices}',
             project='EVsSimulator',
             config= {"batch_size": args.batch_size,
@@ -256,15 +255,18 @@ if __name__ == "__main__":
         value_losses.append(epoch_value_loss)
         policy_losses.append(epoch_policy_loss)
 
-        writer.add_scalar('epoch/return', epoch_return, epoch)
-        writer.add_scalar('epoch/ev_served', stats['total_ev_served'], epoch)
-        writer.add_scalar('epoch/profits', stats['total_profits'], epoch)
-        writer.add_scalar('epoch/energy_charged',
-                          stats['toal_energy_charged'], epoch)
-        writer.add_scalar('epoch/energy_discharged',
-                          stats['total_energy_discharged'], epoch)
-        writer.add_scalar('epoch/user_satisfaction',
-                          stats['average_user_satisfaction'], epoch)
+        # writer.add_scalar('epoch/return', epoch_return, epoch)
+        # writer.add_scalar('epoch/ev_served', stats['total_ev_served'], epoch)
+        # writer.add_scalar('epoch/profits', stats['total_profits'], epoch)
+        # writer.add_scalar('epoch/energy_charged',
+        #                   stats['toal_energy_charged'], epoch)
+        # writer.add_scalar('epoch/energy_discharged',
+        #                   stats['total_energy_discharged'], epoch)
+        # writer.add_scalar('epoch/user_satisfaction',
+        #                   stats['average_user_satisfaction'], epoch)
+        # writer.add_scalar('epoch/value_loss', epoch_value_loss, epoch)
+        # writer.add_scalar('epoch/policy_loss', epoch_policy_loss, epoch)        
+        # writer.add_scalar('epoch/ev_spawn_rt', stats['ev_spawn_rate'], epoch)
         
         if log_to_wandb:
                 wandb.log({'epoch/return': epoch_return,
@@ -272,20 +274,25 @@ if __name__ == "__main__":
                            'epoch/profits': stats['total_profits'],
                            'epoch/energy_charged': stats['toal_energy_charged'],
                            'epoch/energy_discharged': stats['total_energy_discharged'],
-                           'epoch/user_satisfaction': stats['average_user_satisfaction']})
+                           'epoch/user_satisfaction': stats['average_user_satisfaction'],
+                           'epoch/value_loss': epoch_value_loss,
+                           'epoch/policy_loss': epoch_policy_loss,
+                           'epoch/ev_spawn_rt': stats['ev_spawn_rate']})
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 5000 * t:
             t += 1
             test_rewards = []
             test_stats = []
-            for _ in range(args.n_test_cycles):
+            for test_cycle in range(args.n_test_cycles):
                 state = torch.Tensor([env.reset()]).to(device)
                 test_reward = 0
                 while True:
-                    if args.render_eval:
+                    if args.render_eval and test_cycle == 0:
                         # env.render()
                         env.save_plots = True
+                    else:
+                        env.save_plots = False
 
                     # Selection without noise
                     action = agent.calc_action(state)
@@ -294,12 +301,13 @@ if __name__ == "__main__":
                         action.cpu().numpy()[0])
                     test_reward += reward
 
-                    print('Action',action.detach().cpu().numpy(),reward)
-                    print('State',next_state)
+                    if test_cycle == 0:
+                        print('Action',action.detach().cpu().numpy(),reward)
+                        print('State',next_state)
 
                     next_state = torch.Tensor([next_state]).to(device)
-
                     state = next_state
+
                     if done:
                         test_stats.append(stats)
                         break
@@ -307,21 +315,17 @@ if __name__ == "__main__":
 
             mean_test_rewards.append(np.mean(test_rewards))
 
-            for name, param in agent.actor.named_parameters():
-                writer.add_histogram(
-                    name, param.clone().cpu().data.numpy(), epoch)
-            for name, param in agent.critic.named_parameters():
-                writer.add_histogram(
-                    name, param.clone().cpu().data.numpy(), epoch)
+            # for name, param in agent.actor.named_parameters():
+            #     writer.add_histogram(
+            #         name, param.clone().cpu().data.numpy(), epoch)
+            # for name, param in agent.critic.named_parameters():
+            #     writer.add_histogram(
+            #         name, param.clone().cpu().data.numpy(), epoch)
                         
             #average the results of the test cycles
             stats = {}
             for key in test_stats[0].keys():
-                stats[key] = np.mean([test_stats[i][key] for i in range(len(test_stats))])
-
-            # Save if the mean of the last three averaged rewards while testing
-            # is greater than the specified reward threshold
-            # TODO: Option if no reward threshold is given
+                stats[key] = np.mean([test_stats[i][key] for i in range(len(test_stats))])            
 
             for ind in range(args.n_test_cycles):
                 if test_stats[ind]['total_profits'] > highest_profits and test_stats[ind]['average_user_satisfaction'] == 1:
@@ -332,14 +336,14 @@ if __name__ == "__main__":
                         '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
 
-            writer.add_scalar('test/mean_test_return',
-                              mean_test_rewards[-1], epoch)
-            writer.add_scalar('test/total_ev_served',
-                              stats['total_ev_served'], epoch)
-            writer.add_scalar('test/total_profits', stats['total_profits'], epoch)
-            writer.add_scalar('test/toal_energy_charged', stats['toal_energy_charged'], epoch)
-            writer.add_scalar('test/total_energy_discharged', stats['total_energy_discharged'], epoch)
-            writer.add_scalar('test/average_user_satisfaction', stats['average_user_satisfaction'], epoch)            
+            # writer.add_scalar('test/mean_test_return',
+            #                   mean_test_rewards[-1], epoch)
+            # writer.add_scalar('test/total_ev_served',
+            #                   stats['total_ev_served'], epoch)
+            # writer.add_scalar('test/total_profits', stats['total_profits'], epoch)
+            # writer.add_scalar('test/toal_energy_charged', stats['toal_energy_charged'], epoch)
+            # writer.add_scalar('test/total_energy_discharged', stats['total_energy_discharged'], epoch)
+            # writer.add_scalar('test/average_user_satisfaction', stats['average_user_satisfaction'], epoch)            
 
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
@@ -359,7 +363,8 @@ if __name__ == "__main__":
                                                                       np.mean(test_rewards)))
         epoch += 1
 
-    agent.save_checkpoint(timestep, memory, run_name)
+    agent.save_checkpoint(timestep, memory, run_name+"last")
+
     logger.info('Saved model at endtime {}'.format(
         time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
     logger.info('Stopping training at {}'.format(

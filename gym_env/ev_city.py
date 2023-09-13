@@ -96,7 +96,7 @@ class EVCity(gym.Env):
                                               date[2],
                                               hour[0],
                                               hour[1])
-            self.static_prices = self.replay.static_prices
+            self.static_prices = static_prices
             self.spawn_rate = ev_spawn_rate
 
             self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
@@ -423,7 +423,12 @@ class EVCity(gym.Env):
             if self.verbose:
                 self.print_statistics()
 
-            print(f"\nEpisode finished after {self.current_step} timesteps")
+            if any(score < self.score_threshold for score in user_satisfaction_list):
+                print(f"\nUser satisfaction score below threshold of {self.score_threshold}, {self.current_step} timesteps") 
+            elif any(tr.is_overloaded() for tr in self.transformers):
+                print(f"\nTransformer overloaded, {self.current_step} timesteps")
+            else:
+                print(f"\nEpisode finished after {self.current_step} timesteps")
 
             if self.save_replay:
                 self.save_sim_replay()
@@ -449,7 +454,9 @@ class EVCity(gym.Env):
                      'total_profits': total_profits,
                      'toal_energy_charged': toal_energy_charged,
                      'total_energy_discharged': total_energy_discharged,
-                     'average_user_satisfaction': average_user_satisfaction}
+                     'average_user_satisfaction': average_user_satisfaction,
+                     'ev_spawn_rate': self.spawn_rate,
+                     }
 
             return self._get_observation(), reward, True, stats
         else:
@@ -579,8 +586,8 @@ class EVCity(gym.Env):
 
         plt.tight_layout()
         # Save plt to html
-        fig_name = f'plots/{self.sim_name}/EV_Energy_Level.html'
-        plt.savefig(fig_name, format='svg',
+        fig_name = f'plots/{self.sim_name}/EV_Energy_Level.png' #.html
+        plt.savefig(fig_name, format='png', #svg
                     dpi=600, bbox_inches='tight')
 
         # Plot the total power of each transformer
@@ -651,8 +658,8 @@ class EVCity(gym.Env):
 
         plt.tight_layout()
         # plt.show()
-        fig_name = f'plots/{self.sim_name}/Transformer_Power.html'
-        plt.savefig(fig_name, format='svg',
+        fig_name = f'plots/{self.sim_name}/Transformer_Power.png'
+        plt.savefig(fig_name, format='png',
                     dpi=600, bbox_inches='tight')
 
         # Plot the power of each charging station
@@ -724,8 +731,8 @@ class EVCity(gym.Env):
 
         plt.tight_layout()
         # Save plt to html
-        fig_name = f'plots/{self.sim_name}/CS_Power.html'
-        plt.savefig(fig_name, format='svg', dpi=600, bbox_inches='tight')
+        fig_name = f'plots/{self.sim_name}/CS_Power.png'
+        plt.savefig(fig_name, format='png', dpi=600, bbox_inches='tight')
         plt.close('all')
 
     def print_statistics(self):

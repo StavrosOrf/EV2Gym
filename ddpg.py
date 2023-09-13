@@ -163,7 +163,7 @@ class DDPG(object):
             last_timestep:  Last timestep in training before saving
             replay_buffer:  Current replay buffer
         """
-        checkpoint_name = self.checkpoint_dir + '/ep_{}_{}.pth.tar'.format(last_timestep,run_name)
+        checkpoint_name = self.checkpoint_dir + '/model_{}.pth.tar'.format(run_name)
         logger.info('Saving checkpoint...')
         checkpoint = {
             'last_timestep': last_timestep,
