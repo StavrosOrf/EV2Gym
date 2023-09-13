@@ -8,12 +8,13 @@ A V2X Simulation Environment for large scale EV charging optimization
 - [x] Linearize the User Satisfaction constraint as a negative infinite reward.
 - [ ] Experiment with DDPG for this problem
   - [ ] Create a pipeline that quickly compares the Developed algorithm(DDPG in this case) with the optimal solution and baseline solution
-    - [ ] Vizuallize the results in the same figures, get statistics, etc.
-  - [ ] Try to improve as much as possible the 1 cs 150 timesteps problem
-  - [ ] Develop statistics that can average the perforamnce of the algorithm for multiple evaluation scenarios
+  - [ ] Vizuallize the results in the same figures, get statistics, etc.
+  - [x] Try to improve as much as possible the 1 cs 150 timesteps problem
+  - [x] Develop statistics that can average the performance of the algorithm for multiple evaluation scenarios
   - [ ] Then, enable dynamic prices,
   - [ ] Then, enable dynamic EV spawn rate
--[ ] Create a business as usual baseline solution for comparison (check literature)
+- [ ] Create a business as usual baseline solution for comparison (check literature)
+- [ ] Start
 
 
 #### General
@@ -26,7 +27,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 #### Debugging
 Here, I will write down the debugging tasks I am currently working on:
 - [x] Why is transformer total power always positive? (changed math model formulation)
-- [ ] Why does it terminate earlier even if trheshold is 0
+- [x] Why does it terminate earlier even if trheshold is 0 (Fixed)
 
 #### Gym Environment
 - [x] Implement step for ev charger and ev

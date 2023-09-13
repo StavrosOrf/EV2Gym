@@ -28,9 +28,8 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 # Parse given arguments
 # gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="RoboschoolInvertedPendulumSwingup-v1",
-                    help="the environment on which the agent should be trained "
-                         "(Default: RoboschoolInvertedPendulumSwingup-v1)")
+parser.add_argument("--env", default="ev-city-v0",
+                    help="the environment on which the agent should be trained ")
 parser.add_argument("--render_train", default=False, type=bool,
                     help="Render the training steps (default: False)")
 parser.add_argument("--render_eval", default=True, type=bool,
@@ -60,6 +59,22 @@ parser.add_argument("--n_test_cycles", default=10, type=int,
 parser.add_argument("--wandb", default=True, type=bool,
                     help="Enable logging to wandb (default: True)")
 
+#Envirioned specific arguments
+parser.add_argument("--cs", default=1, type=int,
+                    help="Num. of CS (default: 1)")
+parser.add_argument("--transformers", default=1, type=int,
+                    help="Num. of Transformers (default: 1)")
+parser.add_argument("--ports", default=2, type=int,
+                    help="Num. of Ports per CS (default: 2)")
+parser.add_argument("--steps", default=150, type=int,
+                    help="Num. of steps (default: 150)")
+parser.add_argument("--timescale", default=5, type=int,
+                    help="Timescale (default: 5)")
+parser.add_argument("--score_threshold", default=1, type=int,
+                    help="Score threshold (default: 1)")
+parser.add_argument("--static_prices", default=True, type=bool,
+                    help="Static prices (default: True)")
+
 args = parser.parse_args()
 
 # if gpu is to be used
@@ -76,24 +91,18 @@ if __name__ == "__main__":
 
     # Create the env
     kwargs = dict()
-    # if args.env == 'RoboschoolInvertedPendulumSwingup-v1':
-    #     # 'swingup=True' must be passed as an argument
-    #     # See pull request 'https://github.com/openai/roboschool/pull/192'
-    #     kwargs['swingup'] = True
-    # elif args.env == 'evcity':
 
-    # env = gym.make(args.env, **kwargs)
     # env = NormalizedActions(env)
 
     log_to_wandb = args.wandb
     verbose = False
-    n_transformers = 1
-    number_of_charging_stations = 1
-    steps = 150  # 288 steps = 1 day with 5 minutes per step
-    timescale = 5  # (5 minutes per step)
-    score_threshold = 1  # [0,1] 1 means fully charged, 0 means empty
-    save_plots = True
-    # replay_path = "replay/replay_ev_city_288_2023-09-08_09-33.pkl"
+    n_transformers = args.transformers
+    number_of_charging_stations = args.cs
+    steps = args.steps  # 288 steps = 1 day with 5 minutes per step
+    timescale = args.timescale  # (5 minutes per step)
+    score_threshold =   args.score_threshold # 1
+    static_prices = args.static_prices 
+
     replay_path = "replay/replay_ev_city_150_2023-09-08_11-44.pkl"
     replay_path = None
 
@@ -106,12 +115,13 @@ if __name__ == "__main__":
                          number_of_transformers=n_transformers,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
+                         static_prices=static_prices,
                          load_from_replay_path=replay_path,
                          empty_ports_at_end_of_simulation=True,
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
-                         score_threshold=score_threshold,
+                         score_threshold=score_threshold,                         
                          save_plots=False,
                          save_replay=False,
                          verbose=verbose,)
@@ -143,9 +153,9 @@ if __name__ == "__main__":
     
     if log_to_wandb:
         wandb.init(
-            name="randomEV"+run_name,
-            # group="1cs_2ports_1transformer_static_prices",
+            name="randomEV"+run_name,            
             group="1cs_2ports_1transformer_static_prices",
+            group=f'{number_of_charging_stations}cs_{n_transformers}tr_static_prices{static_prices}',
             project='EVsSimulator',
             config= {"batch_size": args.batch_size,
                      "replay_size": args.replay_size,
@@ -201,16 +211,7 @@ if __name__ == "__main__":
         epoch_return = 0
 
         print(f'Epoch: {epoch} timestep: {timestep}')
-
-        # print(env.reset().shape)
-        # state = np.array(env.reset().reshape(-1))
-        # state = torch.Tensor(state).to(device)
-        # print(f'state shape: {state.shape}'')
         state = torch.Tensor([env.reset()]).to(device)
-        # print(f'State: {state}')
-        # Normalize the state
-        # state = state / torch.norm(state)
-        # print(f'state: {state}')
 
         while True:
             env.save_plots = False
@@ -254,12 +255,8 @@ if __name__ == "__main__":
         rewards.append(epoch_return)
         value_losses.append(epoch_value_loss)
         policy_losses.append(epoch_policy_loss)
+
         writer.add_scalar('epoch/return', epoch_return, epoch)
-        #  stats = {'total_ev_served': total_ev_served,
-        #              'total_profits': total_profits,
-        #              'toal_energy_charged': toal_energy_charged,
-        #              'total_energy_discharged': total_energy_discharged,
-        #              'average_user_satisfaction': average_user_satisfaction}
         writer.add_scalar('epoch/ev_served', stats['total_ev_served'], epoch)
         writer.add_scalar('epoch/profits', stats['total_profits'], epoch)
         writer.add_scalar('epoch/energy_charged',
@@ -281,6 +278,7 @@ if __name__ == "__main__":
         if timestep >= 5000 * t:
             t += 1
             test_rewards = []
+            test_stats = []
             for _ in range(args.n_test_cycles):
                 state = torch.Tensor([env.reset()]).to(device)
                 test_reward = 0
@@ -303,6 +301,7 @@ if __name__ == "__main__":
 
                     state = next_state
                     if done:
+                        test_stats.append(stats)
                         break
                 test_rewards.append(test_reward)
 
@@ -314,17 +313,23 @@ if __name__ == "__main__":
             for name, param in agent.critic.named_parameters():
                 writer.add_histogram(
                     name, param.clone().cpu().data.numpy(), epoch)
-                
+                        
+            #average the results of the test cycles
+            stats = {}
+            for key in test_stats[0].keys():
+                stats[key] = np.mean([test_stats[i][key] for i in range(len(test_stats))])
 
             # Save if the mean of the last three averaged rewards while testing
             # is greater than the specified reward threshold
             # TODO: Option if no reward threshold is given
-            if stats['total_profits'] > highest_profits and stats['average_user_satisfaction'] == 1:
-                highest_profits = stats['total_profits']                
-                agent.save_checkpoint(timestep, memory,run_name+"_best")
-                time_last_checkpoint = time.time()
-                logger.info('Saved model at {}'.format(time.strftime(
-                    '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+
+            for ind in range(args.n_test_cycles):
+                if test_stats[ind]['total_profits'] > highest_profits and test_stats[ind]['average_user_satisfaction'] == 1:
+                    highest_profits = test_stats[ind]['total_profits']                
+                    agent.save_checkpoint(timestep, memory,run_name+"_best")
+                    time_last_checkpoint = time.time()
+                    logger.info('Saved model at {}'.format(time.strftime(
+                        '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
 
             writer.add_scalar('test/mean_test_return',
@@ -343,7 +348,7 @@ if __name__ == "__main__":
                            'test/toal_energy_charged': stats['toal_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
-                           'test/higher_profits': highest_profits})                
+                           'test/higher_profits': highest_profits})
 
             logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
                         "mean reward: {}, mean test reward {}".format(epoch,

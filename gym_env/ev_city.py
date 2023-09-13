@@ -27,7 +27,9 @@ class EVCity(gym.Env):
 
     def __init__(self,
                  cs=None,
+                 static_prices=False,
                  load_prices_from_replay=False,
+                 ev_spawn_rate = 0.85,
                  load_ev_from_replay=False,
                  load_from_replay_path=None,
                  empty_ports_at_end_of_simulation=True,
@@ -59,7 +61,7 @@ class EVCity(gym.Env):
         self.save_plots = save_plots
         self.verbose = verbose  # Whether to print the simulation progress or not
         self.simulation_length = simulation_length
-
+    
         self.score_threshold = score_threshold
 
         self.seed = seed
@@ -94,6 +96,8 @@ class EVCity(gym.Env):
                                               date[2],
                                               hour[0],
                                               hour[1])
+            self.static_prices = self.replay.static_prices
+            self.spawn_rate = ev_spawn_rate
 
             self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
 
@@ -121,27 +125,25 @@ class EVCity(gym.Env):
         self.ev_profiles = self._load_ev_profiles()
 
         # Load Electricity prices for every charging station
-        # self.charge_prices, self.discharge_prices = self._load_electricity_prices()
-        self.charge_prices = np.ones((self.cs, self.simulation_length)) * -0.01
-        self.discharge_prices = np.ones((self.cs, self.simulation_length)) * 0.1
+        self.charge_prices, self.discharge_prices = self._load_electricity_prices()
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         self.number_of_ports = np.array(
             [cs.n_ports for cs in self.charging_stations]).sum()
 
         high = np.ones([self.number_of_ports])
-        self.action_space = spaces.Box(low=-high, high=high, dtype=np.float32)
+        self.action_space = spaces.Box(low=-high, high=high, dtype=np.float64)
 
         # Observation space: is a matrix of size ("Sum of all ports of all charging stations",n_features)
         obs_dim = 1 + \
             cs * (2 + 2*number_of_ports_per_cs)
-            # + number_of_transformers * 3
+        # + number_of_transformers * 3
 
         print(f'Observation space dimension: {obs_dim}')
 
         high = np.inf*np.ones([obs_dim])
         self.observation_space = spaces.Box(
-            low=-high, high=high, dtype=np.float32)
+            low=-high, high=high, dtype=np.float64)
 
         # Observation mask: is a vector of size ("Sum of all ports of all charging stations") showing in which ports an EV is connected
         self.observation_mask = np.zeros(self.number_of_ports)
@@ -217,6 +219,9 @@ class EVCity(gym.Env):
         Returns:
             - charge_prices: a matrix of size (number of charging stations, simulation length) with the charge prices
             - discharge_prices: a matrix of size (number of charging stations, simulation length) with the discharge prices'''
+        if self.static_prices and not self.load_prices_from_replay:
+            return np.ones((self.cs, self.simulation_length)) * -0.01, \
+            np.ones((self.cs, self.simulation_length)) * 0.1
 
         if self.load_from_replay_path is None or not self.load_prices_from_replay:
             charge_prices = np.random.normal(
@@ -237,6 +242,8 @@ class EVCity(gym.Env):
             cs.reset()
 
         self.sim_date = self.sim_starting_date
+
+        self.spawn_rate = np.random.uniform(0.3, 0.85)
         # self.sim_name = f'ev_city_{self.simulation_length}_' + \
         # f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
 
@@ -335,8 +342,7 @@ class EVCity(gym.Env):
                         self.current_step + 1 + max_stay_of_ev >= self.simulation_length) and \
                         n_ports > cs.n_evs_connected:
 
-                    # get a random float in [0,1] to decide if spawn an EV
-                    self.spawn_rate = 0.85
+                    # get a random float in [0,1] to decide if spawn an EV                    
                     if np.random.rand() < self.spawn_rate:
                         ev = EV(id=None,
                                 location=cs.id,
@@ -759,9 +765,9 @@ class EVCity(gym.Env):
     def _get_observation(self, include_grid=False):
         '''Returns the current state of the environment'''
         state = [self.current_step / self.simulation_length,
-                #  self.timescale,
-                #  self.cs,
-                #  self.number_of_transformers,
+                 #  self.timescale,
+                 #  self.cs,
+                 #  self.number_of_transformers,
                  ]
 
         # for tr in self.transformers:
@@ -772,13 +778,13 @@ class EVCity(gym.Env):
 
         if include_grid:
             state.append(self.grid.get_grid_state())
-        
+
         state = np.array(np.hstack(state))
-        
-        np.set_printoptions(suppress=True)        
-        
+
+        np.set_printoptions(suppress=True)
+
         # print(f'state: {state}')
-        return state # .reshape(-1)
+        return state  # .reshape(-1)
 
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''
@@ -787,7 +793,7 @@ class EVCity(gym.Env):
         # print(f'user_satisfaction_list: {user_satisfaction_list}')
         for score in user_satisfaction_list:
             reward -= 100 * (1 - score)
-        
+
         # Punish invalid actions (actions that try to charge or discharge when there is no EV connected)
         reward -= 2 * (invalid_action_punishment/self.number_of_ports)
 
