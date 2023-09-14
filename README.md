@@ -11,12 +11,18 @@ A V2X Simulation Environment for large scale EV charging optimization
   - [ ] Vizuallize the results in the same figures, get statistics, etc.
   - [x] Try to improve as much as possible the 1 cs 150 timesteps problem
   - [x] Develop statistics that can average the performance of the algorithm for multiple evaluation scenarios
-  - [ ] Then, enable dynamic prices,
+  - [ ] Then, enable dynamic prices
   - [x] Then, enable dynamic EV spawn rate (works perfectly--tested for cs<4 )
+  - [ ] Then, enable transformer aggregation (new reward should be designed)
   - [ ] Then, enable different spawn rates in each test case (under testing now, much harder to have very good solutions with DDPG)
   - [ ] Then, enable heterogeneous EVs and EV chargers 
 - [ ] Apply DT transformer on simple cases
 - [ ] Create a business as usual baseline solution for comparison (check literature)
+
+##### Open Questions for RL
+
+- How can we associate rewards for specific actions (e.g. when a specific ev leaves without completely charging, it is a fault of a series of actions for charger **i** port **j**)?
+  - Maybe, run the algorithm once per charging station and then metaheuristically combine them on the transformer level to solve the problem without power level constraints.
 
 #### General
 - [x] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
