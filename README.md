@@ -13,12 +13,10 @@ A V2X Simulation Environment for large scale EV charging optimization
   - [x] Develop statistics that can average the performance of the algorithm for multiple evaluation scenarios
   - [ ] Then, enable dynamic prices,
   - [x] Then, enable dynamic EV spawn rate (works perfectly--tested for cs<4 )
-  - [ ] Then, enable different spawn rates in each test case (under testing now)
+  - [ ] Then, enable different spawn rates in each test case (under testing now, much harder to have very good solutions with DDPG)
   - [ ] Then, enable heterogeneous EVs and EV chargers 
 - [ ] Apply DT transformer on simple cases
 - [ ] Create a business as usual baseline solution for comparison (check literature)
-
-- [ ] Check the vizualizations options of WandB
 
 #### General
 - [x] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
@@ -31,8 +29,8 @@ A V2X Simulation Environment for large scale EV charging optimization
 Here, I will write down the debugging tasks I am currently working on:
 - [x] Why is transformer total power always positive? (changed math model formulation)
 - [x] Why does it terminate earlier even if trheshold is 0 (Fixed)
-- [ ] Reduce the required storage for each run
-  - [ ] Save only the best model of each run (not all of them)
+- [x] Reduce the required storage for each run
+  - [x] Save only the best model of each run (not all of them)
   
 
 #### Gym Environment

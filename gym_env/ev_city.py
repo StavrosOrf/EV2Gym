@@ -29,6 +29,7 @@ class EVCity(gym.Env):
                  cs=None,
                  static_prices=False,
                  load_prices_from_replay=False,
+                 static_ev_spawn_rate=False,
                  ev_spawn_rate = 0.85,
                  load_ev_from_replay=False,
                  load_from_replay_path=None,
@@ -98,6 +99,7 @@ class EVCity(gym.Env):
                                               hour[1])
             self.static_prices = static_prices
             self.spawn_rate = ev_spawn_rate
+            self.static_ev_spawn_rate = static_ev_spawn_rate
 
             self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
 
@@ -243,7 +245,9 @@ class EVCity(gym.Env):
 
         self.sim_date = self.sim_starting_date
 
-        self.spawn_rate = np.random.uniform(0.3, 0.85)
+        if not self.static_ev_spawn_rate:
+            self.spawn_rate = np.random.uniform(0.3, 0.85)
+            
         # self.sim_name = f'ev_city_{self.simulation_length}_' + \
         # f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
 

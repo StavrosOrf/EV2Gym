@@ -74,6 +74,8 @@ parser.add_argument("--score_threshold", default=1, type=int,
                     help="Score threshold (default: 1)")
 parser.add_argument("--static_prices", default=True, type=bool,
                     help="Static prices (default: True)")
+parser.add_argument("--static_ev_spawn_rate", default=True, type=bool,
+                    help="Static ev spawn rate (default: True)")
 
 args = parser.parse_args()
 
@@ -102,6 +104,7 @@ if __name__ == "__main__":
     timescale = args.timescale  # (5 minutes per step)
     score_threshold =   args.score_threshold # 1
     static_prices = args.static_prices 
+    static_ev_spawn_rate = args.static_ev_spawn_rate
 
     replay_path = "replay/replay_ev_city_150_2023-09-08_11-44.pkl"
     replay_path = None
@@ -113,6 +116,7 @@ if __name__ == "__main__":
     env = ev_city.EVCity(cs=number_of_charging_stations,
                          number_of_ports_per_cs=2,
                          number_of_transformers=n_transformers,
+                         static_ev_spawn_rate = True,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
                          static_prices=static_prices,
@@ -152,9 +156,19 @@ if __name__ == "__main__":
                  )
     
     if log_to_wandb:
+        if static_prices:
+            prices = "static"
+        else:
+            prices = "dynamic"
+        
+        if static_ev_spawn_rate:
+            ev_spawn_rate = "static"
+        else:
+            ev_spawn_rate = "dynamic"
+        
         wandb.init(
-            name="randomEV"+run_name,                        
-            group=f'{number_of_charging_stations}cs_{n_transformers}tr_static_prices{static_prices}',
+            name=run_name,                        
+            group=f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate',
             project='EVsSimulator',
             config= {"batch_size": args.batch_size,
                      "replay_size": args.replay_size,
@@ -169,7 +183,9 @@ if __name__ == "__main__":
                      "steps": steps,
                      "number_of_charging_stations": number_of_charging_stations,
                      "replay_path": replay_path,
-                     "n_transformers": n_transformers,                  
+                     "n_transformers": n_transformers,     
+                     "static_prices": static_prices,
+                     "static_ev_spawn_rate": static_ev_spawn_rate                                  
                      }
         )
         wandb.watch(agent.actor) 
