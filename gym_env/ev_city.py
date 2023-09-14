@@ -588,7 +588,7 @@ class EVCity(gym.Env):
         # Save plt to html
         fig_name = f'plots/{self.sim_name}/EV_Energy_Level.png' #.html
         plt.savefig(fig_name, format='png', #svg
-                    dpi=600, bbox_inches='tight')
+                    dpi=60, bbox_inches='tight')
 
         # Plot the total power of each transformer
         plt.figure(figsize=(20, 17))
@@ -660,7 +660,7 @@ class EVCity(gym.Env):
         # plt.show()
         fig_name = f'plots/{self.sim_name}/Transformer_Power.png'
         plt.savefig(fig_name, format='png',
-                    dpi=600, bbox_inches='tight')
+                    dpi=60, bbox_inches='tight')
 
         # Plot the power of each charging station
         counter = 1
@@ -732,7 +732,7 @@ class EVCity(gym.Env):
         plt.tight_layout()
         # Save plt to html
         fig_name = f'plots/{self.sim_name}/CS_Power.png'
-        plt.savefig(fig_name, format='png', dpi=600, bbox_inches='tight')
+        plt.savefig(fig_name, format='png', dpi=60, bbox_inches='tight')
         plt.close('all')
 
     def print_statistics(self):
