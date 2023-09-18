@@ -2,40 +2,37 @@ from gym_env import ev_city
 from math_model import ev_city_model
 
 import numpy as np
-import matplotlib.pyplot as plt
+import os
 
-# main funtion for testing
-if __name__ == "__main__":
+""""
+This file is used to create replay files with optimal profits for evaluation purposes.
+The replay files are saved in the replay folder and can be used to evaluate the performance of the RL agent."""
 
+
+def evalreplay(number_of_charging_stations,n_transformers,steps,timescale,static_prices):
     verbose = False
-    n_transformers = 1
-    number_of_charging_stations = 20
-    steps = 150  # 288 steps = 1 day with 5 minutes per step
-    timescale = 5  # (5 minutes per step)
-    save_plots = True
-
-    replay_path = "replay/replay_ev_city_50_2023-07-27_10-12.pkl"
-    replay_path = "replay/replay_ev_city_250_2023-07-27_16-48.pkl"
-    replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
                          number_of_ports_per_cs=2,
                          number_of_transformers=n_transformers,
+                         static_ev_spawn_rate = True,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
-                         load_from_replay_path=replay_path,
+                         static_prices=static_prices,
+                         load_from_replay_path=None,
                          empty_ports_at_end_of_simulation=True,
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
+                         score_threshold=1,                         
                          save_plots=False,
+                         save_replay=True,
                          verbose=verbose,)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
     # new_replay_path = replay_path
     
-    state = env.reset()
-    env.visualize()
+    _ = env.reset()
     rewards = []    
 
     for i in range(steps):        
@@ -52,7 +49,7 @@ if __name__ == "__main__":
             print(f'Reward: {reward} \t Done: {done}')
 
         if done and i < steps - 1:
-            print(f'End of simulation at step {i}')
+            # print(f'End of simulation at step {i}')
             exit()
 
     # env.plot()
@@ -61,7 +58,14 @@ if __name__ == "__main__":
     math_model = ev_city_model.EV_City_Math_Model(sim_file_path=new_replay_path)
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")
     opt_actions = math_model.get_actions()
-    print(f'Optimal actions: {opt_actions.shape}')
+    # print(f'Optimal actions: {opt_actions.shape}')
+
+    if static_prices:
+        prices = "static"
+    else:
+        prices = "dynamic"
+        
+    group_name = f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices'
 
     # Simulate in the gym environment and get the rewards
     env = ev_city.EVCity(cs=number_of_charging_stations,
@@ -70,14 +74,16 @@ if __name__ == "__main__":
                          load_prices_from_replay=True,
                          load_from_replay_path=new_replay_path,
                          empty_ports_at_end_of_simulation=True,
+                         replay_path = "./replay/"+group_name+"/",
                          generate_rnd_game=False,
                          simulation_length=steps,
                          timescale=timescale,
+                         save_plots=False,
+                         save_replay=True,
                          verbose=verbose,)
-    state = env.reset()
-    env.visualize()
+    _ = env.reset()    
     rewards_opt = []
-
+    
     for i in range(steps):        
         # all ports are charging instantly
         # print(f'Optimal actions: {opt_actions[:,:,i]}')
@@ -95,29 +101,18 @@ if __name__ == "__main__":
 
         if done:
             break    
+    
+    #delete the replay file
+    os.remove(new_replay_path)
 
-    if save_plots:
-        plt.figure(figsize=(10, 10))
-        # Plot the commulative reward in subplot 1
-        plt.subplot(2, 1, 1)
-        plt.plot(np.cumsum(rewards))
-        plt.plot(np.cumsum(rewards_opt))
-        plt.legend(['Charge Immediately', 'Optimal'])
-        plt.ylabel('Cumulative reward')
-        # plt.xticks(np.arange(0, steps, 1))
-        plt.title('Cumulative reward')
+if __name__ == "__main__":
 
-        # Plot the reward per step in subplot 2
-        plt.subplot(2, 1, 2)
-        plt.plot(rewards)
-        plt.plot(rewards_opt)
-        plt.legend(['Charge Immediately', 'Optimal'])
-        plt.xlabel('Time step')
-        plt.ylabel('Reward')
-        # plt.xticks(np.arange(0, steps, 1))
-        plt.title('Reward per time step')
+    eval_samples = 1000
 
-        plt.tight_layout()    
-        plt.savefig(f'plots/{env.sim_name}/RewardsComparison.html',
-                    format='svg', dpi=600, bbox_inches='tight')
+    for i in range(eval_samples):
+        evalreplay(number_of_charging_stations=1,
+                   n_transformers=1,
+                   steps=150,
+                   timescale=5,
+                   static_prices=True,)
         

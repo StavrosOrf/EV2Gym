@@ -35,6 +35,7 @@ class EVCity(gym.Env):
                  load_from_replay_path=None,
                  empty_ports_at_end_of_simulation=True,
                  simulate_grid=False,
+                 replay_path = './replay/',
                  generate_rnd_game=False,  # generate a random game without terminating conditions
                  case='default',
                  number_of_ports_per_cs=2,
@@ -62,6 +63,7 @@ class EVCity(gym.Env):
         self.save_plots = save_plots
         self.verbose = verbose  # Whether to print the simulation progress or not
         self.simulation_length = simulation_length
+        self.replay_path = replay_path
     
         self.score_threshold = score_threshold
 
@@ -80,6 +82,7 @@ class EVCity(gym.Env):
             self.number_of_transformers = self.replay.n_transformers
             # self.score_threshold = self.replay.score_threshold
             self.number_of_ports_per_cs = self.replay.max_n_ports
+            self.spawn_rate = -1
 
         else:
             assert cs is not None, "Please provide the number of charging stations"
@@ -105,7 +108,7 @@ class EVCity(gym.Env):
 
         self.sim_starting_date = self.sim_date
         self.sim_name = f'ev_city_{self.simulation_length}_' + \
-            f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
+            f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'
 
         # Simulate grid
         if self.simulate_grid:
@@ -154,6 +157,8 @@ class EVCity(gym.Env):
 
         self.done = False
 
+        # Make folders for results
+        os.makedirs(self.replay_path, exist_ok=True)
         os.makedirs("./plots", exist_ok=True)
         os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
 
@@ -221,9 +226,10 @@ class EVCity(gym.Env):
         Returns:
             - charge_prices: a matrix of size (number of charging stations, simulation length) with the charge prices
             - discharge_prices: a matrix of size (number of charging stations, simulation length) with the discharge prices'''
-        if self.static_prices and not self.load_prices_from_replay:
-            return np.ones((self.cs, self.simulation_length)) * -0.01, \
-            np.ones((self.cs, self.simulation_length)) * 0.1
+        if not self.load_prices_from_replay:
+            if self.static_prices:
+                return np.ones((self.cs, self.simulation_length)) * -0.01, \
+                np.ones((self.cs, self.simulation_length)) * 0.1
 
         if self.load_from_replay_path is None or not self.load_prices_from_replay:
             charge_prices = np.random.normal(
@@ -245,8 +251,11 @@ class EVCity(gym.Env):
 
         self.sim_date = self.sim_starting_date
 
-        if not self.static_ev_spawn_rate:
-            self.spawn_rate = np.random.uniform(0.3, 0.85)
+        self.EVs = []
+
+        if self.load_from_replay_path is None:
+            if not self.static_ev_spawn_rate:
+                self.spawn_rate = np.random.uniform(0.3, 0.85)
             
         # self.sim_name = f'ev_city_{self.simulation_length}_' + \
         # f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
@@ -443,28 +452,34 @@ class EVCity(gym.Env):
             self.done = True
 
             # create an objext with statistics about the simulation for vizualization
-            total_ev_served = np.array(
-                [cs.total_evs_served for cs in self.charging_stations]).sum()
-            total_profits = np.array(
-                [cs.total_profits for cs in self.charging_stations]).sum()
-            toal_energy_charged = np.array(
-                [cs.total_energy_charged for cs in self.charging_stations]).sum()
-            total_energy_discharged = np.array(
-                [cs.total_energy_discharged for cs in self.charging_stations]).sum()
-            average_user_satisfaction = np.average(np.array(
-                [cs.get_avg_user_satisfaction() for cs in self.charging_stations]))
 
-            stats = {'total_ev_served': total_ev_served,
-                     'total_profits': total_profits,
-                     'toal_energy_charged': toal_energy_charged,
-                     'total_energy_discharged': total_energy_discharged,
-                     'average_user_satisfaction': average_user_satisfaction,
-                     'ev_spawn_rate': self.spawn_rate,
-                     }
 
-            return self._get_observation(), reward, True, stats
+
+            return self._get_observation(), reward, True, self.get_statistics()
         else:
             return self._get_observation(), reward, False, None
+        
+    def get_statistics(self):
+        total_ev_served = np.array(
+            [cs.total_evs_served for cs in self.charging_stations]).sum()
+        total_profits = np.array(
+            [cs.total_profits for cs in self.charging_stations]).sum()
+        toal_energy_charged = np.array(
+            [cs.total_energy_charged for cs in self.charging_stations]).sum()
+        total_energy_discharged = np.array(
+            [cs.total_energy_discharged for cs in self.charging_stations]).sum()
+        average_user_satisfaction = np.average(np.array(
+            [cs.get_avg_user_satisfaction() for cs in self.charging_stations]))
+        
+        stats = {'total_ev_served': total_ev_served,
+                'total_profits': total_profits,
+                'toal_energy_charged': toal_energy_charged,
+                'total_energy_discharged': total_energy_discharged,
+                'average_user_satisfaction': average_user_satisfaction,
+                'ev_spawn_rate': self.spawn_rate,
+                }
+        
+        return stats
 
     def save_sim_replay(self):
         '''Saves the simulation data in a pickle file'''
