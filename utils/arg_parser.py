@@ -6,7 +6,7 @@ def arg_parser():
                         help="the environment on which the agent should be trained ")
     parser.add_argument("--render_train", default=False, type=bool,
                         help="Render the training steps (default: False)")
-    parser.add_argument("--render_eval", default=True, type=bool, action=argparse.BooleanOptionalAction,
+    parser.add_argument("--render_eval", default=True, type=bool,
                         help="Render the evaluation steps (default: False)")
     parser.add_argument("--load_model", default=False, type=bool,
                         help="Load a pretrained model (default: False)")
@@ -30,7 +30,7 @@ def arg_parser():
                         help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
     parser.add_argument("--n_test_cycles", default=10, type=int,
                         help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
-    parser.add_argument("--wandb", default=True, type=bool, action=argparse.BooleanOptionalAction,
+    parser.add_argument("--wandb", default=True, type=bool,
                         help="Enable logging to wandb (default: True)")
 
     # Envirioned specific arguments
@@ -46,9 +46,9 @@ def arg_parser():
                         help="Timescale (default: 5)")
     parser.add_argument("--score_threshold", default=1, type=int,
                         help="Score threshold (default: 1)")
-    parser.add_argument("--static_prices", default=True, type=bool, action=argparse.BooleanOptionalAction,
+    parser.add_argument("--static_prices", default=True, type=bool,
                         help="Static prices (default: True)")
-    parser.add_argument("--static_ev_spawn_rate", default=True, type=bool, action=argparse.BooleanOptionalAction,
+    parser.add_argument("--static_ev_spawn_rate", default=True, type=bool,
                         help="Static ev spawn rate (default: True)")
 
     return parser.parse_args()
