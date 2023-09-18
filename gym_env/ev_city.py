@@ -820,7 +820,7 @@ class EVCity(gym.Env):
 
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''
-        reward = total_costs
+        reward = total_costs #- 5
         # print(f'total_costs: {total_costs}')
         # print(f'user_satisfaction_list: {user_satisfaction_list}')
         for score in user_satisfaction_list:

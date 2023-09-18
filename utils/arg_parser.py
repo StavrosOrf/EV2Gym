@@ -14,7 +14,7 @@ def arg_parser():
                         help="Dir. path to save and load a model (default: ./saved_models/)")
     parser.add_argument("--seed", default=0, type=int,
                         help="Random seed (default: 0)")
-    parser.add_argument("--timesteps", default=1e6, type=int,
+    parser.add_argument("--timesteps", default=5*1e6, type=int,
                         help="Num. of total timesteps of training (default: 1e6)")
     parser.add_argument("--batch_size", default=128, type=int,
                         help="Batch size (default: 64; OpenAI: 128)")
