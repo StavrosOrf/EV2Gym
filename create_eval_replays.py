@@ -17,7 +17,7 @@ def evalreplay(number_of_charging_stations,n_transformers,steps,timescale,static
                          number_of_transformers=n_transformers,
                          static_ev_spawn_rate = True,
                          load_ev_from_replay=True,
-                         load_prices_from_replay=True,
+                         load_prices_from_replay=False,
                          static_prices=static_prices,
                          load_from_replay_path=None,
                          empty_ports_at_end_of_simulation=True,
@@ -103,7 +103,7 @@ def evalreplay(number_of_charging_stations,n_transformers,steps,timescale,static
 
 if __name__ == "__main__":
 
-    eval_samples = 1000
+    eval_samples = 500
 
     for i in range(eval_samples):
         evalreplay(number_of_charging_stations=1,
