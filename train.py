@@ -59,7 +59,7 @@ parser.add_argument("--n_test_cycles", default=10, type=int,
 parser.add_argument("--wandb", default=True, type=bool,
                     help="Enable logging to wandb (default: True)")
 
-#Envirioned specific arguments
+# Envirioned specific arguments
 parser.add_argument("--cs", default=1, type=int,
                     help="Num. of CS (default: 1)")
 parser.add_argument("--transformers", default=1, type=int,
@@ -102,9 +102,10 @@ if __name__ == "__main__":
     number_of_charging_stations = args.cs
     steps = args.steps  # 288 steps = 1 day with 5 minutes per step
     timescale = args.timescale  # (5 minutes per step)
-    score_threshold =   args.score_threshold # 1
-    static_prices = args.static_prices 
+    score_threshold = args.score_threshold  # 1
+    static_prices = args.static_prices
     static_ev_spawn_rate = args.static_ev_spawn_rate
+    n_test_cycles = args.n_test_cycles
 
     replay_path = "replay/replay_ev_city_150_2023-09-08_11-44.pkl"
     replay_path = None
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     env = ev_city.EVCity(cs=number_of_charging_stations,
                          number_of_ports_per_cs=2,
                          number_of_transformers=n_transformers,
-                         static_ev_spawn_rate = True,
+                         static_ev_spawn_rate=True,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
                          static_prices=static_prices,
@@ -125,14 +126,10 @@ if __name__ == "__main__":
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
-                         score_threshold=score_threshold,                         
+                         score_threshold=score_threshold,
                          save_plots=False,
                          save_replay=False,
                          verbose=verbose,)
-
-    # Define the reward threshold when the task is solved (if existing) for model saving
-    reward_threshold = gym.spec(args.env).reward_threshold if gym.spec(
-        args.env).reward_threshold is not None else np.inf
 
     # Set random seed for all used libraries where possible
     # env.seed(args.seed)
@@ -154,43 +151,58 @@ if __name__ == "__main__":
                  env.action_space,
                  checkpoint_dir=checkpoint_dir
                  )
-    
+
+    if static_prices:
+        prices = "static"
+    else:
+        prices = "dynamic"
+
+    if static_ev_spawn_rate:
+        ev_spawn_rate = "static"
+    else:
+        ev_spawn_rate = "dynamic"
+
+    # Check if replay folder exists
+    eval_replay_path = "./replay/" + \
+        f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices/'
+    assert os.path.exists(
+        eval_replay_path), "Evaluation Replay folder does not exist"
+    # count number of files in replay folder
+    eval_replay_files = [f for f in os.listdir(
+        eval_replay_path) if os.path.isfile(os.path.join(eval_replay_path, f))]
+    assert len(
+        eval_replay_files) > 0, "No replay files found in evaluation replay folder"
+
+    print(f'Found {len(eval_replay_files)} replay files in {eval_replay_path}')
+    if n_test_cycles > len(eval_replay_files):
+        n_test_cycles = len(eval_replay_files)
+        print(f'Number of test cycles set to {n_test_cycles} due to the number of replay files found')
+
     if log_to_wandb:
-        if static_prices:
-            prices = "static"
-        else:
-            prices = "dynamic"
-        
-        if static_ev_spawn_rate:
-            ev_spawn_rate = "static"
-        else:
-            ev_spawn_rate = "dynamic"
-        
         wandb.init(
-            name=run_name,                        
+            name=run_name,
             group=f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate',
             project='EVsSimulator',
-            config= {"batch_size": args.batch_size,
-                     "replay_size": args.replay_size,
-                     "gamma": args.gamma,
-                     "tau": args.tau,
-                     "noise_stddev": args.noise_stddev,
-                     "hidden_size": args.hidden_size,
-                     "n_test_cycles": args.n_test_cycles,
-                     "seed": args.seed,
-                     "score_threshold": score_threshold,
-                     "timescale": timescale,
-                     "steps": steps,
-                     "number_of_charging_stations": number_of_charging_stations,
-                     "replay_path": replay_path,
-                     "n_transformers": n_transformers,     
-                     "static_prices": static_prices,
-                     "static_ev_spawn_rate": static_ev_spawn_rate                                  
-                     }
+            config={"batch_size": args.batch_size,
+                    "replay_size": args.replay_size,
+                    "gamma": args.gamma,
+                    "tau": args.tau,
+                    "noise_stddev": args.noise_stddev,
+                    "hidden_size": args.hidden_size,
+                    "n_test_cycles": args.n_test_cycles,
+                    "seed": args.seed,
+                    "score_threshold": score_threshold,
+                    "timescale": timescale,
+                    "steps": steps,
+                    "number_of_charging_stations": number_of_charging_stations,
+                    "replay_path": replay_path,
+                    "n_transformers": n_transformers,
+                    "static_prices": static_prices,
+                    "static_ev_spawn_rate": static_ev_spawn_rate
+                    }
         )
-        wandb.watch(agent.actor) 
+        wandb.watch(agent.actor)
         wandb.watch(agent.critic)
-
 
     # Initialize replay memory
     memory = ReplayMemory(int(args.replay_size))
@@ -240,7 +252,7 @@ if __name__ == "__main__":
             epoch_return += reward
 
             mask = torch.Tensor([done]).to(device)
-            reward = torch.Tensor([reward]).to(device)            
+            reward = torch.Tensor([reward]).to(device)
             next_state = torch.Tensor([next_state]).to(device)
             # print(f'State: {next_state}')
             # next_state = next_state / torch.norm(next_state)
@@ -271,55 +283,51 @@ if __name__ == "__main__":
         value_losses.append(epoch_value_loss)
         policy_losses.append(epoch_policy_loss)
 
-        # writer.add_scalar('epoch/return', epoch_return, epoch)
-        # writer.add_scalar('epoch/ev_served', stats['total_ev_served'], epoch)
-        # writer.add_scalar('epoch/profits', stats['total_profits'], epoch)
-        # writer.add_scalar('epoch/energy_charged',
-        #                   stats['toal_energy_charged'], epoch)
-        # writer.add_scalar('epoch/energy_discharged',
-        #                   stats['total_energy_discharged'], epoch)
-        # writer.add_scalar('epoch/user_satisfaction',
-        #                   stats['average_user_satisfaction'], epoch)
-        # writer.add_scalar('epoch/value_loss', epoch_value_loss, epoch)
-        # writer.add_scalar('epoch/policy_loss', epoch_policy_loss, epoch)        
-        # writer.add_scalar('epoch/ev_spawn_rt', stats['ev_spawn_rate'], epoch)
-        
         if log_to_wandb:
-                wandb.log({'epoch/return': epoch_return,
-                           'epoch/ev_served': stats['total_ev_served'],
-                           'epoch/profits': stats['total_profits'],
-                           'epoch/energy_charged': stats['toal_energy_charged'],
-                           'epoch/energy_discharged': stats['total_energy_discharged'],
-                           'epoch/user_satisfaction': stats['average_user_satisfaction'],
-                           'epoch/value_loss': epoch_value_loss,
-                           'epoch/policy_loss': epoch_policy_loss,
-                           'epoch/ev_spawn_rt': stats['ev_spawn_rate']})
+            wandb.log({'epoch/return': epoch_return,
+                       'epoch/ev_served': stats['total_ev_served'],
+                       'epoch/profits': stats['total_profits'],
+                       'epoch/energy_charged': stats['toal_energy_charged'],
+                       'epoch/energy_discharged': stats['total_energy_discharged'],
+                       'epoch/user_satisfaction': stats['average_user_satisfaction'],
+                       'epoch/value_loss': epoch_value_loss,
+                       'epoch/policy_loss': epoch_policy_loss,
+                       'epoch/ev_spawn_rt': stats['ev_spawn_rate']})
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 5000 * t:
             t += 1
             test_rewards = []
             test_stats = []
-            for test_cycle in range(args.n_test_cycles):
-                state = torch.Tensor([env.reset()]).to(device)
+            for test_cycle in range(n_test_cycles):
+
+                # load evaluation enviroments from replay files               
+
+                eval_env = ev_city.EVCity(load_from_replay_path= eval_replay_path + 
+                                          eval_replay_files[test_cycle],
+                                          load_ev_from_replay=True,
+                                          load_prices_from_replay=True,
+                                          save_replay=False,
+                                          simulation_length=steps,)
+
+                state = torch.Tensor([eval_env.reset()]).to(device)
                 test_reward = 0
                 while True:
-                    if args.render_eval and test_cycle == 0:
-                        # env.render()
-                        env.save_plots = True
+                    if args.render_eval and test_cycle == 0:                        
+                        eval_env.save_plots = True
                     else:
-                        env.save_plots = False
+                        eval_env.save_plots = False
 
                     # Selection without noise
                     action = agent.calc_action(state)
 
-                    next_state, reward, done, stats = env.step(
+                    next_state, reward, done, stats = eval_env.step(
                         action.cpu().numpy()[0])
                     test_reward += reward
 
                     if test_cycle == 0:
-                        print('Action',action.detach().cpu().numpy(),reward)
-                        print('State',next_state)
+                        print('Action', action.detach().cpu().numpy(), reward)
+                        print('State', next_state)
 
                     next_state = torch.Tensor([next_state]).to(device)
                     state = next_state
@@ -331,35 +339,23 @@ if __name__ == "__main__":
 
             mean_test_rewards.append(np.mean(test_rewards))
 
-            # for name, param in agent.actor.named_parameters():
-            #     writer.add_histogram(
-            #         name, param.clone().cpu().data.numpy(), epoch)
-            # for name, param in agent.critic.named_parameters():
-            #     writer.add_histogram(
-            #         name, param.clone().cpu().data.numpy(), epoch)
-                        
-            #average the results of the test cycles
+            # average the results of the test cycles
             stats = {}
             for key in test_stats[0].keys():
-                stats[key] = np.mean([test_stats[i][key] for i in range(len(test_stats))])            
+                stats[key] = np.mean([test_stats[i][key]
+                                     for i in range(len(test_stats))])
+                
+            # get all values of a key in a list
+            opt_profits = [test_stats[i]['total_profits']/test_stats[i]['opt_profits'] for i in range(len(test_stats))]                        
 
+            print(opt_profits)
             for ind in range(args.n_test_cycles):
                 if test_stats[ind]['total_profits'] > highest_profits and test_stats[ind]['average_user_satisfaction'] == 1:
-                    highest_profits = test_stats[ind]['total_profits']                
-                    agent.save_checkpoint(timestep, memory,run_name+"_best")
+                    highest_profits = test_stats[ind]['total_profits']
+                    agent.save_checkpoint(timestep, memory, run_name+"_best")
                     time_last_checkpoint = time.time()
                     logger.info('Saved model at {}'.format(time.strftime(
                         '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-
-
-            # writer.add_scalar('test/mean_test_return',
-            #                   mean_test_rewards[-1], epoch)
-            # writer.add_scalar('test/total_ev_served',
-            #                   stats['total_ev_served'], epoch)
-            # writer.add_scalar('test/total_profits', stats['total_profits'], epoch)
-            # writer.add_scalar('test/toal_energy_charged', stats['toal_energy_charged'], epoch)
-            # writer.add_scalar('test/total_energy_discharged', stats['total_energy_discharged'], epoch)
-            # writer.add_scalar('test/average_user_satisfaction', stats['average_user_satisfaction'], epoch)            
 
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
@@ -368,7 +364,10 @@ if __name__ == "__main__":
                            'test/toal_energy_charged': stats['toal_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
-                           'test/higher_profits': highest_profits})
+                           'test/higher_profits': highest_profits,
+                           'test/mean_opt_ratio': np.mean(opt_profits),
+                           'test/std_opt_ratio': np.std(opt_profits),})
+                            
 
             logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
                         "mean reward: {}, mean test reward {}".format(epoch,

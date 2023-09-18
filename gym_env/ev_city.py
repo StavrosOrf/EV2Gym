@@ -103,6 +103,7 @@ class EVCity(gym.Env):
             self.static_prices = static_prices
             self.spawn_rate = ev_spawn_rate
             self.static_ev_spawn_rate = static_ev_spawn_rate
+            self.replay = None
 
             self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
 
@@ -112,13 +113,13 @@ class EVCity(gym.Env):
 
         # Simulate grid
         if self.simulate_grid:
-            self.grid = Grid(charging_stations=cs, case=case)
+            self.grid = Grid(charging_stations=self.cs, case=case)
             self.cs_buses = self.grid.get_charging_stations_buses()
             self.cs_transformers = self.grid.get_bus_transformers()
         else:
-            self.cs_buses = [None] * cs
+            self.cs_buses = [None] * self.cs
             self.cs_transformers = np.random.randint(
-                self.number_of_transformers, size=cs)
+                self.number_of_transformers, size=self.cs)
 
         # Instatiate Transformers
         self.transformers = self._load_transformers()
@@ -141,7 +142,7 @@ class EVCity(gym.Env):
 
         # Observation space: is a matrix of size ("Sum of all ports of all charging stations",n_features)
         obs_dim = 1 + \
-            cs * (2 + 2*number_of_ports_per_cs)
+            self.cs * (2 + 2*number_of_ports_per_cs)
         # + number_of_transformers * 3
 
         print(f'Observation space dimension: {obs_dim}')
@@ -437,11 +438,11 @@ class EVCity(gym.Env):
                 self.print_statistics()
 
             if any(score < self.score_threshold for score in user_satisfaction_list):
-                print(f"\nUser satisfaction score below threshold of {self.score_threshold}, {self.current_step} timesteps") 
+                print(f"User satisfaction score below threshold of {self.score_threshold}, {self.current_step} timesteps\n") 
             elif any(tr.is_overloaded() for tr in self.transformers):
-                print(f"\nTransformer overloaded, {self.current_step} timesteps")
+                print(f"Transformer overloaded, {self.current_step} timesteps\n")
             else:
-                print(f"\nEpisode finished after {self.current_step} timesteps")
+                print(f"Episode finished after {self.current_step} timesteps\n")
 
             if self.save_replay:
                 self.save_sim_replay()
@@ -471,13 +472,18 @@ class EVCity(gym.Env):
         average_user_satisfaction = np.average(np.array(
             [cs.get_avg_user_satisfaction() for cs in self.charging_stations]))
         
+        
         stats = {'total_ev_served': total_ev_served,
                 'total_profits': total_profits,
                 'toal_energy_charged': toal_energy_charged,
                 'total_energy_discharged': total_energy_discharged,
                 'average_user_satisfaction': average_user_satisfaction,
-                'ev_spawn_rate': self.spawn_rate,
+                'ev_spawn_rate': self.spawn_rate,                
                 }
+        
+        if self.replay is not None:
+            stats['opt_profits'] = self.replay.stats["total_profits"]
+
         
         return stats
 
