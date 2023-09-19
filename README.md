@@ -3,6 +3,11 @@
 # EVsSimulator
 A V2X Simulation Environment for large scale EV charging optimization
 
+### Insights for RL in EVsSimulator
+- The state should be normalized [0,1] for better convergence
+- The reward should be either positive or negative so that policy loss converges
+- ...
+
 ### Development of RL algorthms
 
 - [x] Linearize the User Satisfaction constraint as a negative infinite reward.
@@ -16,7 +21,8 @@ A V2X Simulation Environment for large scale EV charging optimization
   - [ ] Then, enable transformer aggregation (new reward should be designed)
   - [~] Then, enable different spawn rates in each test case (under testing now, much harder to have very good solutions with DDPG)
   - [ ] Then, enable heterogeneous EVs and EV chargers 
-- [ ] !!! Apply DT transformer on simple cases
+- [ ] Normalize reward based on the number of EVs in the parking lot (e.g. if there are 100 EVs, the reward should be divided by 100)
+- [ ] !!! Apply DT transformer on simple cases 
 - [ ] Create a business as usual baseline solution for comparison (check literature)
 
 ##### Open Questions for RL
