@@ -89,7 +89,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 - [x] Add **j number of ports** per charging station and include related constraints
 - [ ] Add the battery behavior model 0-80 fast, 80-100 slow
 - [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
-- [ ] Create a highly heterogeneous EV/ EV Chager environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids)
+- [ ] Create a highly heterogeneous EV/ EV Chager environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids) https://site.ieee.org/pes-iss/data-sets/#elec (check the 34 ev types dataset)
 - [ ] Improve the user satisfaction term
 
 ## Limitations
