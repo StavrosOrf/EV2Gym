@@ -8,7 +8,7 @@ A V2X Simulation Environment for large scale EV charging optimization
 - The reward should be either positive or negative so that policy loss converges
 - ...
 
-### Development of RL algorthms
+### Development of RL algorithms
 
 - [x] Linearize the User Satisfaction constraint as a negative infinite reward.
 - [ ] Experiment with DDPG for this problem
@@ -22,12 +22,12 @@ A V2X Simulation Environment for large scale EV charging optimization
   - [ ] Then, enable dynamic transformer power level (because of grid constraints or because of very expensive energy "greenflux")
   - [~] Then, enable different spawn rates in each test case (under testing now, much harder to have very good solutions with DDPG)
   - [ ] Then, enable heterogeneous EVs and EV chargers 
-- [ ] Normalize reward based on the number of EVs in the parking lot (e.g. if there are 100 EVs, the reward should be divided by 100)
+- [ ] Normalize reward based on the number of EVs in the parking lot (e.g., if there are 100 EVs, the reward should be divided by 100)
 - [ ] !!! Apply DT transformer on simple cases 
 - [ ] Create a business as usual baseline solution for comparison (check literature)
 
 ##### Open Questions for RL
-
+- What is a good metric to evaluate the performance of an online vs an offline policy, e.g., when comparing the RL online actions with the optimal gurobi (complete information) methods?
 - How can we associate rewards for specific actions (e.g. when a specific ev leaves without completely charging, it is a fault of a series of actions for charger **i** port **j**)?
   - Maybe, run the algorithm once per charging station and then metaheuristically combine them on the transformer level to solve the problem without power level constraints.
 
