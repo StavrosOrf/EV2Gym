@@ -44,7 +44,6 @@ Here, I will write down the debugging tasks I am currently working on:
 - [x] Why does it terminate earlier even if trheshold is 0 (Fixed)
 - [x] Reduce the required storage for each run
   - [x] Save only the best model of each run (not all of them)
-  
 
 #### Gym Environment
 - [x] Implement step for ev charger and ev

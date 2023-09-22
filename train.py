@@ -293,7 +293,9 @@ if __name__ == "__main__":
                                      for i in range(len(test_stats))])
                 
             # get all values of a key in a list
-            opt_profits = [test_stats[i]['total_profits']/test_stats[i]['opt_profits'] for i in range(len(test_stats))]                        
+            opt_profits = [1 - ((test_stats[i]['opt_profits'] - test_stats[i]['total_profits']) / 
+                                abs(test_stats[i]['opt_profits'])) \
+                                 for i in range(len(test_stats))]                        
 
             print(opt_profits)
             for ind in range(args.n_test_cycles):
