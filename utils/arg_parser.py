@@ -4,6 +4,7 @@ def arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", default="ev-city-v0",
                         help="the environment on which the agent should be trained ")
+    parser.add_argument("--name",type=str, help="name of the experiment")
     parser.add_argument("--render_train", default=False, type=bool,
                         help="Render the training steps (default: False)")
     parser.add_argument("--render_eval", default=True, type=bool,

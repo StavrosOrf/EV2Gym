@@ -38,7 +38,10 @@ if __name__ == "__main__":
     # Define the directory where to save and load models
     checkpoint_dir = args.save_dir + args.env
     # name the run accordign to time
-    run_name = 'r_' + time.strftime("%Y%m%d-%H%M%S")    
+    if args.name:
+        run_name = args.name
+    else:
+        run_name = 'r_' + time.strftime("%Y%m%d-%H%M%S")    
 
     # Create the env
     # env = NormalizedActions(env)
@@ -249,21 +252,22 @@ if __name__ == "__main__":
             for test_cycle in range(n_test_cycles):
 
                 # load evaluation enviroments from replay files               
-
+                
+                if test_cycle == 0:                        
+                    save_plots = True
+                else:
+                    save_plots = False
                 eval_env = ev_city.EVCity(load_from_replay_path= eval_replay_path + 
                                           eval_replay_files[test_cycle],
                                           load_ev_from_replay=True,
                                           load_prices_from_replay=True,
                                           save_replay=False,
+                                          save_plots=save_plots,
                                           simulation_length=steps,)
 
                 state = torch.Tensor([eval_env.reset()]).to(device)
                 test_reward = 0
-                while True:
-                    if args.render_eval and test_cycle == 0:                        
-                        eval_env.save_plots = True
-                    else:
-                        eval_env.save_plots = False
+                while True:                    
 
                     # Selection without noise
                     action = agent.calc_action(state)
@@ -327,7 +331,7 @@ if __name__ == "__main__":
                                                                       np.mean(test_rewards)))
         epoch += 1
 
-    agent.save_checkpoint(timestep, memory, run_name+"last")
+    agent.save_checkpoint(timestep, memory, run_name+"_last")
 
     logger.info('Saved model at endtime {}'.format(
         time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))

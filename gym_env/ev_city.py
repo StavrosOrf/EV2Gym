@@ -1,4 +1,7 @@
-'''
+'''    
+This file contains the EVCity class, which is used to represent the environment of the city.    
+The environment is a gym environment and can be used with the OpenAI baselines.
+
 ===================================
 Author: Stavros Orfanoudakis 2023
 ===================================
@@ -21,9 +24,6 @@ from .replay import EvCityReplay
 from .utils import ev_city_plot, get_statistics, print_statistics, visualize
 
 class EVCity(gym.Env):
-    '''
-    This file contains the EVCity class, which is used to represent the environment of the city.
-    '''
 
     def __init__(self,
                  cs=None,
@@ -69,10 +69,15 @@ class EVCity(gym.Env):
 
         self.seed = seed
 
+        #set random seed
+        np.random.seed(self.seed)
+        
         if load_from_replay_path is not None:
             with open(load_from_replay_path, 'rb') as file:
                 self.replay = pickle.load(file)
 
+            sim_name = self.replay.replay_path.split('replay_')[-1].split('.')[0]
+            self.sim_name = sim_name + '_replay'
             # self.save_replay = False
             self.sim_date = self.replay.sim_date
             self.simulate_grid = self.replay.simulate_grid
@@ -104,12 +109,12 @@ class EVCity(gym.Env):
             self.spawn_rate = ev_spawn_rate
             self.static_ev_spawn_rate = static_ev_spawn_rate
             self.replay = None
+            self.sim_name = f'ev_city_{self.simulation_length}_' + \
+                f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'
 
             self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
 
         self.sim_starting_date = self.sim_date
-        self.sim_name = f'ev_city_{self.simulation_length}_' + \
-            f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'
 
         # Simulate grid
         if self.simulate_grid:
@@ -159,9 +164,12 @@ class EVCity(gym.Env):
         self.done = False
 
         # Make folders for results
-        os.makedirs(self.replay_path, exist_ok=True)
-        os.makedirs("./plots", exist_ok=True)
-        os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
+        if self.save_replay:
+            os.makedirs(self.replay_path, exist_ok=True)
+
+        if self.save_plots:
+            os.makedirs("./plots", exist_ok=True)
+            os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
 
         if self.save_replay:
             self.EVs = []  # Store all of the EVs in the simulation that arrived
@@ -365,7 +373,8 @@ class EVCity(gym.Env):
                                 time_of_arrival=self.current_step+1,
                                 earlier_time_of_departure=self.current_step+1
                                 + np.random.randint(min_stay_of_ev, max_stay_of_ev),
-                                timescale=self.timescale,)
+                                timescale=self.timescale,
+                                simulation_length=self.simulation_length,)
                         # earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
                         index = cs.spawn_ev(ev)
                         self.port_arrival[f'{cs.id}.{index}'].append(
@@ -385,6 +394,7 @@ class EVCity(gym.Env):
             for i, ev in enumerate(self.ev_profiles[counter:]):
                 if ev.time_of_arrival == self.current_step + 1:
                     ev.reset()
+                    ev.simulation_length = self.simulation_length
                     index = self.charging_stations[ev.location].spawn_ev(ev)
                     self.port_arrival[f'{ev.location}.{index}'].append(
                         (self.current_step + 1, ev.earlier_time_of_departure))
@@ -518,7 +528,7 @@ class EVCity(gym.Env):
 
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''
-        reward = total_costs - 5
+        reward = total_costs - 0.25 
         # print(f'total_costs: {total_costs}')
         # print(f'user_satisfaction_list: {user_satisfaction_list}')
         for score in user_satisfaction_list:

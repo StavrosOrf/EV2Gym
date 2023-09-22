@@ -165,7 +165,7 @@ class EV():
         '''
         timestep_left = self.earlier_time_of_departure - current_step
 
-        return self.get_soc()/100, timestep_left / 150 #, self.charging_cycles
+        return self.get_soc()/100, timestep_left / self.simulation_length #, self.charging_cycles
 
     def __str__(self):
         return f' {self.current_power:5.1f} kWh |' + \

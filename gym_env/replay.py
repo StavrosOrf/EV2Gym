@@ -23,6 +23,7 @@ class EvCityReplay():
         self.stats = get_statistics(env)
 
         self.replay_path = env.replay_path + 'replay_' + env.sim_name + '.pkl'
+        env.sim_name = env.sim_name + '_replay'
         self.sim_length = env.simulation_length
         self.n_cs = env.cs
         self.n_transformers = env.number_of_transformers
