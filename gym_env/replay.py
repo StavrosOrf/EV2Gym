@@ -6,7 +6,7 @@ Author: Stavros Orfanoudakis 2023
 
 import os
 import numpy as np
-
+from .utils import get_statistics
 
 class EvCityReplay():
     '''
@@ -20,7 +20,7 @@ class EvCityReplay():
         if not os.path.exists('replay'):
             os.makedirs('replay')
 
-        self.stats = env.get_statistics()
+        self.stats = get_statistics(env)
 
         self.replay_path = env.replay_path + 'replay_' + env.sim_name + '.pkl'
         self.sim_length = env.simulation_length
