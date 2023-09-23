@@ -11,7 +11,8 @@ A V2X Simulation Environment for large scale EV charging optimization
 ### Development of RL algorithms
 
 - [x] Linearize the User Satisfaction constraint as a negative infinite reward.
-- [ ] Experiment with DDPG for this problem
+- [x] Experiment with DDPG for this problem
+- [ ] Experiment with different use-cases.
   - [x] Create a pipeline that quickly compares the Developed algorithm(DDPG in this case) with the optimal solution and baseline solution (add new percentage metric for comparison "profits/opt_profits")
   - [ ] Vizuallize the results in the same figures, get statistics, etc.
   - [x] Try to improve as much as possible the 1 cs 150 timesteps problem
