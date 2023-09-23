@@ -1,131 +1,173 @@
-import pickle
-import torch
+import argparse
+import logging
+import os
+import random
+import time
+
+import gym
 import numpy as np
-
-import numpy.random as rd
-from torch.nn.modules import loss
-
 from gym_env import ev_city
 
-from tqdm import tqdm
+import torch
+import pickle
 
-generate_trajectories = False
-MONTHS_LEN = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+from utils.arg_parser import arg_parser
 
-trajectory_list = []
-trajectories_number = 10000000
-generate_optimal_trajectories = False
+from ddpg import DDPG
+from utils.noise import OrnsteinUhlenbeckActionNoise
 
-if generate_optimal_trajectories:
-    file_name = 'optimal_trajectories_new.pkl'
-else:
-    file_name = 'random_trajectories_new.pkl'
+# if gpu is to be used
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-args = Arguments()
-args.agent = AgentDDPG()
-agent_name = f'{args.agent.__class__.__name__}'
-args.agent.cri_target = True
-args.env = ESSEnv()
+if __name__ == "__main__":
 
-args.init_before_training(if_main=True)
-'''init agent and environment'''
-agent = args.agent
-env = args.env
-agent.init(
-    args.net_dim, env.state_space.shape[0], env.action_space.shape[0], args.learning_rate, args.if_per_or_gae)
-agent.state = env.reset()
+    args = arg_parser()
 
-for counter in tqdm(range(trajectories_number)):    
-    with torch.no_grad():
-        if generate_optimal_trajectories:
+    # Define the directory where to save and load models
+    checkpoint_dir = args.save_dir + args.env
+    # name the run accordign to time
+    if args.name:
+        run_name = args.name
+    else:
+        run_name = 'r_' + time.strftime("%Y%m%d-%H%M%S")
 
-            month = np.random.randint(1, 13)  # here we choose 12 month
-            day = np.random.randint(1, MONTHS_LEN[month-1]-1)
+    log_to_wandb = args.wandb
+    verbose = False
+    n_transformers = args.transformers
+    number_of_charging_stations = args.cs
+    steps = args.steps  # 288 steps = 1 day with 5 minutes per step
+    timescale = args.timescale  # (5 minutes per step)
+    score_threshold = args.score_threshold  # 1
+    static_prices = args.static_prices
+    static_ev_spawn_rate = args.static_ev_spawn_rate
+    n_trajectories = args.n_trajectories
 
-            initial_soc = round(np.random.uniform(0.2, 0.8), 2)
-            # print(f'month:{month}, day:{day}, initial_soc:{initial_soc}')
+    gym.register(id='evcity-v0', entry_point='gym_env.ev_city:EVCity')
 
-            # print(initial_soc)
-            base_result = optimization_base_result(
-                env, month, day, initial_soc)
+    env = ev_city.EVCity(cs=number_of_charging_stations,
+                         number_of_ports_per_cs=2,
+                         number_of_transformers=n_transformers,
+                         static_ev_spawn_rate=True,
+                         load_ev_from_replay=False,
+                         load_prices_from_replay=False,
+                         static_prices=static_prices,
+                         load_from_replay_path=None,
+                         empty_ports_at_end_of_simulation=True,
+                         generate_rnd_game=True,
+                         simulation_length=steps,
+                         timescale=timescale,
+                         score_threshold=score_threshold,
+                         save_plots=False,
+                         save_replay=False,
+                         verbose=verbose,)
 
-            # base_result = base_result.iloc[i]
-            # extract actions
-            actions = []
-            for i in range(len(base_result)):
-                action = [0, 0, 0, 0]
+    trajectories = []
 
-                if i == 0:
-                    action[0] = (base_result.iloc[i]['soc'] -
-                                 initial_soc) / (env.battery.max_charge / env.battery.capacity)
-                    action[1] = base_result.iloc[i]['gen1'] / \
-                        env.dg1.ramping_up
-                    action[2] = base_result.iloc[i]['gen2'] / \
-                        env.dg2.ramping_up
-                    action[3] = base_result.iloc[i]['gen3'] / \
-                        env.dg3.ramping_up
-                else:
-                    action[0] = (base_result.iloc[i]['soc'] -
-                                 base_result.iloc[i-1]['soc']) / (env.battery.max_charge / env.battery.capacity)
-                    action[1] = (base_result.iloc[i]['gen1'] -
-                                 base_result.iloc[i-1]['gen1']) / env.dg1.ramping_up
-                    action[2] = (base_result.iloc[i]['gen2'] -
-                                 base_result.iloc[i-1]['gen2']) / env.dg2.ramping_up
-                    action[3] = (base_result.iloc[i]['gen3'] -
-                                 base_result.iloc[i-1]['gen3']) / env.dg3.ramping_up
+    # Set random seed for all used libraries where possible
+    # env.seed(args.seed)
+    # torch.manual_seed(args.seed)
+    # np.random.seed(args.seed)
+    # random.seed(args.seed)
 
-                actions.append(action)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(args.seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
-            if np.max(actions) > 1.1 or np.min(actions) < -1.1:
-                print('action out of range!')
-                print(np.max(actions))
-                print(np.min(actions))
-                exit(0)
+    # Define and build DDPG agent
+    hidden_size = tuple(args.hidden_size)
+    agent = DDPG(args.gamma,
+                 args.tau,
+                 hidden_size,
+                 env.observation_space.shape[0],
+                 env.action_space,
+                 checkpoint_dir=checkpoint_dir
+                 )
 
-            trajectory = agent.explore_env_opt_actions(
-                env, args.target_step, actions, day, month, initial_soc)
+    if static_prices:
+        prices = "static"
+    else:
+        prices = "dynamic"
 
-        else:
+    if static_ev_spawn_rate:
+        ev_spawn_rate = "static"
+    else:
+        ev_spawn_rate = "dynamic"
 
-            trajectory = agent.explore_env(env, args.target_step)
+    if args.opt_traj:
+        trajecotries_type = "optimal"
+    else:
+        trajecotries_type = "random"
+
+
+    file_name = f"{trajecotries_type}_{number_of_charging_stations}_cs_{n_transformers}_tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate_{steps}_steps_{timescale}_timescale_{score_threshold}_score_threshold_{n_trajectories}_trajectories.pkl"
+    save_folder_path = f"./trajectories/"
+    if not os.path.exists(save_folder_path):
+        os.makedirs(save_folder_path)
+
+    # Initialize OU-Noise
+    nb_actions = env.action_space.shape[-1]
+    ou_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(nb_actions),
+                                            sigma=float(args.noise_stddev) * np.ones(nb_actions))
+
+    # Define counters and other variables
+    start_step = 0
+    # timestep = start_step
+    if args.load_model:
+        # Load agent if necessary
+        start_step, memory = agent.load_checkpoint(
+            checkpoint_path=args.load_model)
+
+    timestep = start_step // 10000 + 1
+    epoch = 0
+
+    for i in range(n_trajectories):
 
         trajectory_i = {"observations": [],
-                        "actions": [], "rewards": [], "dones": []}
+                        "actions": [],
+                        "rewards": [],
+                        "dones": [] }
 
-        for state_s in trajectory:
-            trajectory_i["observations"].append(state_s[0])
-            trajectory_i["actions"].append(state_s[1][2:6])
+        ou_noise.reset()
 
-            reward_mode = 'normal'
-            if reward_mode == 'return_to_go':
-                trajectory_i["rewards"].append(
-                    sum(trajectory_i["rewards"]) + state_s[1][0])
-            else:
-                trajectory_i["rewards"].append(state_s[1][0])
-            trajectory_i["dones"].append(state_s[1][1])
+        epoch_return = 0
 
-        trajectory_i["observations"] = np.array(
-            trajectory_i["observations"])
+        print(f'Trajectory: {i}')
+        state = torch.Tensor([env.reset()]).to(device)       
+
+        state = torch.Tensor([env.reset()]).to(device)
+        test_reward = 0
+        while True:
+
+            action = agent.calc_action(state, ou_noise)
+
+            next_state, reward, done, stats = env.step(
+                action.cpu().numpy()[0])
+            test_reward += reward
+
+            trajectory_i["observations"].append(state.cpu().numpy()[0])
+            trajectory_i["actions"].append(action.cpu().numpy()[0])
+            trajectory_i["rewards"].append(reward)
+            trajectory_i["dones"].append(done)
+
+            next_state = torch.Tensor([next_state]).to(device)
+            state = next_state
+
+            if done:
+                break
+        
+        trajectory_i["observations"] = np.array(trajectory_i["observations"])
         trajectory_i["actions"] = np.array(trajectory_i["actions"])
         trajectory_i["rewards"] = np.array(trajectory_i["rewards"])
         trajectory_i["dones"] = np.array(trajectory_i["dones"])
-        # print(trajectory_i)
-        trajectory_list.append(trajectory_i)
-        
-        if counter % 1000000 == 0:
-            print(f'counter:{counter}')
-            f = open(file_name, 'wb')
-            # source, destination
-            pickle.dump(trajectory_list, f)
-            f.close()
 
+        trajectories.append(trajectory_i)
 
-print("====================================")
-print(trajectory_list[0])
-print(len(trajectory_list))
-print('Finished trajectory generating!')
+    env.close()
+    print(trajectories[:2])
 
-f = open(file_name, 'wb')
-# source, destination
-pickle.dump(trajectory_list, f)
-f.close()
+    print(f'Saving trajectories to {save_folder_path+file_name}')
+    f = open(save_folder_path+file_name, 'wb')
+    # source, destination
+    pickle.dump(trajectories, f)
+    f.close()

@@ -34,7 +34,7 @@ def arg_parser():
     parser.add_argument("--wandb", default=True, type=bool,
                         help="Enable logging to wandb (default: True)")
 
-    # Envirioned specific arguments
+    # Environment specific arguments
     parser.add_argument("--cs", default=1, type=int,
                         help="Num. of CS (default: 1)")
     parser.add_argument("--transformers", default=1, type=int,
@@ -51,5 +51,12 @@ def arg_parser():
                         help="Static prices (default: True)")
     parser.add_argument("--static_ev_spawn_rate", default=True, type=bool,
                         help="Static ev spawn rate (default: True)")
+    
+    # Generate trajectories specific arguments
+    parser.add_argument("--n_trajectories", default=10, type=int,
+                        help="Num. of trajectories to generate (default: 10)")
+    parser.add_argument("--opt_traj", default=False, type=bool,
+                        help="Generate Optimal trajectories (default: False)")
+    
 
     return parser.parse_args()

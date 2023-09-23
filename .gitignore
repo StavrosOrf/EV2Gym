@@ -170,6 +170,4 @@ vscode/
 .vscode/settings.json
 runs/
 saved_models/
-wandb/latest-run
-wandb/run-20230911_085459-hiywx1ky/run-hiywx1ky.wandb
-wandb/run-20230911_085459-hiywx1ky/files/wandb-summary.json
+trajectories/

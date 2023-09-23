@@ -174,7 +174,7 @@ if __name__ == "__main__":
     t = 0
     time_last_checkpoint = time.time()
 
-    highest_profits = -np.inf
+    highest_opt_ratio = -np.inf
 
     # Start training
     logger.info('Train agent on {} env'.format({args.env}))
@@ -303,8 +303,8 @@ if __name__ == "__main__":
 
             print(opt_profits)
             for ind in range(args.n_test_cycles):
-                if test_stats[ind]['total_profits'] > highest_profits and test_stats[ind]['average_user_satisfaction'] == 1:
-                    highest_profits = test_stats[ind]['total_profits']
+                if np.mean(opt_profits) > highest_opt_ratio and test_stats[ind]['average_user_satisfaction'] == 1:
+                    highest_opt_ratio = np.mean(opt_profits)
                     agent.save_checkpoint(timestep, memory, run_name+"_best")
                     time_last_checkpoint = time.time()
                     logger.info('Saved model at {}'.format(time.strftime(
@@ -317,7 +317,7 @@ if __name__ == "__main__":
                            'test/toal_energy_charged': stats['toal_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
-                           'test/higher_profits': highest_profits,
+                           'test/highest_opt_ratio': highest_opt_ratio,
                            'test/mean_opt_ratio': np.mean(opt_profits),
                            'test/std_opt_ratio': np.std(opt_profits),})
                             
