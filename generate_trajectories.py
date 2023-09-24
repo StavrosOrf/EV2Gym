@@ -97,7 +97,7 @@ if __name__ == "__main__":
     if args.opt_traj:
         trajecotries_type = "optimal"
     else:
-        trajecotries_type = "random"
+        trajecotries_type = "randomly"
 
 
     file_name = f"{trajecotries_type}_{number_of_charging_stations}_cs_{n_transformers}_tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate_{steps}_steps_{timescale}_timescale_{score_threshold}_score_threshold_{n_trajectories}_trajectories.pkl"
@@ -114,9 +114,15 @@ if __name__ == "__main__":
     start_step = 0
     # timestep = start_step
     if args.load_model:
+        model_path = "./saved_models/ev-city-v0/model_normal_best.pth.tar"
+        # model_path = "C:\Users\stayr\OneDrive - Delft University of Technology\GitHub\EVsSimulator\saved_models\ev-city-v0\model_best.pth.tar"
+        print(f'Loading model from {model_path}')
         # Load agent if necessary
-        start_step, memory = agent.load_checkpoint(
-            checkpoint_path=args.load_model)
+        # start_step, memory = agent.load_checkpoint(
+        #     checkpoint_path=args.load_model)
+        start_step, memory = agent.load_checkpoint()
+
+        
 
     timestep = start_step // 10000 + 1
     epoch = 0
@@ -163,8 +169,14 @@ if __name__ == "__main__":
 
         trajectories.append(trajectory_i)
 
+        if i % 10000 == 0:
+            print(f'Saving trajectories to {save_folder_path+file_name}')
+            f = open(save_folder_path+file_name, 'wb')
+            # source, destination
+            pickle.dump(trajectories, f)
+
     env.close()
-    print(trajectories[:2])
+    print(trajectories[:1])
 
     print(f'Saving trajectories to {save_folder_path+file_name}')
     f = open(save_folder_path+file_name, 'wb')
