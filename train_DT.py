@@ -32,8 +32,10 @@ def experiment(
 
     env_name, dataset = variant['env'], variant['dataset']
     model_type = variant['model_type']
-    group_name = f'{exp_prefix}-{env_name}-{dataset}'
-    exp_prefix = f'{group_name}-{random.randint(int(1e5), int(1e6) - 1)}'
+    group_name = f'{exp_prefix}-{env_name}'
+    run_name = variant['name']
+
+    exp_prefix = f'{run_name}-{dataset}-{random.randint(int(1e5), int(1e6) - 1)}'
 
     env = "ev_city-v0"
     max_ep_len = 150
@@ -49,7 +51,16 @@ def experiment(
 
     # load dataset
     dataset_path = f'trajectories/{env_name}-{dataset}-v2.pkl'
-    dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000_trajectories.pkl'
+
+    #random trajectories
+    if dataset == 'random':
+        dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000001_trajectories.pkl'
+    elif dataset == 'ddpg':
+        #DDPG semi-random trajectories
+        dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
+    else:
+        raise NotImplementedError("Dataset not found")
+
     with open(dataset_path, 'rb') as f:
         trajectories = pickle.load(f)
 
@@ -290,8 +301,10 @@ def experiment(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default='ev-city')
+    parser.add_argument('--name', type=str, default='ev')
+
     # medium, medium-replay, medium-expert, expert
-    parser.add_argument('--dataset', type=str, default='medium')
+    parser.add_argument('--dataset', type=str, default='random')
     # normal for standard setting, delayed for sparse
     parser.add_argument('--mode', type=str, default='normal')
     parser.add_argument('--K', type=int, default=20)
@@ -308,8 +321,8 @@ if __name__ == '__main__':
     parser.add_argument('--weight_decay', '-wd', type=float, default=1e-4)
     parser.add_argument('--warmup_steps', type=int, default=10000)
     parser.add_argument('--num_eval_episodes', type=int, default=10)
-    parser.add_argument('--max_iters', type=int, default=10)
-    parser.add_argument('--num_steps_per_iter', type=int, default=100)
+    parser.add_argument('--max_iters', type=int, default=100000)
+    parser.add_argument('--num_steps_per_iter', type=int, default=1000)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--log_to_wandb', '-w', type=bool, default=True)
 

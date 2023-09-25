@@ -182,6 +182,10 @@ def evaluate_episode_rtg(
                         abs(test_stats[i]['opt_profits'])) \
                             for i in range(len(test_stats))]                        
 
+    #drop key 'opt_profits' from dict stats
+    stats.pop('opt_profits')    
+    stats.pop('ev_spawn_rate')    
+
     ic(opt_profits)
     for ind in range(n_test_episodes):
         if np.mean(opt_profits) > highest_opt_ratio and test_stats[ind]['average_user_satisfaction'] == 1:
