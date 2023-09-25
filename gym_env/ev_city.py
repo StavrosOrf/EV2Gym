@@ -150,7 +150,7 @@ class EVCity(gym.Env):
             self.cs * (2 + 2*number_of_ports_per_cs)
         # + number_of_transformers * 3
 
-        print(f'Observation space dimension: {obs_dim}')
+        # print(f'Observation space dimension: {obs_dim}')
 
         high = np.inf*np.ones([obs_dim])
         self.observation_space = spaces.Box(
@@ -286,7 +286,7 @@ class EVCity(gym.Env):
                                            self.simulation_length])
 
         self.cs_power = np.zeros([self.cs, self.simulation_length])
-        self.port_power = np.zeros([self.number_of_ports,
+        self.port_power = np.zeros([self.number_of_ports,   
                                     self.cs,
                                     self.simulation_length])
         self.port_energy_level = np.zeros([self.number_of_ports,

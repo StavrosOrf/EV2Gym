@@ -1,8 +1,5 @@
 import numpy as np
 import torch
-import torch.nn as nn
-
-from tqdm import tqdm
 
 import time
 
@@ -14,15 +11,14 @@ class Trainer:
         self.optimizer = optimizer
         self.batch_size = batch_size
         self.get_batch = get_batch
-        self.loss_fn = loss_fn # nn.MSELoss()
+        self.loss_fn = loss_fn
         self.scheduler = scheduler
         self.eval_fns = [] if eval_fns is None else eval_fns
         self.diagnostics = dict()
 
         self.start_time = time.time()
 
-    def train_iteration(self, num_steps, iter_num=0, print_logs=False,state_mean=None,
-                         state_std=None):
+    def train_iteration(self, num_steps, iter_num=0, print_logs=False):
 
         train_losses = []
         logs = dict()
@@ -30,7 +26,7 @@ class Trainer:
         train_start = time.time()
 
         self.model.train()
-        for _ in tqdm(range(num_steps)):            
+        for _ in range(num_steps):
             train_loss = self.train_step()
             train_losses.append(train_loss)
             if self.scheduler is not None:
@@ -41,11 +37,10 @@ class Trainer:
         eval_start = time.time()
 
         self.model.eval()
-        
-        outputs = self.eval_fns(self.model,state_mean, state_std)
-        for k, v in outputs.items():
-            logs[f'evaluation/{k}'] = v
-        
+        for eval_fn in self.eval_fns:
+            outputs = eval_fn(self.model)
+            for k, v in outputs.items():
+                logs[f'test/{k}'] = v
 
         logs['time/total'] = time.time() - self.start_time
         logs['time/evaluation'] = time.time() - eval_start
@@ -64,17 +59,12 @@ class Trainer:
         return logs
 
     def train_step(self):
-        ic('TESTTTTTTTTTTTT')
-        exit()
         states, actions, rewards, dones, attention_mask, returns = self.get_batch(self.batch_size)
         state_target, action_target, reward_target = torch.clone(states), torch.clone(actions), torch.clone(rewards)
 
         state_preds, action_preds, reward_preds = self.model.forward(
             states, actions, rewards, masks=None, attention_mask=attention_mask, target_return=returns,
         )
-
-        print(f'states: {states}, actions: {actions}, rewards: {rewards}, masks: {dones}, attention_mask: {attention_mask}, returns: {returns}')
-        print(f'state_target: {state_target}, action_target: {action_target}, reward_target: {reward_target}')
 
         # note: currently indexing & masking is not fully correct
         loss = self.loss_fn(
