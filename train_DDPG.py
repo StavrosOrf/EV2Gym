@@ -43,6 +43,7 @@ if __name__ == "__main__":
     else:
         run_name = 'r_' + time.strftime("%Y%m%d-%H%M%S")    
 
+    run_name += "_DDPG"
     # Create the env
     # env = NormalizedActions(env)
     #     
