@@ -28,6 +28,7 @@ def experiment(
         variant,
 ):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(variant['device'])
     log_to_wandb = variant.get('log_to_wandb', False)
 
     env_name, dataset = variant['env'], variant['dataset']
