@@ -147,6 +147,7 @@ if __name__ == "__main__":
     n_trajectories = args.n_trajectories
 
     prices = "static" if prices else "dynamic"
+    ev_spawn_rate = "static" if ev_spawn_rate else "dynamic"
 
     file_name = f"optimal_{number_of_charging_stations}_cs_{n_transformers}_tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate_{steps}_steps_{timescale}_timescale_{score_threshold}_score_threshold_{n_trajectories}_trajectories.pkl"
 
