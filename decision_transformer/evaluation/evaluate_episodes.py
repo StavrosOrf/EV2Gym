@@ -65,7 +65,7 @@ def evaluate_episode(
 
 
 def evaluate_episode_rtg(
-        env,
+        exp_prefix,
         state_dim,
         act_dim,
         model,
@@ -103,7 +103,7 @@ def evaluate_episode_rtg(
     for test_cycle in range(n_test_episodes):
 
         if test_cycle == 0:                        
-                    save_plots = True
+            save_plots = True
         else:
             save_plots = False
 
@@ -113,7 +113,8 @@ def evaluate_episode_rtg(
                                     load_prices_from_replay=True,
                                     save_replay=False,
                                     save_plots=save_plots,
-                                    simulation_length=max_ep_len,)        
+                                    simulation_length=max_ep_len,
+                                    extra_sim_name=exp_prefix,)        
 
         state = env.reset()
         if mode == 'noise':

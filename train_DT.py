@@ -27,16 +27,26 @@ def experiment(
         exp_prefix,
         variant,
 ):
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = torch.device(variant['device'])
     log_to_wandb = variant.get('log_to_wandb', False)
 
     env_name, dataset = variant['env'], variant['dataset']
     model_type = variant['model_type']
-    group_name = f'{exp_prefix}-{env_name}'
+    # group_name = f'{exp_prefix}-{env_name}'
+
+    
+
     run_name = variant['name']
 
     exp_prefix = f'{run_name}-{dataset}-{random.randint(int(1e5), int(1e6) - 1)}'
+
+    #seed everything
+    seed = variant.get('seed', 0)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
     env = "ev_city-v0"
     max_ep_len = 150
@@ -61,6 +71,17 @@ def experiment(
         dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
     else:
         raise NotImplementedError("Dataset not found")
+
+    #split dataset path to get group name
+    number_of_charging_stations = dataset_path.split("_")[1]
+    n_transformers = dataset_path.split("_")[3]
+    prices = dataset_path.split("_")[5]
+    ev_spawn_rate = dataset_path.split("_")[7]
+    timesteps = dataset_path.split("_")[11]
+    timescale = dataset_path.split("_")[13]
+    score_threshold = dataset_path.split("_")[15]
+
+    group_name = f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate',
 
     with open(dataset_path, 'rb') as f:
         trajectories = pickle.load(f)
@@ -184,7 +205,7 @@ def experiment(
             with torch.no_grad():
                 if model_type == 'dt':
                     stats = evaluate_episode_rtg(
-                        env,
+                        exp_prefix,
                         state_dim,
                         act_dim,
                         model,
@@ -287,7 +308,7 @@ def experiment(
         wandb.init(
             name=exp_prefix,
             group=group_name,
-            project='decision-transformer',
+            project='EVsSimulator',
             config=variant
         )
         # wandb.watch(model)  # wandb has some bug
@@ -303,6 +324,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default='ev-city')
     parser.add_argument('--name', type=str, default='ev')
+    parser.add_argument('--seed', type=int,default=42)
 
     # medium, medium-replay, medium-expert, expert
     parser.add_argument('--dataset', type=str, default='random')
@@ -310,7 +332,7 @@ if __name__ == '__main__':
     parser.add_argument('--mode', type=str, default='normal')
     parser.add_argument('--K', type=int, default=20)
     parser.add_argument('--pct_traj', type=float, default=1.)
-    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--batch_size', type=int, default=128)
     # dt for decision transformer, bc for behavior cloning
     parser.add_argument('--model_type', type=str, default='dt')
     parser.add_argument('--embed_dim', type=int, default=128)
@@ -322,7 +344,7 @@ if __name__ == '__main__':
     parser.add_argument('--weight_decay', '-wd', type=float, default=1e-4)
     parser.add_argument('--warmup_steps', type=int, default=10000)
     parser.add_argument('--num_eval_episodes', type=int, default=10)
-    parser.add_argument('--max_iters', type=int, default=100000)
+    parser.add_argument('--max_iters', type=int, default=500)
     parser.add_argument('--num_steps_per_iter', type=int, default=1000)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--log_to_wandb', '-w', type=bool, default=True)

@@ -47,6 +47,7 @@ class EVCity(gym.Env):
                  seed=42,  # TODO: add seed
                  save_replay=True,
                  save_plots=True,
+                 extra_sim_name=None,
                  verbose=False,
                  simulation_length=1000):
 
@@ -116,6 +117,7 @@ class EVCity(gym.Env):
 
         self.sim_starting_date = self.sim_date
 
+        self.sim_name = extra_sim_name + self.sim_name if extra_sim_name is not None else self.sim_name
         # Simulate grid
         if self.simulate_grid:
             self.grid = Grid(charging_stations=self.cs, case=case)
