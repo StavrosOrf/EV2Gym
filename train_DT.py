@@ -81,7 +81,7 @@ def experiment(
     timescale = dataset_path.split("_")[13]
     score_threshold = dataset_path.split("_")[15]
 
-    group_name = f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate',
+    group_name = f'DT_{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate'    
 
     with open(dataset_path, 'rb') as f:
         trajectories = pickle.load(f)
@@ -313,9 +313,10 @@ def experiment(
         )
         # wandb.watch(model)  # wandb has some bug
 
+    num_steps_per_iter = num_trajectories // variant['batch_size']
     for iter in range(variant['max_iters']):
         outputs = trainer.train_iteration(
-            num_steps=variant['num_steps_per_iter'], iter_num=iter+1, print_logs=True)
+            num_steps=num_steps_per_iter, iter_num=iter+1, print_logs=True)
         if log_to_wandb:
             wandb.log(outputs)
 
@@ -332,7 +333,7 @@ if __name__ == '__main__':
     parser.add_argument('--mode', type=str, default='normal')
     parser.add_argument('--K', type=int, default=20)
     parser.add_argument('--pct_traj', type=float, default=1.)
-    parser.add_argument('--batch_size', type=int, default=128)
+    parser.add_argument('--batch_size', type=int, default=256)
     # dt for decision transformer, bc for behavior cloning
     parser.add_argument('--model_type', type=str, default='dt')
     parser.add_argument('--embed_dim', type=int, default=128)
