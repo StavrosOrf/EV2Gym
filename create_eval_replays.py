@@ -164,6 +164,7 @@ if __name__ == "__main__":
                                 static_prices=prices,
                                 save_opt_trajectories=True,
                                 save_replay=False)
+        trajectories.append(trajectory)
 
         if i % 1000 == 0:
             print(f'Saving trajectories to {save_folder_path+file_name}')
