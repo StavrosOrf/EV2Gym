@@ -70,7 +70,7 @@ def experiment(
         #DDPG semi-random trajectories
         dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
     elif dataset == "optimal":
-        dataset_path = f'optimal_1_cs_1_tr_static_prices_True_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_100000_trajectories.pkl'
+        dataset_path = f'trajectories/optimal_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_100000_trajectories.pkl'
     else:
         raise NotImplementedError("Dataset not found")
 
@@ -335,7 +335,7 @@ if __name__ == '__main__':
     parser.add_argument('--mode', type=str, default='normal')
     parser.add_argument('--K', type=int, default=20)
     parser.add_argument('--pct_traj', type=float, default=1.)
-    parser.add_argument('--batch_size', type=int, default=256)
+    parser.add_argument('--batch_size', type=int, default=128)
     # dt for decision transformer, bc for behavior cloning
     parser.add_argument('--model_type', type=str, default='dt')
     parser.add_argument('--embed_dim', type=int, default=128)
