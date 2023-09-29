@@ -55,8 +55,7 @@ def arg_parser():
     # Generate trajectories specific arguments
     parser.add_argument("--n_trajectories", default=10, type=int,
                         help="Num. of trajectories to generate (default: 10)")
-    parser.add_argument("--opt_traj", default=False, type=bool,
-                        help="Generate Optimal trajectories (default: False)")
+    parser.add_argument("--dataset", default="-", type=str)
     parser.add_argument("--save_opt_trajectories", default=False, type=bool,
                         help="Save Optimal trajectories (default: False)")
     

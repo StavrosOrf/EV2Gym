@@ -94,10 +94,12 @@ if __name__ == "__main__":
     else:
         ev_spawn_rate = "dynamic"
 
-    if args.opt_traj:
-        trajecotries_type = "optimal"
-    else:
-        trajecotries_type = "randomly"
+
+    if args.dataset not in ["ddpg","random","optimal"]:
+        raise ValueError("Dataset not supported")
+    
+    trajecotries_type = args.dataset
+
 
 
     file_name = f"{trajecotries_type}_{number_of_charging_stations}_cs_{n_transformers}_tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate_{steps}_steps_{timescale}_timescale_{score_threshold}_score_threshold_{n_trajectories}_trajectories.pkl"
@@ -144,8 +146,11 @@ if __name__ == "__main__":
         state = torch.Tensor([env.reset()]).to(device)
         test_reward = 0
         while True:
-
-            action = agent.calc_action(state, ou_noise)
+            
+            if args.dataset == "ddpg-random":
+                action = agent.calc_action(state, ou_noise)
+            elif args.dataset == "random":
+                action = torch.rand(1,env.number_of_ports)*2-1
 
             next_state, reward, done, stats = env.step(
                 action.cpu().numpy()[0])

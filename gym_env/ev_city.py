@@ -71,7 +71,7 @@ class EVCity(gym.Env):
         self.seed = seed
 
         #set random seed
-        np.random.seed(self.seed)
+        # np.random.seed(self.seed)
         
         if load_from_replay_path is not None:
             with open(load_from_replay_path, 'rb') as file:

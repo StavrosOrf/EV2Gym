@@ -65,7 +65,7 @@ def experiment(
 
     #random trajectories
     if dataset == 'random':
-        dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000001_trajectories.pkl'
+        dataset_path = f'./trajectories/random_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_100000_trajectories.pkl'
     elif dataset == 'ddpg':
         #DDPG semi-random trajectories
         dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
@@ -82,8 +82,9 @@ def experiment(
     timesteps = dataset_path.split("_")[11]
     timescale = dataset_path.split("_")[13]
     score_threshold = dataset_path.split("_")[15]
+    g_name = variant['group_name']
 
-    group_name = f'DT_{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate'    
+    group_name = f'{g_name}_DT_{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate'    
 
     with open(dataset_path, 'rb') as f:
         trajectories = pickle.load(f)
@@ -199,7 +200,7 @@ def experiment(
         mask = torch.from_numpy(np.concatenate(mask, axis=0)).to(device=device)
 
         return s, a, r, d, rtg, timesteps, mask
-
+    
     def eval_episodes(target_rew):
         def fn(model):
             returns, lengths = [], []
@@ -327,6 +328,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default='ev-city')
     parser.add_argument('--name', type=str, default='ev')
+    parser.add_argument('--group_name', type=str, default='')
     parser.add_argument('--seed', type=int,default=42)
 
     # medium, medium-replay, medium-expert, expert
