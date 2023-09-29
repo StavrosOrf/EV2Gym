@@ -13,14 +13,15 @@ for K in [25,150]:
     # for dataset in ['ddpg', 'random']:
     for dataset in ['random']:
         for embed_dim in [128, 256, 512]:
-            for n_layer, n_head in [(3, 1), (4, 3)]:
+            for n_layer, n_head in [(3, 1), (3, 4)]:
                 command = 'tmux new-session -d \; send-keys "python train_DT.py' + \
                     ' --dataset ' + dataset + \
                     ' --K ' + str(K) + \
                     ' --device cuda:' + str(counter % 2) + \
-                    ' --embed_dim' + str(embed_dim) + \
-                    ' --embed_dim' + str(n_layer) + \
-                    ' --embed_dim' + str(n_head) + \
+                    ' --embed_dim ' + str(embed_dim) + \
+                    ' --n_layer ' + str(n_layer) + \
+                    ' --n_head ' + str(n_head) + \
+                    ' --group_name ' + '"ModelSize_"' + \
                     ' --name K=' + str(K) + \
                     ',embed_dim=' + str(embed_dim) + \
                     ',n_layer=' + str(n_layer) +\
