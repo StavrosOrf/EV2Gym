@@ -53,6 +53,8 @@ class EV_City_Math_Model():
         print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
         self.m.setParam('OutputFlag', 0)
+        # self.m.setParam('MIPGap', 0.5)
+        
 
         energy = self.m.addVars(self.number_of_ports_per_cs,
                                 self.n_cs,
