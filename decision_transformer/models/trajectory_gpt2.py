@@ -121,7 +121,7 @@ class Attention(nn.Module):
     def __init__(self, nx, n_ctx, config, scale=False, is_cross_attention=False):
         super().__init__()
 
-        n_state = nx  # in Attention: n_state=768 (nx=n_embd)
+        n_state = nx  # in Attention: n_state=768 (nx=n_embd)            
         # [switch nx => n_state from Block to Attention to keep identical to TF implem]
         assert n_state % config.n_head == 0
         self.register_buffer(
