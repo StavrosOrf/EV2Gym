@@ -86,11 +86,11 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 
 ### Improve Problem Formulation
 - [ ] Add the **grid** as a part of the problem formulation
-- [x] Add power limit as part fo the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
+- [x] Add power limit as part of the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
 - [x] Add **j number of ports** per charging station and include related constraints
 - [ ] Add the battery behavior model 0-80 fast, 80-100 slow
 - [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
-- [ ] Create a highly heterogeneous EV/ EV Chager environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids) https://site.ieee.org/pes-iss/data-sets/#elec (check the 34 ev types dataset)
+- [ ] Create a highly heterogeneous EV/ EV Charger environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids) https://site.ieee.org/pes-iss/data-sets/#elec (check the 34 ev types dataset)
 - [ ] Improve the user satisfaction term
 
 ## Limitations
@@ -103,9 +103,9 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 
 ## Datasets
  - EV charging transactions: https://platform.elaad.io/download-data/
- - EV charing prices and transactions [Not free]: https://www.chargeprice.app/
+ - EV charging prices and transactions [Not free]: https://www.chargeprice.app/
 
-## RL Menchmarks
+## RL Benchmarks
  - DDPG: https://github.com/schneimo/ddpg-pytorch
 
 ## URLs
@@ -117,14 +117,14 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
  - EV battery and EV chargers characteristics: https://www.ovoenergy.com/guides/energy-guides/ev-charging-speeds-explained-slow-fast-and-rapid
  - EV battery characteristics: https://axlewise.com/ev-car-battery/#:~:text=The%20size%20of%20an%20electric%20car%20battery%20can,depending%20on%20the%20car%E2%80%99s%20make%2C%20model%2C%20and%20year.
  - EV charger manufacturer: https://new.abb.com/ev-charging
-  
+ - Useful V2G info: https://www.virta.global/vehicle-to-grid-v2g#:~:text=With%20V2G%20technology%2C%20an%20EV,back%20to%20the%20power%20grid.
   #### Code repositories
   - EV simulator and datasets: https://github.com/zach401/acnportal
 
 
 # Assumptions
 Assumptions regarding the EVsSimulator environment:
-- Power that is charged and discharged is tranferred in the:
+- Power that is charged and discharged is transferred in the:
     1. charger level 
     2. parking lot/ building level
     3. transformer level
