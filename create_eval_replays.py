@@ -1,5 +1,5 @@
-from gym_env import ev_city
-from math_model import ev_city_model
+from evsim import ev_city
+from evsim_math_model import ev_city_model
 
 import numpy as np
 import os

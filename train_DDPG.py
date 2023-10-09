@@ -7,17 +7,17 @@ import time
 import gym
 import numpy as np
 # import roboschool
-from gym_env import ev_city
+from evsim import ev_city
 
 import torch
 import wandb
 
 from utils.arg_parser import arg_parser
 
-from ddpg import DDPG
-from utils.noise import OrnsteinUhlenbeckActionNoise
-from utils.replay_memory import ReplayMemory, Transition
-from wrappers.normalized_actions import NormalizedActions
+from DDPG.ddpg import DDPG
+from DDPG.noise import OrnsteinUhlenbeckActionNoise
+from DDPG.replay_memory import ReplayMemory, Transition
+from DDPG.normalized_actions import NormalizedActions
 
 # Create logger
 logger = logging.getLogger('train')

@@ -6,14 +6,14 @@ import time
 
 import gym
 import numpy as np
-from gym_env import ev_city
+from evsim import ev_city
 
 import torch
 import pickle
 
 from utils.arg_parser import arg_parser
 
-from ddpg import DDPG
+from DDPG.ddpg import DDPG
 from utils.noise import OrnsteinUhlenbeckActionNoise
 
 # if gpu is to be used

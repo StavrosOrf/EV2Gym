@@ -244,7 +244,7 @@ class EV_City_Math_Model():
                             GRB.MAXIMIZE)
 
         # print constraints
-        self.m.write("model.lp")
+        # self.m.write("model.lp")
         print(f'Starting Optimization....')
         self.m.params.NonConvex = 2
         self.m.optimize()

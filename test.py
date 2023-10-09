@@ -7,7 +7,7 @@ import numpy as np
 import roboschool
 import torch
 
-from ddpg import DDPG
+from DDPG.ddpg import DDPG
 from wrappers import NormalizedActions
 
 # Create logger
