@@ -3,17 +3,48 @@
 # EVsSimulator
 A V2X Simulation Environment for large scale EV charging optimization
 
-## TODO short term
+### Insights for RL in EVsSimulator
+- The state should be normalized [0,1] for better convergence
+- The reward should be either positive or negative so that policy loss converges
+- ...
+
+### Development of RL algorithms
+
+- [x] Linearize the User Satisfaction constraint as a negative infinite reward.
+- [x] Experiment with DDPG for this problem
+- [ ] Experiment with different use-cases.
+  - [x] Create a pipeline that quickly compares the Developed algorithm(DDPG in this case) with the optimal solution and baseline solution (add new percentage metric for comparison "profits/opt_profits")
+  - [ ] Vizuallize the results in the same figures, get statistics, etc.
+  - [x] Try to improve as much as possible the 1 cs 150 timesteps problem
+  - [x] Develop statistics that can average the performance of the algorithm for multiple evaluation scenarios
+  - [~] Then, enable dynamic prices (tested:works for 1 cs but makes learning slower)
+  - [x] Then, enable dynamic EV spawn rate (works perfectly--tested for cs<4 )
+  - [ ] Then, enable transformer aggregation (new reward should be designed)
+  - [ ] Then, enable dynamic transformer power level (because of grid constraints or because of very expensive energy "greenflux")
+  - [~] Then, enable different spawn rates in each test case (under testing now, much harder to have very good solutions with DDPG)
+  - [ ] Then, enable heterogeneous EVs and EV chargers 
+- [ ] Normalize reward based on the number of EVs in the parking lot (e.g., if there are 100 EVs, the reward should be divided by 100)
+- [ ] !!! Apply DT transformer on simple cases 
+- [ ] Create a business as usual baseline solution for comparison (check literature)
+
+##### Open Questions for RL
+- What is a good metric to evaluate the performance of an online vs an offline policy, e.g., when comparing the RL online actions with the optimal gurobi (complete information) methods?
+- How can we associate rewards for specific actions (e.g. when a specific ev leaves without completely charging, it is a fault of a series of actions for charger **i** port **j**)?
+  - Maybe, run the algorithm once per charging station and then metaheuristically combine them on the transformer level to solve the problem without power level constraints.
 
 #### General
 - [x] Implement results visualizer (potentiall using stacked plot charts maybe like in (https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg))
 - [x] Implement the replay_game feature using the saved data from the simulation for actual objective value (using the gurobi optimization model)
 - [x] TODO debug the replay_game feature(the spawn of EVS asserion fails assert (self.n_evs_connected < self.n_ports))
 - [x] Add more plot visualizations for the simulation about EV such as energy level and  charging cycles, etc.
+- [x] Implement seed in the main environment
 
 #### Debugging
 Here, I will write down the debugging tasks I am currently working on:
 - [x] Why is transformer total power always positive? (changed math model formulation)
+- [x] Why does it terminate earlier even if trheshold is 0 (Fixed)
+- [x] Reduce the required storage for each run
+  - [x] Save only the best model of each run (not all of them)
 
 #### Gym Environment
 - [x] Implement step for ev charger and ev
@@ -24,7 +55,7 @@ Here, I will write down the debugging tasks I am currently working on:
 - [ ] Research about electricity prices and how to include them in the problem formulation
 
 
-#### PyOmo Optimization
+#### PyOmo/ Gurobi Optimization
 - [x] Implement the Gurobi optimization problem formulation
   - [x] Add constraints
   - [x] Add objective function  
@@ -55,11 +86,11 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 
 ### Improve Problem Formulation
 - [ ] Add the **grid** as a part of the problem formulation
-- [x] Add power limit as part fo the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
+- [x] Add power limit as part of the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
 - [x] Add **j number of ports** per charging station and include related constraints
 - [ ] Add the battery behavior model 0-80 fast, 80-100 slow
 - [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
-- [ ] Create a highly heterogeneous EV/ EV Chager environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids)
+- [ ] Create a highly heterogeneous EV/ EV Charger environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids) https://site.ieee.org/pes-iss/data-sets/#elec (check the 34 ev types dataset)
 - [ ] Improve the user satisfaction term
 
 ## Limitations
@@ -72,7 +103,10 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 
 ## Datasets
  - EV charging transactions: https://platform.elaad.io/download-data/
- - EV charing prices and transactions [Not free]: https://www.chargeprice.app/
+ - EV charging prices and transactions [Not free]: https://www.chargeprice.app/
+
+## RL Benchmarks
+ - DDPG: https://github.com/schneimo/ddpg-pytorch
 
 ## URLs
 
@@ -83,14 +117,14 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
  - EV battery and EV chargers characteristics: https://www.ovoenergy.com/guides/energy-guides/ev-charging-speeds-explained-slow-fast-and-rapid
  - EV battery characteristics: https://axlewise.com/ev-car-battery/#:~:text=The%20size%20of%20an%20electric%20car%20battery%20can,depending%20on%20the%20car%E2%80%99s%20make%2C%20model%2C%20and%20year.
  - EV charger manufacturer: https://new.abb.com/ev-charging
-  
+ - Useful V2G info: https://www.virta.global/vehicle-to-grid-v2g#:~:text=With%20V2G%20technology%2C%20an%20EV,back%20to%20the%20power%20grid.
   #### Code repositories
   - EV simulator and datasets: https://github.com/zach401/acnportal
 
 
 # Assumptions
 Assumptions regarding the EVsSimulator environment:
-- Power that is charged and discharged is tranferred in the:
+- Power that is charged and discharged is transferred in the:
     1. charger level 
     2. parking lot/ building level
     3. transformer level

@@ -159,6 +159,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+wandb/
 .html
 *.lp
 *.mps
@@ -167,3 +168,6 @@ plots/
 model.lp
 vscode/
 .vscode/settings.json
+runs/
+saved_models/
+trajectories/

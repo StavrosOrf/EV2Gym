@@ -109,9 +109,11 @@ class EV_Charger:
         assert (len(actions) == self.n_ports)
         # print(f'CS {self.id} actions: {actions}')
         # if no EV is connected, set action to 0
+        invalid_action_punishment = 0
         for i in range(len(actions)):
             if self.evs_connected[i] is None:
                 actions[i] = 0
+                invalid_action_punishment += 1
 
         # normalize actions to sum to 1 for charging surplass or -1 for discharging surplass
         if sum(actions) > 1:
@@ -170,7 +172,7 @@ class EV_Charger:
 
         self.current_step += 1
 
-        return profit, user_satisfaction
+        return profit, user_satisfaction, invalid_action_punishment
 
     def get_state(self):
         '''
@@ -178,16 +180,17 @@ class EV_Charger:
         '''
         state = [self.current_charge_price,
                  self.current_discharge_price,
-                 self.max_charge_power,
-                 self.max_discharge_power,
-                 self.n_ports,
-                 self.n_evs_connected]
+                #  self.max_charge_power/1000, # Transform to MW for better scaling
+                #  self.max_discharge_power/1000, #MW
+                #  self.n_ports,
+                #  self.n_evs_connected
+                 ]
 
         for EV in self.evs_connected:
             if EV is not None:
-                state.append(EV.get_state())
+                state.append(EV.get_state(self.current_step))
             else:
-                state.append(np.zeros(3))
+                state.append(np.zeros(2))
 
         return np.hstack(state)
 

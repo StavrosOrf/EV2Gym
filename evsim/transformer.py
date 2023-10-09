@@ -56,8 +56,8 @@ class Transformer():
         '''
         state = [self.current_power,
                  self.max_power,
-                 self.min_power,
-                 self.cs_ids]
+                 self.min_power ]
+                #  self.cs_ids] #TODO check observation space if needed 
 
         return np.hstack(state)
 
