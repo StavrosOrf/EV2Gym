@@ -171,10 +171,11 @@ class EVCity(gym.Env):
 
         if self.save_plots:
             os.makedirs("./plots", exist_ok=True)
+            print(f"Creating directory: ./plots/{self.sim_name}")
             os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
 
         if self.save_replay:
-            self.EVs = []  # Store all of the EVs in the simulation that arrived
+            self.EVs = []  # Store all of the EVs in the simulation that arrived        
 
     def _load_transformers(self):
         '''Loads the transformers of the simulation
@@ -462,7 +463,7 @@ class EVCity(gym.Env):
             if self.save_replay:
                 self.save_sim_replay()
 
-            if self.save_plots:
+            if self.save_plots:                
                 ev_city_plot(self)
 
             self.done = True

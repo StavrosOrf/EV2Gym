@@ -73,6 +73,7 @@ if __name__ == "__main__":
                          generate_rnd_game=False,
                          simulation_length=steps,
                          timescale=timescale,
+                         save_plots=True,
                          verbose=verbose,)
     state = env.reset()
     env.visualize()
