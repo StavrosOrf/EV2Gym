@@ -48,10 +48,14 @@ class EV_Charger:
                  connected_bus,
                  connected_transformer,
                  geo_location=None,
-                 max_charge_power=100,  # kW
-                 max_discharge_power=50,  # kW
+                 max_charge_power=22,  # kW                 
+                 min_charge_current=8,  # Amperes
+                 max_charge_current=32,  # Amperes                 
+                 max_discharge_power=22,  # kW
+                 min_discharge_current=8,  # Amperes
+                 max_discharge_current=32,  # Amperes
                  n_ports=2,
-                 charger_type="DC",
+                 charger_type="Type2",
                  bi_directional=True,
                  timescale=5,
                  verbose=False):
@@ -71,6 +75,11 @@ class EV_Charger:
         self.bi_directional = bi_directional
         self.timescale = timescale
 
+        self.min_charge_current = min_charge_current
+        self.max_charge_current = max_charge_current
+        self.min_discharge_current = min_discharge_current
+        self.max_discharge_current = max_discharge_current
+
         # EV Charger status
         self.current_power_output = 0
         self.evs_connected = [None] * n_ports
@@ -78,6 +87,7 @@ class EV_Charger:
         self.current_step = 0
         self.current_charge_price = 0
         self.current_discharge_price = 0
+        self.current_total_amps = 0
 
         # EV Charger Statistics
         self.total_energy_charged = 0
@@ -92,7 +102,7 @@ class EV_Charger:
         '''
         Updates the EV charger status according to the actions taken by the EVs
         Inputs:
-            - actions: a list of actions taken by the EVs connected to the EV charger in the format of (power) *n_ports positive for charging negative for discharging, default is to zer oif no ev is connected        
+            - actions: a list of actions taken by the EVs connected to the EV charger in the format of (power) *n_ports positive for charging negative for discharging, default is to zer if no ev is connected        
             - charge_price: the price of charging per kWh in the current timestep
             - discharge_price: the price of discharging per kWh in the current timestep
 
@@ -107,7 +117,6 @@ class EV_Charger:
         self.current_discharge_price = discharge_price
 
         assert (len(actions) == self.n_ports)
-        # print(f'CS {self.id} actions: {actions}')
         # if no EV is connected, set action to 0
         invalid_action_punishment = 0
         for i in range(len(actions)):
@@ -136,8 +145,9 @@ class EV_Charger:
                 self.evs_connected[i].step(0)                
 
             elif action > 0:
-                actual_power = self.evs_connected[i].step(
-                    action * self.max_charge_power)
+                actual_power, actual_amps = self.evs_connected[i].step(
+                    action*(self.max_charge_current-self.min_charge_current) + self.min_charge_current,
+                    self.max_charge_power)
                 profit += abs(actual_power) * charge_price
                 self.total_energy_charged += abs(actual_power)
                 self.current_power_output += actual_power

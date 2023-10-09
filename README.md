@@ -3,6 +3,9 @@
 # EVsSimulator
 A V2X Simulation Environment for large scale EV charging optimization
 
+## Use-Cases
+- [ ] Public residential chargers Power Management and Transformer capacity management (follow setpoint) the GreenFlux case
+
 ### Insights for RL in EVsSimulator
 - The state should be normalized [0,1] for better convergence
 - The reward should be either positive or negative so that policy loss converges

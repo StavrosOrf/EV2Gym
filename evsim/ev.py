@@ -51,6 +51,10 @@ class EV():
                  battery_capacity=50,  # kWh
                  min_desired_capacity=8,  # kWh
                  max_desired_capacity=45,  # kWh
+                 max_charge_current=20,  # A
+                 min_charge_current=6,  # A
+                 max_discharge_current=20,  # A
+                 min_discharge_current=6,  # A
                  charge_efficiency=1,
                  discharge_efficiency=1,
                  v2g_enabled=True,
@@ -73,6 +77,9 @@ class EV():
         self.battery_capacity = battery_capacity  # kWh
         self.min_desired_capacity = min_desired_capacity  # kWh
         self.max_desired_capacity = max_desired_capacity  # kWh
+        self.max_charge_current = max_charge_current # A
+        self.max_discharge_current = max_discharge_current # A
+
         self.charge_efficiency = charge_efficiency
         self.discharge_efficiency = discharge_efficiency
         self.v2g_enabled = v2g_enabled
@@ -80,8 +87,10 @@ class EV():
         # EV status
         self.current_capacity = battery_capacity_at_arrival  # kWh
         self.current_power = 0  # kWh
+        self.current_current = 0  # A
         self.charging_cycles = 0
         self.previous_power = 0
+        self.required_power = 0
 
     def reset(self):
         '''
@@ -92,30 +101,31 @@ class EV():
         self.charging_cycles = 0
         self.previous_power = 0
 
-    def step(self, action):
+    def step(self, amps, max_power):
         '''
         The step method is used to update the EV's status according to the actions taken by the EV charger.
         Inputs:
             - action: the power input in kW (positive for charging, negative for discharging)
         Outputs:
             - self.current_power: the current power input of the EV in kW (positive for charging, negative for discharging)
+            - self.actual_curent: the actual current input of the EV in A (positive for charging, negative for discharging)
         '''
-        if action == 0:
+        if amps == 0:
             self.current_power = 0
-            return 0
+            return 0, 0
 
         # If the action is different than the previous action, then increase the charging cycles
-        if self.previous_power == 0 or (self.previous_power/action) < 0:
+        if self.previous_power == 0 or (self.previous_power/amps) < 0:
             self.charging_cycles += 1
 
-        if action > 0:
-            self._charge(action)
-        elif action < 0:
-            self._discharge(action)
+        if amps > 0:
+            self._charge(amps,max_power)
+        elif amps < 0:
+            self._discharge(amps,max_power)
 
         self.previous_power = self.current_power
 
-        return self.current_power
+        return self.current_power, self
 
     def is_departing(self, timestep):
         '''

@@ -333,7 +333,7 @@ class EVCity(gym.Env):
             tr.current_power = 0
 
         # Call step for each charging station and spawn EVs where necessary
-        for cs in self.charging_stations:
+        for i, cs in enumerate(self.charging_stations):
             n_ports = cs.n_ports
             costs, user_satisfaction, invalid_action_punishment = cs.step(
                 actions[port_counter:port_counter + n_ports],
