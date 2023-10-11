@@ -310,4 +310,9 @@ def visualize(ev_env):
         print("")
         for tr in ev_env.transformers:
             print(tr)
-    
+
+def spawn_EVs(number_of_ports):
+    '''Spawns EVs based on the spawn rate'''
+    evs_to_spawn = np.random.poisson(number_of_ports * ev_env.spawn_rate)
+    return evs_to_spawn
+

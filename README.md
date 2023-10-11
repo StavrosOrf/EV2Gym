@@ -56,6 +56,10 @@ Here, I will write down the debugging tasks I am currently working on:
 - [x] Add power limit to the problem formulation and in the environment
 - [x] Add rest period so every EV has time to leave the parking lot (stop spawning EVs after a while)
 - [ ] Research about electricity prices and how to include them in the problem formulation
+- [ ] Get distributions about EV characteristics (battery size, max charging and discharging power per level--max_current--, etc.)
+  - [ ] Each EV has unique battery capacitance (50-100 kWh) and max charging and discharging acceptance ratio (max amps) 
+  - [ ] Each charger has unique charging and discharging power depending on the level (1,2, fast charging) and an efficiency factor 95%+ to model power losses.
+  - [ ] TODO - Implement both DC and AC chargers and specifications for both.
 
 
 #### PyOmo/ Gurobi Optimization

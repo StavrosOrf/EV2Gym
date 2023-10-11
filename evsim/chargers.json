@@ -13,7 +13,7 @@
             "type": "level2",
             "min_voltage": "208",
             "max_voltage": "240",
-            "usual_voltage": "240",
+            "usual_voltage": "230",
             "min_current": "12",
             "max_current": "80",
             "usual_current": "32"
@@ -27,7 +27,12 @@
             "max_current": "200",
             "usual_current": "60"
         }
-
     ],
-    "V2G_chargers": []
+    "V2G_chargers": [],
+    "EV_specifications": [
+        {
+            "max_charge_power": "100", -> max_current per type of conection
+            "battery_capacity": "100"
+        }
+    ]
 }
