@@ -48,14 +48,15 @@ class EV_Charger:
                  connected_bus,
                  connected_transformer,
                  geo_location=None,
-                 max_charge_power=22,  # kW                 
+                 max_charge_power=22,  # kW
                  min_charge_current=8,  # Amperes
-                 max_charge_current=32,  # Amperes                 
+                 max_charge_current=32,  # Amperes
                  max_discharge_power=22,  # kW
                  min_discharge_current=8,  # Amperes
                  max_discharge_current=32,  # Amperes
+                 voltage=230,  # Volts
                  n_ports=2,
-                 charger_type="Type2",
+                 charger_type="AC",  # AC or DC
                  bi_directional=True,
                  timescale=5,
                  verbose=False):
@@ -80,8 +81,11 @@ class EV_Charger:
         self.min_discharge_current = min_discharge_current
         self.max_discharge_current = max_discharge_current
 
+        self.voltage = voltage
+
         # EV Charger status
         self.current_power_output = 0
+        self.total_current_output = 0
         self.evs_connected = [None] * n_ports
         self.n_evs_connected = 0
         self.current_step = 0
@@ -142,22 +146,36 @@ class EV_Charger:
             assert action >= -1 and action <= 1
 
             if action == 0 and self.evs_connected[i] is not None:
-                self.evs_connected[i].step(0)                
+                self.evs_connected[i].step(0)
 
             elif action > 0:
                 actual_power, actual_amps = self.evs_connected[i].step(
-                    action*(self.max_charge_current-self.min_charge_current) + self.min_charge_current,
-                    self.max_charge_power)
+                    action*(self.max_charge_current -
+                            self.min_charge_current) + self.min_charge_current,
+                    self.voltage,
+                    type=self.charger_type)
                 profit += abs(actual_power) * charge_price
                 self.total_energy_charged += abs(actual_power)
                 self.current_power_output += actual_power
 
             elif action < 0:
-                actual_power = self.evs_connected[i].step(
-                    action * self.max_discharge_power)
+                if not self.bi_directional:
+                    actual_power, actual_power = 0, 0
+                else:
+                    actual_power, actual_amps = self.evs_connected[i].step(
+                        - action*(self.max_discharge_current -
+                                  self.min_discharge_current) + self.min_discharge_current,
+                        self.voltage,
+                        type=self.charger_type)
                 profit += abs(actual_power) * discharge_price
                 self.total_energy_discharged += abs(actual_power)
                 self.current_power_output += actual_power
+
+            if self.verbose and self.evs_connected[i] is not None:
+                print(f'Actual power: {actual_power} kW' +
+                      f' | Actual amps: {actual_amps} A' +
+                      f' | Action: {action}'
+                      )
 
         self.total_profits += profit
 
@@ -174,7 +192,7 @@ class EV_Charger:
                     ev_user_satisfaction = ev.get_user_satisfaction()
                     self.total_user_satisfaction += ev_user_satisfaction
                     user_satisfaction.append(ev_user_satisfaction)
-                    if self.verbose:                        
+                    if self.verbose:
                         print(f'- EV {ev.id} is departing from CS {self.id}' +
                               f' port {i}'
                               f' with user satisfaction {ev_user_satisfaction}' +
@@ -190,10 +208,10 @@ class EV_Charger:
         '''
         state = [self.current_charge_price,
                  self.current_discharge_price,
-                #  self.max_charge_power/1000, # Transform to MW for better scaling
-                #  self.max_discharge_power/1000, #MW
-                #  self.n_ports,
-                #  self.n_evs_connected
+                 #  self.max_charge_power/1000, # Transform to MW for better scaling
+                 #  self.max_discharge_power/1000, #MW
+                 #  self.n_ports,
+                 #  self.n_evs_connected
                  ]
 
         for EV in self.evs_connected:
@@ -230,7 +248,7 @@ class EV_Charger:
         '''Adds an EV to the list of EVs connected to the EV charger
         Inputs:
             - ev: the EV to be added to the list of EVs connected to the EV charger
-        '''        
+        '''
         assert (self.n_evs_connected < self.n_ports)
 
         index = self.evs_connected.index(None)
@@ -242,7 +260,7 @@ class EV_Charger:
             print(f'+ EV connected to Charger {self.id} at port {index}' +
                   f' leaving at {ev.earlier_time_of_departure}' +
                   f' SoC {ev.get_soc():.1f}%')
-        
+
         return index
 
     def reset(self):

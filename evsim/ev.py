@@ -5,14 +5,15 @@ Author: Stavros Orfanoudakis 2023
 '''
 
 import numpy as np
-
+import warnings
 from typing import Optional, Dict, Any, Tuple
+
 
 class EV():
     '''
     This file contains the EV class, which is used to represent the EVs in the environment.
     The battery model was adapted from https://github.com/zach401/acnportal/blob/master/acnportal/acnsim/models/battery.py#L186
-    
+
 
     Attributes:
         - id: unique identifier of the EV (uniquep per charging station)
@@ -50,14 +51,13 @@ class EV():
                  time_of_arrival,
                  earlier_time_of_departure,
                  use_probabilistic_time_of_departure=False,
-                 desired_capacity=50,  # kWh
+                 desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
-                 min_desired_capacity=8,  # kWh
-                 max_desired_capacity=45,  # kWh
-                 max_charge_current=20,  # A
-                 min_charge_current=6,  # A
-                 max_discharge_current=20,  # A
-                 min_discharge_current=6,  # A
+                 max_ac_charge_power=11,  # kW
+                 max_dc_charge_power=50,  # kW
+                 noise_level=0,
+                 transition_soc=0.8,
+                 max_discharge_power=20,  # kW
                  charge_efficiency=1,
                  discharge_efficiency=1,
                  v2g_enabled=True,
@@ -73,15 +73,15 @@ class EV():
         self.time_of_arrival = time_of_arrival
         self.earlier_time_of_departure = earlier_time_of_departure
         self.use_probabilistic_time_of_departure = use_probabilistic_time_of_departure
-        self.desired_capacity = desired_capacity  # kWh
+        self.desired_capacity = battery_capacity if desired_capacity is None else desired_capacity
         self.battery_capacity_at_arrival = battery_capacity_at_arrival  # kWh
 
         # EV technical characteristics
         self.battery_capacity = battery_capacity  # kWh
-        self.min_desired_capacity = min_desired_capacity  # kWh
-        self.max_desired_capacity = max_desired_capacity  # kWh
-        self.max_charge_current = max_charge_current  # A
-        self.max_discharge_current = max_discharge_current  # A
+        self.max_ac_charge_power = max_ac_charge_power  # kW
+        self.max_discharge_power = max_discharge_power  # kW
+        self.transition_soc = transition_soc
+        self.noise_level = noise_level
 
         self.charge_efficiency = charge_efficiency
         self.discharge_efficiency = discharge_efficiency
@@ -104,7 +104,7 @@ class EV():
         self.charging_cycles = 0
         self.previous_power = 0
 
-    def step(self, amps, voltage):
+    def step(self, amps, voltage, type='AC'):
         '''
         The step method is used to update the EV's status according to the actions taken by the EV charger.
         Inputs:
@@ -113,6 +113,10 @@ class EV():
             - self.current_power: the current power input of the EV in kW (positive for charging, negative for discharging)
             - self.actual_curent: the actual current input of the EV in A (positive for charging, negative for discharging)
         '''
+
+        if type == 'DC':
+            raise NotImplementedError
+
         if amps == 0:
             self.current_power = 0
             return 0, 0
@@ -122,13 +126,13 @@ class EV():
             self.charging_cycles += 1
 
         if amps > 0:
-            self._charge(amps, voltage)
+            actual_current = self._charge(amps, voltage)
         elif amps < 0:
-            self._discharge(amps, voltage)
+            actual_current = self._discharge(amps, voltage)
 
         self.previous_power = self.current_power
 
-        return self.current_power, self
+        return self.current_power, actual_current
 
     def is_departing(self, timestep):
         '''
@@ -188,220 +192,30 @@ class EV():
             f' t_dep: {self.earlier_time_of_departure}'
 
     def _charge(self, amps, voltage):
-        '''
-        The _charge method is used to charge the EV's battery.
-        Inputs:
-            - power: the power input in kW
-        '''
 
         assert (amps > 0)
-        given_power = (amps * voltage / 1000) * \
-            self.charge_efficiency * self.timescale / 60  # KW
+        # given_power = (amps * voltage / 1000) * \
+        #     self.charge_efficiency * self.timescale / 60  # KW
 
-        if self.current_capacity + given_power > self.battery_capacity:
-            self.current_power = self.battery_capacity - self.current_capacity
-            self.current_capacity = self.battery_capacity
-        else:
-            self.current_power = given_power
-            self.current_capacity += given_power
+        # if self.current_capacity + given_power > self.battery_capacity:
+        #     self.current_power = self.battery_capacity - self.current_capacity
+        #     self.current_capacity = self.battery_capacity
+        # else:
+        #     self.current_power = given_power
+        #     self.current_capacity += given_power
 
-    def _discharge(self, power):
-        '''
-        The _discharge method is used to discharge the EV's battery.
-        Inputs:
-            - power: the power input in kW (it is negative because of the discharge)
-        '''
-        assert (power < 0)
-        giving_power = power * self.discharge_efficiency * self.timescale / 60
-
-        if self.current_capacity + giving_power < 0:
-            self.current_power = -self.current_capacity
-            self.current_capacity = 0
-        else:
-            self.current_power = giving_power
-            self.current_capacity += giving_power
-
-
-
-class Battery():
-    """This class models the behavior of a battery and battery management system (BMS).
-
-    Args:
-        capacity (float): Capacity of the battery [kWh]
-        init_charge (float): Initial charge of the battery [kWh]
-        max_power (float): Maximum charging rate of the battery [kW]
-    """
-
-    def __init__(self, capacity, init_charge, max_power):
-        if init_charge > capacity:
-            raise ValueError("Initial Charge cannot be greater than capacity.")
-        self._capacity = capacity
-        self._current_charge = init_charge
-        self._init_charge = init_charge
-        self._max_power = max_power
-        self._current_charging_power = 0
-
-    @property
-    def _soc(self):
-        """ Returns the state of charge of the battery as a percent."""
-        return self._current_charge / self._capacity
-
-    @property
-    def max_charging_power(self):
-        """ Returns the maximum charging power of the Battery."""
-        return self._max_power
-
-    @property
-    def current_charging_power(self):
-        """ Returns the current draw of the battery on the AC side."""
-        return self._current_charging_power
-
-    def charge(self, pilot, voltage, period):
-        """ Method to "charge" the battery
-
-        Args:
-            pilot (float): Pilot signal passed to the battery. [A]
-            voltage (float): AC voltage provided to the battery charger. [V]
-            period (float): Length of the charging period. [minutes]
-
-        Returns:
-            float: actual charging rate of the battery. [A]
-
-        Raises:
-            ValueError: if voltage or period are <= 0.
-        """
-        if voltage <= 0:
-            raise ValueError("Voltage must be greater than 0. Got {0}".format(voltage))
-        if period <= 0:
-            raise ValueError("period must be greater than 0. Got {0}".format(voltage))
-
-        # Rate which would fill the battery in period minutes.
-        rate_to_full = (self._capacity - self._current_charge) / (period / 60)
-
-        charge_power = min([pilot * voltage / 1000, self._max_power, rate_to_full])
-        self._current_charge += charge_power * (period / 60)
-        self._current_charging_power = charge_power
-        return charge_power * 1000 / voltage
-
-    def reset(self, init_charge=None):
-        """ Reset battery to initial state. If init_charge is not
-        given (is None), the battery is reset to its initial charge
-        on initialization.
-
-        Args:
-            init_charge (float): charge battery should be reset to. [acnsim units]
-
-        Returns:
-            None
-        """
-        if init_charge is None:
-            self._current_charge = self._init_charge
-        else:
-            if init_charge > self._capacity:
-                raise ValueError("Initial Charge cannot be greater than capacity.")
-            self._current_charge = init_charge
-        self._current_charging_power = 0
-
-    def _to_dict(
-        self, context_dict: Optional[Dict[str, Any]] = None
-    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        """ Implements BaseSimObj._to_dict. """
-        attribute_dict = {}
-        nn_attr_lst = [
-            "_max_power",
-            "_current_charging_power",
-            "_current_charge",
-            "_capacity",
-            "_init_charge",
-        ]
-        for attr in nn_attr_lst:
-            attribute_dict[attr] = getattr(self, attr)
-        return attribute_dict, context_dict
-
-class Linear2StageBattery(Battery):
-    """ Extends Battery with a simple piecewise linear model of battery dynamics based on SoC.
-
-    Battery model based on a piecewise linear approximation of battery behavior. The battery will charge at the
-    minimum of max_rate and the pilot until it reaches _transition_soc. After this, the maximum charging rate of the
-    battery will decrease linearly to 0 at 100% state of charge.
-
-    For more info on model: https://www.sciencedirect.com/science/article/pii/S0378775316317396
-
-    All public attributes are the same as Battery.
-
-    Args:
-        noise_level (float): Standard deviation of the noise to add to the charging process. (kW)
-        transition_soc (float): State of charging when transitioning from constant current to constraint voltage.
-        charge_calculation (str): If 'stepwise', use the charging
-            method from a previous version of acnportal, which
-            assumes a constant maximal charging rate for the entire
-            timestep during which the pilot signal is input. This
-            charging method is less accurate than the _charge method,
-            and should only be used for reproducing results from
-            older versions of acnportal.
-
-            If 'continuous' or not provided, use the _charge method,
-            which assumes a continuously varying maximal charging rate.
-    """
-
-    charging_methods = ["continuous", "stepwise"]
-
-    def __init__(
-        self,
-        capacity,
-        init_charge,
-        max_power,
-        noise_level=0,
-        transition_soc=0.8,
-        charge_calculation="continuous",
-    ):
-        super().__init__(capacity, init_charge, max_power)
-        self._noise_level = noise_level
-        if transition_soc < 0:
-            raise ValueError(
-                f"transition_soc must be non-negative. " f"Got {transition_soc}."
-            )
-        elif transition_soc >= 1:
-            raise ValueError(
-                f"transition_soc must be less than 1. " f"Got {transition_soc}."
-            )
-        self._transition_soc = transition_soc
-        if charge_calculation not in self.charging_methods:
-            raise ValueError(
-                f"Charging method {charge_calculation} specified in "
-                f"charge_calculation attribute not recognized by "
-                f"Linear2StageBattery class. use one of "
-                f"{self.charging_methods}."
-            )
-        self.charge_calculation = charge_calculation
-
-    def charge(self, pilot, voltage, period):
         """ Method to "charge" the battery based on a two-stage linear
         battery model.
+        
+        Battery model based on a piecewise linear approximation of battery behavior. The battery will charge at the
+        minimum of max_rate and the pilot until it reaches _transition_soc. After this, the maximum charging rate of the
+        battery will decrease linearly to 0 at 100% state of charge.
 
-        Uses one of
-        {_charge, _charge_stepwise}
-        to charge the battery depending on the value of the
-        charge_calculation attribute of this object.
-        """
-        if self.charge_calculation == "stepwise":
-            return self._charge_stepwise(pilot, voltage, period)
-        elif self.charge_calculation == "continuous":
-            return self._charge(pilot, voltage, period)
-        else:
-            raise ValueError(
-                f"Charging method {self.charge_calculation} specified "
-                f"in charge_calculation attribute not recognized by "
-                f"Linear2StageBattery class. use one of "
-                f"{self.charging_methods}."
-            )
-
-    def _charge(self, pilot, voltage, period):
-        """ Method to "charge" the battery based on a two-stage linear
-        battery model.
+        For more info on model: https://www.sciencedirect.com/science/article/pii/S0378775316317396
 
         All calculations are done in terms fo battery state of charge
         (SoC). Results are converted back to power units at the end.
+        Code adapted from: https://github.com/zach401/acnportal/blob/master/acnportal/acnsim/models/battery.py#L186
 
         Args:
             pilot (float): Pilot signal passed to the battery. [A]
@@ -414,27 +228,26 @@ class Linear2StageBattery(Battery):
                 period.
 
         """
-        if voltage <= 0:
-            raise ValueError(f"Voltage must be greater than 0. Got {voltage}.")
-        if period <= 0:
-            raise ValueError(f"Period must be greater than 0. Got {period}.")
-        if pilot == 0:
-            self._current_charging_power = 0
-            return 0
+
+        pilot = amps
+        voltage = voltage
+        period = self.timescale
         # All calculations are done in terms of battery SoC, so we
         # convert pilot signal and max power into pilot and max rate of
         # change of SoC.
-        pilot_dsoc = pilot * voltage / 1000 / self._capacity / (60 / period)
-        max_dsoc = self._max_power / self._capacity / (60 / period)
+        pilot_dsoc = pilot * voltage / 1000 / \
+            self.battery_capacity / (60 / period)
+        max_dsoc = self.max_ac_charge_power / \
+            self.battery_capacity / (60 / period)
 
         if pilot_dsoc > max_dsoc:
             pilot_dsoc = max_dsoc
 
         # The pilot SoC rate of change has a new transition SoC at
         # which decreasing of max charging rate occurs.
-        pilot_transition_soc = self._transition_soc + (
+        pilot_transition_soc = self.transition_soc + (
             pilot_dsoc - max_dsoc
-        ) / max_dsoc * (self._transition_soc - 1)
+        ) / max_dsoc * (self.transition_soc - 1)
 
         if pilot < 0:
             warnings.warn(
@@ -444,35 +257,60 @@ class Linear2StageBattery(Battery):
 
         # The charging equation depends on whether the current SoC of
         # the battery is above or below the new transition SoC.
-        if self._soc < pilot_transition_soc:
+        if self.get_soc() < pilot_transition_soc:
             # In the pre-rampdown region, the charging equation changes
             # depending on whether charging the battery over this
             # time period causes the battery to transition between
             # charging regions.
-            if 1 <= (pilot_transition_soc - self._soc) / pilot_dsoc:
-                curr_soc = pilot_dsoc + self._soc
+            if 1 <= (pilot_transition_soc - self.get_soc()) / pilot_dsoc:
+                curr_soc = pilot_dsoc + self.get_soc()
             else:
                 curr_soc = 1 + np.exp(
-                    (pilot_dsoc + self._soc - pilot_transition_soc)
+                    (pilot_dsoc + self.get_soc() - pilot_transition_soc)
                     / (pilot_transition_soc - 1)
                 ) * (pilot_transition_soc - 1)
         else:
             curr_soc = 1 + np.exp(pilot_dsoc / (pilot_transition_soc - 1)) * (
-                self._soc - 1
+                self.get_soc() - 1
             )
 
         # Add subtractive noise to the final SoC, scaling the noise
         # such that _noise_level is the standard deviation of the noise
         # in the battery charging power.
-        if self._noise_level > 0:
-            raw_noise = np.random.normal(0, self._noise_level)
-            scaled_noise = raw_noise * (period / 60) / self._capacity
+        if self.noise_level > 0:
+            raw_noise = np.random.normal(0, self.noise_level)
+            scaled_noise = raw_noise * (period / 60) / self.battery_capacity
             curr_soc -= abs(scaled_noise)
 
-        dsoc = curr_soc - self._soc
-        self._current_charge = curr_soc * self._capacity
+        dsoc = curr_soc - self.get_soc()
+        self.current_capacity = curr_soc * self.battery_capacity
 
         # For charging power and charging rate (current), we use the
         # the average over this time period.
-        self._current_charging_power = dsoc * self._capacity / (period / 60)
-        return self._current_charging_power * 1000 / voltage
+        self._current_charging_power = dsoc * self.battery_capacity / (period / 60)
+        return self.current_charging_power * 1000 / voltage
+
+    def _discharge(self, amps, voltage):
+        '''
+        The _discharge method is used to discharge the EV's battery.
+        Inputs:
+            - power: the power input in kW (it is negative because of the discharge)
+        '''
+        assert (amps < 0)
+
+        given_power = (amps * voltage / 1000)
+        
+        if abs(given_power) > abs(self.max_discharge_power):
+            given_power = -self.max_discharge_power
+
+        given_power = given_power * self.discharge_efficiency * self.timescale / 60
+
+        if self.current_capacity + given_power < 0:
+            self.current_power = -self.current_capacity
+            self.current_capacity = 0
+        else:
+            self.current_power = given_power
+            self.current_capacity += given_power
+
+            return given_power * 1000 / voltage
+

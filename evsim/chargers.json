@@ -14,7 +14,7 @@
             "min_voltage": "208",
             "max_voltage": "240",
             "usual_voltage": "230",
-            "min_current": "12",
+            "min_current": "8",
             "max_current": "80",
             "usual_current": "32"
         },

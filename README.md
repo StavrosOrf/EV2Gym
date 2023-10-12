@@ -95,7 +95,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 - [ ] Add the **grid** as a part of the problem formulation
 - [x] Add power limit as part of the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
 - [x] Add **j number of ports** per charging station and include related constraints
-- [ ] Add the battery behavior model 0-80 fast, 80-100 slow
+- [x] Add the battery behavior model 0-80 fast, 80-100 slow
 - [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
 - [ ] Create a highly heterogeneous EV/ EV Charger environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids) https://site.ieee.org/pes-iss/data-sets/#elec (check the 34 ev types dataset)
 - [ ] Improve the user satisfaction term
@@ -125,6 +125,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
  - EV battery characteristics: https://axlewise.com/ev-car-battery/#:~:text=The%20size%20of%20an%20electric%20car%20battery%20can,depending%20on%20the%20car%E2%80%99s%20make%2C%20model%2C%20and%20year.
  - EV charger manufacturer: https://new.abb.com/ev-charging
  - Useful V2G info: https://www.virta.global/vehicle-to-grid-v2g#:~:text=With%20V2G%20technology%2C%20an%20EV,back%20to%20the%20power%20grid.
+ - EV charger 2 port specs: https://cyberswitching.com/product/dual-chargers-on-pedestal/
   #### Code repositories
   - EV simulator and datasets: https://github.com/zach401/acnportal
 
