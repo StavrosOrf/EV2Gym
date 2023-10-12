@@ -10,7 +10,7 @@ if __name__ == "__main__":
     verbose = True
     n_transformers = 1
     number_of_charging_stations = 1
-    steps = 150  # 288 steps = 1 day with 5 minutes per step
+    steps = 288  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
     save_plots = True
 
