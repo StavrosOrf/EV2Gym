@@ -57,7 +57,7 @@ class EV():
                  max_dc_charge_power=50,  # kW
                  noise_level=0,
                  transition_soc=0.8,
-                 max_discharge_power=20,  # kW
+                 max_discharge_power=-20,  # kW
                  charge_efficiency=1,
                  discharge_efficiency=1,
                  v2g_enabled=True,
@@ -93,7 +93,7 @@ class EV():
         self.actual_current = 0  # A
         self.charging_cycles = 0
         self.previous_power = 0
-        self.required_power = 0
+        self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
 
     def reset(self):
         '''
@@ -103,6 +103,7 @@ class EV():
         self.current_power = 0
         self.charging_cycles = 0
         self.previous_power = 0
+        self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
 
     def step(self, amps, voltage, type='AC'):
         '''
@@ -124,6 +125,8 @@ class EV():
         # If the action is different than the previous action, then increase the charging cycles
         if self.previous_power == 0 or (self.previous_power/amps) < 0:
             self.charging_cycles += 1
+
+        print(f'action: {amps} A, {voltage} V')
 
         if amps > 0:
             actual_current = self._charge(amps, voltage)
@@ -170,9 +173,9 @@ class EV():
         '''
         A function that returns the state of charge of the EV.
         Outputs: 
-            - SoC: the state of charge of the EV in [0,100] %
+            - SoC: the state of charge of the EV in [0,1]
         '''
-        return (self.current_capacity/self.battery_capacity)*100
+        return (self.current_capacity/self.battery_capacity)
 
     def get_state(self, current_step):
         '''
@@ -183,7 +186,10 @@ class EV():
         timestep_left = self.earlier_time_of_departure - current_step
 
         # , self.charging_cycles
-        return self.get_soc()/100, timestep_left / self.simulation_length
+        # return self.get_soc(), timestep_left / self.simulation_length
+        return self.required_power/self.battery_capacity, \
+            (current_step-self.time_of_arrival) / self.simulation_length
+        # return self.required_power, self.current_step-self.time_of_arrival
 
     def __str__(self):
         return f' {self.current_power:5.1f} kWh |' + \
@@ -287,8 +293,9 @@ class EV():
 
         # For charging power and charging rate (current), we use the
         # the average over this time period.
-        self._current_charging_power = dsoc * self.battery_capacity / (period / 60)
-        return self.current_charging_power * 1000 / voltage
+        self.current_power = dsoc * self.battery_capacity / (period / 60)
+        self.required_power = self.required_power - self.current_power * period / 60
+        return self.current_power * 1000 / voltage
 
     def _discharge(self, amps, voltage):
         '''
@@ -299,18 +306,19 @@ class EV():
         assert (amps < 0)
 
         given_power = (amps * voltage / 1000)
-        
+
         if abs(given_power) > abs(self.max_discharge_power):
             given_power = -self.max_discharge_power
 
         given_power = given_power * self.discharge_efficiency * self.timescale / 60
 
         if self.current_capacity + given_power < 0:
-            self.current_power = -self.current_capacity
+            self.current_power = -self.current_capacity * 60 / self.timescale
             self.current_capacity = 0
         else:
-            self.current_power = given_power
+            self.current_power = given_power * 60 / self.timescale
             self.current_capacity += given_power
+        
+        self.required_power = self.required_power + self.current_power * 60 / self.timescale
 
-            return given_power * 1000 / voltage
-
+        return given_power * 1000 / voltage

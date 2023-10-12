@@ -140,6 +140,10 @@ class EVCity(gym.Env):
         # Load Electricity prices for every charging station
         self.charge_prices, self.discharge_prices = self._load_electricity_prices()
 
+        # Load power setpoint of simulation
+        self.power_setpoints = self._load_power_setpoints()
+        self.current_power_setpoints = np.zeros(self.simulation_length)
+
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         self.number_of_ports = np.array(
             [cs.n_ports for cs in self.charging_stations]).sum()
@@ -176,6 +180,12 @@ class EVCity(gym.Env):
 
         if self.save_replay:
             self.EVs = []  # Store all of the EVs in the simulation that arrived        
+
+    def _load_power_setpoints(self):
+        if self.load_from_replay_path is None:
+            return np.ones(self.simulation_length) * 10
+        
+        return self.replay.power_setpoints
 
     def _load_transformers(self):
         '''Loads the transformers of the simulation
@@ -265,6 +275,8 @@ class EVCity(gym.Env):
 
         self.EVs = []
 
+        self.current_power_setpoints = np.zeros(self.simulation_length)
+
         if self.load_from_replay_path is None:
             if not self.static_ev_spawn_rate:
                 self.spawn_rate = np.random.uniform(0.3, 0.85)
@@ -285,7 +297,7 @@ class EVCity(gym.Env):
         self.current_ev_arrived = 0
         self.current_evs_parked = 0
 
-        self.transformer_power = np.zeros([self.number_of_transformers,
+        self.transformer_amps = np.zeros([self.number_of_transformers,
                                            self.simulation_length])
 
         self.cs_power = np.zeros([self.cs, self.simulation_length])
@@ -330,7 +342,7 @@ class EVCity(gym.Env):
 
         # Reset current power of all transformers
         for tr in self.transformers:
-            tr.current_power = 0
+            tr.current_amps = 0
 
         # Call step for each charging station and spawn EVs where necessary
         for i, cs in enumerate(self.charging_stations):
@@ -344,7 +356,9 @@ class EVCity(gym.Env):
                 user_satisfaction_list.append(u)
 
             self.transformers[cs.connected_transformer].step(
-                cs.current_power_output)
+                cs.current_total_amps)
+            
+            self.current_power_setpoints[self.current_step] += cs.current_power_output * self.timescale /60            
 
             total_costs += costs
             total_invalid_action_punishment += invalid_action_punishment
@@ -487,7 +501,7 @@ class EVCity(gym.Env):
     def update_power_statistics(self):
         '''Updates the power statistics of the simulation'''
         for tr in self.transformers:
-            self.transformer_power[tr.id, self.current_step] = tr.current_power
+            self.transformer_amps[tr.id, self.current_step] = tr.current_amps
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output

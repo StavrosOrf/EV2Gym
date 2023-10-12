@@ -31,29 +31,34 @@ class EvCityReplay():
         self.score_threshold = env.score_threshold
         self.sim_date = env.sim_starting_date
         self.cs_transformers = env.cs_transformers
+        self.power_setpoints = env.power_setpoints
 
         self.transformers = env.transformers
         self.charging_stations = env.charging_stations
         self.EVs = env.EVs
 
-        self.transformer_power  = env.transformer_power
-        self.cs_power = env.cs_power
-        self.port_power = env.port_power
+        # self.transformer_amps  = env.transformer_amps
+        # self.cs_power = env.cs_power
+        # self.port_power = env.port_power
         
         self.simulate_grid = env.simulate_grid
 
         self.charge_prices = env.charge_prices
         self.discharge_prices = env.discharge_prices
 
-        self.tra_max_power = np.ones([self.n_transformers, self.sim_length])
-        self.tra_min_power = np.ones([self.n_transformers, self.sim_length])
+        self.tra_max_amps = np.ones([self.n_transformers])
+        self.tra_min_amps = np.ones([self.n_transformers])
 
         for i, tra in enumerate(env.transformers):
-            self.tra_max_power[i, :] = tra.max_power
-            self.tra_min_power[i, :] = tra.min_power
+            self.tra_max_amps[i] = tra.max_current
+            self.tra_min_amps[i] = tra.min_current
 
-        self.port_max_power = np.ones([self.n_cs, self.sim_length])
-        self.port_min_power = np.ones([self.n_cs, self.sim_length])
+        self.port_max_charge_current = np.ones([self.n_cs])
+        self.port_min_charge_current = np.ones([self.n_cs])
+        self.port_max_discharge_current = np.ones([self.n_cs])
+        self.port_min_discharge_current = np.ones([self.n_cs])
+        self.voltages = np.ones([self.n_cs])
+
         self.cs_ch_efficiency = np.ones([self.n_cs, self.sim_length])
         self.cs_dis_efficiency = np.ones([self.n_cs, self.sim_length])
         self.cs_transformer = np.ones([self.n_cs])
@@ -61,10 +66,16 @@ class EvCityReplay():
         self.max_n_ports = 0
 
         for i, cs in enumerate(env.charging_stations):
-            self.port_max_power[i, :] = cs.max_charge_power
-            self.port_min_power[i, :] = - cs.max_discharge_power
+            self.port_max_charge_current[i] = cs.max_charge_current
+            self.port_min_charge_current[i] = cs.min_charge_current
+            self.port_max_discharge_current[i] = cs.max_discharge_current
+            self.port_min_discharge_current[i] = cs.min_discharge_current
+            self.voltages[i] = cs.voltage
+
+            #consider usecases with variable number of ports per cs
             if cs.n_ports > self.max_n_ports:
                 self.max_n_ports = cs.n_ports
+
             self.cs_transformer[i] = cs.connected_transformer
 
         self.ev_max_energy = np.zeros([self.max_n_ports,
@@ -118,13 +129,13 @@ class EvCityReplay():
             self.ev_max_energy[port, cs_id, t_arr:t_dep] = ev.battery_capacity
             # self.ev_min_energy[port, cs_id, t_arr:t_dep] = ev.battery_capacity * ev.min_soc
             self.ev_max_ch_power[port, cs_id,
-                                 t_arr:t_dep] = env.charging_stations[cs_id].max_charge_power
-            self.ev_min_ch_power[port, cs_id,
-                                 t_arr:t_dep] = 0
+                                 t_arr:t_dep] = ev.max_ac_charge_power
+            # self.ev_min_ch_power[port, cs_id,
+            #                      t_arr:t_dep] = 0
             self.ev_max_dis_power[port, cs_id,
-                                  t_arr:t_dep] = -env.charging_stations[cs_id].max_discharge_power
-            self.ev_min_dis_power[port, cs_id,
-                                  t_arr:t_dep] = 0
+                                  t_arr:t_dep] = -ev.max_discharge_power
+            # self.ev_min_dis_power[port, cs_id,
+            #                       t_arr:t_dep] = 0
             self.u[port, cs_id, t_arr:t_dep] = 1
             self.energy_at_arrival[port, cs_id,
                                    t_arr] = ev.battery_capacity_at_arrival

@@ -42,6 +42,7 @@ if __name__ == "__main__":
     for i in range(steps):        
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
+        actions = np.random.rand(env.number_of_ports) * -2 + 1
         if verbose:
             print(f'Actions: {actions}')
 
@@ -51,6 +52,8 @@ if __name__ == "__main__":
 
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
+
+        # input("Press Enter to continue...")
 
         if done and i < steps - 1:
             print(f'End of simulation at step {i}')

@@ -119,14 +119,14 @@ def ev_city_plot(ev_env):
 
         df['total'] = df.sum(axis=1)
         # print(df)
-        max_power = tr.max_power * ev_env.timescale / 60
-        min_power = tr.min_power * ev_env.timescale / 60
+        max_current = tr.max_current * ev_env.timescale / 60
+        min_current = tr.min_current * ev_env.timescale / 60
         plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
-                    [max_power, max_power], 'r--')
+                    [max_current, max_current], 'r--')
         plt.step(df.index, df['total'], 'darkgreen',
                     where='post', linestyle='--')
         plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
-                    [min_power, min_power], 'r--')
+                    [min_current, min_current], 'r--')
         plt.stackplot(df_neg.index, df_neg.values.T,
                         interpolate=True,
                         step='post',
@@ -310,6 +310,10 @@ def visualize(ev_env):
         print("")
         for tr in ev_env.transformers:
             print(tr)
+
+        #print current current power setpoint
+        print(f'  - Power setpoint: {ev_env.current_power_setpoints[ev_env.current_step - 1]:.1f} /' + 
+              f' {ev_env.power_setpoints[ev_env.current_step - 1]:.1f} kW')
 
 def spawn_EVs(number_of_ports):
     '''Spawns EVs based on the spawn rate'''
