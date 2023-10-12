@@ -6,7 +6,7 @@ Author: Stavros Orfanoudakis 2023
 
 import numpy as np
 from .ev import EV
-
+import math
 
 class EV_Charger:
     '''
@@ -147,7 +147,7 @@ class EV_Charger:
             elif action > 0:
                 amps = action * self.max_charge_current
                 if amps < self.min_charge_current:
-                    amps = self.min_charge_current
+                    amps = 0
                     
                 actual_power, actual_amps = self.evs_connected[i].step(
                     amps,
@@ -174,6 +174,9 @@ class EV_Charger:
                 self.total_energy_discharged += abs(actual_power)
                 self.current_power_output += actual_power
                 self.current_total_amps += actual_amps
+            
+            if self.current_total_amps - 0.0001 > self.max_charge_current:
+                raise Exception(f'sum of amps {self.current_total_amps} is higher than max charge current {self.max_charge_current}')
 
             if self.verbose and self.evs_connected[i] is not None:
                 print(f'Actual power: {actual_power} kW' +

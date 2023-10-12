@@ -183,7 +183,7 @@ class EVCity(gym.Env):
 
     def _load_power_setpoints(self):
         if self.load_from_replay_path is None:
-            return np.ones(self.simulation_length) * 10
+            return np.ones(self.simulation_length) * 20
         
         return self.replay.power_setpoints
 
@@ -301,9 +301,13 @@ class EVCity(gym.Env):
                                            self.simulation_length])
 
         self.cs_power = np.zeros([self.cs, self.simulation_length])
+        self.cs_current = np.zeros([self.cs, self.simulation_length])
         self.port_power = np.zeros([self.number_of_ports,   
                                     self.cs,
                                     self.simulation_length])
+        self.port_current = np.zeros([self.number_of_ports,
+                                        self.cs,
+                                        self.simulation_length])
         self.port_energy_level = np.zeros([self.number_of_ports,
                                            self.cs,
                                            self.simulation_length])
@@ -505,12 +509,15 @@ class EVCity(gym.Env):
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output
+            self.cs_current[cs.id,self.current_step] = cs.current_total_amps
 
             for port in range(cs.n_ports):
                 ev = cs.evs_connected[port]
                 if ev is not None:
                     self.port_power[port, cs.id,
                                     self.current_step] = ev.current_power
+                    self.port_current[port, cs.id,
+                                    self.current_step] = ev.actual_current
                     self.port_energy_level[port, cs.id,
                                            self.current_step] = ev.current_capacity
 

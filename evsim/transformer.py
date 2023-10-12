@@ -13,8 +13,8 @@ class Transformer():
 
     def __init__(self,
                  id,  # unique identifier of the transformer
-                 max_current=300,  # The maximum capacity of the transformer in A
-                 min_current=-300,  # (can be negative for discharging)
+                 max_current=200,  # The maximum capacity of the transformer in A
+                 min_current=-200,  # (can be negative for discharging)
                  cs_ids=[],  # the charging stations connected to the transformer
                  timescale=5):
 
