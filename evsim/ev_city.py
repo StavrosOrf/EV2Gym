@@ -45,7 +45,7 @@ class EVCity(gym.Env):
                  score_threshold=1,
                  timescale=5,
                  date=(2023, 7, 21),  # (year, month, day)
-                 hour=(10, 0),  # (hour, minute) 24 hour format
+                 hour=(5, 0),  # (hour, minute) 24 hour format
                  seed=42,  # TODO: add seed
                  save_replay=True,
                  save_plots=True,
@@ -196,9 +196,9 @@ class EVCity(gym.Env):
         self.df_arrival_week = pd.read_csv('.\data\distribution-of-arrival.csv') #weekdays
         self.df_arrival_weekend = pd.read_csv('.\data\distribution-of-arrival-weekend.csv') #weekends
         self.df_connection_time = pd.read_csv('.\data\distribution-of-connection-time.csv') #connection time
-        self.df_energy_demand = pd.read_csv('.\data\distribution-of-energy-demand.csv') #energy demand
-
-
+        self.df_energy_demand = pd.read_csv('.\data\distribution-of-energy-demand.csv') #energy demand                        
+        self.time_of_connection_vs_hour = np.load('.\data\Time_of_connection_vs_hour.npy')
+        
     def _load_power_setpoints(self):
         if self.load_from_replay_path is None:
             return np.ones(self.simulation_length) * 20
@@ -395,19 +395,6 @@ class EVCity(gym.Env):
                     ev = spawn_EV(self, cs.id)
                     if ev is None:
                         continue
-
-                # min_stay_of_ev = int(
-                #     20 * 5 / self.timescale)  # from 50 minutes
-                # max_stay_of_ev = int(40 * 5 / self.timescale)  # to 100 minutes
-                # if max_stay_of_ev > self.simulation_length:
-                #     self.empty_ports_at_end_of_simulation = False
-                #     raise ValueError(
-                #         "The maximum stay of an EV is greater than the simulation length! \n" +
-                #         "Please increase the simulation length or disable the empty_ports_at_end_of_simulation option")
-
-                # if not (self.empty_ports_at_end_of_simulation and
-                #         self.current_step + 1 + max_stay_of_ev >= self.simulation_length) and \
-                #         n_ports > cs.n_evs_connected:
 
                     index = cs.spawn_ev(ev)
                     self.port_arrival[f'{cs.id}.{index}'].append(

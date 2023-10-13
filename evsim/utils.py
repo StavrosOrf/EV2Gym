@@ -74,7 +74,8 @@ def ev_city_plot(ev_env):
         plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
         plt.xticks(ticks=date_range_print,
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
-        if len(ev_env.port_arrival[f'{cs.id}.{port}']) < 6:
+        # if len(ev_env.port_arrival[f'{cs.id}.{port}']) < 6:
+        if dim_x < 5:
             plt.legend()
         plt.grid(True, which='minor', axis='both')
         counter += 1
@@ -146,8 +147,9 @@ def ev_city_plot(ev_env):
         plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
         plt.xticks(ticks=date_range_print,
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
-        plt.legend([f'CS {i}' for i in tr.cs_ids] +
-                   ['Circuit Breaker Limit (A)', 'Total Current (A)'])
+        if len(tr.cs_ids) < 3:
+            plt.legend([f'CS {i}' for i in tr.cs_ids] +
+                    ['Circuit Breaker Limit (A)', 'Total Current (A)'])
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
@@ -218,9 +220,10 @@ def ev_city_plot(ev_env):
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
         # place the legend under each plot
 
-        plt.legend([f'Port {i}' for i in range(
-            cs.n_ports)] + ['Total Current Limit (A)',
-                            'Total Current (A)'])
+        if dim_x < 5:                
+            plt.legend([f'Port {i}' for i in range(
+                cs.n_ports)] + ['Total Current Limit (A)',
+                                'Total Current (A)'])
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
@@ -232,6 +235,7 @@ def ev_city_plot(ev_env):
     # Plot the total power for each CS group
     df_total_power = pd.DataFrame([], index=date_range)
     plt.figure(figsize=(20, 17))
+
     counter = 1
     dim_x = int(np.ceil(np.sqrt(ev_env.number_of_transformers)))
     dim_y = int(np.ceil(ev_env.number_of_transformers/dim_x))
@@ -286,8 +290,10 @@ def ev_city_plot(ev_env):
         plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
         plt.xticks(ticks=date_range_print,
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
-        plt.legend([f'CS {i}' for i in tr.cs_ids] +
-                   ['Total Power (kWh)'])
+        
+        if len(tr.cs_ids) <3:
+            plt.legend([f'CS {i}' for i in tr.cs_ids] +
+                    ['Total Power (kWh)'])
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
@@ -298,7 +304,7 @@ def ev_city_plot(ev_env):
                 dpi=60, bbox_inches='tight')
 
     # Plot the total power of the CPO
-    plt.figure(figsize=(20, 17))
+    plt.figure(figsize=(20, 17))    
 
     # create 2 dfs, one for positive power and one for negative
     df_pos = df_total_power.copy()
@@ -419,7 +425,7 @@ def visualize(ev_env):
     '''Renders the current state of the environment in the terminal'''
 
     print(f"\n Step: {ev_env.current_step}" +
-          f" | {ev_env.sim_date.hour}:{ev_env.sim_date.minute}:{ev_env.sim_date.second} |" +
+          f" | {str(ev_env.sim_date.weekday())} {ev_env.sim_date.hour:2d}:{ev_env.sim_date.minute:2d}:{ev_env.sim_date.second:2d} |" +
           f" \tEVs +{ev_env.current_ev_arrived} / -{ev_env.current_ev_departed}" +
           f" | Total: {ev_env.current_evs_parked} / {ev_env.number_of_ports}")
 
@@ -449,28 +455,33 @@ def visualize(ev_env):
 
 def spawn_EV(ev_env, cs_id):
     '''Spawns EVs based on the spawn rate'''
-    time = ev_env.sim_date    
+    time = ev_env.sim_date
     day = time.weekday()
     hour = time.hour
     minute = time.minute
-    i = hour*4 + minute//15    
+    i = hour*4 + minute//15
 
     scenario = ev_env.scenario
 
     if day < 5:
         tau = ev_env.df_arrival_week[scenario].iloc[i]
+        multiplier = 5
     else:
         if scenario == "workplace":
             return None
-        tau = ev_env.df_arrival_weekend[scenario].iloc[i]    
+        tau = ev_env.df_arrival_weekend[scenario].iloc[i]
+        if day == 5:
+            multiplier = 4
+        else:
+            multiplier = 3
 
-    if np.random.rand(1)*100 < tau:
+    if np.random.rand(1)*100 < tau*multiplier:
 
         required_energy = ev_env.df_energy_demand[scenario].iloc[np.random.randint(
-            0, 100, size=1)].values[0]  # kWh        
+            0, 100, size=1)].values[0]  # kWh
 
         if ev_env.heterogeneous_specs:
-            battery_capacity = np.random.randint(40, 80, size=1)  # kWh
+            battery_capacity = np.random.randint(40, 80)  # kWh
         else:
             battery_capacity = 50
 
@@ -479,27 +490,31 @@ def spawn_EV(ev_env, cs_id):
         else:
             initial_battery_capacity = battery_capacity - required_energy
 
-        time_of_stay = ev_env.df_connection_time[scenario].iloc[np.random.randint(
-            0, 100, size=1)].values[0] * 60 / ev_env.timescale
-        
-        # print(f"time_of_stay: {time_of_stay}, time of departure {time_of_stay + ev_env.current_step + 1}")
-        
-        # if time_of_stay + ev_env.current_step + 1 > ev_env.simulation_length:        
-        #TODO think about "empty_ports_at_end_of_simulation"        
+        time_of_stay = np.random.choice(
+            np.arange(0, 48, 1), 1, p=ev_env.time_of_connection_vs_hour[hour, :])/2
+        time_of_stay = time_of_stay[0] * 60 / ev_env.timescale
+
+        # Alternative method for time of stay
+        # time_of_stay = ev_env.df_connection_time[scenario].iloc[np.random.randint(
+        #     0, 100, size=1)].values[0] * 60 / ev_env.timescale
+
+        # if time_of_stay + ev_env.current_step + 1 > ev_env.simulation_length:
+        # TODO think about "empty_ports_at_end_of_simulation"
 
         if ev_env.heterogeneous_specs:
             return EV(id=None,
                       location=cs_id,
                       battery_capacity_at_arrival=initial_battery_capacity,
-                      max_ac_charge_power=np.random.randint(11, 22, size=1),
-                      max_discharge_power=-np.random.randint(3, 15, size=1),
-                      discharge_efficiency=1 -
-                      (np.random.rand(1)+0.00001)/20,  # [0.95-1]
-                      transition_soc=0.9 - \
-                      (np.random.rand(1)+0.00001)/5,  # [0.7-0.9]
+                      max_ac_charge_power=np.random.randint(11, 22),
+                      max_discharge_power=-np.random.randint(3, 15),
+                      discharge_efficiency=np.round(1 -
+                                                    (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
+                      transition_soc=np.round(0.9 - \
+                                              (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]                      
                       battery_capacity=battery_capacity,
                       time_of_arrival=ev_env.current_step+1,
-                      earlier_time_of_departure=int(time_of_stay + ev_env.current_step + 1),
+                      earlier_time_of_departure=int(
+                          time_of_stay + ev_env.current_step + 1),
                       timescale=ev_env.timescale,
                       simulation_length=ev_env.simulation_length,)
         else:
@@ -508,6 +523,7 @@ def spawn_EV(ev_env, cs_id):
                       battery_capacity_at_arrival=initial_battery_capacity,
                       battery_capacity=battery_capacity,
                       time_of_arrival=ev_env.current_step+1,
-                      earlier_time_of_departure=int(time_of_stay + ev_env.current_step + 1),
+                      earlier_time_of_departure=int(
+                          time_of_stay + ev_env.current_step + 1),
                       timescale=ev_env.timescale,
                       simulation_length=ev_env.simulation_length,)

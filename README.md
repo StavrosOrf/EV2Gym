@@ -5,6 +5,8 @@ A V2X Simulation Environment for large scale EV charging optimization
 
 ## Use-Cases
 - [ ] Public residential chargers Power Management and Transformer capacity management (follow setpoint) the GreenFlux case
+- [ ] Fast chargers capacity management
+- [ ] Office building chargers capacity management 100+ EVSEs
 
 ### Insights for RL in EVsSimulator
 - The state should be normalized [0,1] for better convergence

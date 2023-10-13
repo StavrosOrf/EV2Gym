@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 # main funtion for testing
 if __name__ == "__main__":
 
-    verbose = True
-    n_transformers = 100
-    number_of_charging_stations = 1000
-    steps = 288  # 288 steps = 1 day with 5 minutes per step
+    verbose = False
+    n_transformers = 10
+    number_of_charging_stations = 100
+    steps = 288*7  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
     save_plots = True
 
@@ -31,6 +31,7 @@ if __name__ == "__main__":
                          save_plots=True,
                          score_threshold=0,
                          scenario='public',
+                         heterogeneous_specs=False,
                          verbose=verbose,)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
