@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from .ev import EV
+
 
 def ev_city_plot(ev_env):
     '''Plots the simulation data
@@ -297,8 +299,6 @@ def ev_city_plot(ev_env):
 
     # Plot the total power of the CPO
     plt.figure(figsize=(20, 17))
- 
-
 
     # create 2 dfs, one for positive power and one for negative
     df_pos = df_total_power.copy()
@@ -321,13 +321,13 @@ def ev_city_plot(ev_env):
                   colors=colors,
                   linestyle='--')
 
-    df_total_power['total'] = df_total_power.sum(axis=1)  
-    # print(df_total_power)  
+    df_total_power['total'] = df_total_power.sum(axis=1)
+    # print(df_total_power)
 
     plt.step(df_total_power.index, df_total_power['total'], 'darkgreen',
              where='post', linestyle='--')
-    
-    plt.step(df_total_power.index,ev_env.power_setpoints, 'r--')
+
+    plt.step(df_total_power.index, ev_env.power_setpoints, 'r--')
 
     plt.stackplot(df_neg.index, df_neg.values.T,
                   interpolate=True,
@@ -335,7 +335,7 @@ def ev_city_plot(ev_env):
                   colors=colors,
                   alpha=0.7,
                   linestyle='--')
-    
+
     plt.plot([ev_env.sim_starting_date, ev_env.sim_date], [0, 0], 'black')
 
     # for cs in tr.cs_ids:
@@ -447,7 +447,67 @@ def visualize(ev_env):
               f' {ev_env.power_setpoints[ev_env.current_step - 1]:.1f} kW')
 
 
-def spawn_EVs(number_of_ports):
+def spawn_EV(ev_env, cs_id):
     '''Spawns EVs based on the spawn rate'''
-    evs_to_spawn = np.random.poisson(number_of_ports * ev_env.spawn_rate)
-    return evs_to_spawn
+    time = ev_env.sim_date    
+    day = time.weekday()
+    hour = time.hour
+    minute = time.minute
+    i = hour*4 + minute//15    
+
+    scenario = ev_env.scenario
+
+    if day < 5:
+        tau = ev_env.df_arrival_week[scenario].iloc[i]
+    else:
+        if scenario == "workplace":
+            return None
+        tau = ev_env.df_arrival_weekend[scenario].iloc[i]    
+
+    if np.random.rand(1)*100 < tau:
+
+        required_energy = ev_env.df_energy_demand[scenario].iloc[np.random.randint(
+            0, 100, size=1)].values[0]  # kWh        
+
+        if ev_env.heterogeneous_specs:
+            battery_capacity = np.random.randint(40, 80, size=1)  # kWh
+        else:
+            battery_capacity = 50
+
+        if battery_capacity < required_energy:
+            initial_battery_capacity = 0.05*battery_capacity
+        else:
+            initial_battery_capacity = battery_capacity - required_energy
+
+        time_of_stay = ev_env.df_connection_time[scenario].iloc[np.random.randint(
+            0, 100, size=1)].values[0] * 60 / ev_env.timescale
+        
+        # print(f"time_of_stay: {time_of_stay}, time of departure {time_of_stay + ev_env.current_step + 1}")
+        
+        # if time_of_stay + ev_env.current_step + 1 > ev_env.simulation_length:        
+        #TODO think about "empty_ports_at_end_of_simulation"        
+
+        if ev_env.heterogeneous_specs:
+            return EV(id=None,
+                      location=cs_id,
+                      battery_capacity_at_arrival=initial_battery_capacity,
+                      max_ac_charge_power=np.random.randint(11, 22, size=1),
+                      max_discharge_power=-np.random.randint(3, 15, size=1),
+                      discharge_efficiency=1 -
+                      (np.random.rand(1)+0.00001)/20,  # [0.95-1]
+                      transition_soc=0.9 - \
+                      (np.random.rand(1)+0.00001)/5,  # [0.7-0.9]
+                      battery_capacity=battery_capacity,
+                      time_of_arrival=ev_env.current_step+1,
+                      earlier_time_of_departure=int(time_of_stay + ev_env.current_step + 1),
+                      timescale=ev_env.timescale,
+                      simulation_length=ev_env.simulation_length,)
+        else:
+            return EV(id=None,
+                      location=cs_id,
+                      battery_capacity_at_arrival=initial_battery_capacity,
+                      battery_capacity=battery_capacity,
+                      time_of_arrival=ev_env.current_step+1,
+                      earlier_time_of_departure=int(time_of_stay + ev_env.current_step + 1),
+                      timescale=ev_env.timescale,
+                      simulation_length=ev_env.simulation_length,)

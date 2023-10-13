@@ -21,7 +21,7 @@ from .ev_charger import EV_Charger
 from .ev import EV
 from .transformer import Transformer
 from .replay import EvCityReplay
-from .utils import ev_city_plot, get_statistics, print_statistics, visualize
+from .utils import ev_city_plot, get_statistics, print_statistics, visualize, spawn_EV
 
 class EVCity(gym.Env):
 
@@ -35,6 +35,8 @@ class EVCity(gym.Env):
                  load_from_replay_path=None,
                  empty_ports_at_end_of_simulation=True,
                  simulate_grid=False,
+                 scenario="public",
+                 heterogeneous_specs=False,
                  replay_path = './replay/',
                  generate_rnd_game=False,  # generate a random game without terminating conditions
                  case='default',
@@ -64,7 +66,7 @@ class EVCity(gym.Env):
         self.save_plots = save_plots
         self.verbose = verbose  # Whether to print the simulation progress or not
         self.simulation_length = simulation_length
-        self.replay_path = replay_path
+        self.replay_path = replay_path        
     
         self.score_threshold = score_threshold
 
@@ -89,6 +91,8 @@ class EVCity(gym.Env):
             # self.score_threshold = self.replay.score_threshold
             self.number_of_ports_per_cs = self.replay.max_n_ports
             self.spawn_rate = -1
+            self.scenario = self.replay.scenario
+            self.heterogeneous_specs = self.replay.heterogeneous_specs
 
         else:
             assert cs is not None, "Please provide the number of charging stations"
@@ -114,6 +118,8 @@ class EVCity(gym.Env):
                 f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'
 
             self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
+            self.scenario = scenario
+            self.heterogeneous_specs = heterogeneous_specs
 
         self.sim_starting_date = self.sim_date
 
@@ -167,6 +173,9 @@ class EVCity(gym.Env):
 
         self.init_statistic_variables()
 
+        if self.ev_profiles is None:
+            self._load_ev_spawn_scenarios()
+
         self.done = False
 
         # Make folders for results
@@ -180,6 +189,15 @@ class EVCity(gym.Env):
 
         if self.save_replay:
             self.EVs = []  # Store all of the EVs in the simulation that arrived        
+
+    def _load_ev_spawn_scenarios(self):
+        '''Loads the EV spawn scenarios of the simulation'''
+
+        self.df_arrival_week = pd.read_csv('.\data\distribution-of-arrival.csv') #weekdays
+        self.df_arrival_weekend = pd.read_csv('.\data\distribution-of-arrival-weekend.csv') #weekends
+        self.df_connection_time = pd.read_csv('.\data\distribution-of-connection-time.csv') #connection time
+        self.df_energy_demand = pd.read_csv('.\data\distribution-of-energy-demand.csv') #energy demand
+
 
     def _load_power_setpoints(self):
         if self.load_from_replay_path is None:
@@ -372,40 +390,34 @@ class EVCity(gym.Env):
 
             # Spawn EVs
             if self.ev_profiles is None:
-                min_stay_of_ev = int(
-                    20 * 5 / self.timescale)  # from 50 minutes
-                max_stay_of_ev = int(40 * 5 / self.timescale)  # to 100 minutes
-                if max_stay_of_ev > self.simulation_length:
-                    self.empty_ports_at_end_of_simulation = False
-                    raise ValueError(
-                        "The maximum stay of an EV is greater than the simulation length! \n" +
-                        "Please increase the simulation length or disable the empty_ports_at_end_of_simulation option")
+                # Spawn EVs based on the spawn rate on specific chargers with random time of departure, and soc
+                for _ in range (n_ports - cs.n_evs_connected):
+                    ev = spawn_EV(self, cs.id)
+                    if ev is None:
+                        continue
 
-                if not (self.empty_ports_at_end_of_simulation and
-                        self.current_step + 1 + max_stay_of_ev >= self.simulation_length) and \
-                        n_ports > cs.n_evs_connected:
+                # min_stay_of_ev = int(
+                #     20 * 5 / self.timescale)  # from 50 minutes
+                # max_stay_of_ev = int(40 * 5 / self.timescale)  # to 100 minutes
+                # if max_stay_of_ev > self.simulation_length:
+                #     self.empty_ports_at_end_of_simulation = False
+                #     raise ValueError(
+                #         "The maximum stay of an EV is greater than the simulation length! \n" +
+                #         "Please increase the simulation length or disable the empty_ports_at_end_of_simulation option")
 
-                    # get a random float in [0,1] to decide if spawn an EV                    
-                    if np.random.rand() < self.spawn_rate:
-                        ev = EV(id=None,
-                                location=cs.id,
-                                battery_capacity_at_arrival=np.random.uniform(
-                                    1, 49),
-                                time_of_arrival=self.current_step+1,
-                                earlier_time_of_departure=self.current_step+1
-                                + np.random.randint(min_stay_of_ev, max_stay_of_ev),
-                                timescale=self.timescale,
-                                simulation_length=self.simulation_length,)
-                        # earlier_time_of_departure=self.current_step+1 + np.random.randint(10, 40),)
-                        index = cs.spawn_ev(ev)
-                        self.port_arrival[f'{cs.id}.{index}'].append(
-                            (self.current_step + 1, ev.earlier_time_of_departure))
+                # if not (self.empty_ports_at_end_of_simulation and
+                #         self.current_step + 1 + max_stay_of_ev >= self.simulation_length) and \
+                #         n_ports > cs.n_evs_connected:
 
-                        if self.save_replay:
-                            self.EVs.append(ev)
+                    index = cs.spawn_ev(ev)
+                    self.port_arrival[f'{cs.id}.{index}'].append(
+                        (self.current_step + 1, ev.earlier_time_of_departure))
 
-                        self.total_evs_spawned += 1
-                        self.current_ev_arrived += 1
+                    if self.save_replay:
+                        self.EVs.append(ev)
+
+                    self.total_evs_spawned += 1
+                    self.current_ev_arrived += 1
 
         # Spawn EVs
         if self.ev_profiles is not None:

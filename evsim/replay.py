@@ -32,6 +32,7 @@ class EvCityReplay():
         self.sim_date = env.sim_starting_date
         self.cs_transformers = env.cs_transformers
         self.power_setpoints = env.power_setpoints
+        self.scenario = env.scenario
 
         self.transformers = env.transformers
         self.charging_stations = env.charging_stations

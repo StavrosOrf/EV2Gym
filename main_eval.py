@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = True
-    n_transformers = 1
-    number_of_charging_stations = 1
+    n_transformers = 100
+    number_of_charging_stations = 1000
     steps = 288  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
     save_plots = True
@@ -30,6 +30,7 @@ if __name__ == "__main__":
                          timescale=timescale,
                          save_plots=True,
                          score_threshold=0,
+                         scenario='public',
                          verbose=verbose,)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     for i in range(steps):        
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
-        actions = np.random.rand(env.number_of_ports) * -2 + 1
+        # actions = np.random.rand(env.number_of_ports) * -2 + 1
         if verbose:
             print(f'Actions: {actions}')
 

@@ -8,6 +8,7 @@ import numpy as np
 from .ev import EV
 import math
 
+
 class EV_Charger:
     '''
     This file contains the EV_Charger class, which is used to represent the EV chargers in the environment.
@@ -49,9 +50,9 @@ class EV_Charger:
                  connected_transformer,
                  geo_location=None,
                  min_charge_current=8,  # Amperes
-                 max_charge_current=32,  # Amperes                 
-                 min_discharge_current= -8,  # Amperes
-                 max_discharge_current= -32,  # Amperes
+                 max_charge_current=32,  # Amperes
+                 min_discharge_current=-8,  # Amperes
+                 max_discharge_current=-32,  # Amperes
                  voltage=230,  # Volts
                  n_ports=2,
                  charger_type="AC",  # AC or DC
@@ -66,7 +67,7 @@ class EV_Charger:
         self.connected_transformer = connected_transformer
         self.geo_location = geo_location
 
-        # EV Charger technical characteristics                
+        # EV Charger technical characteristics
         self.n_ports = n_ports
         self.charger_type = charger_type
         self.bi_directional = bi_directional
@@ -148,7 +149,7 @@ class EV_Charger:
                 amps = action * self.max_charge_current
                 if amps < self.min_charge_current:
                     amps = 0
-                    
+
                 actual_power, actual_amps = self.evs_connected[i].step(
                     amps,
                     self.voltage,
@@ -164,8 +165,8 @@ class EV_Charger:
                 else:
                     amps = action * abs(self.max_charge_current)
                     if amps > self.min_discharge_current:
-                        amps = self.min_discharge_current                    
-                    
+                        amps = self.min_discharge_current
+
                     actual_power, actual_amps = self.evs_connected[i].step(
                         amps,
                         self.voltage,
@@ -174,15 +175,16 @@ class EV_Charger:
                 self.total_energy_discharged += abs(actual_power)
                 self.current_power_output += actual_power
                 self.current_total_amps += actual_amps
-            
-            if self.current_total_amps - 0.0001 > self.max_charge_current:
-                raise Exception(f'sum of amps {self.current_total_amps} is higher than max charge current {self.max_charge_current}')
 
-            if self.verbose and self.evs_connected[i] is not None:
-                print(f'Actual power: {actual_power} kW' +
-                      f' | Actual amps: {actual_amps} A' +
-                      f' | Action: {action}'
-                      )
+            if self.current_total_amps - 0.0001 > self.max_charge_current:
+                raise Exception(
+                    f'sum of amps {self.current_total_amps} is higher than max charge current {self.max_charge_current}')
+
+            # if self.verbose and self.evs_connected[i] is not None:
+            #     print(f'Actual power: {actual_power} kW' +
+            #           f' | Actual amps: {actual_amps} A' +
+            #           f' | Action: {action}'
+            #           )
 
         self.total_profits += profit
 
