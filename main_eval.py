@@ -1,5 +1,5 @@
 from evsim import ev_city
-from evsim_math_model import ev_city_model
+from evsim_math_model import ev_city_model, ev_city_power_tracker_model
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,13 +10,13 @@ if __name__ == "__main__":
     verbose = False
     n_transformers = 1
     number_of_charging_stations = 1
-    steps = 288  # 288 steps = 1 day with 5 minutes per step
-    timescale = 5  # (5 minutes per step)
+    steps = 10  # 288 steps = 1 day with 5 minutes per step
+    timescale = 15  # (5 minutes per step)
     save_plots = True
 
     replay_path = "replay/replay_ev_city_50_2023-07-27_10-12.pkl"
     replay_path = "replay/replay_ev_city_250_2023-07-27_16-48.pkl"
-    replay_path = None
+    replay_path = "./replay/replay_ev_city_10_2023-10-23_15-33-40-632796.pkl"
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
                          number_of_ports_per_cs=2,
@@ -63,9 +63,9 @@ if __name__ == "__main__":
 
     # env.plot()
     
-    exit()
+    # exit()
     # Solve optimally
-    math_model = ev_city_model.EV_City_Math_Model(sim_file_path=new_replay_path)
+    math_model = ev_city_power_tracker_model.EV_City_Math_Model(sim_file_path=new_replay_path)
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")
     opt_actions = math_model.get_actions()
     print(f'Optimal actions: {opt_actions.shape}')
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     for i in range(steps):        
         # all ports are charging instantly
         # print(f'Optimal actions: {opt_actions[:,:,i]}')
-        # print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
+        print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
         actions = opt_actions[:,:,i].T.reshape(-1)        
         if verbose:
             print(f' OptimalActions: {actions}')

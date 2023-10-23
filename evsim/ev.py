@@ -53,9 +53,9 @@ class EV():
                  use_probabilistic_time_of_departure=False,
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
-                 max_ac_charge_power=11,  # kW
-                 max_dc_charge_power=11,  # kW
-                 ev_phases = 1,
+                 max_ac_charge_power=11,  # kWh
+                 max_dc_charge_power=11,  # kWh
+                 ev_phases = 3,
                  noise_level=0,
                  transition_soc=0.8,
                  max_discharge_power=-5,  # kWh
@@ -81,6 +81,7 @@ class EV():
         self.battery_capacity = battery_capacity  # kWh
         self.max_ac_charge_power = max_ac_charge_power  # kW
         self.max_discharge_power = max_discharge_power  # kW
+        self.max_dc_charge_power = max_dc_charge_power  # kW
         self.transition_soc = transition_soc
         self.noise_level = noise_level
         self.ev_phases = ev_phases

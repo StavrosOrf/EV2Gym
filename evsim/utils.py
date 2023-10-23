@@ -70,7 +70,7 @@ def ev_city_plot(ev_env):
 
         plt.title(f'Charging Station {cs.id}')
         plt.xlabel(f'Time')
-        plt.ylabel('Energy Level (kW)')
+        plt.ylabel('Energy Level (kWh)')
         plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
         plt.xticks(ticks=date_range_print,
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
@@ -286,14 +286,14 @@ def ev_city_plot(ev_env):
         #     plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
         plt.title(f'Transformer {tr.id}')
         plt.xlabel(f'Time')
-        plt.ylabel(f'Power (kWh)')
+        plt.ylabel(f'Power (kW)')
         plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
         plt.xticks(ticks=date_range_print,
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
 
         if len(tr.cs_ids) < 3:
             plt.legend([f'CS {i}' for i in tr.cs_ids] +
-                       ['Total Power (kWh)'])
+                       ['Total Power (kW)'])
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
@@ -348,12 +348,12 @@ def ev_city_plot(ev_env):
     #     plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
     plt.title(f'Setpoint Tracker')
     plt.xlabel(f'Time')
-    plt.ylabel(f'Power (kWh)')
+    plt.ylabel(f'Power (kW)')
     plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
     plt.xticks(ticks=date_range_print,
                labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
     plt.legend([f'Tr {i}' for i in range(len(ev_env.transformers))] +
-               ['Total Power (kWh)']+[f'Power Setpoint (kWh)'])
+               ['Total Power (kW)']+[f'Power Setpoint (kW)'])
     plt.grid(True, which='minor', axis='both')
 
     plt.tight_layout()
@@ -412,9 +412,9 @@ def print_statistics(ev_env):
     print(
         f'  - Average user satisfaction: {average_user_satisfaction*100:.2f} %')
 
-    print(f'  - Total energy charged: {toal_energy_charged:.1f} kW')
+    print(f'  - Total energy charged: {toal_energy_charged:.1f} kWh')
     print(
-        f'  - Total energy discharged: {total_energy_discharged:.1f} kW\n')
+        f'  - Total energy discharged: {total_energy_discharged:.1f} kWh\n')
 
     for cs in ev_env.charging_stations:
         print(cs)
@@ -432,9 +432,9 @@ def visualize(ev_env):
     if ev_env.verbose:
         for cs in ev_env.charging_stations:
             print(f'  - Charging station {cs.id}:')
-            print(f'\t Power: {cs.current_power_output:4.1f} kWh |' +
-                  f' \u2197 {ev_env.charge_prices[cs.id, ev_env.current_step -1 ]:4.2f} €/kWh ' +
-                  f' \u2198 {ev_env.discharge_prices[cs.id, ev_env.current_step - 1]:4.2f} €/kWh |' +
+            print(f'\t Power: {cs.current_power_output:4.1f} kW |' +
+                  f' \u2197 {ev_env.charge_prices[cs.id, ev_env.current_step -1 ]:4.2f} €/kW ' +
+                  f' \u2198 {ev_env.discharge_prices[cs.id, ev_env.current_step - 1]:4.2f} €/kW |' +
                   f' EVs served: {cs.total_evs_served:3d} ' +
                   f' {cs.total_profits:4.2f} €')
 
@@ -450,7 +450,7 @@ def visualize(ev_env):
 
         # print current current power setpoint
         print(f'  - Power setpoint: {ev_env.current_power_setpoints[ev_env.current_step - 1]:.1f} /' +
-              f' {ev_env.power_setpoints[ev_env.current_step - 1]:.1f} kW')
+              f' {ev_env.power_setpoints[ev_env.current_step - 1]:.1f} kWh')
 
 
 def spawn_EV(ev_env, cs_id):
@@ -505,7 +505,8 @@ def spawn_EV(ev_env, cs_id):
             return EV(id=None,
                       location=cs_id,
                       battery_capacity_at_arrival=initial_battery_capacity,
-                      max_ac_charge_power=np.random.randint(11, 22),
+                      max_ac_charge_power=np.random.rand.choice([11,22],[0.2,0.8]),
+                      max_dc_charge_power=np.random.randint(50,150),
                       max_discharge_power=-np.random.randint(3, 15),
                       discharge_efficiency=np.round(1 -
                                                     (np.random.rand()+0.00001)/20, 3),  # [0.95-1]

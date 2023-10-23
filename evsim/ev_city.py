@@ -201,7 +201,7 @@ class EVCity(gym.Env):
         
     def _load_power_setpoints(self):
         if self.load_from_replay_path is None:
-            return np.ones(self.simulation_length) * 20
+            return np.ones(self.simulation_length) * 20 #kW
         
         return self.replay.power_setpoints
 

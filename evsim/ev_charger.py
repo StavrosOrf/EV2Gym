@@ -144,7 +144,7 @@ class EV_Charger:
             assert action >= -1 and action <= 1
 
             if action == 0 and self.evs_connected[i] is not None:
-                self.evs_connected[i].step(0)
+                self.evs_connected[i].step(0,self.voltage)
 
             elif action > 0:
                 amps = action * self.max_charge_current

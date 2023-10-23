@@ -6,6 +6,7 @@ Author: Stavros Orfanoudakis 2023
 
 import os
 import numpy as np
+import math
 from .utils import get_statistics
 
 class EvCityReplay():
@@ -33,6 +34,7 @@ class EvCityReplay():
         self.cs_transformers = env.cs_transformers
         self.power_setpoints = env.power_setpoints
         self.scenario = env.scenario
+        self.heterogeneous_specs = env.heterogeneous_specs
 
         self.transformers = env.transformers
         self.charging_stations = env.charging_stations
@@ -59,6 +61,7 @@ class EvCityReplay():
         self.port_max_discharge_current = np.ones([self.n_cs])
         self.port_min_discharge_current = np.ones([self.n_cs])
         self.voltages = np.ones([self.n_cs])
+        self.phases = np.ones([self.n_cs])        
 
         self.cs_ch_efficiency = np.ones([self.n_cs, self.sim_length])
         self.cs_dis_efficiency = np.ones([self.n_cs, self.sim_length])
@@ -71,7 +74,7 @@ class EvCityReplay():
             self.port_min_charge_current[i] = cs.min_charge_current
             self.port_max_discharge_current[i] = cs.max_discharge_current
             self.port_min_discharge_current[i] = cs.min_discharge_current
-            self.voltages[i] = cs.voltage
+            self.voltages[i] = cs.voltage * math.sqrt(cs.phases)            
 
             #consider usecases with variable number of ports per cs
             if cs.n_ports > self.max_n_ports:
@@ -88,15 +91,15 @@ class EvCityReplay():
         self.ev_max_ch_power = np.zeros([self.max_n_ports,
                                          self.n_cs,
                                          self.sim_length])  # ev max charging power, 0 if no ev is there
-        self.ev_min_ch_power = np.zeros([self.max_n_ports,
-                                         self.n_cs,
-                                         self.sim_length])  # ev min charging power, 0 if no ev is there
+        # self.ev_min_ch_power = np.zeros([self.max_n_ports,
+        #                                  self.n_cs,
+        #                                  self.sim_length])  # ev min charging power, 0 if no ev is there
         self.ev_max_dis_power = np.zeros([self.max_n_ports,
                                           self.n_cs,
                                           self.sim_length])  # ev max discharging power, 0 if no ev is there
-        self.ev_min_dis_power = np.zeros([self.max_n_ports,
-                                          self.n_cs,
-                                          self.sim_length])  # ev min discharging power, 0 if no ev is there
+        # self.ev_min_dis_power = np.zeros([self.max_n_ports,
+        #                                   self.n_cs,
+        #                                   self.sim_length])  # ev min discharging power, 0 if no ev is there
         self.u = np.zeros([self.max_n_ports,
                            self.n_cs,
                            self.sim_length])  # u is 0 if port is empty and 1 if port is occupied
@@ -109,9 +112,9 @@ class EvCityReplay():
         self.t_dep = np.zeros([self.max_n_ports,
                                self.n_cs,
                                self.sim_length])  # time of departure of the ev, 0 if port is empty
-        self.ev_des_energy = np.zeros([self.max_n_ports,
-                                       self.n_cs,
-                                       self.sim_length])  # desired energy of the ev, 0 if port is empty
+        # self.ev_des_energy = np.zeros([self.max_n_ports,
+        #                                self.n_cs,
+        #                                self.sim_length])  # desired energy of the ev, 0 if port is empty
 
         for i, ev in enumerate(env.EVs):
             port = ev.id
@@ -134,7 +137,7 @@ class EvCityReplay():
             # self.ev_min_ch_power[port, cs_id,
             #                      t_arr:t_dep] = 0
             self.ev_max_dis_power[port, cs_id,
-                                  t_arr:t_dep] = -ev.max_discharge_power
+                                  t_arr:t_dep] = ev.max_discharge_power
             # self.ev_min_dis_power[port, cs_id,
             #                       t_arr:t_dep] = 0
             self.u[port, cs_id, t_arr:t_dep] = 1
@@ -143,7 +146,7 @@ class EvCityReplay():
             self.ev_arrival[port, cs_id, t_arr] = 1
             if original_t_dep < self.sim_length:
                 self.t_dep[port, cs_id, t_dep] = 1
-                self.ev_des_energy[port, cs_id, t_dep] = ev.desired_capacity
+                # self.ev_des_energy[port, cs_id, t_dep] = ev.desired_capacity
 
         # print(f'u: {self.u}')
         # print(f'ev_arrival: {self.ev_arrival}')
