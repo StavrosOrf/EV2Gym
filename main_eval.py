@@ -10,13 +10,16 @@ if __name__ == "__main__":
     verbose = False
     n_transformers = 1
     number_of_charging_stations = 1
-    steps = 10  # 288 steps = 1 day with 5 minutes per step
-    timescale = 15  # (5 minutes per step)
+    steps = 30  # 288 steps = 1 day with 5 minutes per step
+    timescale = 5  # (5 minutes per step)
     save_plots = True
 
     replay_path = "replay/replay_ev_city_50_2023-07-27_10-12.pkl"
     replay_path = "replay/replay_ev_city_250_2023-07-27_16-48.pkl"
     replay_path = "./replay/replay_ev_city_10_2023-10-23_15-33-40-632796.pkl"
+    replay_path = "replay/replay_ev_city_10_2023-10-23_19-45-33-725620.pkl"
+    replay_path = "replay/replay_ev_city_20_2023-10-23_21-10-12-143383.pkl"
+    replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
                          number_of_ports_per_cs=2,
