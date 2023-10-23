@@ -6,7 +6,7 @@ Author: Stavros Orfanoudakis 2023
 
 import numpy as np
 import warnings
-from typing import Optional, Dict, Any, Tuple
+import math
 
 
 class EV():
@@ -54,7 +54,8 @@ class EV():
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
                  max_ac_charge_power=11,  # kW
-                 max_dc_charge_power=50,  # kW
+                 max_dc_charge_power=11,  # kW
+                 ev_phases = 1,
                  noise_level=0,
                  transition_soc=0.8,
                  max_discharge_power=-5,  # kWh
@@ -82,6 +83,7 @@ class EV():
         self.max_discharge_power = max_discharge_power  # kW
         self.transition_soc = transition_soc
         self.noise_level = noise_level
+        self.ev_phases = ev_phases
 
         self.charge_efficiency = charge_efficiency
         self.discharge_efficiency = discharge_efficiency
@@ -105,7 +107,7 @@ class EV():
         self.previous_power = 0
         self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
 
-    def step(self, amps, voltage, type='AC'):
+    def step(self, amps, voltage, phases=1, type='AC'):
         '''
         The step method is used to update the EV's status according to the actions taken by the EV charger.
         Inputs:
@@ -127,10 +129,12 @@ class EV():
         if self.previous_power == 0 or (self.previous_power/amps) < 0:
             self.charging_cycles += 1
 
+        phases = min(phases, self.ev_phases)
+        
         if amps > 0:
-            self.actual_current = self._charge(amps, voltage)
+            self.actual_current = self._charge(amps, voltage, phases)
         elif amps < 0:
-            self.actual_current = self._discharge(amps, voltage)
+            self.actual_current = self._discharge(amps, voltage, phases)
 
         self.previous_power = self.current_power
 
@@ -200,11 +204,8 @@ class EV():
             f' {self.max_discharge_power} kWh|' + \
             f' {self.battery_capacity} kW |' + \
             f' {self.charge_efficiency}, {self.discharge_efficiency}'
-            
-    
-    
 
-    def _charge(self, amps, voltage):
+    def _charge(self, amps, voltage, phases=1):
 
         assert (amps > 0)
         # given_power = (amps * voltage / 1000) * \
@@ -243,7 +244,7 @@ class EV():
         """
 
         pilot = amps
-        voltage = voltage
+        voltage = voltage * math.sqrt(phases)
         period = self.timescale
         # All calculations are done in terms of battery SoC, so we
         # convert pilot signal and max power into pilot and max rate of
@@ -304,7 +305,7 @@ class EV():
         self.required_power = self.required_power - self.current_power  # * period / 60
         return self.current_power / (period / 60) * 1000 / voltage
 
-    def _discharge(self, amps, voltage):
+    def _discharge(self, amps, voltage, phases):
         '''
         The _discharge method is used to discharge the EV's battery.
         Inputs:
@@ -312,13 +313,15 @@ class EV():
         '''
         assert (amps < 0)
 
+        voltage = voltage * math.sqrt(phases)
+
         given_power = (amps * voltage / 1000)
         # print(f'given_power: {given_power} kWh, {self.current_capacity} kWh', )
 
         if abs(given_power/1000) > abs(self.max_discharge_power):
             given_power = self.max_discharge_power
 
-        given_power = given_power * self.discharge_efficiency * self.timescale / 60        
+        given_power = given_power * self.discharge_efficiency * self.timescale / 60
 
         if self.current_capacity + given_power < 0:
             self.current_power = -self.current_capacity  # * 60 / self.timescale

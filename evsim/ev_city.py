@@ -44,7 +44,7 @@ class EVCity(gym.Env):
                  number_of_transformers=1,
                  score_threshold=1,
                  timescale=5,
-                 date=(2023, 7, 21),  # (year, month, day)
+                 date=(2023, 7, 17),  # (year, month, day)
                  hour=(5, 0),  # (hour, minute) 24 hour format
                  seed=42,  # TODO: add seed
                  save_replay=True,

@@ -149,7 +149,7 @@ def ev_city_plot(ev_env):
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
         if len(tr.cs_ids) < 3:
             plt.legend([f'CS {i}' for i in tr.cs_ids] +
-                    ['Circuit Breaker Limit (A)', 'Total Current (A)'])
+                       ['Circuit Breaker Limit (A)', 'Total Current (A)'])
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
@@ -220,7 +220,7 @@ def ev_city_plot(ev_env):
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
         # place the legend under each plot
 
-        if dim_x < 5:                
+        if dim_x < 5:
             plt.legend([f'Port {i}' for i in range(
                 cs.n_ports)] + ['Total Current Limit (A)',
                                 'Total Current (A)'])
@@ -290,10 +290,10 @@ def ev_city_plot(ev_env):
         plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
         plt.xticks(ticks=date_range_print,
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
-        
-        if len(tr.cs_ids) <3:
+
+        if len(tr.cs_ids) < 3:
             plt.legend([f'CS {i}' for i in tr.cs_ids] +
-                    ['Total Power (kWh)'])
+                       ['Total Power (kWh)'])
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
@@ -304,7 +304,7 @@ def ev_city_plot(ev_env):
                 dpi=60, bbox_inches='tight')
 
     # Plot the total power of the CPO
-    plt.figure(figsize=(20, 17))    
+    plt.figure(figsize=(20, 17))
 
     # create 2 dfs, one for positive power and one for negative
     df_pos = df_total_power.copy()
@@ -510,11 +510,12 @@ def spawn_EV(ev_env, cs_id):
                       discharge_efficiency=np.round(1 -
                                                     (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
                       transition_soc=np.round(0.9 - \
-                                              (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]                      
+                                              (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
                       battery_capacity=battery_capacity,
                       time_of_arrival=ev_env.current_step+1,
                       earlier_time_of_departure=int(
                           time_of_stay + ev_env.current_step + 1),
+                      ev_phases=np.random.choice([1, 2, 3], p=[0.2, 0.1, 0.7]),
                       timescale=ev_env.timescale,
                       simulation_length=ev_env.simulation_length,)
         else:
@@ -525,5 +526,6 @@ def spawn_EV(ev_env, cs_id):
                       time_of_arrival=ev_env.current_step+1,
                       earlier_time_of_departure=int(
                           time_of_stay + ev_env.current_step + 1),
+                      ev_phases=3,
                       timescale=ev_env.timescale,
                       simulation_length=ev_env.simulation_length,)

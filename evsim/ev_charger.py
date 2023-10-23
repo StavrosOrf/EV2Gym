@@ -1,4 +1,5 @@
 '''
+This file contains the EV_Charger class, which is used to represent the EV chargers in the environment.
 ===================================
 Author: Stavros Orfanoudakis 2023
 ===================================
@@ -11,8 +12,6 @@ import math
 
 class EV_Charger:
     '''
-    This file contains the EV_Charger class, which is used to represent the EV chargers in the environment.
-
     Attributes:
         - id: unique identifier of the EV charger
         - connected_bus: the bus to which the EV charger is connected
@@ -50,12 +49,13 @@ class EV_Charger:
                  connected_transformer,
                  geo_location=None,
                  min_charge_current=8,  # Amperes
-                 max_charge_current=32,  # Amperes
+                 max_charge_current=55,  # Amperes
                  min_discharge_current=-8,  # Amperes
-                 max_discharge_current=-32,  # Amperes
+                 max_discharge_current=-55,  # Amperes
                  voltage=230,  # Volts
                  n_ports=2,
                  charger_type="AC",  # AC or DC
+                 phases=3,
                  bi_directional=True,
                  timescale=5,
                  verbose=False):
@@ -77,6 +77,7 @@ class EV_Charger:
         self.max_charge_current = max_charge_current
         self.min_discharge_current = min_discharge_current
         self.max_discharge_current = max_discharge_current
+        self.phases = phases
 
         self.voltage = voltage
 
@@ -153,6 +154,7 @@ class EV_Charger:
                 actual_power, actual_amps = self.evs_connected[i].step(
                     amps,
                     self.voltage,
+                    phases=self.phases,
                     type=self.charger_type)
                 profit += abs(actual_power) * charge_price
                 self.total_energy_charged += abs(actual_power)
@@ -170,6 +172,7 @@ class EV_Charger:
                     actual_power, actual_amps = self.evs_connected[i].step(
                         amps,
                         self.voltage,
+                        phases=self.phases,
                         type=self.charger_type)
                 profit += abs(actual_power) * discharge_price
                 self.total_energy_discharged += abs(actual_power)
