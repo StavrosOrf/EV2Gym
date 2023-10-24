@@ -97,14 +97,14 @@ class EV_City_Math_Model():
                                            name='act_current_ev_ch')
 
         current_cs_ch = self.m.addVars(self.n_cs,
-                                    self.sim_length,
-                                    vtype=GRB.CONTINUOUS,
-                                    name='current_cs_ch')
-        
+                                       self.sim_length,
+                                       vtype=GRB.CONTINUOUS,
+                                       name='current_cs_ch')
+
         current_cs_dis = self.m.addVars(self.n_cs,
-                                    self.sim_length,
-                                    vtype=GRB.CONTINUOUS,
-                                    name='current_cs_dis')
+                                        self.sim_length,
+                                        vtype=GRB.CONTINUOUS,
+                                        name='current_cs_dis')
 
         omega_ch = self.m.addVars(self.number_of_ports_per_cs,
                                   self.n_cs,
@@ -127,23 +127,23 @@ class EV_City_Math_Model():
         #                               name='power_cs_dis')
 
         power_tr_ch = self.m.addVars(self.n_transformers,
-                                  self.sim_length,
-                                  vtype=GRB.CONTINUOUS,
-                                  name='power_tr_ch')
-        
+                                     self.sim_length,
+                                     vtype=GRB.CONTINUOUS,
+                                     name='power_tr_ch')
+
         power_tr_dis = self.m.addVars(self.n_transformers,
-                                  self.sim_length,
-                                  vtype=GRB.CONTINUOUS,
-                                  name='power_tr_dis')
+                                      self.sim_length,
+                                      vtype=GRB.CONTINUOUS,
+                                      name='power_tr_dis')
 
         current_tr_ch = self.m.addVars(self.n_transformers,
-                                    self.sim_length,
-                                    vtype=GRB.CONTINUOUS,
-                                    name='current_tr_ch')
+                                       self.sim_length,
+                                       vtype=GRB.CONTINUOUS,
+                                       name='current_tr_ch')
         current_tr_dis = self.m.addVars(self.n_transformers,
-                                    self.sim_length,
-                                    vtype=GRB.CONTINUOUS,
-                                    name='current_tr_dis')
+                                        self.sim_length,
+                                        vtype=GRB.CONTINUOUS,
+                                        name='current_tr_dis')
 
         # power_total = self.m.addVars(self.sim_length,
         #                              vtype=GRB.CONTINUOUS,
@@ -151,9 +151,9 @@ class EV_City_Math_Model():
         # act_power_total = self.m.addVars(self.sim_length,
         #                              vtype=GRB.CONTINUOUS,
         #                              name='act_power_total')
-        # power_error = self.m.addVars(self.sim_length,
-        #                              vtype=GRB.CONTINUOUS,
-        #                              name='power_error')
+        power_error = self.m.addVars(self.sim_length,
+                                     vtype=GRB.CONTINUOUS,
+                                     name='power_error')
 
         # multiplier = self.m.addVars(self.number_of_ports_per_cs,
         #                             self.n_cs,
@@ -176,20 +176,25 @@ class EV_City_Math_Model():
                 #                                for m in range(self.n_cs)
                 #                                if cs_transformer[m] == i)
                 self.m.addConstr(current_tr_ch[i, t] == gp.quicksum(current_cs_ch[m, t]
-                                               for m in range(self.n_cs)
-                                               if cs_transformer[m] == i))
+                                                                    for m in range(self.n_cs)
+                                                                    if cs_transformer[m] == i))
                 self.m.addConstr(current_tr_dis[i, t] == gp.quicksum(current_cs_dis[m, t]
-                                               for m in range(self.n_cs)
-                                               if cs_transformer[m] == i))
-                
-                power_tr_ch[i, t] = gp.quicksum(current_tr_ch[i, t] * voltages[i]
-                                             for m in range(self.n_cs)
-                                             if cs_transformer[m] == i)
-                power_tr_dis[i, t] = gp.quicksum(current_tr_dis[i, t] * voltages[i]
-                                             for m in range(self.n_cs)
-                                             if cs_transformer[m] == i)
-                
-                # power_tr[i, t] = current_tr[i, t] * voltages[i]
+                                                                     for m in range(self.n_cs)
+                                                                     if cs_transformer[m] == i))
+
+                self.m.addConstr(power_tr_ch[i, t] == gp.quicksum(current_tr_ch[i, t] * voltages[i]
+                                                                  for m in range(self.n_cs)
+                                                                  if cs_transformer[m] == i),
+                                 name=f'power_tr_ch.{i}.{t}')
+                self.m.addConstr(power_tr_dis[i, t] == gp.quicksum(current_tr_dis[i, t] * voltages[i]
+                                                                   for m in range(self.n_cs)
+                                                                   if cs_transformer[m] == i),
+                                 name=f'power_tr_dis.{i}.{t}')
+
+            power_error[t] = (gp.quicksum(power_tr_ch[i, t] - power_tr_dis[i, t]
+                              for i in range(self.n_transformers))
+                              - power_setpoints[t])**2
+            # power_tr[i, t] = current_tr[i, t] * voltages[i]
 
         # for t in range(self.sim_length):
         #     for i in range(self.n_transformers):
@@ -201,10 +206,10 @@ class EV_City_Math_Model():
         #                                  name=f'tr_current.{i}.{t}.{m}')
 
         # transformer current output constraint (circuit breaker)
-        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i,t] <= tra_max_amps[i]
+        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] <= tra_max_amps[i]
                            for i in range(self.n_transformers)
                            for t in range(self.sim_length)), name='tr_current_limit_max')
-        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i,t] >= tra_min_amps[i]
+        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] >= tra_min_amps[i]
                            for i in range(self.n_transformers)
                            for t in range(self.sim_length)), name='tr_current_limit_min')
 
@@ -243,7 +248,7 @@ class EV_City_Math_Model():
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)
-                        #    if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0
+                           #    if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0
                            ), name='act_ev_current_ch')
 
         self.m.addConstrs((act_current_ev_dis[p, i, t] == current_ev_dis[p, i, t] * omega_dis[p, i, t]
@@ -357,11 +362,11 @@ class EV_City_Math_Model():
         #                                   name=f'ev_departure_energy.{p}.{i}.{t}')
 
         # Objective function
-        self.m.setObjective(power_setpoints.sum() + power_tr_ch.sum()-power_tr_dis.sum(),
-                            GRB.MAXIMIZE)
-
-        # self.m.setObjective(omega_ch.sum(),
+        # self.m.setObjective(power_setpoints.sum() + power_tr_ch.sum()-power_tr_dis.sum(),
         #                     GRB.MAXIMIZE)
+
+        self.m.setObjective(power_error.sum(),
+                            GRB.MINIMIZE)
 
         # print constraints
         self.m.write("model.lp")
@@ -377,9 +382,16 @@ class EV_City_Math_Model():
         for t in range(self.sim_length):
             print(
                 f'------------------ Time {t} ------------------------------------------- ')
-            print(f'Current cs: {current_cs_ch[0, t].x:.2f} {current_cs_dis[0, t].x:.2f} ')            
-            for p in range(self.number_of_ports_per_cs):
-                for i in range(self.n_cs):
+            print(f'Power setpoint: {power_setpoints[t]:.2f} kW')
+            for tr in range(self.n_transformers):
+                print(
+                    f'Power: {(power_tr_ch[tr, t].x - power_tr_dis[tr, t].x):.2f} kW')
+
+            for i in range(self.n_cs):
+                print(
+                    f'CS.{i}: {current_cs_ch[i, t].x:.2f} {current_cs_dis[i, t].x:.2f} ')
+
+                for p in range(self.number_of_ports_per_cs):
 
                     print(f'Port {p} :'
                           f' Energy {energy[p, i, t].x:.2f} |' +
