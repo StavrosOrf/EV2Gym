@@ -47,8 +47,13 @@ class EV_City_Math_Model():
         ev_max_energy = replay.ev_max_energy
         # ev_min_energy = replay.ev_min_energy
         ev_max_ch_power = replay.ev_max_ch_power  # * self.dt
+        # replace 0 with 100 to avoid division by zero
+        # ev_max_ch_power = np.where(ev_max_ch_power == 0, 100, ev_max_ch_power)
+
         # ev_min_ch_power = replay.ev_min_ch_power * self.dt
         ev_max_dis_power = replay.ev_max_dis_power  # * self.dt
+        # replace 0 with 100 to avoid division by zero
+        # ev_max_dis_power = np.where(ev_max_dis_power == 0, 100, ev_max_dis_power)
         # ev_min_dis_power = replay.ev_min_dis_power * self.dt
         u = replay.u
         energy_at_arrival = replay.energy_at_arrival
@@ -82,7 +87,7 @@ class EV_City_Math_Model():
 
         act_current_ev_dis = self.m.addVars(self.number_of_ports_per_cs,
                                             self.n_cs,
-                                            self.sim_length,                                            
+                                            self.sim_length,
                                             vtype=GRB.CONTINUOUS,
                                             name='act_current_ev_dis')
         act_current_ev_ch = self.m.addVars(self.number_of_ports_per_cs,
@@ -126,9 +131,9 @@ class EV_City_Math_Model():
                                     vtype=GRB.CONTINUOUS,
                                     name='current_tr')
 
-        power_total = self.m.addVars(self.sim_length,
-                                     vtype=GRB.CONTINUOUS,
-                                     name='power_total')
+        # power_total = self.m.addVars(self.sim_length,
+        #                              vtype=GRB.CONTINUOUS,
+        #                              name='power_total')
         # act_power_total = self.m.addVars(self.sim_length,
         #                              vtype=GRB.CONTINUOUS,
         #                              name='act_power_total')
@@ -156,9 +161,9 @@ class EV_City_Math_Model():
                 current_tr[i, t] = gp.quicksum(current_cs[m, t]
                                                for m in range(self.n_cs)
                                                if cs_transformer[m] == i)
-                # power_tr[i, t] = gp.quicksum(power_cs_ch[m, t] + power_cs_dis[m, t]
-                #                              for m in range(self.n_cs)
-                #                              if cs_transformer[m] == i)
+                power_tr[i, t] = gp.quicksum(current_tr[i, t] * voltages[i]
+                                             for m in range(self.n_cs)
+                                             if cs_transformer[m] == i)
                 # power_tr[i, t] = current_tr[i, t] * voltages[i]
 
         # for t in range(self.sim_length):
@@ -182,30 +187,21 @@ class EV_City_Math_Model():
         # self.m.addConstrs((power_total[t] == power_tr.sum('*',t) - power_setpoints[t]
         #                 #    for i in range(self.n_transformers)
         #                    for t in range(self.sim_length)), name='power')
-        for t in range(self.sim_length):
-            power_total[t] = (power_setpoints[t] - gp.quicksum(power_tr[i, t]
-                                          for i in range(self.n_transformers)))**2
-            # self.m.addConstr(act_power_total[t] == gp.abs_(power_total[t]))
+        # for t in range(self.sim_length):
+        #     # power_total[t] = (power_setpoints[t] - gp.quicksum(power_tr[i, t]
+        #     #                               for i in range(self.n_transformers)))**2
+        #     power_total[t] = gp.quicksum(power_tr[i, t]
+        #                                  for i in range(self.n_transformers))
+        # self.m.addConstr(act_power_total[t] == gp.abs_(power_total[t]))
 
-        self.m.addConstrs((power_tr[i, t] == current_tr[i, t] * voltages[i]
-                           for i in range(self.n_transformers)
-                           for t in range(self.sim_length)), name='power_tr')
-
-        # charging station total power output (sum of ports) constraint
-        # self.m.addConstrs((power_cs_dis[i, t] == power_ev_dis.sum('*', i, t)
-        #                    for i in range(self.n_cs)
-        #                    for t in range(self.sim_length)), name='cs_power_output_dis')
-        # self.m.addConstrs((power_cs_ch[i, t] == power_ev_ch.sum('*', i, t)
-        #                    for i in range(self.n_cs)
-        #                    for t in range(self.sim_length)), name='cs_power_output_ch')
+        # self.m.addConstrs((power_tr[i, t] == current_tr[i, t] * voltages[i]
+        #                    for i in range(self.n_transformers)
+        #                    for t in range(self.sim_length)), name='power_tr')
 
         # charging station total current output (sum of ports) constraint
-        self.m.addConstrs((current_cs[i, t] == act_current_ev_dis.sum('*', i, t) + act_current_ev_ch.sum('*', i, t)
+        self.m.addConstrs((current_cs[i, t] == -act_current_ev_dis.sum('*', i, t) + act_current_ev_ch.sum('*', i, t)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)), name='cs_current_output')
-        # self.m.addConstrs((current_cs_ch[i, t] == current_ev_ch.sum('*', i, t)
-        #                    for i in range(self.n_cs)
-        #                    for t in range(self.sim_length)), name='cs_current_output_ch')
 
         # charging station current output constraint
         self.m.addConstrs((current_cs[i, t] >= port_max_discharge_current[i]
@@ -218,82 +214,63 @@ class EV_City_Math_Model():
         self.m.addConstrs((act_current_ev_ch[p, i, t] == current_ev_ch[p, i, t] * omega_ch[p, i, t]
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
-                           for t in range(self.sim_length)), name='act_ev_current_ch')
+                           for t in range(self.sim_length)
+                        #    if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0
+                           ), name='act_ev_current_ch')
 
         self.m.addConstrs((act_current_ev_dis[p, i, t] == current_ev_dis[p, i, t] * omega_dis[p, i, t]
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
-                           for t in range(self.sim_length)), name='act_ev_current_dis')
+                           for t in range(self.sim_length)
+                           #    if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0
+                           ), name='act_ev_current_dis')
 
         # ev current output constraint
-        self.m.addConstrs((act_current_ev_ch[p, i, t] >= port_min_charge_current[i] * omega_ch[p, i, t]
+        self.m.addConstrs((current_ev_ch[p, i, t] >= port_min_charge_current[i]  # * omega_ch[p, i, t]
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
-                           for t in range(self.sim_length)), name='ev_current_ch_limit_min')
-        self.m.addConstrs((act_current_ev_dis[p, i, t] <= port_min_discharge_current[i] * omega_dis[p, i, t]
+                           for t in range(self.sim_length)
+                           #    if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0
+                           ), name='ev_current_ch_limit_min')
+        self.m.addConstrs((current_ev_dis[p, i, t] >= -port_min_discharge_current[i]  # * omega_dis[p, i, t]
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
-                           for t in range(self.sim_length)), name='ev_current_dis_limit_min')
+                           for t in range(self.sim_length)
+                           #    if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0
+                           ), name='ev_current_dis_limit_min')
 
-        # self.m.addConstrs((current_cs_ch[i, t] <= port_max_charge_current[i]
-        #                    for i in range(self.n_cs)
-        #                    for t in range(self.sim_length)), name='cs_curent_ch_limit_max')
-        # self.m.addConstrs((current_cs_ch[i, t] >= port_min_charge_current[i]
-        #                    for i in range(self.n_cs)
-        #                    for t in range(self.sim_length)), name='cs_current_ch_limit_min')
-
-        # Power ev definition
-        # self.m.addConstrs((power_ev_ch[p, i, t] == current_ev_ch[p, i, t]
-        #                    * voltages[i] * cs_ch_efficiency[i, t] * omega[p, i, t]
-        #                    for p in range(self.number_of_ports_per_cs)
-        #                    for i in range(self.n_cs)
-        #                    for t in range(self.sim_length)
-        #                    if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0),
-        #                   name='ev_ch_power_def')
-        # self.m.addConstrs((power_ev_dis[p, i, t] == current_ev_dis[p, i, t]
-        #                    * voltages[i] * cs_dis_efficiency[i, t] * omega[p, i, t]
-        #                    for p in range(self.number_of_ports_per_cs)
-        #                    for i in range(self.n_cs)
-        #                    for t in range(self.sim_length)
-        #                    if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0),
-        #                   name='ev_dis_power_def')
-        # for p in range(self.number_of_ports_per_cs):
-        #     for i in range(self.n_cs):
-        #         for t in range(self.sim_length):
-        #             if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0:
-        # power_ev_dis[p, i, t] = current_ev_dis[p, i, t] * voltages[i] * cs_dis_efficiency[i, t] * omega[p, i, t]
-        # power_ev_ch[p, i, t] = current_ev_ch[p, i, t] * voltages[i] * cs_ch_efficiency[i, t] * omega[p, i, t]
-
-        # ev max charging power constraint
+        # ev max charging current constraint
         self.m.addConstrs((current_ev_ch[p, i, t] <= ev_max_ch_power[p, i, t]/voltages[i]
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)
-                           if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0),
-                          name='ev_ch_power_max')
+                           if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0
+                           ),
+                          name='ev_current_ch_limit_max')
 
-        # ev max discharging power constraint
-        self.m.addConstrs((current_ev_dis[p, i, t] >= ev_max_dis_power[p, i, t]/voltages[i]
+        # ev max discharging current constraint
+        self.m.addConstrs((current_ev_dis[p, i, t] <= -ev_max_dis_power[p, i, t]/voltages[i]
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)
-                           if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0),
-                          name='ev_dis_power_max')
+                           if u[p, i, t] == 1 and ev_arrival[p, i, t] == 0
+                           ),
+                          name='ev_current_dis_limit_max')
 
         # ev charge power if empty port constraint
         for t in range(self.sim_length):
             for i in range(self.n_cs):
                 for p in range(self.number_of_ports_per_cs):
                     if u[p, i, t] == 0 or ev_arrival[p, i, t] == 1:
-                        self.m.addLConstr((act_current_ev_ch[p, i, t] == 0),
-                                          name=f'ev_empty_port_ch.{p}.{i}.{t}')
-                        self.m.addLConstr((act_current_ev_dis[p, i, t] == 0),
-                                          name=f'ev_empty_port_dis.{p}.{i}.{t}')
+                        #     self.m.addLConstr((act_current_ev_ch[p, i, t] == 0),
+                        #                       name=f'ev_empty_port_ch.{p}.{i}.{t}')
+                        #     self.m.addLConstr((act_current_ev_dis[p, i, t] == 0),
+                        #                       name=f'ev_empty_port_dis.{p}.{i}.{t}')
 
-                        # self.m.addLConstr((omega_ch[p, i, t] == 0),
-                        #                   name=f'omega_empty_port_ch.{p}.{i}.{t}')
-                        # self.m.addLConstr((omega_dis[p, i, t] == 0),
-                        #                     name=f'omega_empty_port_dis.{p}.{i}.{t}')
+                        self.m.addLConstr((omega_ch[p, i, t] == 0),
+                                          name=f'omega_empty_port_ch.{p}.{i}.{t}')
+                        self.m.addLConstr((omega_dis[p, i, t] == 0),
+                                          name=f'omega_empty_port_dis.{p}.{i}.{t}')
 
                     if u[p, i, t] == 0 and t_dep[p, i, t] == 0:
                         self.m.addLConstr(energy[p, i, t] == 0,
@@ -310,7 +287,7 @@ class EV_City_Math_Model():
 
                     if u[p, i, t-1] == 1:
                         self.m.addConstr(energy[p, i, t] == (energy[p, i, t-1] +
-                                                             act_current_ev_ch[p, i, t] * voltages[i] * cs_ch_efficiency[i, t] * dt +
+                                                             act_current_ev_ch[p, i, t] * voltages[i] * cs_ch_efficiency[i, t] * dt -
                                                              act_current_ev_dis[p, i, t] * voltages[i] * cs_dis_efficiency[i, t] * dt),
                                          name=f'ev_energy.{p}.{i}.{t}')
 
@@ -331,16 +308,16 @@ class EV_City_Math_Model():
         #                    for i in range(self.n_cs)
         #                    for t in range(self.sim_length)), name='ev_power_mode_1')
 
-        # self.m.addConstrs((omega_dis[p, i, t] * omega_ch[p, i, t] == 0
-        #                    for p in range(self.number_of_ports_per_cs)
-        #                    for i in range(self.n_cs)
-        #                    for t in range(self.sim_length)), name='ev_power_mode_2')
-
-        # Power output of CS constraint
-        self.m.addConstrs((act_current_ev_ch[p, i, t] * act_current_ev_dis[p, i, t] == 0
+        self.m.addConstrs((omega_dis[p, i, t] * omega_ch[p, i, t] == 0
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
-                           for t in range(self.sim_length)), name='power_mode')
+                           for t in range(self.sim_length)), name='ev_power_mode_2')
+
+        # Power output of CS constraint
+        # self.m.addConstrs((act_current_ev_ch[p, i, t] * act_current_ev_dis[p, i, t] == 0
+        #                    for p in range(self.number_of_ports_per_cs)
+        #                    for i in range(self.n_cs)
+        #                    for t in range(self.sim_length)), name='power_mode')
 
         # time of departure of EVs
         # for t in range(self.sim_length):
@@ -352,8 +329,11 @@ class EV_City_Math_Model():
         #                                   name=f'ev_departure_energy.{p}.{i}.{t}')
 
         # Objective function
-        self.m.setObjective(power_total.sum(),
-                            GRB.MINIMIZE)
+        self.m.setObjective(power_tr.sum(),
+                            GRB.MAXIMIZE)
+
+        # self.m.setObjective(omega_ch.sum(),
+        #                     GRB.MAXIMIZE)
 
         # print constraints
         self.m.write("model.lp")
@@ -367,17 +347,19 @@ class EV_City_Math_Model():
         self.ev_max_dis_power = ev_max_dis_power
 
         for t in range(self.sim_length):
-            print(f'------------------ Time {t} ------------------------------------------------------ ')
+            print(
+                f'------------------ Time {t} ------------------------------------------- ')
+            print(f'Current cs: {current_cs[0, t].x:.2f}')            
             for p in range(self.number_of_ports_per_cs):
                 for i in range(self.n_cs):
 
                     print(f'Port {p} :'
-                        f' Energy {energy[p, i, t].x:.2f} |' +                        
-                        f' Ch {current_ev_ch[p, i, t].x:.2f}' +
-                        f' Dis {current_ev_dis[p, i, t].x:.2f}|' +
-                        f' o_ch {omega_ch[p, i, t].x:4.1f}' +
-                        f' o_dis {omega_dis[p, i, t].x:4.1f}|' +
-                        f' u {u[p, i, t]:4.1f}')
+                          f' Energy {energy[p, i, t].x:.2f} |' +
+                          f' Ch {current_ev_ch[p, i, t].x:.2f}' +
+                          f' o_ch {omega_ch[p, i, t].x:2.0f}  -  ' +
+                          f' Dis {current_ev_dis[p, i, t].x:.2f}' +
+                          f' o_dis {omega_dis[p, i, t].x:2.0f}|' +
+                          f' u {u[p, i, t]:4.1f}')
         print(
             f'Is MIP?: {self.m.IsMIP}, IsMultiObj?: {self.m.IsMultiObj}, Is QCP?: {self.m.IsQCP}, Is QP?: {self.m.IsQP}')
         if self.m.status != GRB.Status.OPTIMAL:
