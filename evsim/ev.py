@@ -104,6 +104,7 @@ class EV():
         '''
         self.current_capacity = self.battery_capacity_at_arrival
         self.current_power = 0
+        self.actual_current = 0        
         self.charging_cycles = 0
         self.previous_power = 0
         self.required_power = self.battery_capacity - self.battery_capacity_at_arrival

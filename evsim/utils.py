@@ -171,8 +171,7 @@ def ev_city_plot(ev_env):
 
         for port in range(cs.n_ports):
             df[port] = ev_env.port_current[port, cs.id, :]
-            # create 2 dfs, one for positive power and one for negative
-
+            # create 2 dfs, one for positive power and one for negative        
         df_pos = df.copy()
         df_pos[df_pos < 0] = 0
         df_neg = df.copy()
@@ -492,7 +491,7 @@ def spawn_EV(ev_env, cs_id):
 
         time_of_stay = np.random.choice(
             np.arange(0, 48, 1), 1, p=ev_env.time_of_connection_vs_hour[hour, :])/2
-        time_of_stay = time_of_stay[0] * 60 / ev_env.timescale
+        time_of_stay = time_of_stay[0] * 60 / ev_env.timescale + 1
 
         # Alternative method for time of stay
         # time_of_stay = ev_env.df_connection_time[scenario].iloc[np.random.randint(
@@ -528,5 +527,6 @@ def spawn_EV(ev_env, cs_id):
                       earlier_time_of_departure=int(
                           time_of_stay + ev_env.current_step + 1),
                       ev_phases=3,
+                      transition_soc=0.999, #
                       timescale=ev_env.timescale,
                       simulation_length=ev_env.simulation_length,)

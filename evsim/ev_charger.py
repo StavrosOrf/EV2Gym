@@ -144,11 +144,12 @@ class EV_Charger:
             assert action >= -1 and action <= 1
 
             if action == 0 and self.evs_connected[i] is not None:
-                self.evs_connected[i].step(0,self.voltage)
+                actual_power, actual_amps = self.evs_connected[i].step(0,self.voltage)
+                # actual_power, actual_amps = 0, 0
 
             elif action > 0:
                 amps = action * self.max_charge_current
-                if amps < self.min_charge_current:
+                if amps < self.min_charge_current-0.01:                    
                     amps = 0
 
                 actual_power, actual_amps = self.evs_connected[i].step(
@@ -163,10 +164,10 @@ class EV_Charger:
 
             elif action < 0:
                 if not self.bi_directional:
-                    actual_power, actual_power = 0, 0
+                    actual_amps, actual_power = 0, 0
                 else:
                     amps = action * abs(self.max_charge_current)
-                    if amps > self.min_discharge_current:
+                    if amps > self.min_discharge_current-0.01:
                         amps = self.min_discharge_current
 
                     actual_power, actual_amps = self.evs_connected[i].step(
@@ -183,11 +184,11 @@ class EV_Charger:
                 raise Exception(
                     f'sum of amps {self.current_total_amps} is higher than max charge current {self.max_charge_current}')
 
-            # if self.verbose and self.evs_connected[i] is not None:
-            #     print(f'Actual power: {actual_power} kW' +
-            #           f' | Actual amps: {actual_amps} A' +
-            #           f' | Action: {action}'
-            #           )
+            if self.evs_connected[i] is not None:
+                print(f'Actual energy: {actual_power:.2f} kWh' +
+                      f' | Actual amps: {actual_amps:.2f} A' +
+                      f' | Action: {action}'
+                      )
 
         self.total_profits += profit
 

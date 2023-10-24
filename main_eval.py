@@ -9,9 +9,9 @@ if __name__ == "__main__":
 
     verbose = False
     n_transformers = 2
-    number_of_charging_stations = 2
-    steps = 40  # 288 steps = 1 day with 5 minutes per step
-    timescale = 5  # (5 minutes per step)
+    number_of_charging_stations = 20
+    steps = 50  # 288 steps = 1 day with 5 minutes per step
+    timescale = 15  # (5 minutes per step)
     save_plots = True
 
     replay_path = "replay/replay_ev_city_50_2023-07-27_10-12.pkl"
@@ -20,7 +20,8 @@ if __name__ == "__main__":
     replay_path = "replay/replay_ev_city_10_2023-10-23_19-45-33-725620.pkl"
     replay_path = "replay/replay_ev_city_20_2023-10-23_21-10-12-143383.pkl"
     replay_path = "replay/replay_ev_city_40_2023-10-24_14-03-30-872896.pkl"
-    replay_path = "./replay/replay_ev_city_40_2023-10-24_15-08-34-408719.pkl"
+    replay_path = "replay/replay_ev_city_10_2023-10-23_19-44-48-885287.pkl"
+    replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
                          number_of_ports_per_cs=2,
@@ -34,6 +35,7 @@ if __name__ == "__main__":
                          timescale=timescale,
                          save_plots=True,
                          score_threshold=0,
+                         hour=(10, 0),
                          scenario='public',
                          heterogeneous_specs=False,
                          verbose=verbose,)
@@ -84,6 +86,7 @@ if __name__ == "__main__":
                          generate_rnd_game=False,
                          simulation_length=steps,
                          timescale=timescale,
+                         score_threshold=0,
                          save_plots=True,
                          verbose=verbose,)
     state = env.reset()
