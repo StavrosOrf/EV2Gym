@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    n_transformers = 2
-    number_of_charging_stations = 20
-    steps = 50  # 288 steps = 1 day with 5 minutes per step
+    n_transformers = 1
+    number_of_charging_stations = 1000
+    steps = 96*7  # 288 steps = 1 day with 5 minutes per step
     timescale = 15  # (5 minutes per step)
     save_plots = True
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     # env.plot()
     
-    # exit()
+    exit()
     # Solve optimally
     math_model = ev_city_power_tracker_model.EV_City_Math_Model(sim_file_path=new_replay_path)
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")

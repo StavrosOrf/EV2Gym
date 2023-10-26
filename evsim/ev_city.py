@@ -467,8 +467,8 @@ class EVCity(gym.Env):
                 Carefull: if generate_rnd_game is True, 
                 the simulation might end up in infeasible problem
                 """
-            if self.verbose:
-                print_statistics(self)
+            # if self.verbose:
+            print_statistics(self)
 
             if any(score < self.score_threshold for score in user_satisfaction_list):
                 print(f"User satisfaction score below threshold of {self.score_threshold}, {self.current_step} timesteps\n") 
