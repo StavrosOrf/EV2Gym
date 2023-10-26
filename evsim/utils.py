@@ -405,6 +405,8 @@ def print_statistics(ev_env):
 
     print("\n\n==============================================================")
     print("Simulation statistics:")
+    for cs in ev_env.charging_stations:
+        print(cs)
     print(f'  - Total EVs spawned: {ev_env.total_evs_spawned}')
     print(f'  - Total EVs served: {total_ev_served}')
     print(f'  - Total profits: {total_profits*100:.2f} €')
@@ -415,8 +417,7 @@ def print_statistics(ev_env):
     print(
         f'  - Total energy discharged: {total_energy_discharged:.1f} kWh\n')
 
-    for cs in ev_env.charging_stations:
-        print(cs)
+
     print("==============================================================\n\n")
 
 

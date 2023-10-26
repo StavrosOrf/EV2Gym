@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     verbose = False
     n_transformers = 1
-    number_of_charging_stations = 1000
+    number_of_charging_stations = 3000
     steps = 96*7  # 288 steps = 1 day with 5 minutes per step
     timescale = 15  # (5 minutes per step)
     save_plots = True
@@ -35,7 +35,7 @@ if __name__ == "__main__":
                          timescale=timescale,
                          save_plots=True,
                          score_threshold=0,
-                         hour=(10, 0),
+                        #  hour=(10, 0),
                          scenario='public',
                          heterogeneous_specs=False,
                          verbose=verbose,)

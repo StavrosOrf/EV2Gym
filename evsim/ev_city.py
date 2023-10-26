@@ -23,6 +23,7 @@ from .transformer import Transformer
 from .replay import EvCityReplay
 from .utils import ev_city_plot, get_statistics, print_statistics, visualize, spawn_EV
 
+
 class EVCity(gym.Env):
 
     def __init__(self,
@@ -30,14 +31,14 @@ class EVCity(gym.Env):
                  static_prices=False,
                  load_prices_from_replay=False,
                  static_ev_spawn_rate=False,
-                 ev_spawn_rate = 0.85,
+                 ev_spawn_rate=0.85,
                  load_ev_from_replay=False,
                  load_from_replay_path=None,
                  empty_ports_at_end_of_simulation=True,
                  simulate_grid=False,
                  scenario="public",
                  heterogeneous_specs=False,
-                 replay_path = './replay/',
+                 replay_path='./replay/',
                  generate_rnd_game=False,  # generate a random game without terminating conditions
                  case='default',
                  number_of_ports_per_cs=2,
@@ -66,20 +67,21 @@ class EVCity(gym.Env):
         self.save_plots = save_plots
         self.verbose = verbose  # Whether to print the simulation progress or not
         self.simulation_length = simulation_length
-        self.replay_path = replay_path        
-    
+        self.replay_path = replay_path
+
         self.score_threshold = score_threshold
 
         self.seed = seed
 
-        #set random seed
+        # set random seed
         # np.random.seed(self.seed)
-        
+
         if load_from_replay_path is not None:
             with open(load_from_replay_path, 'rb') as file:
                 self.replay = pickle.load(file)
 
-            sim_name = self.replay.replay_path.split('replay_')[-1].split('.')[0]
+            sim_name = self.replay.replay_path.split(
+                'replay_')[-1].split('.')[0]
             self.sim_name = sim_name + '_replay'
             # self.save_replay = False
             self.sim_date = self.replay.sim_date
@@ -123,7 +125,8 @@ class EVCity(gym.Env):
 
         self.sim_starting_date = self.sim_date
 
-        self.sim_name = extra_sim_name + self.sim_name if extra_sim_name is not None else self.sim_name
+        self.sim_name = extra_sim_name + \
+            self.sim_name if extra_sim_name is not None else self.sim_name
         # Simulate grid
         if self.simulate_grid:
             self.grid = Grid(charging_stations=self.cs, case=case)
@@ -188,21 +191,26 @@ class EVCity(gym.Env):
             os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
 
         if self.save_replay:
-            self.EVs = []  # Store all of the EVs in the simulation that arrived        
+            self.EVs = []  # Store all of the EVs in the simulation that arrived
 
     def _load_ev_spawn_scenarios(self):
         '''Loads the EV spawn scenarios of the simulation'''
 
-        self.df_arrival_week = pd.read_csv('.\data\distribution-of-arrival.csv') #weekdays
-        self.df_arrival_weekend = pd.read_csv('.\data\distribution-of-arrival-weekend.csv') #weekends
-        self.df_connection_time = pd.read_csv('.\data\distribution-of-connection-time.csv') #connection time
-        self.df_energy_demand = pd.read_csv('.\data\distribution-of-energy-demand.csv') #energy demand                        
-        self.time_of_connection_vs_hour = np.load('.\data\Time_of_connection_vs_hour.npy')
-        
+        self.df_arrival_week = pd.read_csv(
+            '.\data\distribution-of-arrival.csv')  # weekdays
+        self.df_arrival_weekend = pd.read_csv(
+            '.\data\distribution-of-arrival-weekend.csv')  # weekends
+        self.df_connection_time = pd.read_csv(
+            '.\data\distribution-of-connection-time.csv')  # connection time
+        self.df_energy_demand = pd.read_csv(
+            '.\data\distribution-of-energy-demand.csv')  # energy demand
+        self.time_of_connection_vs_hour = np.load(
+            '.\data\Time_of_connection_vs_hour.npy')
+
     def _load_power_setpoints(self):
         if self.load_from_replay_path is None:
-            return np.ones(self.simulation_length) * 20 #kW
-        
+            return np.ones(self.simulation_length) * 20  # kW
+
         return self.replay.power_setpoints
 
     def _load_transformers(self):
@@ -269,7 +277,7 @@ class EVCity(gym.Env):
         if not self.load_prices_from_replay:
             if self.static_prices:
                 return np.ones((self.cs, self.simulation_length)) * -0.01, \
-                np.ones((self.cs, self.simulation_length)) * 0.1
+                    np.ones((self.cs, self.simulation_length)) * 0.1
 
         if self.load_from_replay_path is None or not self.load_prices_from_replay:
             charge_prices = np.random.normal(
@@ -298,7 +306,7 @@ class EVCity(gym.Env):
         if self.load_from_replay_path is None:
             if not self.static_ev_spawn_rate:
                 self.spawn_rate = np.random.uniform(0.3, 0.85)
-            
+
         # self.sim_name = f'ev_city_{self.simulation_length}_' + \
         # f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
 
@@ -316,22 +324,27 @@ class EVCity(gym.Env):
         self.current_evs_parked = 0
 
         self.transformer_amps = np.zeros([self.number_of_transformers,
-                                           self.simulation_length])
+                                          self.simulation_length])
 
         self.cs_power = np.zeros([self.cs, self.simulation_length])
         self.cs_current = np.zeros([self.cs, self.simulation_length])
-        self.port_power = np.zeros([self.number_of_ports,   
-                                    self.cs,
-                                    self.simulation_length])
+        # self.port_power = np.zeros([self.number_of_ports,
+        #                             self.cs,
+        #                             self.simulation_length],
+        #                            dtype=np.float16)
         self.port_current = np.zeros([self.number_of_ports,
-                                        self.cs,
-                                        self.simulation_length])
+                                      self.cs,
+                                      self.simulation_length],
+                                     dtype=np.float16,
+                                     )
         self.port_energy_level = np.zeros([self.number_of_ports,
                                            self.cs,
-                                           self.simulation_length])
-        self.port_charging_cycles = np.zeros([self.number_of_ports,
-                                              self.cs,
-                                              self.simulation_length])
+                                           self.simulation_length],
+                                          dtype=np.float16)
+        # self.port_charging_cycles = np.zeros([self.number_of_ports,
+        #                                       self.cs,
+        #                                       self.simulation_length],
+        #                                      dtype=np.float16)
         self.port_arrival = dict({f'{j}.{i}': []
                                   for i in range(self.number_of_ports)
                                   for j in range(self.cs)})
@@ -379,8 +392,9 @@ class EVCity(gym.Env):
 
             self.transformers[cs.connected_transformer].step(
                 cs.current_total_amps)
-            
-            self.current_power_setpoints[self.current_step] += cs.current_power_output * self.timescale /60            
+
+            self.current_power_setpoints[self.current_step] += cs.current_power_output * \
+                self.timescale / 60
 
             total_costs += costs
             total_invalid_action_punishment += invalid_action_punishment
@@ -391,7 +405,7 @@ class EVCity(gym.Env):
             # Spawn EVs
             if self.ev_profiles is None:
                 # Spawn EVs based on the spawn rate on specific chargers with random time of departure, and soc
-                for _ in range (n_ports - cs.n_evs_connected):
+                for _ in range(n_ports - cs.n_evs_connected):
                     ev = spawn_EV(self, cs.id)
                     if ev is None:
                         continue
@@ -448,7 +462,7 @@ class EVCity(gym.Env):
             self.visualize()
 
         return self.check_termination(user_satisfaction_list, reward)
-    
+
     def visualize(self):
         visualize(self)
 
@@ -471,28 +485,28 @@ class EVCity(gym.Env):
             print_statistics(self)
 
             if any(score < self.score_threshold for score in user_satisfaction_list):
-                print(f"User satisfaction score below threshold of {self.score_threshold}, {self.current_step} timesteps\n") 
+                print(
+                    f"User satisfaction score below threshold of {self.score_threshold}, {self.current_step} timesteps\n")
             elif any(tr.is_overloaded() for tr in self.transformers):
-                print(f"Transformer overloaded, {self.current_step} timesteps\n")
+                print(
+                    f"Transformer overloaded, {self.current_step} timesteps\n")
             else:
-                print(f"Episode finished after {self.current_step} timesteps\n")
+                print(
+                    f"Episode finished after {self.current_step} timesteps\n")
 
             if self.save_replay:
                 self.save_sim_replay()
 
-            if self.save_plots:                
+            if self.save_plots:
                 ev_city_plot(self)
 
             self.done = True
 
             # create an objext with statistics about the simulation for vizualization
 
-
-
             return self._get_observation(), reward, True, get_statistics(self)
         else:
             return self._get_observation(), reward, False, None
-        
 
     def save_sim_replay(self):
         '''Saves the simulation data in a pickle file'''
@@ -508,15 +522,15 @@ class EVCity(gym.Env):
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output
-            self.cs_current[cs.id,self.current_step] = cs.current_total_amps
+            self.cs_current[cs.id, self.current_step] = cs.current_total_amps
 
             for port in range(cs.n_ports):
                 ev = cs.evs_connected[port]
                 if ev is not None:
-                    self.port_power[port, cs.id,
-                                    self.current_step] = ev.current_power
+                    # self.port_power[port, cs.id,
+                    #                 self.current_step] = ev.current_power
                     self.port_current[port, cs.id,
-                                    self.current_step] = ev.actual_current
+                                      self.current_step] = ev.actual_current
                     self.port_energy_level[port, cs.id,
                                            self.current_step] = ev.current_capacity
 
@@ -551,11 +565,11 @@ class EVCity(gym.Env):
 
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''
-        reward = total_costs# - 0.5 
+        reward = total_costs  # - 0.5
         # print(f'total_costs: {total_costs}')
         # print(f'user_satisfaction_list: {user_satisfaction_list}')
         for score in user_satisfaction_list:
-            reward -= 100 * (1 - score) 
+            reward -= 100 * (1 - score)
 
         # Punish invalid actions (actions that try to charge or discharge when there is no EV connected)
         reward -= 2 * (invalid_action_punishment/self.number_of_ports)
