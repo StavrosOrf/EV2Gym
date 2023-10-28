@@ -22,7 +22,7 @@ from .ev import EV
 from .transformer import Transformer
 from .replay import EvCityReplay
 from .utils import ev_city_plot, get_statistics, print_statistics, visualize_step, spawn_EV
-from .loaders import _load_ev_spawn_scenarios, _load_power_setpoints, _load_transformers, _load_ev_charger_profiles, _load_ev_profiles, _load_electricity_prices
+from .loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
 
 
 class EVCity(gym.Env):
@@ -141,19 +141,19 @@ class EVCity(gym.Env):
                 self.number_of_transformers, size=self.cs)
 
         # Instatiate Transformers
-        self.transformers = _load_transformers(self)
+        self.transformers = load_transformers(self)
 
         # Instatiate Charging Stations
-        self.charging_stations = _load_ev_charger_profiles(self)
+        self.charging_stations = load_ev_charger_profiles(self)
 
         # Instatiate EV profiles if they exist
-        self.ev_profiles = _load_ev_profiles(self)
+        self.ev_profiles = load_ev_profiles(self)
 
         # Load Electricity prices for every charging station
-        self.charge_prices, self.discharge_prices = _load_electricity_prices(self)
+        self.charge_prices, self.discharge_prices = load_electricity_prices(self)
 
         # Load power setpoint of simulation
-        self.power_setpoints = _load_power_setpoints(self)
+        self.power_setpoints = load_power_setpoints(self)
         self.current_power_setpoints = np.zeros(self.simulation_length)
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
@@ -180,7 +180,7 @@ class EVCity(gym.Env):
         self.init_statistic_variables()
 
         if self.ev_profiles is None:
-            _load_ev_spawn_scenarios(self)
+            load_ev_spawn_scenarios(self)
 
         self.done = False
 

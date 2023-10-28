@@ -9,7 +9,7 @@ from .ev_charger import EV_Charger
 from .ev import EV
 from .transformer import Transformer
 
-def _load_ev_spawn_scenarios(env):
+def load_ev_spawn_scenarios(env):
     '''Loads the EV spawn scenarios of the simulation'''
 
     env.df_arrival_week = pd.read_csv(
@@ -23,13 +23,13 @@ def _load_ev_spawn_scenarios(env):
     env.time_of_connection_vs_hour = np.load(
         '.\data\Time_of_connection_vs_hour.npy')
 
-def _load_power_setpoints(env):
+def load_power_setpoints(env):
     if env.load_from_replay_path is None:
         return np.ones(env.simulation_length) * 20  # kW
 
     return env.replay.power_setpoints
 
-def _load_transformers(env):
+def load_transformers(env):
     '''Loads the transformers of the simulation
     If load_from_replay_path is None, then the transformers are created randomly
 
@@ -49,7 +49,7 @@ def _load_transformers(env):
 
     return transformers
 
-def _load_ev_charger_profiles(env):
+def load_ev_charger_profiles(env):
     '''Loads the EV charger profiles of the simulation
     If load_from_replay_path is None, then the EV charger profiles are created randomly
 
@@ -71,7 +71,7 @@ def _load_ev_charger_profiles(env):
 
     return env.replay.charging_stations
 
-def _load_ev_profiles(env):
+def load_ev_profiles(env):
     '''Loads the EV profiles of the simulation
     If load_from_replay_path is None, then the EV profiles are created randomly
 
@@ -83,7 +83,7 @@ def _load_ev_profiles(env):
     elif env.load_ev_from_replay:
         return env.replay.EVs
 
-def _load_electricity_prices(env):
+def load_electricity_prices(env):
     '''Loads the electricity prices of the simulation
     If load_from_replay_path is None, then the electricity prices are created randomly
 
