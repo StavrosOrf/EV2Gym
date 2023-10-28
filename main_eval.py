@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     verbose = False
     n_transformers = 1
-    number_of_charging_stations = 3000
+    number_of_charging_stations = 10
     steps = 96*7  # 288 steps = 1 day with 5 minutes per step
     timescale = 15  # (5 minutes per step)
     save_plots = True
@@ -34,6 +34,7 @@ if __name__ == "__main__":
                          simulation_length=steps,
                          timescale=timescale,
                          save_plots=True,
+                         lightweight_plots=True,
                          score_threshold=0,
                         #  hour=(10, 0),
                          scenario='public',
@@ -44,7 +45,7 @@ if __name__ == "__main__":
     # new_replay_path = replay_path
     
     state = env.reset()
-    env.visualize()
+    # env.visualize()
     rewards = []    
 
     for i in range(steps):        
