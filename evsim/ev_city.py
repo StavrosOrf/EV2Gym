@@ -420,9 +420,9 @@ class EVCity(gym.Env):
     def update_power_statistics(self):
         '''Updates the power statistics of the simulation'''
 
-        if not self.lightweight_plots:
-            for tr in self.transformers:
-                self.transformer_amps[tr.id, self.current_step] = tr.current_amps
+        # if not self.lightweight_plots:
+            # for tr in self.transformers:
+            #     self.transformer_amps[tr.id, self.current_step] = tr.current_amps
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output

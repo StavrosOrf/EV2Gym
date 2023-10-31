@@ -98,9 +98,9 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 - [x] Add power limit as part of the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
 - [x] Add **j number of ports** per charging station and include related constraints
 - [x] Add the battery behavior model 0-80 fast, 80-100 slow
-- [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
-- [ ] Create a highly heterogeneous EV/ EV Charger environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids) https://site.ieee.org/pes-iss/data-sets/#elec (check the 34 ev types dataset)
-- [ ] Improve the user satisfaction term
+- [x] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
+- [x] Create a highly heterogeneous EV/ EV Charger environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids) https://site.ieee.org/pes-iss/data-sets/#elec (check the 34 ev types dataset)
+- [x] Improve the user satisfaction term
 
 ## Limitations
 - The transformer power limit makes the problem harder to solve (more constraints) for gurobi
@@ -113,6 +113,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 ## Datasets
  - EV charging transactions: https://platform.elaad.io/download-data/
  - EV charging prices and transactions [Not free]: https://www.chargeprice.app/
+ - Day-ahaed prices 2015-2023 hourly https://ember-climate.org/data/data-tools/europe-power-prices/
 
 ## RL Benchmarks
  - DDPG: https://github.com/schneimo/ddpg-pytorch
