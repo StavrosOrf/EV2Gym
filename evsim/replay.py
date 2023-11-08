@@ -115,20 +115,23 @@ class EvCityReplay():
         # self.ev_des_energy = np.zeros([self.max_n_ports,
         #                                self.n_cs,
         #                                self.sim_length])  # desired energy of the ev, 0 if port is empty
+        self.max_energy_at_departure = np.zeros([self.max_n_ports,
+                                                self.n_cs,
+                                                self.sim_length])  # max energy of ev when only charging
 
         for i, ev in enumerate(env.EVs):
             port = ev.id
             cs_id = ev.location
             t_arr = ev.time_of_arrival
             original_t_dep = ev.earlier_time_of_departure
-            # print(f'EV {i} is at port {port} of CS {cs_id} from {t_arr} to {original_t_dep}')
+            # print(f'EV {i} is at port {port} of CS {cs_id} from {t_arr} to {original_t_dep}')            
 
             if t_arr >= self.sim_length:
                 continue
             if original_t_dep >= self.sim_length:
                 t_dep = self.sim_length
             else:
-                t_dep = original_t_dep
+                t_dep = original_t_dep                            
 
             self.ev_max_energy[port, cs_id, t_arr:t_dep] = ev.battery_capacity
             # self.ev_min_energy[port, cs_id, t_arr:t_dep] = ev.battery_capacity * ev.min_soc
@@ -145,7 +148,15 @@ class EvCityReplay():
                                    t_arr] = ev.battery_capacity_at_arrival
             self.ev_arrival[port, cs_id, t_arr] = 1
             if original_t_dep < self.sim_length:
-                self.t_dep[port, cs_id, t_dep] = 1
+                self.t_dep[port, cs_id, t_dep] = 1            
+                if ev.prev_capacity < ev.battery_capacity:
+                    self.max_energy_at_departure[port, cs_id, t_dep] = ev.prev_capacity-5
+                else:
+                    self.max_energy_at_departure[port, cs_id, t_dep] = ev.prev_capacity
+            else:
+                self.t_dep[port, cs_id, t_dep-1] = 1                            
+                self.max_energy_at_departure[port, cs_id, t_dep-1] = ev.prev_capacity
+            
                 # self.ev_des_energy[port, cs_id, t_dep] = ev.desired_capacity
 
         # print(f'u: {self.u}')

@@ -4,6 +4,7 @@ This file contains the loaders for the EV City environment.
 
 import numpy as np
 import pandas as pd
+import datetime
 
 from .ev_charger import EV_Charger
 from .ev import EV
@@ -90,18 +91,47 @@ def load_electricity_prices(env):
     Returns:
         - charge_prices: a matrix of size (number of charging stations, simulation length) with the charge prices
         - discharge_prices: a matrix of size (number of charging stations, simulation length) with the discharge prices'''
-    if not env.load_prices_from_replay:
-        if env.static_prices:
-            return np.ones((env.cs, env.simulation_length)) * -0.01, \
-                np.ones((env.cs, env.simulation_length)) * 0.1
 
-    if env.load_from_replay_path is None or not env.load_prices_from_replay:
-        charge_prices = np.random.normal(
-            -0.05, 0.05, size=(env.cs, env.simulation_length))
-        charge_prices = -1 * np.abs(charge_prices)
-        discharge_prices = np.random.normal(
-            0.1, 0.05, size=(env.cs, env.simulation_length))
-        discharge_prices = np.abs(discharge_prices)
-        return charge_prices, discharge_prices
+    if env.load_from_replay_path is not None and env.load_prices_from_replay:     
+        return env.replay.charge_prices, env.replay.discharge_prices
+    
+    #else load historical prices
+    data = pd.read_csv(r'.\data\Netherlands_day-ahead-2015-2023.csv', sep=',', header=0)
+    drop_columns = ['Country','Datetime (UTC)']
+    data.drop(drop_columns, inplace=True, axis=1)
+    data['year'] = pd.DatetimeIndex(data['Datetime (Local)']).year
+    data['month'] = pd.DatetimeIndex(data['Datetime (Local)']).month
+    data['day'] = pd.DatetimeIndex(data['Datetime (Local)']).day
+    data['hour'] = pd.DatetimeIndex(data['Datetime (Local)']).hour
 
-    return env.replay.charge_prices, env.replay.discharge_prices
+    #assume charge and discharge prices are the same
+    #assume prices are the same for all charging stations
+    
+    charge_prices = np.zeros((env.cs, env.simulation_length))
+    discharge_prices = np.zeros((env.cs, env.simulation_length))
+    #for every simulation step, take the price of the corresponding hour
+    sim_temp_date = env.sim_starting_date
+    for i in range(env.simulation_length):
+        
+        year = sim_temp_date.year
+        month = sim_temp_date.month
+        day = sim_temp_date.day
+        hour = sim_temp_date.hour
+        #find the corresponding price
+        try: 
+            charge_prices[:,i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
+                                    'Price (EUR/MWhe)'].iloc[0]/1000 #€/kWh
+            discharge_prices[:,i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
+                                    'Price (EUR/MWhe)'].iloc[0]/1000 #€/kWh
+        except IndexError:
+            print('Error: no price found for the given date and hour. Using 2022 prices instead.')
+            
+            year = 2022
+            charge_prices[:,i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
+                                    'Price (EUR/MWhe)'].iloc[0]/1000 #€/kWh
+            discharge_prices[:,i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
+                                    'Price (EUR/MWhe)'].iloc[0]/1000 #€/kWh
+        
+        #step to next 
+        sim_temp_date = sim_temp_date + datetime.timedelta(minutes=env.timescale)
+    return charge_prices, discharge_prices

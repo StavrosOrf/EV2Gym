@@ -360,9 +360,20 @@ def ev_city_plot(ev_env):
     fig_name = f'plots/{ev_env.sim_name}/Total_Aggregated_Power.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
-
+    
+    #plot prices
+    plt.figure(figsize=(20, 17))
+    plt.plot(ev_env.charge_prices[0,:], label='Charge prices (€/kW))')
+    plt.plot(ev_env.discharge_prices[0,:], label='Discharge prices (€/kW))')
+    plt.legend()
+    plt.grid(True, which='minor', axis='both')
+    plt.tight_layout()
+    fig_name = f'plots/{ev_env.sim_name}/Prices.png'
+    plt.savefig(fig_name, format='png',
+                dpi=60, bbox_inches='tight')
+    
     plt.close('all')
-
+    
 
 def get_statistics(ev_env):
     total_ev_served = np.array(
@@ -515,7 +526,7 @@ def spawn_EV(ev_env, cs_id):
                       battery_capacity=battery_capacity,
                       time_of_arrival=ev_env.current_step+1,
                       earlier_time_of_departure=int(
-                          time_of_stay + ev_env.current_step + 1),
+                          time_of_stay + ev_env.current_step + 3),
                       ev_phases=np.random.choice([1, 2, 3], p=[0.2, 0.1, 0.7]),
                       timescale=ev_env.timescale,
                       simulation_length=ev_env.simulation_length,)
@@ -526,7 +537,7 @@ def spawn_EV(ev_env, cs_id):
                       battery_capacity=battery_capacity,
                       time_of_arrival=ev_env.current_step+1,
                       earlier_time_of_departure=int(
-                          time_of_stay + ev_env.current_step + 1),
+                          time_of_stay + ev_env.current_step + 3),
                       ev_phases=3,
                       transition_soc=0.999, #
                       timescale=ev_env.timescale,

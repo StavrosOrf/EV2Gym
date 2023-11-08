@@ -4,7 +4,7 @@
 A V2X Simulation Environment for large scale EV charging optimization
 
 ## Use-Cases
-- [ ] Public residential chargers Power Management and Transformer capacity management (follow setpoint) the GreenFlux case
+- [ ] Public residential chargers Power Management and Transformer capacity management (follow setpoint)
 - [ ] Fast chargers capacity management
 - [ ] Office building chargers capacity management 100+ EVSEs
 
@@ -25,7 +25,7 @@ A V2X Simulation Environment for large scale EV charging optimization
   - [~] Then, enable dynamic prices (tested:works for 1 cs but makes learning slower)
   - [x] Then, enable dynamic EV spawn rate (works perfectly--tested for cs<4 )
   - [ ] Then, enable transformer aggregation (new reward should be designed)
-  - [ ] Then, enable dynamic transformer power level (because of grid constraints or because of very expensive energy "greenflux")
+  - [ ] Then, enable dynamic transformer power level (because of grid constraints or because of very expensive energy)
   - [~] Then, enable different spawn rates in each test case (under testing now, much harder to have very good solutions with DDPG)
   - [ ] Then, enable heterogeneous EVs and EV chargers 
 - [ ] Normalize reward based on the number of EVs in the parking lot (e.g., if there are 100 EVs, the reward should be divided by 100)

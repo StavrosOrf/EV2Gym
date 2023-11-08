@@ -14,29 +14,27 @@ import datetime
 import pickle
 import os
 
-from .grid import Grid
+# from .grid import Grid
 from .replay import EvCityReplay
 from .utils import ev_city_plot, get_statistics, print_statistics, visualize_step, spawn_EV
 from .loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
 
-
 class EVCity(gym.Env):
 
     def __init__(self,
-                 cs=None,
-                 static_prices=False,
+                 cs=None,                 
                  load_prices_from_replay=False,
                  static_ev_spawn_rate=False,
                  ev_spawn_rate=0.85,
-                 load_ev_from_replay=False,
-                 load_from_replay_path=None,
+                 load_ev_from_replay=False, # load EVs from replay file if true
+                 load_from_replay_path=None, # path of replay file to load
                  empty_ports_at_end_of_simulation=True,
                  simulate_grid=False,
                  scenario="public",
                  heterogeneous_specs=False,
                  replay_path='./replay/',
                  generate_rnd_game=False,  # generate a random game without terminating conditions
-                 case='default',
+                #  case='default',
                  number_of_ports_per_cs=2,
                  number_of_transformers=1,
                  score_threshold=1,
@@ -46,7 +44,7 @@ class EVCity(gym.Env):
                  seed=42,  # TODO: add seed
                  save_replay=True,
                  save_plots=True,
-                 lightweight_plots=True,
+                 lightweight_plots=False,
                  extra_sim_name=None,
                  verbose=False,
                  simulation_length=1000):
@@ -63,6 +61,8 @@ class EVCity(gym.Env):
         self.save_replay = save_replay
         self.save_plots = save_plots
         self.lightweight_plots = lightweight_plots
+        if cs > 100:
+            self.lightweight_plots = True
         self.verbose = verbose  # Whether to print the simulation progress or not
         self.simulation_length = simulation_length
         self.replay_path = replay_path
@@ -109,8 +109,7 @@ class EVCity(gym.Env):
                                               date[1],
                                               date[2],
                                               hour[0],
-                                              hour[1])
-            self.static_prices = static_prices
+                                              hour[1])            
             self.spawn_rate = ev_spawn_rate
             self.static_ev_spawn_rate = static_ev_spawn_rate
             self.replay = None
@@ -127,9 +126,10 @@ class EVCity(gym.Env):
             self.sim_name if extra_sim_name is not None else self.sim_name
         # Simulate grid
         if self.simulate_grid:
-            self.grid = Grid(charging_stations=self.cs, case=case)
-            self.cs_buses = self.grid.get_charging_stations_buses()
-            self.cs_transformers = self.grid.get_bus_transformers()
+            pass
+            # self.grid = Grid(charging_stations=self.cs, case=case)
+            # self.cs_buses = self.grid.get_charging_stations_buses()
+            # self.cs_transformers = self.grid.get_bus_transformers()
         else:
             self.cs_buses = [None] * self.cs
             self.cs_transformers = np.random.randint(
@@ -336,7 +336,7 @@ class EVCity(gym.Env):
                     index = self.charging_stations[ev.location].spawn_ev(ev)
                     if not self.lightweight_plots:
                         self.port_arrival[f'{ev.location}.{index}'].append(
-                            (self.current_step + 1, ev.earlier_time_of_departure))
+                            (self.current_step+1, ev.earlier_time_of_departure))
 
                     self.total_evs_spawned += 1
                     self.current_ev_arrived += 1

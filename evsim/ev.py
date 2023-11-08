@@ -92,6 +92,7 @@ class EV():
 
         # EV status
         self.current_capacity = battery_capacity_at_arrival  # kWh
+        self.prev_capacity = self.current_capacity
         self.current_power = 0  # kWh
         self.actual_current = 0  # A
         self.charging_cycles = 0
@@ -299,6 +300,7 @@ class EV():
             curr_soc -= abs(scaled_noise)
 
         dsoc = curr_soc - self.get_soc()
+        self.prev_capacity = self.current_capacity
         self.current_capacity = curr_soc * self.battery_capacity
 
         # For charging power and charging rate (current), we use the
@@ -327,9 +329,11 @@ class EV():
 
         if self.current_capacity + given_power < 0:
             self.current_power = -self.current_capacity  # * 60 / self.timescale
+            self.prev_capacity = self.current_capacity
             self.current_capacity = 0
         else:
             self.current_power = given_power  # * 60 / self.timescale
+            self.prev_capacity = self.current_capacity
             self.current_capacity += given_power
 
         self.required_power = self.required_power + self.current_power

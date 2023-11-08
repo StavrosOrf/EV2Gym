@@ -1,5 +1,5 @@
 from evsim import ev_city
-from evsim_math_model import ev_city_model, ev_city_power_tracker_model
+from evsim_math_model import ev_city_model, ev_city_power_tracker_model, ev_city_profit_maximization
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,6 +21,7 @@ if __name__ == "__main__":
     replay_path = "replay/replay_ev_city_20_2023-10-23_21-10-12-143383.pkl"
     replay_path = "replay/replay_ev_city_40_2023-10-24_14-03-30-872896.pkl"
     replay_path = "replay/replay_ev_city_10_2023-10-23_19-44-48-885287.pkl"
+    replay_path = "./replay/replay_ev_city_96_2023-11-08_16-12-41-874253_replay.pkl"
     replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
@@ -36,6 +37,7 @@ if __name__ == "__main__":
                          save_plots=True,
                          lightweight_plots=False,
                          score_threshold=0,
+                         date=(2023, 3, 17),
                         #  hour=(10, 0),
                          scenario='public',
                          heterogeneous_specs=False,
@@ -72,7 +74,8 @@ if __name__ == "__main__":
     
     # exit()
     # Solve optimally
-    math_model = ev_city_power_tracker_model.EV_City_Math_Model(sim_file_path=new_replay_path)
+    # math_model = ev_city_power_tracker_model.EV_City_Math_Model(sim_file_path=new_replay_path)
+    math_model = ev_city_profit_maximization.EV_City_Math_Model(sim_file_path=new_replay_path)
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")
     opt_actions = math_model.get_actions()
     print(f'Optimal actions: {opt_actions.shape}')
@@ -96,7 +99,7 @@ if __name__ == "__main__":
     for i in range(steps):        
         # all ports are charging instantly
         # print(f'Optimal actions: {opt_actions[:,:,i]}')
-        print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
+        # print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
         actions = opt_actions[:,:,i].T.reshape(-1)        
         if verbose:
             print(f' OptimalActions: {actions}')
