@@ -40,7 +40,7 @@ def load_power_setpoints(env,randomly):
 
     if randomly:
         inverse_prices = -1/env.charge_prices[0,:]
-        return power_setpoints*(inverse_prices*env.cs)*np.random.uniform(0.35,0.45,1)
+        return power_setpoints*(inverse_prices*env.cs)*np.random.uniform(0.3,0.4,1)
     else:
         raise NotImplementedError('Loading power setpoints from is not implemented yet')
 

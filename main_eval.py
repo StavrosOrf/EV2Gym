@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    n_transformers = 1
-    number_of_charging_stations = 1000
+    n_transformers = 200
+    number_of_charging_stations = 10000
     steps = 96  # 288 steps = 1 day with 5 minutes per step
     timescale = 15  # (5 minutes per step)
     save_plots = True
