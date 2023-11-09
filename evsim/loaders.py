@@ -5,6 +5,7 @@ This file contains the loaders for the EV City environment.
 import numpy as np
 import pandas as pd
 import datetime
+import random
 
 from .ev_charger import EV_Charger
 from .ev import EV
@@ -24,11 +25,26 @@ def load_ev_spawn_scenarios(env):
     env.time_of_connection_vs_hour = np.load(
         '.\data\Time_of_connection_vs_hour.npy')
 
-def load_power_setpoints(env):
-    if env.load_from_replay_path is None:
-        return np.ones(env.simulation_length) * 10  # kW
+def load_power_setpoints(env,randomly):
+    '''
+    Loads the power setpoints of the simulation based on the day-ahead prices'''
+    
+    #It is necessary to run the simulation first in order to get the ev_load_potential
+    if not randomly and env.load_from_replay_path is None:
+        raise ValueError('Cannot load power setpoints from day-ahead prices if load_from_replay_path is None')
+    
+    power_setpoints = np.ones(env.simulation_length)
+    
+    if env.load_from_replay_path:    
+        return env.replay.power_setpoints
 
-    return env.replay.power_setpoints
+    if randomly:
+        inverse_prices = -1/env.charge_prices[0,:]
+        return power_setpoints*(inverse_prices*env.cs)*np.random.uniform(0.35,0.45,1)
+    else:
+        raise NotImplementedError('Loading power setpoints from is not implemented yet')
+
+    
 
 def load_transformers(env):
     '''Loads the transformers of the simulation

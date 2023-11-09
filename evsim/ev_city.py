@@ -23,11 +23,11 @@ class EVCity(gym.Env):
 
     def __init__(self,
                  cs=None,                 
-                 load_prices_from_replay=False,
-                 static_ev_spawn_rate=False,
+                 load_prices_from_replay=False,                 
                  ev_spawn_rate=0.85,
                  load_ev_from_replay=False, # load EVs from replay file if true
                  load_from_replay_path=None, # path of replay file to load
+                #  load_power_setpoints_from_replay=True, # load power setpoints from replay file if true
                  empty_ports_at_end_of_simulation=True,
                  simulate_grid=False,
                  scenario="public",
@@ -47,6 +47,7 @@ class EVCity(gym.Env):
                  lightweight_plots=False,
                  extra_sim_name=None,
                  verbose=False,
+                 calculate_ev_load_curve=True,
                  simulation_length=1000):
 
         super(EVCity, self).__init__()
@@ -110,8 +111,7 @@ class EVCity(gym.Env):
                                               date[2],
                                               hour[0],
                                               hour[1])            
-            self.spawn_rate = ev_spawn_rate
-            self.static_ev_spawn_rate = static_ev_spawn_rate
+            self.spawn_rate = ev_spawn_rate            
             self.replay = None
             self.sim_name = f'ev_city_{self.simulation_length}_' + \
                 f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'
@@ -148,7 +148,7 @@ class EVCity(gym.Env):
         self.charge_prices, self.discharge_prices = load_electricity_prices(self)
 
         # Load power setpoint of simulation
-        self.power_setpoints = load_power_setpoints(self)
+        self.power_setpoints = load_power_setpoints(self, randomly=True)
         self.current_power_setpoints = np.zeros(self.simulation_length)
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
@@ -189,7 +189,9 @@ class EVCity(gym.Env):
             os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
 
         if self.save_replay:
-            self.EVs = []  # Store all of the EVs in the simulation that arrived
+            self.EVs = []  # Store all of the EVs in the simulation that arrived                   
+                                    
+            
 
     def reset(self):
         '''Resets the environment to its initial state'''
@@ -200,13 +202,7 @@ class EVCity(gym.Env):
 
         self.sim_date = self.sim_starting_date
 
-        self.EVs = []
-
-        self.current_power_setpoints = np.zeros(self.simulation_length)
-
-        if self.load_from_replay_path is None:
-            if not self.static_ev_spawn_rate:
-                self.spawn_rate = np.random.uniform(0.3, 0.85)
+        self.EVs = []      
 
         # self.sim_name = f'ev_city_{self.simulation_length}_' + \
         # f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
@@ -215,6 +211,20 @@ class EVCity(gym.Env):
         self.init_statistic_variables()
 
         return self._get_observation()
+    
+    def _calculate_ev_load_curve(self):
+        '''This function calculates the load curve of the EVs in the simulation'''
+        for i in range(self.simulation_length):        
+            # all ports are charging instantly
+            actions = np.ones(self.number_of_ports)            
+
+            new_state, reward, done, _ = self.step(
+                actions, visualize=False)  # takes action
+
+            # input("Press Enter to continue...")
+
+            if done and i < self.simulation_length-1:
+                return
 
     def init_statistic_variables(self):
         self.current_step = 0
@@ -223,6 +233,8 @@ class EVCity(gym.Env):
         self.current_ev_departed = 0
         self.current_ev_arrived = 0
         self.current_evs_parked = 0
+        
+        self.current_power_setpoints = np.zeros(self.simulation_length)
 
         # self.transformer_amps = np.zeros([self.number_of_transformers,
         #                                   self.simulation_length])
@@ -415,6 +427,8 @@ class EVCity(gym.Env):
         print(f"Saving replay file at {replay.replay_path}")
         with open(replay.replay_path, 'wb') as f:
             pickle.dump(replay, f)
+            
+        return replay.replay_path
 
     def update_power_statistics(self):
         '''Updates the power statistics of the simulation'''

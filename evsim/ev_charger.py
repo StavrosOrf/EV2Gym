@@ -50,8 +50,8 @@ class EV_Charger:
                  geo_location=None,
                  min_charge_current=8,  # Amperes
                  max_charge_current=55,  # Amperes
-                 min_discharge_current=-8,  # Amperes
-                 max_discharge_current=-55,  # Amperes
+                 min_discharge_current= -8,  # Amperes
+                 max_discharge_current= -55,  # Amperes
                  voltage=230,  # Volts
                  n_ports=2,
                  charger_type="AC",  # AC or DC
@@ -141,7 +141,7 @@ class EV_Charger:
         # Update EVs connected to the EV charger and get profits/costs
         for i, action in enumerate(normalized_actions):
             action = round(action, 5)
-            assert action >= -1 and action <= 1
+            assert(action >= -1 and action <= 1, f'Action {action} is not in range [-1,1]') 
 
             if action == 0 and self.evs_connected[i] is not None:
                 actual_power, actual_amps = self.evs_connected[i].step(0,self.voltage)

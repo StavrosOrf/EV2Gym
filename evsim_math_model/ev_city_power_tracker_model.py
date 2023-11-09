@@ -35,9 +35,7 @@ class EV_City_Math_Model():
         port_min_charge_current = replay.port_min_charge_current
         port_max_discharge_current = replay.port_max_discharge_current
         port_min_discharge_current = replay.port_min_discharge_current
-        voltages = replay.voltages / 1000  # phases included in voltage
-        print(voltages)
-        # phases = replay.phases
+        voltages = replay.voltages / 1000  # phases included in voltage                
 
         power_setpoints = replay.power_setpoints
 
@@ -232,7 +230,7 @@ class EV_City_Math_Model():
                            ), name='ev_current_dis_limit_min')
 
         # ev max charging current constraint
-        self.m.addConstrs((current_ev_ch[p, i, t] <= ev_max_ch_power[p, i, t]/voltages[i]
+        self.m.addConstrs((current_ev_ch[p, i, t] <= min(ev_max_ch_power[p, i, t]/voltages[i], port_max_charge_current[i])
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)
@@ -241,7 +239,7 @@ class EV_City_Math_Model():
                           name='ev_current_ch_limit_max')
 
         # ev max discharging current constraint
-        self.m.addConstrs((current_ev_dis[p, i, t] <= -ev_max_dis_power[p, i, t]/voltages[i]
+        self.m.addConstrs((current_ev_dis[p, i, t] <= min(-ev_max_dis_power[p, i, t]/voltages[i],-port_max_discharge_current[i])
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)
