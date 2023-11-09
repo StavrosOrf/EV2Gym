@@ -98,7 +98,7 @@ def ev_city_plot(ev_env):
             df = pd.DataFrame([],
                             index=date_range)
 
-            for cs in tr.cs_ids:
+            for cs in tr.cs_ids:                
                 df[cs] = ev_env.cs_current[cs, :]
 
             # create 2 dfs, one for positive power and one for negative
@@ -107,7 +107,7 @@ def ev_city_plot(ev_env):
             df_neg = df.copy()
             df_neg[df_neg > 0] = 0
             colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)))
-
+                        
             # Add another row with one datetime step to make the plot look better
             df_pos.loc[df_pos.index[-1] +
                     datetime.timedelta(minutes=ev_env.timescale)] = df_pos.iloc[-1]
@@ -306,10 +306,13 @@ def ev_city_plot(ev_env):
         counter += 1
 
     plt.tight_layout()
-    # plt.show()
-    fig_name = f'plots/{ev_env.sim_name}/Transformer_Aggregated_Power.png'
-    plt.savefig(fig_name, format='png',
-                dpi=60, bbox_inches='tight')
+    if len(ev_env.transformers) < 10:
+        fig_name = f'plots/{ev_env.sim_name}/Transformer_Aggregated_Power.png'
+        plt.savefig(fig_name, format='png',
+                    dpi=60, bbox_inches='tight')
+    else:
+        #clear plt canvas
+        plt.close('all')
 
     # Plot the total power of the CPO
     plt.figure(figsize=(20, 17))
@@ -344,9 +347,9 @@ def ev_city_plot(ev_env):
     plt.step(df_total_power.index, ev_env.power_setpoints,'r--',where='post',)
     
     if ev_env.load_from_replay_path is not None:
-        plt.step(df_total_power.index, ev_env.replay.ev_load_potential,'b--',where='post',)
+        plt.step(df_total_power.index, ev_env.replay.ev_load_potential,'b--',where='post',alpha=0.4,)
     else:
-        plt.step(df_total_power.index, ev_env.current_power_setpoints,'b--',where='post',)
+        plt.step(df_total_power.index, ev_env.current_power_setpoints,'b--',where='post',alpha=0.4,)
 
     plt.stackplot(df_neg.index, df_neg.values.T,
                   interpolate=True,
@@ -365,8 +368,9 @@ def ev_city_plot(ev_env):
     plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
     plt.xticks(ticks=date_range_print,
                labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
-    plt.legend([f'Tr {i}' for i in range(len(ev_env.transformers))] +
-               ['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Load Potential (kW)'])
+    if len(ev_env.transformers) < 10:
+        plt.legend([f'Tr {i}' for i in range(len(ev_env.transformers))] +
+                ['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Unsteered Load Potential (kW)'])
     plt.grid(True, which='minor', axis='both')
 
     plt.tight_layout()
@@ -376,15 +380,15 @@ def ev_city_plot(ev_env):
                 dpi=60, bbox_inches='tight')
     
     #plot prices
-    plt.figure(figsize=(20, 17))
-    plt.plot(ev_env.charge_prices[0,:], label='Charge prices (€/kW))')
-    plt.plot(ev_env.discharge_prices[0,:], label='Discharge prices (€/kW))')
-    plt.legend()
-    plt.grid(True, which='minor', axis='both')
-    plt.tight_layout()
-    fig_name = f'plots/{ev_env.sim_name}/Prices.png'
-    plt.savefig(fig_name, format='png',
-                dpi=60, bbox_inches='tight')
+    # plt.figure(figsize=(20, 17))
+    # plt.plot(ev_env.charge_prices[0,:], label='Charge prices (€/kW))')
+    # plt.plot(ev_env.discharge_prices[0,:], label='Discharge prices (€/kW))')
+    # plt.legend()
+    # plt.grid(True, which='minor', axis='both')
+    # plt.tight_layout()
+    # fig_name = f'plots/{ev_env.sim_name}/Prices.png'
+    # plt.savefig(fig_name, format='png',
+    #             dpi=60, bbox_inches='tight')
     
     plt.close('all')
     

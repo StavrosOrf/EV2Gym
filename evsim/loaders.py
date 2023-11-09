@@ -55,12 +55,15 @@ def load_transformers(env):
 
     transformers = []
     if env.load_from_replay_path is None:
-        for i in range(env.number_of_transformers):
+        if env.number_of_transformers > env.cs:
+            raise ValueError('The number of transformers cannot be greater than the number of charging stations')                
+        for i in range(env.number_of_transformers):            
+            #get indexes where the transformer is connected
             transformer = Transformer(id=i,
                                         cs_ids=np.where(
-                                            env.cs_transformers == i)[0],
+                                            np.array(env.cs_transformers) == i)[0],
                                         timescale=env.timescale,)
-            transformers.append(transformer)
+            transformers.append(transformer)        
     else:
         transformers = env.replay.transformers
 

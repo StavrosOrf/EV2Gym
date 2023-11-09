@@ -13,6 +13,7 @@ import numpy as np
 import datetime
 import pickle
 import os
+import random
 
 # from .grid import Grid
 from .replay import EvCityReplay
@@ -132,9 +133,9 @@ class EVCity(gym.Env):
             # self.cs_transformers = self.grid.get_bus_transformers()
         else:
             self.cs_buses = [None] * self.cs
-            self.cs_transformers = np.random.randint(
-                self.number_of_transformers, size=self.cs)
-
+            self.cs_transformers = [*np.arange(self.number_of_transformers)] * (self.cs // self.number_of_transformers)
+            self.cs_transformers += random.sample([*np.arange(self.number_of_transformers)], self.cs % self.number_of_transformers)
+            random.shuffle(self.cs_transformers)
         # Instatiate Transformers
         self.transformers = load_transformers(self)
 
