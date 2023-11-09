@@ -11,9 +11,10 @@ def ev_city_plot(ev_env):
     '''Plots the simulation data
 
     Plots:
-        - The total power of each transformer
-        - The power of each charging station
+        - The total power and current of each transformer
+        - The current of each charging station
         - The energy level of each EV in charging stations
+        - The total power of the CPO
     '''
     print("Plotting simulation data at ./plots/" + ev_env.sim_name + "/")
     # date_range = pd.date_range(start=ev_env.sim_starting_date,
@@ -413,6 +414,12 @@ def print_statistics(ev_env):
         [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
         [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
+    tracking_error = ((ev_env.current_power_setpoints - ev_env.power_setpoints)**2).sum()
+    power_tracker_violation = 0
+    print(ev_env.current_power_setpoints)
+    for t in range(ev_env.simulation_length):
+        if ev_env.current_power_setpoints[t] > ev_env.power_setpoints[t]:
+            power_tracker_violation += ev_env.current_power_setpoints[t] - ev_env.power_setpoints[t]
 
     print("\n\n==============================================================")
     print("Simulation statistics:")
@@ -426,7 +433,8 @@ def print_statistics(ev_env):
 
     print(f'  - Total energy charged: {toal_energy_charged:.1f} kWh')
     print(
-        f'  - Total energy discharged: {total_energy_discharged:.1f} kWh\n')
+        f'  - Total energy discharged: {total_energy_discharged:.1f} kWh')
+    print(f' - Power Tracking error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW\n')
 
 
     print("==============================================================\n\n")

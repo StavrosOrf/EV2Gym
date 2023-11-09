@@ -295,8 +295,7 @@ class EVCity(gym.Env):
             self.transformers[cs.connected_transformer].step(
                 cs.current_total_amps)
 
-            self.current_power_setpoints[self.current_step] += cs.current_power_output * \
-                self.timescale / 60
+            self.current_power_setpoints[self.current_step] += cs.current_power_output *60/self.timescale
 
             total_costs += costs
             total_invalid_action_punishment += invalid_action_punishment

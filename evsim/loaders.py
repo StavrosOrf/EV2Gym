@@ -26,7 +26,7 @@ def load_ev_spawn_scenarios(env):
 
 def load_power_setpoints(env):
     if env.load_from_replay_path is None:
-        return np.ones(env.simulation_length) * 20  # kW
+        return np.ones(env.simulation_length) * 10  # kW
 
     return env.replay.power_setpoints
 
