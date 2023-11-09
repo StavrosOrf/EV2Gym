@@ -49,7 +49,7 @@ def ev_city_plot(ev_env):
 
             # Add another row with one datetime step to make the plot look better
             df.loc[df.index[-1] +
-                datetime.timedelta(minutes=ev_env.timescale)] = df.iloc[-1]
+                   datetime.timedelta(minutes=ev_env.timescale)] = df.iloc[-1]
 
             for port in range(cs.n_ports):
                 for i, (t_arr, t_dep) in enumerate(ev_env.port_arrival[f'{cs.id}.{port}']):
@@ -64,17 +64,17 @@ def ev_city_plot(ev_env):
 
                     plt.step(df.index, y, where='post')
                     plt.fill_between(df.index,
-                                    y,
-                                    step='post',
-                                    alpha=0.7,
-                                    label=f'EV {i}, Port {port}')
+                                     y,
+                                     step='post',
+                                     alpha=0.7,
+                                     label=f'EV {i}, Port {port}')
 
             plt.title(f'Charging Station {cs.id}')
             plt.xlabel(f'Time')
             plt.ylabel('Energy Level (kWh)')
             plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
             plt.xticks(ticks=date_range_print,
-                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
             # if len(ev_env.port_arrival[f'{cs.id}.{port}']) < 6:
             if dim_x < 5:
                 plt.legend()
@@ -96,9 +96,9 @@ def ev_city_plot(ev_env):
 
             plt.subplot(dim_x, dim_y, counter)
             df = pd.DataFrame([],
-                            index=date_range)
+                              index=date_range)
 
-            for cs in tr.cs_ids:                
+            for cs in tr.cs_ids:
                 df[cs] = ev_env.cs_current[cs, :]
 
             # create 2 dfs, one for positive power and one for negative
@@ -107,38 +107,39 @@ def ev_city_plot(ev_env):
             df_neg = df.copy()
             df_neg[df_neg > 0] = 0
             colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)))
-                        
+
             # Add another row with one datetime step to make the plot look better
             df_pos.loc[df_pos.index[-1] +
-                    datetime.timedelta(minutes=ev_env.timescale)] = df_pos.iloc[-1]
+                       datetime.timedelta(minutes=ev_env.timescale)] = df_pos.iloc[-1]
             df_neg.loc[df_neg.index[-1] +
-                    datetime.timedelta(minutes=ev_env.timescale)] = df_neg.iloc[-1]
+                       datetime.timedelta(minutes=ev_env.timescale)] = df_neg.iloc[-1]
 
             # plot the positive power
             plt.stackplot(df_pos.index, df_pos.values.T,
-                        interpolate=True,
-                        step='post',
-                        alpha=0.7,
-                        colors=colors,
-                        linestyle='--')
+                          interpolate=True,
+                          step='post',
+                          alpha=0.7,
+                          colors=colors,
+                          linestyle='--')
 
             df['total'] = df.sum(axis=1)
             # print(df)
             max_current = tr.max_current  # * ev_env.timescale / 60
             min_current = tr.min_current  # * ev_env.timescale / 60
             plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
-                    [max_current, max_current], 'r--')
+                     [max_current, max_current], 'r--')
             plt.step(df.index, df['total'], 'darkgreen',
-                    where='post', linestyle='--')
+                     where='post', linestyle='--')
             plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
-                    [min_current, min_current], 'r--')
+                     [min_current, min_current], 'r--')
             plt.stackplot(df_neg.index, df_neg.values.T,
-                        interpolate=True,
-                        step='post',
-                        colors=colors,
-                        alpha=0.7,
-                        linestyle='--')
-            plt.plot([ev_env.sim_starting_date, ev_env.sim_date], [0, 0], 'black')
+                          interpolate=True,
+                          step='post',
+                          colors=colors,
+                          alpha=0.7,
+                          linestyle='--')
+            plt.plot([ev_env.sim_starting_date,
+                     ev_env.sim_date], [0, 0], 'black')
 
             # for cs in tr.cs_ids:
             #     plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
@@ -147,10 +148,10 @@ def ev_city_plot(ev_env):
             plt.ylabel(f'Current (A)')
             plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
             plt.xticks(ticks=date_range_print,
-                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
             if len(tr.cs_ids) < 3:
                 plt.legend([f'CS {i}' for i in tr.cs_ids] +
-                        ['Circuit Breaker Limit (A)', 'Total Current (A)'])
+                           ['Circuit Breaker Limit (A)', 'Total Current (A)'])
             plt.grid(True, which='minor', axis='both')
             counter += 1
 
@@ -172,7 +173,7 @@ def ev_city_plot(ev_env):
 
             for port in range(cs.n_ports):
                 df[port] = ev_env.port_current[port, cs.id, :]
-                # create 2 dfs, one for positive power and one for negative        
+                # create 2 dfs, one for positive power and one for negative
             df_pos = df.copy()
             df_pos[df_pos < 0] = 0
             df_neg = df.copy()
@@ -181,15 +182,15 @@ def ev_city_plot(ev_env):
 
             # Add another row with one datetime step to make the plot look better
             df_pos.loc[df_pos.index[-1] +
-                    datetime.timedelta(minutes=ev_env.timescale)] = df_pos.iloc[-1]
+                       datetime.timedelta(minutes=ev_env.timescale)] = df_pos.iloc[-1]
             df_neg.loc[df_neg.index[-1] +
-                    datetime.timedelta(minutes=ev_env.timescale)] = df_neg.iloc[-1]
+                       datetime.timedelta(minutes=ev_env.timescale)] = df_neg.iloc[-1]
 
             plt.stackplot(df_pos.index, df_pos.values.T,
-                        interpolate=True,
-                        step='post',
-                        alpha=0.7,
-                        colors=colors)
+                          interpolate=True,
+                          step='post',
+                          alpha=0.7,
+                          colors=colors)
             df['total'] = df.sum(axis=1)
 
             # plot the power limit
@@ -198,22 +199,23 @@ def ev_city_plot(ev_env):
             min_charge_current = cs.min_charge_current  # * ev_env.timescale / 60
             min_discharge_current = cs.min_discharge_current  # * ev_env.timescale / 60
             plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
-                    [max_charge_current, max_charge_current], 'r--')
+                     [max_charge_current, max_charge_current], 'r--')
             plt.step(df.index, df['total'], 'darkgreen',
-                    where='post', linestyle='--')
+                     where='post', linestyle='--')
             plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
-                    [min_charge_current, min_charge_current], 'b--')
+                     [min_charge_current, min_charge_current], 'b--')
             plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
-                    [max_discharge_current, max_discharge_current], 'r--')            
+                     [max_discharge_current, max_discharge_current], 'r--')
             plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
-                    [min_discharge_current, min_discharge_current], 'b--')
-            
+                     [min_discharge_current, min_discharge_current], 'b--')
+
             plt.stackplot(df_neg.index, df_neg.values.T,
-                        interpolate=True,
-                        step='post',
-                        colors=colors,
-                        alpha=0.7)
-            plt.plot([ev_env.sim_starting_date, ev_env.sim_date], [0, 0], 'black')
+                          interpolate=True,
+                          step='post',
+                          colors=colors,
+                          alpha=0.7)
+            plt.plot([ev_env.sim_starting_date,
+                     ev_env.sim_date], [0, 0], 'black')
 
             # for i in range(cs.n_ports):
             #     plt.step(df.index, df[i], 'grey', where='post', linestyle='--')
@@ -224,7 +226,7 @@ def ev_city_plot(ev_env):
             plt.ylim([max_discharge_current*1.1, max_charge_current*1.1])
             plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
             plt.xticks(ticks=date_range_print,
-                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
             # place the legend under each plot
 
             if dim_x < 5:
@@ -305,13 +307,13 @@ def ev_city_plot(ev_env):
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
-    plt.tight_layout()
     if len(ev_env.transformers) < 10:
+        plt.tight_layout()
         fig_name = f'plots/{ev_env.sim_name}/Transformer_Aggregated_Power.png'
         plt.savefig(fig_name, format='png',
                     dpi=60, bbox_inches='tight')
     else:
-        #clear plt canvas
+        # clear plt canvas
         plt.close('all')
 
     # Plot the total power of the CPO
@@ -344,12 +346,14 @@ def ev_city_plot(ev_env):
     plt.step(df_total_power.index, df_total_power['total'], 'darkgreen',
              where='post', linestyle='--')
 
-    plt.step(df_total_power.index, ev_env.power_setpoints,'r--',where='post',)
-    
+    plt.step(df_total_power.index, ev_env.power_setpoints, 'r--', where='post',)
+
     if ev_env.load_from_replay_path is not None:
-        plt.step(df_total_power.index, ev_env.replay.ev_load_potential,'b--',where='post',alpha=0.4,)
+        plt.step(df_total_power.index, ev_env.replay.ev_load_potential,
+                 'b--', where='post', alpha=0.4,)
     else:
-        plt.step(df_total_power.index, ev_env.current_power_setpoints,'b--',where='post',alpha=0.4,)
+        plt.step(df_total_power.index, ev_env.current_power_setpoints,
+                 'b--', where='post', alpha=0.4,)
 
     plt.stackplot(df_neg.index, df_neg.values.T,
                   interpolate=True,
@@ -370,7 +374,7 @@ def ev_city_plot(ev_env):
                labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
     if len(ev_env.transformers) < 10:
         plt.legend([f'Tr {i}' for i in range(len(ev_env.transformers))] +
-                ['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Unsteered Load Potential (kW)'])
+                   ['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Unsteered Load Potential (kW)'])
     plt.grid(True, which='minor', axis='both')
 
     plt.tight_layout()
@@ -378,8 +382,8 @@ def ev_city_plot(ev_env):
     fig_name = f'plots/{ev_env.sim_name}/Total_Aggregated_Power.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
-    
-    #plot prices
+
+    # plot prices
     # plt.figure(figsize=(20, 17))
     # plt.plot(ev_env.charge_prices[0,:], label='Charge prices (€/kW))')
     # plt.plot(ev_env.discharge_prices[0,:], label='Discharge prices (€/kW))')
@@ -389,9 +393,9 @@ def ev_city_plot(ev_env):
     # fig_name = f'plots/{ev_env.sim_name}/Prices.png'
     # plt.savefig(fig_name, format='png',
     #             dpi=60, bbox_inches='tight')
-    
+
     plt.close('all')
-    
+
 
 def get_statistics(ev_env):
     total_ev_served = np.array(
@@ -431,27 +435,40 @@ def print_statistics(ev_env):
         [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
         [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
-    tracking_error = ((ev_env.current_power_setpoints - ev_env.power_setpoints)**2).sum()
-    power_tracker_violation = 0    
+    tracking_error = ((ev_env.current_power_setpoints -
+                      ev_env.power_setpoints)**2).sum()
+    power_tracker_violation = 0
     for t in range(ev_env.simulation_length):
         if ev_env.current_power_setpoints[t] > ev_env.power_setpoints[t]:
-            power_tracker_violation += ev_env.current_power_setpoints[t] - ev_env.power_setpoints[t]
+            power_tracker_violation += ev_env.current_power_setpoints[t] - \
+                ev_env.power_setpoints[t]
+    
+    #find the final battery capacity of evs
+    if ev_env.load_from_replay_path is not None:        
+        energy_user_satisfaction = 0
+        for i, ev in enumerate(ev_env.EVs):                
+            e_actual = ev.current_capacity
+            e_max = ev_env.replay.EVs[i].current_capacity
+            # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
+            energy_user_satisfaction += e_actual / e_max * 100
+        
+        energy_user_satisfaction /= len(ev_env.EVs)
+    else:
+        energy_user_satisfaction = 100
 
     print("\n\n==============================================================")
     print("Simulation statistics:")
     for cs in ev_env.charging_stations:
         print(cs)
-    print(f'  - Total EVs spawned: {ev_env.total_evs_spawned}')
-    print(f'  - Total EVs served: {total_ev_served}')
+    print(f'  - Total EVs spawned: {ev_env.total_evs_spawned} |  served: {total_ev_served}')
     print(f'  - Total profits: {total_profits*100:.2f} €')
     print(
         f'  - Average user satisfaction: {average_user_satisfaction*100:.2f} %')
 
-    print(f'  - Total energy charged: {toal_energy_charged:.1f} kWh')
+    print(f'  - Total energy charged: {toal_energy_charged:.1f} | discharged: {total_energy_discharged:.1f} kWh')
     print(
-        f'  - Total energy discharged: {total_energy_discharged:.1f} kWh')
-    print(f' - Power Tracking error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW\n')
-
+        f'  - Power Tracking squared error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW')
+    print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %\n')
 
     print("==============================================================\n\n")
 
@@ -510,14 +527,14 @@ def spawn_EV(ev_env, cs_id):
         else:
             multiplier = 3
 
-    if np.random.rand(1)*100 < tau*multiplier:
+    if np.random.rand(1)*100 < tau*multiplier * (ev_env.timescale/60) * 2:
 
         required_energy = ev_env.df_energy_demand[scenario].iloc[np.random.randint(
             0, 100, size=1)].values[0]  # kWh
-        
+
         if required_energy < 5:
             required_energy = 5
-            
+
         if ev_env.heterogeneous_specs:
             battery_capacity = np.random.randint(40, 80)  # kWh
         else:
@@ -543,8 +560,9 @@ def spawn_EV(ev_env, cs_id):
             return EV(id=None,
                       location=cs_id,
                       battery_capacity_at_arrival=initial_battery_capacity,
-                      max_ac_charge_power=np.random.rand.choice([11,22],[0.2,0.8]),
-                      max_dc_charge_power=np.random.randint(50,150),
+                      max_ac_charge_power=np.random.rand.choice(
+                          [11, 22], [0.2, 0.8]),
+                      max_dc_charge_power=np.random.randint(50, 150),
                       max_discharge_power=-np.random.randint(3, 15),
                       discharge_efficiency=np.round(1 -
                                                     (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
@@ -566,6 +584,6 @@ def spawn_EV(ev_env, cs_id):
                       earlier_time_of_departure=int(
                           time_of_stay + ev_env.current_step + 3),
                       ev_phases=3,
-                      transition_soc=0.999, #
+                      transition_soc=0.999,
                       timescale=ev_env.timescale,
                       simulation_length=ev_env.simulation_length,)

@@ -14,6 +14,7 @@ import datetime
 import pickle
 import os
 import random
+from copy import deepcopy
 
 # from .grid import Grid
 from .replay import EvCityReplay
@@ -343,6 +344,7 @@ class EVCity(gym.Env):
             counter = self.total_evs_spawned
             for i, ev in enumerate(self.ev_profiles[counter:]):
                 if ev.time_of_arrival == self.current_step + 1:
+                    ev = deepcopy(ev)
                     ev.reset()
                     ev.simulation_length = self.simulation_length
                     index = self.charging_stations[ev.location].spawn_ev(ev)

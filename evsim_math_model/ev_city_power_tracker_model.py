@@ -337,29 +337,29 @@ class EV_City_Math_Model():
         self.port_max_charge_current = port_max_charge_current
         self.port_max_discharge_current = port_max_discharge_current
 
-        for t in range(self.sim_length):
-            print(
-                f'------------------ Time {t} ------------------------------------------- ')
-            print(f'Power setpoint: {power_setpoints[t]:.2f} kW')
-            for tr in range(self.n_transformers):
-                print(
-                    f'Power: {(power_tr_ch[tr, t].x - power_tr_dis[tr, t].x):.2f} kW')
-                print(f'Current: {(current_tr_ch[tr, t].x-current_tr_dis[tr, t].x):.2f} A')
+        # for t in range(self.sim_length):
+        #     print(
+        #         f'------------------ Time {t} ------------------------------------------- ')
+        #     print(f'Power setpoint: {power_setpoints[t]:.2f} kW')
+        #     for tr in range(self.n_transformers):
+        #         print(
+        #             f'Power: {(power_tr_ch[tr, t].x - power_tr_dis[tr, t].x):.2f} kW')
+        #         print(f'Current: {(current_tr_ch[tr, t].x-current_tr_dis[tr, t].x):.2f} A')
                 
-            for i in range(self.n_cs):
-                print(
-                    f'CS.{i}: {current_cs_ch[i, t].x:.2f} {current_cs_dis[i, t].x:.2f} voltage: {voltages[i]:.2f} kV')  
+        #     for i in range(self.n_cs):
+        #         print(
+        #             f'CS.{i}: {current_cs_ch[i, t].x:.2f} {current_cs_dis[i, t].x:.2f} voltage: {voltages[i]:.2f} kV')  
 
-                for p in range(self.number_of_ports_per_cs):
+        #         for p in range(self.number_of_ports_per_cs):
 
-                    print(f'Port {p} :'
-                          f' Energy {energy[p, i, t].x:.2f} |' +
-                          f' Ch {current_ev_ch[p, i, t].x:.2f}' +
-                          f' o_ch {omega_ch[p, i, t].x:2.0f}  -  ' +
-                          f' Dis {current_ev_dis[p, i, t].x:.2f}' +
-                          f' o_dis {omega_dis[p, i, t].x:2.0f}|' +
-                          f' u {u[p, i, t]:4.1f}')
-        print(t_dep)
+        #             print(f'Port {p} :'
+        #                   f' Energy {energy[p, i, t].x:.2f} |' +
+        #                   f' Ch {current_ev_ch[p, i, t].x:.2f}' +
+        #                   f' o_ch {omega_ch[p, i, t].x:2.0f}  -  ' +
+        #                   f' Dis {current_ev_dis[p, i, t].x:.2f}' +
+        #                   f' o_dis {omega_dis[p, i, t].x:2.0f}|' +
+        #                   f' u {u[p, i, t]:4.1f}')
+        # print(t_dep)
         print(
             f'Is MIP?: {self.m.IsMIP}, IsMultiObj?: {self.m.IsMultiObj}, Is QCP?: {self.m.IsQCP}, Is QP?: {self.m.IsQP}')
         if self.m.status != GRB.Status.OPTIMAL:
