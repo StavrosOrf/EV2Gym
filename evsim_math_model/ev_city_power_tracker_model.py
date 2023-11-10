@@ -10,6 +10,7 @@ from gurobipy import GRB
 from gurobipy import *
 import pickle
 
+
 class EV_City_Math_Model():
     '''
     This file contains the EV_City_Math_Model class, which is used to solve the ev_city V2G problem optimally.
@@ -35,7 +36,7 @@ class EV_City_Math_Model():
         port_min_charge_current = replay.port_min_charge_current
         port_max_discharge_current = replay.port_max_discharge_current
         port_min_discharge_current = replay.port_min_discharge_current
-        voltages = replay.voltages / 1000  # phases included in voltage                
+        voltages = replay.voltages / 1000  # phases included in voltage
 
         power_setpoints = replay.power_setpoints
 
@@ -105,7 +106,7 @@ class EV_City_Math_Model():
                                    self.sim_length,
                                    vtype=GRB.BINARY,
                                    name='omega_dis')
-        
+
         power_cs_ch = self.m.addVars(self.n_cs,
                                      self.sim_length,
                                      vtype=GRB.CONTINUOUS,
@@ -167,15 +168,20 @@ class EV_City_Math_Model():
             power_error[t] = (gp.quicksum(power_tr_ch[i, t] - power_tr_dis[i, t]
                               for i in range(self.n_transformers))
                               - power_setpoints[t])**2
-        
-        #CS power output constraint
+
+            # power_error[t] = gp.quicksum(power_tr_ch[i, t] - power_tr_dis[i, t]
+            #                   for i in range(self.n_transformers))
+
+        # total_error = gp.quicksum(power_error[t] for t in range(self.sim_length)
+        #                           if power_error[t] > 0)
+
+        # CS power output constraint
         self.m.addConstrs(power_cs_ch[i, t] == (current_cs_ch[i, t] * voltages[i])
-                                for i in range(self.n_cs)                         
-                                for t in range(self.sim_length))
+                          for i in range(self.n_cs)
+                          for t in range(self.sim_length))
         self.m.addConstrs(power_cs_dis[i, t] == (current_cs_dis[i, t] * voltages[i])
-                                for i in range(self.n_cs)                         
-                                for t in range(self.sim_length))
-        
+                          for i in range(self.n_cs)
+                          for t in range(self.sim_length))
 
         # transformer current output constraint (circuit breaker)
         self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] <= tra_max_amps[i]
@@ -239,7 +245,7 @@ class EV_City_Math_Model():
                           name='ev_current_ch_limit_max')
 
         # ev max discharging current constraint
-        self.m.addConstrs((current_ev_dis[p, i, t] <= min(-ev_max_dis_power[p, i, t]/voltages[i],-port_max_discharge_current[i])
+        self.m.addConstrs((current_ev_dis[p, i, t] <= min(-ev_max_dis_power[p, i, t]/voltages[i], -port_max_discharge_current[i])
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)
@@ -299,31 +305,37 @@ class EV_City_Math_Model():
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)), name='ev_power_mode_2')
 
-        # time of departure of EVs        
+        # time of departure of EVs
         for t in range(self.sim_length):
-            flag = False
-            for i in range(self.n_cs):
+            # flag = False
+            # for i in range(self.n_cs):
 
-                total_soc[t] = gp.quicksum(energy[p, i, t]
-                                           for p in range(self.number_of_ports_per_cs)
-                                           if t_dep[p, i, t] == 1)
-                for p in range(self.number_of_ports_per_cs):
-                    if t_dep[p, i, t] == 1:
-                        # total_soc[t] += energy[p, i, t-1]
-                        flag = True
+                # total_soc[t] = gp.quicksum(energy[p, i, t]
+                #                            for p in range(self.number_of_ports_per_cs)
+                #                            if t_dep[p, i, t] == 1)
+                # for p in range(self.number_of_ports_per_cs):
+                #     # if t_dep[p, i, t] == 1:
+                #     #     # total_soc[t] += energy[p, i, t-1]
+                #     #     flag = True
                         # input(f'Energy at departure: {t_dep[p,i,t]}')
                         # self.m.addLConstr((energy[p, i, t] >= 15),
                         #                 #    ev_des_energy[p, i, t]),
                         #                   name=f'ev_departure_energy.{p}.{i}.{t}')
                     # else:
                     #     total_soc[t] = 0
-            if not flag:
-                total_soc[t] = 0
+            # if not flag:
+                # total_soc[t] = 0
+
+
+            total_soc[t] = gp.quicksum(energy[p, i, t]
+                                       for p in range(self.number_of_ports_per_cs)
+                                       for i in range(self.n_cs)
+                                       if t_dep[p, i, t] == 1)
+
         # Objective function
-        # self.m.setObjective(power_error.sum() - total_soc[0],
-        #                     GRB.MINIMIZE)
-        
-        self.m.setObjective(power_error.sum(),#-total_soc.sum(),
+        # self.m.setObjective( 10000000 * power_error.sum() - total_soc.sum(),
+        #                     GRB.MINIMIZE)        
+        self.m.setObjective(power_error.sum(),
                             GRB.MINIMIZE)
 
         # print constraints
@@ -336,7 +348,13 @@ class EV_City_Math_Model():
         self.act_current_ev_dis = act_current_ev_dis
         self.port_max_charge_current = port_max_charge_current
         self.port_max_discharge_current = port_max_discharge_current
-
+        
+        # total_soc_sum = 0
+        # total_error_sum = 0
+        # for t in range(self.sim_length):
+        #     total_soc_sum += total_soc[t].x
+        #     total_error_sum += power_error[t].x
+        # print(f'Total SOC: {total_soc_sum:.2f} kWh, Total error: {total_error_sum:.2f} kW')
         # for t in range(self.sim_length):
         #     print(
         #         f'------------------ Time {t} ------------------------------------------- ')
@@ -345,10 +363,10 @@ class EV_City_Math_Model():
         #         print(
         #             f'Power: {(power_tr_ch[tr, t].x - power_tr_dis[tr, t].x):.2f} kW')
         #         print(f'Current: {(current_tr_ch[tr, t].x-current_tr_dis[tr, t].x):.2f} A')
-                
+
         #     for i in range(self.n_cs):
         #         print(
-        #             f'CS.{i}: {current_cs_ch[i, t].x:.2f} {current_cs_dis[i, t].x:.2f} voltage: {voltages[i]:.2f} kV')  
+        #             f'CS.{i}: {current_cs_ch[i, t].x:.2f} {current_cs_dis[i, t].x:.2f} voltage: {voltages[i]:.2f} kV')
 
         #         for p in range(self.number_of_ports_per_cs):
 
@@ -359,7 +377,7 @@ class EV_City_Math_Model():
         #                   f' Dis {current_ev_dis[p, i, t].x:.2f}' +
         #                   f' o_dis {omega_dis[p, i, t].x:2.0f}|' +
         #                   f' u {u[p, i, t]:4.1f}')
-        # print(t_dep)
+        print(t_dep)
         print(
             f'Is MIP?: {self.m.IsMIP}, IsMultiObj?: {self.m.IsMultiObj}, Is QCP?: {self.m.IsQCP}, Is QP?: {self.m.IsQP}')
         if self.m.status != GRB.Status.OPTIMAL:

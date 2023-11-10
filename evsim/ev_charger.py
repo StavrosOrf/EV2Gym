@@ -184,11 +184,11 @@ class EV_Charger:
                 raise Exception(
                     f'sum of amps {self.current_total_amps} is higher than max charge current {self.max_charge_current}')
 
-            if self.verbose and self.evs_connected[i] is not None:
-                print(f'Actual energy: {actual_power:.2f} kWh' +
-                      f' | Actual amps: {actual_amps:.2f} A' +
-                      f' | Action: {action}'
-                      )
+            # if self.verbose and self.evs_connected[i] is not None:
+            #     print(f'Actual energy: {actual_power:.2f} kWh' +
+            #           f' | Actual amps: {actual_amps:.2f} A' +
+            #           f' | Action: {action}'
+            #           )
 
         self.total_profits += profit
 
