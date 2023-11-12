@@ -511,6 +511,7 @@ def spawn_EV(ev_env, cs_id):
     day = time.weekday()
     hour = time.hour
     minute = time.minute
+    # Divide by 15 because the spawn rate is in 15 minute intervals
     i = hour*4 + minute//15
 
     scenario = ev_env.scenario
@@ -527,7 +528,7 @@ def spawn_EV(ev_env, cs_id):
         else:
             multiplier = 3
 
-    if np.random.rand(1)*100 < tau*multiplier * (ev_env.timescale/60) * 2:
+    if np.random.rand(1)*100 < tau * multiplier * (ev_env.timescale/60) * 2:
 
         required_energy = ev_env.df_energy_demand[scenario].iloc[np.random.randint(
             0, 100, size=1)].values[0]  # kWh
