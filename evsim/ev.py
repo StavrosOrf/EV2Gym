@@ -53,12 +53,14 @@ class EV():
                  use_probabilistic_time_of_departure=False,
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
-                 max_ac_charge_power=11,  # kWh
+                 max_ac_charge_power=11,  # kWh        
+                 min_ac_charge_power=2,  # kWh         
                  max_dc_charge_power=11,  # kWh
+                 max_discharge_power=-5,  # kWh
+                 min_discharge_power=-2,  # kWh
                  ev_phases = 3,
                  noise_level=0,
-                 transition_soc=0.8,
-                 max_discharge_power=-5,  # kWh
+                 transition_soc=0.8,                 
                  charge_efficiency=1,
                  discharge_efficiency=1,
                  v2g_enabled=True,
@@ -80,7 +82,9 @@ class EV():
         # EV technical characteristics
         self.battery_capacity = battery_capacity  # kWh
         self.max_ac_charge_power = max_ac_charge_power  # kW
+        self.min_ac_charge_power = min_ac_charge_power  # kW
         self.max_discharge_power = max_discharge_power  # kW
+        self.min_discharge_power = min_discharge_power  # kW
         self.max_dc_charge_power = max_dc_charge_power  # kW
         self.transition_soc = transition_soc
         self.noise_level = noise_level
@@ -98,6 +102,7 @@ class EV():
         self.charging_cycles = 0
         self.previous_power = 0
         self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
+        self.total_energy_exchanged = 0
 
     def reset(self):
         '''
@@ -122,6 +127,11 @@ class EV():
 
         if type == 'DC':
             raise NotImplementedError
+        
+        if amps > 0 and amps < self.min_ac_charge_power*1000/(voltage*math.sqrt(phases)):
+            amps = 0
+        elif amps < 0 and amps > self.max_discharge_power*1000/(voltage*math.sqrt(phases)):
+            amps = 0
 
         if amps == 0:
             self.current_power = 0
@@ -132,7 +142,7 @@ class EV():
         if self.previous_power == 0 or (self.previous_power/amps) < 0:
             self.charging_cycles += 1
 
-        phases = min(phases, self.ev_phases)
+        phases = min(phases, self.ev_phases)                
         
         if amps > 0:
             self.actual_current = self._charge(amps, voltage, phases)
@@ -140,6 +150,8 @@ class EV():
             self.actual_current = self._discharge(amps, voltage, phases)
 
         self.previous_power = self.current_power
+        
+        self.total_energy_exchanged += self.current_power * self.timescale / 60
 
         return self.current_power, self.actual_current
 
@@ -184,19 +196,28 @@ class EV():
         '''
         return (self.current_capacity/self.battery_capacity)
 
-    def get_state(self, current_step):
+    def get_state(self, current_step, scenario, voltage, phases):
         '''
         A function that returns the state of the EV.
         Outputs: 
             - State: the state of the EV
         '''
         timestep_left = self.earlier_time_of_departure - current_step
-
-        # , self.charging_cycles
-        # return self.get_soc(), timestep_left / self.simulation_length
-        return self.required_power/self.battery_capacity, \
-            (current_step-self.time_of_arrival) / self.simulation_length
-        # return self.required_power, self.current_step-self.time_of_arrival
+        
+        if scenario == 'PowerSetpointTracking':
+            #In this scenario we have very limited inforamtion about the EVs
+            # we do not know the time of departure, the soc and the required energy
+            
+            return [self.total_energy_exchanged, \
+                self.max_ac_charge_power*1000/(voltage*math.sqrt(phases)), 
+                self.min_ac_charge_power*1000/(voltage*math.sqrt(phases)),
+                self.max_discharge_power*1000/(voltage*math.sqrt(phases)),
+                self.min_discharge_power*1000/(voltage*math.sqrt(phases)), 
+                (current_step-self.time_of_arrival) / self.simulation_length] # time stayed
+            # return self.required_power, self.current_step-self.time_of_arrival
+        else:               
+            raise NotImplementedError
+            return self.get_soc(), timestep_left / self.simulation_length
 
     def __str__(self):
         return f' {self.current_power*60/self.timescale :5.1f} kWh |' + \

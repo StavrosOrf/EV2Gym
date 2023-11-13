@@ -408,16 +408,43 @@ def get_statistics(ev_env):
         [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
         [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
+    tracking_error = ((ev_env.current_power_setpoints -
+                      ev_env.power_setpoints)**2).sum()
+
+    power_tracker_violation = 0
+    for t in range(ev_env.simulation_length):
+        if ev_env.current_power_setpoints[t] > ev_env.power_setpoints[t]:
+            power_tracker_violation += ev_env.current_power_setpoints[t] - \
+                ev_env.power_setpoints[t]
+
+    # find the final battery capacity of evs
+    if ev_env.load_from_replay_path is not None:
+        energy_user_satisfaction = 0
+        for i, ev in enumerate(ev_env.EVs):
+            e_actual = ev.current_capacity
+            e_max = ev_env.replay.EVs[i].current_capacity
+            # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
+            energy_user_satisfaction += e_actual / e_max * 100
+
+        energy_user_satisfaction /= len(ev_env.EVs)
+    else:
+        energy_user_satisfaction = 100
 
     stats = {'total_ev_served': total_ev_served,
              'total_profits': total_profits,
              'toal_energy_charged': toal_energy_charged,
              'total_energy_discharged': total_energy_discharged,
-             'average_user_satisfaction': average_user_satisfaction             
+             'average_user_satisfaction': average_user_satisfaction,
+             'power_tracker_violation': power_tracker_violation,
+             'tracking_error': tracking_error,
+             'energy_user_satisfaction': energy_user_satisfaction,
              }
 
     if ev_env.replay is not None:
         stats['opt_profits'] = ev_env.replay.stats["total_profits"]
+        stats['opt_tracking_error'] = ev_env.replay.stats["tracking_error"]
+        stats['opt_power_tracker_violation'] = ev_env.replay.stats["power_tracker_violation"]
+        stats['opt_energy_user_satisfaction'] = ev_env.replay.stats["energy_user_satisfaction"]
 
     return stats
 
@@ -441,16 +468,16 @@ def print_statistics(ev_env):
         if ev_env.current_power_setpoints[t] > ev_env.power_setpoints[t]:
             power_tracker_violation += ev_env.current_power_setpoints[t] - \
                 ev_env.power_setpoints[t]
-    
-    #find the final battery capacity of evs
-    if ev_env.load_from_replay_path is not None:        
+
+    # find the final battery capacity of evs
+    if ev_env.load_from_replay_path is not None:
         energy_user_satisfaction = 0
-        for i, ev in enumerate(ev_env.EVs):                
+        for i, ev in enumerate(ev_env.EVs):
             e_actual = ev.current_capacity
             e_max = ev_env.replay.EVs[i].current_capacity
             # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
             energy_user_satisfaction += e_actual / e_max * 100
-        
+
         energy_user_satisfaction /= len(ev_env.EVs)
     else:
         energy_user_satisfaction = 100
@@ -459,12 +486,14 @@ def print_statistics(ev_env):
     print("Simulation statistics:")
     for cs in ev_env.charging_stations:
         print(cs)
-    print(f'  - Total EVs spawned: {ev_env.total_evs_spawned} |  served: {total_ev_served}')
+    print(
+        f'  - Total EVs spawned: {ev_env.total_evs_spawned} |  served: {total_ev_served}')
     print(f'  - Total profits: {total_profits*100:.2f} €')
     print(
         f'  - Average user satisfaction: {average_user_satisfaction*100:.2f} %')
 
-    print(f'  - Total energy charged: {toal_energy_charged:.1f} | discharged: {total_energy_discharged:.1f} kWh')
+    print(
+        f'  - Total energy charged: {toal_energy_charged:.1f} | discharged: {total_energy_discharged:.1f} kWh')
     print(
         f'  - Power Tracking squared error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW')
     print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %\n')
@@ -513,7 +542,7 @@ def spawn_EV(ev_env, cs_id):
     # Divide by 15 because the spawn rate is in 15 minute intervals
     i = hour*4 + minute//15
 
-    scenario = ev_env.scenario
+    scenario = ev_env.scenario.split("_")[0]
 
     if day < 5:
         tau = ev_env.df_arrival_week[scenario].iloc[i]

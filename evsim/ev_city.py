@@ -31,7 +31,7 @@ class EVCity(gym.Env):
                 #  load_power_setpoints_from_replay=True, # load power setpoints from replay file if true
                 #  empty_ports_at_end_of_simulation=True,
                  simulate_grid=False,
-                 scenario="public",
+                 scenario="public_PowerSetpointTracking",
                  heterogeneous_specs=False,
                  replay_path='./replay/',
                  generate_rnd_game=False,  # generate a random game without terminating conditions                
@@ -147,28 +147,11 @@ class EVCity(gym.Env):
 
         # Load power setpoint of simulation
         self.power_setpoints = load_power_setpoints(self, randomly=True)
-        self.current_power_setpoints = np.zeros(self.simulation_length)
-
-        # Action space: is a vector of size "Sum of all ports of all charging stations"
+        self.current_power_setpoints = np.zeros(self.simulation_length)        
+        
+        
         self.number_of_ports = np.array(
             [cs.n_ports for cs in self.charging_stations]).sum()
-
-        high = np.ones([self.number_of_ports])
-        self.action_space = spaces.Box(low=-high, high=high, dtype=np.float64)
-
-        # Observation space: is a matrix of size ("Sum of all ports of all charging stations",n_features)
-        obs_dim = 1 + \
-            self.cs * (2 + 2*number_of_ports_per_cs)
-        # + number_of_transformers * 3
-
-        # print(f'Observation space dimension: {obs_dim}')
-
-        high = np.inf*np.ones([obs_dim])
-        self.observation_space = spaces.Box(
-            low=-high, high=high, dtype=np.float64)
-
-        # Observation mask: is a vector of size ("Sum of all ports of all charging stations") showing in which ports an EV is connected
-        self.observation_mask = np.zeros(self.number_of_ports)
 
         self.init_statistic_variables()
 
@@ -188,6 +171,24 @@ class EVCity(gym.Env):
 
         if self.save_replay:
             self.EVs = []  # Store all of the EVs in the simulation that arrived                   
+            
+        # Action space: is a vector of size "Sum of all ports of all charging stations"
+
+        high = np.ones([self.number_of_ports])
+        self.action_space = spaces.Box(low=-high, high=high, dtype=np.float64)
+
+        # Observation space: is a matrix of size ("Sum of all ports of all charging stations",n_features)
+        obs_dim = len(self._get_observation())
+        # + number_of_transformers * 3
+
+        print(f'Observation space dimension: {obs_dim}')
+
+        high = np.inf*np.ones([obs_dim])
+        self.observation_space = spaces.Box(
+            low=-high, high=high, dtype=np.float64)
+
+        # Observation mask: is a vector of size ("Sum of all ports of all charging stations") showing in which ports an EV is connected
+        self.observation_mask = np.zeros(self.number_of_ports)
                                     
             
 
@@ -455,29 +456,35 @@ class EVCity(gym.Env):
         self.sim_date = self.sim_date + \
             datetime.timedelta(minutes=self.timescale)
 
-    def _get_observation(self, include_grid=False):
+    def _get_observation(self):
         '''Returns the current state of the environment'''
-        state = [self.current_step / self.simulation_length,
-                 #  self.timescale,
-                 #  self.cs,
-                 #  self.number_of_transformers,
-                 ]
+        
+        scenario = self.scenario.split('_')[1]
+        
+        if scenario == 'PowerSetpointTracking':
+        
+            state = [self.current_step-1 / self.simulation_length,
+                    self.timescale/60,
+                    self.power_setpoints[self.current_step-1],#/self.cs,
+                    ]
 
-        # for tr in self.transformers:
-        #     state.append(tr.get_state())
+            for tr in self.transformers:
+                state.append(tr.get_state(scenario=scenario))
+                for cs in self.charging_stations:
+                    if cs.connected_transformer == tr.id:
+                        state.append(cs.get_state(scenario=scenario))            
 
-        for cs in self.charging_stations:
-            state.append(cs.get_state())
+            # if include_grid:
+            #     state.append(self.grid.get_grid_state())
 
-        if include_grid:
-            state.append(self.grid.get_grid_state())
+            state = np.array(np.hstack(state))
 
-        state = np.array(np.hstack(state))
+            # np.set_printoptions(suppress=True)
 
-        np.set_printoptions(suppress=True)
-
-        # print(f'state: {state}')
-        return state  # .reshape(-1)
+            print(f'state: {state}')            
+            return state  # .reshape(-1)
+        else:
+            raise NotImplementedError
 
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''

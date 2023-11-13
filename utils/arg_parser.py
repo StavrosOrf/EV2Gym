@@ -35,14 +35,14 @@ def arg_parser():
                         help="Enable logging to wandb (default: True)")
 
     # Environment specific arguments
-    parser.add_argument("--cs", default=1, type=int,
+    parser.add_argument("--cs", default=2, type=int,
                         help="Num. of CS (default: 1)")
     parser.add_argument("--transformers", default=1, type=int,
                         help="Num. of Transformers (default: 1)")
     parser.add_argument("--ports", default=2, type=int,
                         help="Num. of Ports per CS (default: 2)")
-    parser.add_argument("--steps", default=150, type=int,
-                        help="Num. of steps (default: 150)")
+    parser.add_argument("--steps", default=288, type=int,
+                        help="Num. of steps (default: 288)")
     parser.add_argument("--timescale", default=5, type=int,
                         help="Timescale (default: 5)")
     parser.add_argument("--score_threshold", default=1, type=int,

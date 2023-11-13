@@ -16,9 +16,7 @@ class EV_Charger:
         - id: unique identifier of the EV charger
         - connected_bus: the bus to which the EV charger is connected
         - connected_transformer: the transformer(s) to which the EV charger is connected
-        - geo_location: the geographical location of the EV charger
-        - max_charge_power: the maximum total power that the EV charger can provide to all EVs connected to it per hour
-        - max_discharge_power: the maximum total power that the EV charger can receive from all EVs connected to it per hour
+        - geo_location: the geographical location of the EV charger                
         - n_ports: the number of ports of the EV charger
         - charger_type: the type of the EV charger (typ1, type2, or DC)
         - bi_directional: whether the EV charger can provide power to the grid or not
@@ -50,8 +48,8 @@ class EV_Charger:
                  geo_location=None,
                  min_charge_current=8,  # Amperes
                  max_charge_current=55,  # Amperes
-                 min_discharge_current= 0,#-8,  # Amperes
-                 max_discharge_current= 0,#-55,  # Amperes
+                 min_discharge_current=0,  # -8,  # Amperes
+                 max_discharge_current=0,  # -55,  # Amperes
                  voltage=230,  # Volts
                  n_ports=2,
                  charger_type="AC",  # AC or DC
@@ -141,15 +139,17 @@ class EV_Charger:
         # Update EVs connected to the EV charger and get profits/costs
         for i, action in enumerate(normalized_actions):
             action = round(action, 5)
-            assert(action >= -1 and action <= 1, f'Action {action} is not in range [-1,1]') 
+            assert (action >= -1 and action <= 1,
+                    f'Action {action} is not in range [-1,1]')
 
             if action == 0 and self.evs_connected[i] is not None:
-                actual_power, actual_amps = self.evs_connected[i].step(0,self.voltage)
+                actual_power, actual_amps = self.evs_connected[i].step(
+                    0, self.voltage)
                 # actual_power, actual_amps = 0, 0
 
             elif action > 0:
                 amps = action * self.max_charge_current
-                if amps < self.min_charge_current-0.01:                    
+                if amps < self.min_charge_current-0.01:
                     amps = 0
 
                 actual_power, actual_amps = self.evs_connected[i].step(
@@ -166,7 +166,7 @@ class EV_Charger:
                 if not self.bi_directional:
                     actual_amps, actual_power = 0, 0
                 else:
-                    amps = action * abs(self.max_charge_current)
+                    amps = action * abs(self.max_discharge_current)
                     if amps > self.min_discharge_current-0.01:
                         amps = self.min_discharge_current
 
@@ -215,25 +215,36 @@ class EV_Charger:
 
         return profit, user_satisfaction, invalid_action_punishment
 
-    def get_state(self):
+    def get_state(self, scenario):
         '''
         Returns the state of the EV charger
         '''
-        state = [self.current_charge_price,
-                 self.current_discharge_price,
-                 #  self.max_charge_power/1000, # Transform to MW for better scaling
-                 #  self.max_discharge_power/1000, #MW
-                 #  self.n_ports,
-                 #  self.n_evs_connected
-                 ]
 
-        for EV in self.evs_connected:
-            if EV is not None:
-                state.append(EV.get_state(self.current_step))
-            else:
-                state.append(np.zeros(2))
+        if scenario == 'PowerSetpointTracking':
 
-        return np.hstack(state)
+            state = [
+                # self.current_charge_price,
+                # self.current_discharge_price,
+                self.max_charge_current/100,  # normalize to be around 1
+                self.min_charge_current/100, 
+                self.max_discharge_current/100,
+                self.min_discharge_current/100,
+                # self.n_ports,
+                # self.n_evs_connected
+            ]
+
+            for EV in self.evs_connected:
+                if EV is not None:
+                    state.append(EV.get_state(self.current_step,
+                                              scenario = scenario,
+                                              voltage=self.voltage,
+                                              phases=self.phases,))
+                else:
+                    state.append(np.zeros(6))
+
+            return np.hstack(state)
+        else:
+            raise Exception(f'Unknown scenario {scenario}')
 
     def __str__(self) -> str:
 

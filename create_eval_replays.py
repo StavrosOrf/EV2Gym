@@ -20,8 +20,7 @@ def evalreplay(number_of_charging_stations,
     
     verbose = False
 
-    env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_ports_per_cs=2,
+    env = ev_city.EVCity(cs=number_of_charging_stations,                         
                          number_of_transformers=n_transformers,                         
                          load_ev_from_replay=True,
                          load_prices_from_replay=False,                         

@@ -218,8 +218,7 @@ if __name__ == "__main__":
                        'epoch/energy_discharged': stats['total_energy_discharged'],
                        'epoch/user_satisfaction': stats['average_user_satisfaction'],
                        'epoch/value_loss': epoch_value_loss,
-                       'epoch/policy_loss': epoch_policy_loss,
-                       'epoch/ev_spawn_rt': stats['ev_spawn_rate']})
+                       'epoch/policy_loss': epoch_policy_loss})
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 5000 * t:
