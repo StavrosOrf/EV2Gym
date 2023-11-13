@@ -169,8 +169,8 @@ class EVCity(gym.Env):
             print(f"Creating directory: ./plots/{self.sim_name}")
             os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
 
-        if self.save_replay:
-            self.EVs = []  # Store all of the EVs in the simulation that arrived                   
+        # if self.save_replay:
+        self.EVs = []  # Store all of the EVs in the simulation that arrived                   
             
         # Action space: is a vector of size "Sum of all ports of all charging stations"
 
@@ -181,7 +181,7 @@ class EVCity(gym.Env):
         obs_dim = len(self._get_observation())
         # + number_of_transformers * 3
 
-        print(f'Observation space dimension: {obs_dim}')
+        # print(f'Observation space dimension: {obs_dim}')
 
         high = np.inf*np.ones([obs_dim])
         self.observation_space = spaces.Box(
@@ -328,8 +328,8 @@ class EVCity(gym.Env):
                         self.port_arrival[f'{cs.id}.{index}'].append(
                             (self.current_step + 1, ev.earlier_time_of_departure))
 
-                    if self.save_replay:
-                        self.EVs.append(ev)
+                    # if self.save_replay:
+                    self.EVs.append(ev)
 
                     self.total_evs_spawned += 1
                     self.current_ev_arrived += 1
@@ -351,8 +351,8 @@ class EVCity(gym.Env):
 
                     self.total_evs_spawned += 1
                     self.current_ev_arrived += 1
-                    if self.save_replay:
-                        self.EVs.append(ev)
+                    # if self.save_replay:
+                    self.EVs.append(ev)
 
                 elif ev.time_of_arrival > self.current_step + 1:
                     break
@@ -500,11 +500,14 @@ class EVCity(gym.Env):
         
         scenario = self.scenario.split('_')[1]
         if scenario == "PowerSetpointTracking":
-            reward = -(self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2                        
+            reward =  min(1000,1 * 100 * self.cs /(0.00001 + (self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
             # if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
-            #     reward -= 10 * (self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])
+            #     reward -= 100 * (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
+            
+            # for score in user_satisfaction_list:
+            #     reward -= 100 * (1 - score)
                 
-            # reward += 0.1 * self.current_power_setpoints[self.current_step-1]            
+            # reward += self.current_power_setpoints[self.current_step-1]            
             # print(f'current_power_setpoints: {self.current_power_setpoints[self.current_step-1]}')
 
         return reward

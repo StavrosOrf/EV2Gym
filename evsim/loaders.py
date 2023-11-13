@@ -15,15 +15,15 @@ def load_ev_spawn_scenarios(env):
     '''Loads the EV spawn scenarios of the simulation'''
 
     env.df_arrival_week = pd.read_csv(
-        '.\data\distribution-of-arrival.csv')  # weekdays
+        './data/distribution-of-arrival.csv')  # weekdays
     env.df_arrival_weekend = pd.read_csv(
-        '.\data\distribution-of-arrival-weekend.csv')  # weekends
+        './data/distribution-of-arrival-weekend.csv')  # weekends
     env.df_connection_time = pd.read_csv(
-        '.\data\distribution-of-connection-time.csv')  # connection time
+        './data/distribution-of-connection-time.csv')  # connection time
     env.df_energy_demand = pd.read_csv(
-        '.\data\distribution-of-energy-demand.csv')  # energy demand
+        './data/distribution-of-energy-demand.csv')  # energy demand
     env.time_of_connection_vs_hour = np.load(
-        '.\data\Time_of_connection_vs_hour.npy')
+        './data/time_of_connection_vs_hour.npy')
 
 def load_power_setpoints(env,randomly):
     '''
@@ -117,7 +117,7 @@ def load_electricity_prices(env):
         return env.replay.charge_prices, env.replay.discharge_prices
     
     #else load historical prices
-    data = pd.read_csv(r'.\data\Netherlands_day-ahead-2015-2023.csv', sep=',', header=0)
+    data = pd.read_csv('./data/Netherlands_day-ahead-2015-2023.csv', sep=',', header=0)
     drop_columns = ['Country','Datetime (UTC)']
     data.drop(drop_columns, inplace=True, axis=1)
     data['year'] = pd.DatetimeIndex(data['Datetime (Local)']).year

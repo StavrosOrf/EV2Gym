@@ -53,8 +53,7 @@ if __name__ == "__main__":
     steps = args.steps  # 288 steps = 1 day with 5 minutes per step
     timescale = args.timescale  # (5 minutes per step)
     n_test_cycles = args.n_test_cycles
-
-    replay_path = "replay/replay_ev_city_150_2023-09-08_11-44.pkl"
+    
     replay_path = None
 
     args.env = 'evcity-v1'
@@ -242,7 +241,8 @@ if __name__ == "__main__":
                                           load_prices_from_replay=True,
                                           save_replay=False,
                                           save_plots=save_plots,
-                                          simulation_length=steps,)
+                                          simulation_length=steps,
+                                          extra_sim_name=run_name,)
 
                 state = torch.Tensor([eval_env.reset()]).to(device)
                 test_reward = 0
@@ -264,6 +264,7 @@ if __name__ == "__main__":
 
                     if done:
                         test_stats.append(stats)                        
+                        print(stats)
                         break
                 test_rewards.append(test_reward)
 

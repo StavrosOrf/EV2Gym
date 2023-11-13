@@ -341,6 +341,7 @@ class EV_City_Math_Model():
         # print constraints
         # self.m.write("model.lp")
         print(f'Starting Optimization....')
+        self.m.setParam('TimeLimit', 2*60)
         self.m.params.NonConvex = 2
         self.m.optimize()
 
