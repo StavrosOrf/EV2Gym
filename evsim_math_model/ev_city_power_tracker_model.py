@@ -339,7 +339,7 @@ class EV_City_Math_Model():
                             GRB.MINIMIZE)
 
         # print constraints
-        self.m.write("model.lp")
+        # self.m.write("model.lp")
         print(f'Starting Optimization....')
         self.m.params.NonConvex = 2
         self.m.optimize()
@@ -377,9 +377,9 @@ class EV_City_Math_Model():
         #                   f' Dis {current_ev_dis[p, i, t].x:.2f}' +
         #                   f' o_dis {omega_dis[p, i, t].x:2.0f}|' +
         #                   f' u {u[p, i, t]:4.1f}')
-        print(t_dep)
-        print(
-            f'Is MIP?: {self.m.IsMIP}, IsMultiObj?: {self.m.IsMultiObj}, Is QCP?: {self.m.IsQCP}, Is QP?: {self.m.IsQP}')
+        # print(t_dep)
+        # print(
+        #     f'Is MIP?: {self.m.IsMIP}, IsMultiObj?: {self.m.IsMultiObj}, Is QCP?: {self.m.IsQCP}, Is QP?: {self.m.IsQP}')
         if self.m.status != GRB.Status.OPTIMAL:
             print(f'Optimization ended with status {self.m.status}')
             exit()

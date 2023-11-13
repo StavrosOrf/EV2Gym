@@ -8,20 +8,11 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    n_transformers = 1
+    n_transformers = 2
     number_of_charging_stations = 2
     steps = 288  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
     save_plots = True
-
-    replay_path = "replay/replay_ev_city_50_2023-07-27_10-12.pkl"
-    replay_path = "replay/replay_ev_city_250_2023-07-27_16-48.pkl"
-    replay_path = "./replay/replay_ev_city_10_2023-10-23_15-33-40-632796.pkl"
-    replay_path = "replay/replay_ev_city_10_2023-10-23_19-45-33-725620.pkl"
-    replay_path = "replay/replay_ev_city_20_2023-10-23_21-10-12-143383.pkl"
-    replay_path = "replay/replay_ev_city_40_2023-10-24_14-03-30-872896.pkl"
-    replay_path = "replay/replay_ev_city_10_2023-10-23_19-44-48-885287.pkl"
-    replay_path = "./replay/replay_ev_city_96_2023-11-08_16-12-41-874253_replay.pkl"
     replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
@@ -42,11 +33,10 @@ if __name__ == "__main__":
                          heterogeneous_specs=False,
                          verbose=verbose,)
 
-    new_replay_path = f"replay/replay_{env.sim_name}.pkl"
-    # new_replay_path = replay_path
+    new_replay_path = f"replay/replay_{env.sim_name}.pkl"    
     
     state = env.reset()
-    # env.visualize()
+
     rewards = []    
 
     for i in range(steps):        

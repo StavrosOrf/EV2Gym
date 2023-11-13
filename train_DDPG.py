@@ -6,7 +6,6 @@ import time
 
 import gym
 import numpy as np
-# import roboschool
 from evsim import ev_city
 
 import torch
@@ -53,31 +52,21 @@ if __name__ == "__main__":
     number_of_charging_stations = args.cs
     steps = args.steps  # 288 steps = 1 day with 5 minutes per step
     timescale = args.timescale  # (5 minutes per step)
-    score_threshold = args.score_threshold  # 1
-    static_prices = args.static_prices
-    static_ev_spawn_rate = args.static_ev_spawn_rate
     n_test_cycles = args.n_test_cycles
 
     replay_path = "replay/replay_ev_city_150_2023-09-08_11-44.pkl"
     replay_path = None
 
-    args.env = 'evcity-v0'
+    args.env = 'evcity-v1'
 
-    gym.register(id='evcity-v0', entry_point='gym_env.ev_city:EVCity')
+    gym.register(id=args.env, entry_point='gym_env.ev_city:EVCity')
     
-    env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_ports_per_cs=2,
-                         number_of_transformers=n_transformers,
-                         static_ev_spawn_rate=True,
-                         load_ev_from_replay=False,
-                         load_prices_from_replay=False,
-                         static_prices=static_prices,
-                         load_from_replay_path=replay_path,
-                         empty_ports_at_end_of_simulation=True,
+    env = ev_city.EVCity(cs=number_of_charging_stations,                         
+                         number_of_transformers=n_transformers,                                              
+                         load_from_replay_path=replay_path,                         
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
-                         score_threshold=score_threshold,
                          save_plots=False,
                          save_replay=False,
                          verbose=verbose,)
@@ -103,19 +92,9 @@ if __name__ == "__main__":
                  checkpoint_dir=checkpoint_dir
                  )
 
-    if static_prices:
-        prices = "static"
-    else:
-        prices = "dynamic"
-
-    if static_ev_spawn_rate:
-        ev_spawn_rate = "static"
-    else:
-        ev_spawn_rate = "dynamic"
-
     # Check if replay folder exists
     eval_replay_path = "./replay/" + \
-        f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices/'
+        f'{number_of_charging_stations}cs_{n_transformers}tr/'
     assert os.path.exists(
         eval_replay_path), "Evaluation Replay folder does not exist"
     # count number of files in replay folder
@@ -132,7 +111,7 @@ if __name__ == "__main__":
     if log_to_wandb:
         wandb.init(
             name=run_name,
-            group=f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate',
+            group=f'{number_of_charging_stations}cs_{n_transformers}tr',
             project='EVsSimulator',
             config={"batch_size": args.batch_size,
                     "replay_size": args.replay_size,
@@ -141,15 +120,12 @@ if __name__ == "__main__":
                     "noise_stddev": args.noise_stddev,
                     "hidden_size": args.hidden_size,
                     "n_test_cycles": args.n_test_cycles,
-                    "seed": args.seed,
-                    "score_threshold": score_threshold,
+                    "seed": args.seed,                    
                     "timescale": timescale,
                     "steps": steps,
                     "number_of_charging_stations": number_of_charging_stations,
                     "replay_path": replay_path,
-                    "n_transformers": n_transformers,
-                    "static_prices": static_prices,
-                    "static_ev_spawn_rate": static_ev_spawn_rate
+                    "n_transformers": n_transformers
                     }
         )
         wandb.watch(agent.actor)

@@ -47,8 +47,6 @@ def arg_parser():
                         help="Timescale (default: 5)")
     parser.add_argument("--score_threshold", default=1, type=int,
                         help="Score threshold (default: 1)")
-    parser.add_argument("--static_prices", default=True, type=bool,
-                        help="Static prices (default: True)")
     parser.add_argument("--static_ev_spawn_rate", default=True, type=bool,
                         help="Static ev spawn rate (default: True)")
     
@@ -56,7 +54,7 @@ def arg_parser():
     parser.add_argument("--n_trajectories", default=10, type=int,
                         help="Num. of trajectories to generate (default: 10)")
     parser.add_argument("--dataset", default="-", type=str)
-    parser.add_argument("--save_opt_trajectories", default=False, type=bool,
+    parser.add_argument("--save_opt_trajectories", default=True, type=bool,
                         help="Save Optimal trajectories (default: False)")
     
 
