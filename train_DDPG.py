@@ -214,7 +214,7 @@ if __name__ == "__main__":
         if log_to_wandb:
             wandb.log({'epoch/return': epoch_return,
                        'epoch/ev_served': stats['total_ev_served'],
-                       'epoch/profits': stats['total_profits'],
+                    #    'epoch/profits': stats['total_profits'],
                        'epoch/energy_charged': stats['toal_energy_charged'],
                        'epoch/energy_discharged': stats['total_energy_discharged'],
                        'epoch/user_satisfaction': stats['average_user_satisfaction'],
@@ -263,7 +263,7 @@ if __name__ == "__main__":
                     state = next_state
 
                     if done:
-                        test_stats.append(stats)
+                        test_stats.append(stats)                        
                         break
                 test_rewards.append(test_reward)
 
@@ -292,7 +292,7 @@ if __name__ == "__main__":
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
                            'test/total_ev_served': stats['total_ev_served'],
-                           'test/total_profits': stats['total_profits'],
+                        #    'test/total_profits': stats['total_profits'],
                            'test/toal_energy_charged': stats['toal_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
@@ -300,7 +300,7 @@ if __name__ == "__main__":
                            #    'test/mean_opt_ratio': np.mean(opt_profits),
                            'test/tracking_error': stats['tracking_error'],
                            'test/power_tracker_violation': stats['power_tracker_violation'],
-                           'test/energy_user_satisfaction': stats['energy_user_satisfaction'],
+                           'test/energy_user_satisfaction': stats['energy_user_satisfaction']/100,
                         #    'test/std_opt_ratio': np.std(opt_profits), 
                            })
 

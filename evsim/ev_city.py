@@ -501,9 +501,10 @@ class EVCity(gym.Env):
         scenario = self.scenario.split('_')[1]
         if scenario == "PowerSetpointTracking":
             reward = -(self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2                        
-            if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
-                reward -= 10 * (self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])
+            # if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
+            #     reward -= 10 * (self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])
                 
-            reward += 0.1 * self.current_power_setpoints[self.current_step-1]            
+            # reward += 0.1 * self.current_power_setpoints[self.current_step-1]            
+            # print(f'current_power_setpoints: {self.current_power_setpoints[self.current_step-1]}')
 
         return reward
