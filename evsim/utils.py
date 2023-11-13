@@ -418,7 +418,7 @@ def get_statistics(ev_env):
                 ev_env.power_setpoints[t]
 
     # find the final battery capacity of evs
-    if ev_env.load_from_replay_path is not None:
+    if ev_env.load_from_replay_path is not None and len(ev_env.EVs) > 0:
         energy_user_satisfaction = 0
         for i, ev in enumerate(ev_env.EVs):
             e_actual = ev.current_capacity
@@ -469,8 +469,8 @@ def print_statistics(ev_env):
             power_tracker_violation += ev_env.current_power_setpoints[t] - \
                 ev_env.power_setpoints[t]
 
-    # find the final battery capacity of evs
-    if ev_env.load_from_replay_path is not None:
+    # find the final battery capacity of evs    
+    if ev_env.load_from_replay_path is not None and len(ev_env.EVs) > 0:
         energy_user_satisfaction = 0
         for i, ev in enumerate(ev_env.EVs):
             e_actual = ev.current_capacity

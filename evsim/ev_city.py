@@ -61,8 +61,6 @@ class EVCity(gym.Env):
         self.save_replay = save_replay
         self.save_plots = save_plots
         self.lightweight_plots = lightweight_plots
-        if cs > 100:
-            self.lightweight_plots = True
         self.verbose = verbose  # Whether to print the simulation progress or not
         self.simulation_length = simulation_length
         self.replay_path = replay_path
@@ -118,6 +116,8 @@ class EVCity(gym.Env):
             self.scenario = scenario
             self.heterogeneous_specs = heterogeneous_specs
 
+        if self.cs > 100:
+            self.lightweight_plots = True
         self.sim_starting_date = self.sim_date
 
         self.sim_name = extra_sim_name + \
@@ -394,8 +394,8 @@ class EVCity(gym.Env):
                 Carefull: if generate_rnd_game is True, 
                 the simulation might end up in infeasible problem
                 """
-            # if self.verbose:
-            print_statistics(self)
+            if self.verbose:
+                print_statistics(self)
 
             if any(score < self.score_threshold for score in user_satisfaction_list):
                 print(
@@ -463,7 +463,7 @@ class EVCity(gym.Env):
         
         if scenario == 'PowerSetpointTracking':
         
-            state = [self.current_step-1 / self.simulation_length,
+            state = [(self.current_step-1) / self.simulation_length,
                     self.timescale/60,
                     self.power_setpoints[self.current_step-1],#/self.cs,
                     ]
@@ -479,22 +479,31 @@ class EVCity(gym.Env):
 
             state = np.array(np.hstack(state))
 
-            # np.set_printoptions(suppress=True)
+            np.set_printoptions(suppress=True)
 
-            print(f'state: {state}')            
+            # print(f'state: {state}')            
             return state  # .reshape(-1)
         else:
             raise NotImplementedError
 
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''
-        reward = total_costs  # - 0.5
+        reward = 0
+        # reward = total_costs  # - 0.5
         # print(f'total_costs: {total_costs}')
         # print(f'user_satisfaction_list: {user_satisfaction_list}')
-        for score in user_satisfaction_list:
-            reward -= 100 * (1 - score)
+        # for score in user_satisfaction_list:
+        #     reward -= 100 * (1 - score)
 
         # Punish invalid actions (actions that try to charge or discharge when there is no EV connected)
-        reward -= 2 * (invalid_action_punishment/self.number_of_ports)
+        # reward -= 2 * (invalid_action_punishment/self.number_of_ports)
+        
+        scenario = self.scenario.split('_')[1]
+        if scenario == "PowerSetpointTracking":
+            reward = -(self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2                        
+            if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
+                reward -= 10 * (self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])
+                
+            reward += 0.1 * self.current_power_setpoints[self.current_step-1]            
 
         return reward
