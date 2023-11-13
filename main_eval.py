@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     verbose = False
     n_transformers = 1
-    number_of_charging_stations = 10
+    number_of_charging_stations = 2
     steps = 288  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
     save_plots = True
@@ -29,8 +29,7 @@ if __name__ == "__main__":
                          number_of_transformers=n_transformers,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
-                         load_from_replay_path=replay_path,
-                         empty_ports_at_end_of_simulation=True,
+                         load_from_replay_path=replay_path,                         
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
@@ -88,8 +87,7 @@ if __name__ == "__main__":
                          number_of_transformers=n_transformers,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
-                         load_from_replay_path=new_replay_path,
-                         empty_ports_at_end_of_simulation=True,
+                         load_from_replay_path=new_replay_path,                         
                          generate_rnd_game=False,
                          simulation_length=steps,
                          timescale=timescale,

@@ -25,31 +25,28 @@ class EVCity(gym.Env):
 
     def __init__(self,
                  cs=None,                 
-                 load_prices_from_replay=False,                 
-                 ev_spawn_rate=0.85,
+                 load_prices_from_replay=False,                                  
                  load_ev_from_replay=False, # load EVs from replay file if true
                  load_from_replay_path=None, # path of replay file to load
                 #  load_power_setpoints_from_replay=True, # load power setpoints from replay file if true
-                 empty_ports_at_end_of_simulation=True,
+                #  empty_ports_at_end_of_simulation=True,
                  simulate_grid=False,
                  scenario="public",
                  heterogeneous_specs=False,
                  replay_path='./replay/',
-                 generate_rnd_game=False,  # generate a random game without terminating conditions
-                #  case='default',
+                 generate_rnd_game=False,  # generate a random game without terminating conditions                
                  number_of_ports_per_cs=2,
                  number_of_transformers=1,
-                 score_threshold=1,
+                 score_threshold=0,
                  timescale=5,
                  date=(2023, 7, 17),  # (year, month, day)
                  hour=(5, 0),  # (hour, minute) 24 hour format
-                 seed=42,  # TODO: add seed
+                 seed=42,
                  save_replay=True,
                  save_plots=True,
                  lightweight_plots=False,
                  extra_sim_name=None,
-                 verbose=False,
-                 calculate_ev_load_curve=True,
+                 verbose=False,                 
                  simulation_length=1000):
 
         super(EVCity, self).__init__()
@@ -60,7 +57,7 @@ class EVCity(gym.Env):
         self.load_from_replay_path = load_from_replay_path
         self.load_ev_from_replay = load_ev_from_replay
         self.load_prices_from_replay = load_prices_from_replay
-        self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
+        # self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
         self.save_replay = save_replay
         self.save_plots = save_plots
         self.lightweight_plots = lightweight_plots
@@ -112,8 +109,7 @@ class EVCity(gym.Env):
                                               date[1],
                                               date[2],
                                               hour[0],
-                                              hour[1])            
-            self.spawn_rate = ev_spawn_rate            
+                                              hour[1])                              
             self.replay = None
             self.sim_name = f'ev_city_{self.simulation_length}_' + \
                 f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'

@@ -413,8 +413,7 @@ def get_statistics(ev_env):
              'total_profits': total_profits,
              'toal_energy_charged': toal_energy_charged,
              'total_energy_discharged': total_energy_discharged,
-             'average_user_satisfaction': average_user_satisfaction,
-             'ev_spawn_rate': ev_env.spawn_rate,
+             'average_user_satisfaction': average_user_satisfaction             
              }
 
     if ev_env.replay is not None:

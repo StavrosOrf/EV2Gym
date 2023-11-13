@@ -102,6 +102,8 @@ def load_ev_profiles(env):
         return None
     elif env.load_ev_from_replay:
         return env.replay.EVs
+    else:
+        return None
 
 def load_electricity_prices(env):
     '''Loads the electricity prices of the simulation
