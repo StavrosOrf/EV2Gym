@@ -470,8 +470,7 @@ class EVCity(gym.Env):
             datetime.timedelta(minutes=self.timescale)
 
     def _get_observation(self):
-        '''Returns the current state of the environment'''
-
+        '''Returns the current state of the environment'''      
         scenario = self.scenario.split('_')[1]
 
         if scenario == 'PowerSetpointTracking':
@@ -502,6 +501,9 @@ class EVCity(gym.Env):
 
             # print(f'state: {state}')
             return state  # .reshape(-1)
+        elif scenario == 'business':
+
+            return np.ones(5)  # .reshape(-1)
         else:
             raise NotImplementedError
 
@@ -529,5 +531,9 @@ class EVCity(gym.Env):
 
             # reward += self.current_power_setpoints[self.current_step-1]
             # print(f'current_power_setpoints: {self.current_power_setpoints[self.current_step-1]}')
-
+        elif scenario == 'business':
+            reward = min(1000, 1 * 100 * self.cs / (0.00001 + (
+                self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
+            for score in user_satisfaction_list:
+                reward -= 100 * (1 - score)
         return reward

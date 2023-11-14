@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    n_transformers = 2
+    n_transformers = 1
     number_of_charging_stations = 2
-    steps = 288  # 288 steps = 1 day with 5 minutes per step
-    timescale = 5  # (5 minutes per step)
+    steps = 96  # 288 steps = 1 day with 5 minutes per step
+    timescale = 15  # (5 minutes per step)
     save_plots = True
-    replay_path = None
+    replay_path = None #put eval-replay paths here to compare with DDPG
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
                          number_of_ports_per_cs=2,
@@ -29,7 +29,7 @@ if __name__ == "__main__":
                          score_threshold=0,
                          date=(2023, 3, 17),
                         #  hour=(10, 0),
-                         scenario='public',
+                         scenario='workplace_business',
                          heterogeneous_specs=False,
                          verbose=verbose,)
 

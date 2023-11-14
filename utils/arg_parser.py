@@ -36,15 +36,15 @@ def arg_parser():
 
     # Environment specific arguments
     parser.add_argument("--cs", default=2, type=int,
-                        help="Num. of CS (default: 1)")
+                        help="Num. of CS (default: 2)")
     parser.add_argument("--transformers", default=1, type=int,
                         help="Num. of Transformers (default: 1)")
     parser.add_argument("--ports", default=2, type=int,
                         help="Num. of Ports per CS (default: 2)")
-    parser.add_argument("--steps", default=288, type=int,
-                        help="Num. of steps (default: 288)")
-    parser.add_argument("--timescale", default=5, type=int,
-                        help="Timescale (default: 5)")
+    parser.add_argument("--steps", default=96, type=int,
+                        help="Num. of steps (default: 96)")
+    parser.add_argument("--timescale", default=15, type=int,
+                        help="Timescale (default: 15)")
     parser.add_argument("--score_threshold", default=1, type=int,
                         help="Score threshold (default: 1)")
     parser.add_argument("--static_ev_spawn_rate", default=True, type=bool,
