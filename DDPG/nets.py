@@ -60,6 +60,7 @@ class Actor(nn.Module):
 
         # Output
         mu = torch.tanh(self.mu(x))
+        mu = torch.sigmoid(self.mu(x))
         return mu
 
 

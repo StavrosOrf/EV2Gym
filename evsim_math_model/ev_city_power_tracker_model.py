@@ -26,8 +26,8 @@ class EV_City_Math_Model():
         self.n_transformers = replay.n_transformers
         self.timescale = replay.timescale
         dt = replay.timescale / 60  # time step
-        print(f'\nGurobi MIQP solver.')
-        print('Loading data...')
+        # print(f'\nGurobi MIQP solver.')
+        # print('Loading data...')
 
         tra_max_amps = replay.tra_max_amps
         tra_min_amps = replay.tra_min_amps
@@ -52,10 +52,10 @@ class EV_City_Math_Model():
         ev_arrival = replay.ev_arrival
         t_dep = replay.t_dep
         # create model
-        print('Creating Gurobi model...')
+        # print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
-        # self.m.setParam('OutputFlag', 0)
-        # self.m.setParam('MIPGap', 0.5)
+        self.m.setParam('OutputFlag', 0)
+        self.m.setParam('MIPGap', 0.5)
 
         # energy of EVs t timeslot t
         energy = self.m.addVars(self.number_of_ports_per_cs,
@@ -145,7 +145,7 @@ class EV_City_Math_Model():
                                    name='total_soc')
 
         # Constrains
-        print('Creating constraints...')
+        # print('Creating constraints...')
         # transformer current and power variables
         for t in range(self.sim_length):
             for i in range(self.n_transformers):
@@ -340,8 +340,7 @@ class EV_City_Math_Model():
 
         # print constraints
         # self.m.write("model.lp")
-        print(f'Starting Optimization....')
-        self.m.setParam('TimeLimit', 2*60)
+        print(f'Optimizing....')        
         self.m.params.NonConvex = 2
         self.m.optimize()
 
