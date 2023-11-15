@@ -501,7 +501,18 @@ class EVCity(gym.Env):
 
             # print(f'state: {state}')
             return state  # .reshape(-1)
-        elif scenario == 'business':
+        elif scenario == 'PST_business':
+            
+            state = [
+                (self.current_step-1) / self.simulation_length,
+                self.sim_date.year / 2025,
+                self.sim_date.month / 12,
+                self.sim_date.day / 31,
+                self.sim_date.hour / 24,
+                self.sim_date.minute / 60,
+                self.timescale/60,
+                self.power_setpoints[self.current_step-1],  # /self.cs,
+            ]
 
             return np.ones(5)  # .reshape(-1)
         else:
@@ -531,7 +542,7 @@ class EVCity(gym.Env):
 
             # reward += self.current_power_setpoints[self.current_step-1]
             # print(f'current_power_setpoints: {self.current_power_setpoints[self.current_step-1]}')
-        elif scenario == 'business':
+        elif scenario == 'PST_business':
             reward = min(1000, 1 * 100 * self.cs / (0.00001 + (
                 self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
             for score in user_satisfaction_list:

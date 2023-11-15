@@ -215,6 +215,16 @@ class EV():
                 self.min_discharge_power*1000/(voltage*math.sqrt(phases)), 
                 (current_step-self.time_of_arrival) / self.simulation_length] # time stayed
             # return self.required_power, self.current_step-self.time_of_arrival
+        elif scenario == 'PST_business':
+
+            return [self.total_energy_exchanged, \
+                self.max_ac_charge_power*1000/(voltage*math.sqrt(phases)), 
+                self.min_ac_charge_power*1000/(voltage*math.sqrt(phases)),
+                self.max_discharge_power*1000/(voltage*math.sqrt(phases)),
+                self.min_discharge_power*1000/(voltage*math.sqrt(phases)), 
+                (current_step-self.time_of_arrival) / self.simulation_length] # time stayed
+            # return self.required_power, self.current_step-self.time_of_arrival
+
         else:               
             raise NotImplementedError
             return self.get_soc(), timestep_left / self.simulation_length

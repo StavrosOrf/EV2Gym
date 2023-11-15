@@ -60,6 +60,15 @@ class Transformer():
             #  self.cs_ids] #TODO check observation space if needed
 
             return np.hstack(state)
+        
+        elif scenario == "PST_business":
+            state = [
+                self.max_current/100,
+                self.min_current/100
+            ]
+            
+
+            return np.hstack(state)
         else:
             raise NotImplementedError
 
