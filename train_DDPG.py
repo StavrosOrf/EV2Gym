@@ -151,7 +151,7 @@ if __name__ == "__main__":
     t = 0
     time_last_checkpoint = time.time()
 
-    highest_opt_ratio = -np.inf
+    highest_opt_ratio = np.inf
 
     # Start training
     logger.info('Train agent on {} env'.format({args.env}))
@@ -240,6 +240,7 @@ if __name__ == "__main__":
                                           load_ev_from_replay=True,
                                           load_prices_from_replay=True,
                                           save_replay=False,
+                                          generate_rnd_game=True,
                                           save_plots=save_plots,
                                           simulation_length=steps,
                                           extra_sim_name=run_name,)
@@ -280,15 +281,19 @@ if __name__ == "__main__":
             # opt_profits = [1 - ((test_stats[i]['opt_profits'] - test_stats[i]['total_profits']) /
             #                     abs(test_stats[i]['opt_profits']))
             #                for i in range(len(test_stats))]
+            
+            opt_tracking_error = [1 - ((test_stats[i]['opt_tracking_error'] - test_stats[i]['tracking_error']) /
+                                        abs(test_stats[i]['opt_tracking_error']))
+                                     for i in range(len(test_stats))]
 
             # print(opt_profits)
-            # for ind in range(args.n_test_cycles):
-            #     if np.mean(opt_profits) > highest_opt_ratio and test_stats[ind]['average_user_satisfaction'] == 1:
-            #         highest_opt_ratio = np.mean(opt_profits)
-            #         agent.save_checkpoint(timestep, memory, run_name+"_best")
-            #         time_last_checkpoint = time.time()
-            #         logger.info('Saved model at {}'.format(time.strftime(
-            #             '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+            for ind in range(args.n_test_cycles):
+                if np.mean(opt_tracking_error) < highest_opt_ratio:# and test_stats[ind]['average_user_satisfaction'] == 1:
+                    highest_opt_ratio = np.mean(opt_tracking_error)
+                    agent.save_checkpoint(timestep, memory, run_name+"_best")
+                    time_last_checkpoint = time.time()
+                    logger.info('Saved model at {}'.format(time.strftime(
+                        '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
@@ -298,7 +303,7 @@ if __name__ == "__main__":
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
                            #    'test/highest_opt_ratio': highest_opt_ratio,
-                           #    'test/mean_opt_ratio': np.mean(opt_profits),
+                              'test/mean_opt_ratio': np.mean(opt_tracking_error),
                            'test/tracking_error': stats['tracking_error'],
                            'test/power_tracker_violation': stats['power_tracker_violation'],
                            'test/energy_user_satisfaction': stats['energy_user_satisfaction']/100,

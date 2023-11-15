@@ -478,9 +478,9 @@ class EVCity(gym.Env):
 
             state = [
                 (self.current_step-1) / self.simulation_length,
-                self.sim_date.year / 2025,
-                self.sim_date.month / 12,
-                self.sim_date.day / 31,
+                # self.sim_date.year / 2025,
+                # self.sim_date.month / 12,
+                self.sim_date.weekday() / 7,
                 self.sim_date.hour / 24,
                 self.sim_date.minute / 60,
                 self.timescale/60,
@@ -519,15 +519,25 @@ class EVCity(gym.Env):
 
         scenario = self.scenario.split('_')[1]
         if scenario == "PowerSetpointTracking":
-            reward = min(1000, 1 * 100 * self.cs / (0.00001 + (
-                self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
-            # if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
-            #     reward -= 100 * (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
+            # reward = min(2, 1 * 4 * self.cs / (0.00001 + (
+            #     self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
+            
+            if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
+                reward -=(self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
 
             # for score in user_satisfaction_list:
             #     reward -= 100 * (1 - score)
+            
+            # for tr in self.transformers:
+            #     if tr.current_amps > tr.max_current:
+            #         reward -= 1000 * abs(tr.current_amps - tr.max_current)
+            #     elif tr.current_amps < tr.min_current:
+            #         reward -= 1000 * abs(tr.current_amps - tr.min_current)
+                    
+                # reward -= 100 * (tr.current_amps < tr.min_amps)
 
-            # reward += self.current_power_setpoints[self.current_step-1]
+            reward += self.current_power_setpoints[self.current_step-1]
+            reward = reward / 100
             # print(f'current_power_setpoints: {self.current_power_setpoints[self.current_step-1]}')
 
         return reward
