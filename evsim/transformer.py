@@ -54,12 +54,13 @@ class Transformer():
         '''
         if scenario == "PowerSetpointTracking":
             state = [
-                self.max_current/100,
-                self.min_current/100
+                # self.max_current/100,
+                # self.min_current/100
             ]
             #  self.cs_ids] #TODO check observation space if needed
 
-            return np.hstack(state)
+            # return np.hstack(state)
+            return state
         else:
             raise NotImplementedError
 

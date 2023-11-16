@@ -515,10 +515,10 @@ class EVCity(gym.Env):
                 # self.sim_date.year / 2025,
                 # self.sim_date.month / 12,
                 self.sim_date.weekday() / 7,
-                self.sim_date.hour / 24,
-                self.sim_date.minute / 60,
-                self.timescale/60,
-                self.power_setpoints[self.current_step-1],  # /self.cs,
+                #turn hour and minutes in sin and cos
+                math.sin(self.sim_date.hour/24*2*math.pi),                              
+                math.cos(self.sim_date.hour/24*2*math.pi),
+                self.power_setpoints[self.current_step-1]/100,  # /self.cs,
             ]
 
             for tr in self.transformers:
@@ -557,8 +557,8 @@ class EVCity(gym.Env):
             # reward = min(2, 1 * 4 * self.cs / (0.00001 + (
             #     self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
                         
-            reward = min(2, 1/(min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-                      self.current_power_setpoints[self.current_step-1])**2)
+            reward = min(2, 1/((min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
+                      self.current_power_setpoints[self.current_step-1])**2 + 0.000001))
             
             # if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
             #     reward -=(self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])

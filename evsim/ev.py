@@ -208,11 +208,11 @@ class EV():
             #In this scenario we have very limited inforamtion about the EVs
             # we do not know the time of departure, the soc and the required energy
             
-            return [self.total_energy_exchanged, \
-                self.max_ac_charge_power*1000/(voltage*math.sqrt(phases)), 
-                self.min_ac_charge_power*1000/(voltage*math.sqrt(phases)),
-                self.max_discharge_power*1000/(voltage*math.sqrt(phases)),
-                self.min_discharge_power*1000/(voltage*math.sqrt(phases)), 
+            return [self.total_energy_exchanged/100, \
+                self.max_ac_charge_power*1000/(voltage*math.sqrt(phases))/100, 
+                self.min_ac_charge_power*1000/(voltage*math.sqrt(phases))/100,
+                # self.max_discharge_power*1000/(voltage*math.sqrt(phases)),
+                # self.min_discharge_power*1000/(voltage*math.sqrt(phases)), 
                 (current_step-self.time_of_arrival) / self.simulation_length] # time stayed
             # return self.required_power, self.current_step-self.time_of_arrival
         else:               
