@@ -10,6 +10,7 @@ Author: Stavros Orfanoudakis 2023
 import gym
 from gym import spaces
 import numpy as np
+import math
 import datetime
 import pickle
 import os
@@ -463,6 +464,28 @@ class EVCity(gym.Env):
                                       self.current_step] = ev.actual_current
                     self.port_energy_level[port, cs.id,
                                            self.current_step] = ev.current_capacity
+                    
+    def _calculate_charge_power_potenital(self):
+        '''
+        This function calculates the total charge power potential of all currently parked EVs        
+        '''
+        
+        power_potential = 0
+        for cs in self.charging_stations:
+            cs_power_potential = 0
+            for port in range(cs.n_ports):
+                ev = cs.evs_connected[port]
+                if ev is not None:
+                    
+                    phases = min(cs.phases, ev.ev_phases)
+                    current = min(cs.max_charge_current, ev.max_ac_charge_power)
+                    cs_power_potential += math.sqrt(phases)*cs.voltage*current/1000
+                    
+            max_cs_power = math.sqrt(cs.phases)*cs.voltage*cs.max_charge_current/1000                                        
+            if cs_power_potential > max_cs_power:
+                power_potential += max_cs_power
+        
+        return power_potential
 
     def _step_date(self):
         '''Steps the simulation date by one timestep'''
@@ -519,25 +542,29 @@ class EVCity(gym.Env):
 
         scenario = self.scenario.split('_')[1]
         if scenario == "PowerSetpointTracking":
+            
             # reward = min(2, 1 * 4 * self.cs / (0.00001 + (
             #     self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
+                        
+            reward -= (min(self.power_setpoints[self.current_step-1], self._calculate_charge_power_potenital()) -
+                      self.current_power_setpoints[self.current_step-1])**2
             
-            if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
-                reward -=(self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
+            # if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
+            #     reward -=(self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
 
             # for score in user_satisfaction_list:
             #     reward -= 100 * (1 - score)
             
-            # for tr in self.transformers:
-            #     if tr.current_amps > tr.max_current:
-            #         reward -= 1000 * abs(tr.current_amps - tr.max_current)
-            #     elif tr.current_amps < tr.min_current:
-            #         reward -= 1000 * abs(tr.current_amps - tr.min_current)
+            for tr in self.transformers:
+                if tr.current_amps > tr.max_current:
+                    reward -= 1000 * abs(tr.current_amps - tr.max_current)
+                elif tr.current_amps < tr.min_current:
+                    reward -= 1000 * abs(tr.current_amps - tr.min_current)
                     
                 # reward -= 100 * (tr.current_amps < tr.min_amps)
 
-            reward += self.current_power_setpoints[self.current_step-1]
-            reward = reward / 100
+            # reward += self.current_power_setpoints[self.current_step-1]
+            # reward = reward / 100
             # print(f'current_power_setpoints: {self.current_power_setpoints[self.current_step-1]}')
 
         return reward
