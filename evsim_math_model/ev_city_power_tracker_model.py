@@ -304,6 +304,11 @@ class EV_City_Math_Model():
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)), name='ev_power_mode_2')
+        
+        # self.m.addConstrs((omega_dis[p, i, t] + omega_ch[p, i, t] <= 0.99
+        #                    for p in range(self.number_of_ports_per_cs)
+        #                    for i in range(self.n_cs)
+        #                    for t in range(self.sim_length)), name='ev_power_mode_2')
 
         # time of departure of EVs
         for t in range(self.sim_length):

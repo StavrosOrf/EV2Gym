@@ -408,8 +408,8 @@ def get_statistics(ev_env):
         [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
         [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
-    tracking_error = ((ev_env.current_power_setpoints -
-                      ev_env.power_setpoints)**2).sum()
+    tracking_error = (min(ev_env.power_setpoints[ev_env.current_step-1], ev_env.charge_power_potential[ev_env.current_step-1]) -
+                      ev_env.current_power_setpoints[ev_env.current_step-1])**2
 
     power_tracker_violation = 0
     for t in range(ev_env.simulation_length):
@@ -461,8 +461,11 @@ def print_statistics(ev_env):
         [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
         [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
-    tracking_error = ((ev_env.current_power_setpoints -
-                      ev_env.power_setpoints)**2).sum()
+    # tracking_error = ((ev_env.current_power_setpoints -
+    #                   ev_env.power_setpoints)**2).sum()
+    tracking_error = (min(ev_env.power_setpoints[ev_env.current_step-1], ev_env.charge_power_potential[ev_env.current_step-1]) -
+                      ev_env.current_power_setpoints[ev_env.current_step-1])**2
+    
     power_tracker_violation = 0
     for t in range(ev_env.simulation_length):
         if ev_env.current_power_setpoints[t] > ev_env.power_setpoints[t]:
@@ -493,7 +496,7 @@ def print_statistics(ev_env):
         f'  - Average user satisfaction: {average_user_satisfaction*100:.2f} %')
 
     print(
-        f'  - Total energy charged: {toal_energy_charged:.1f} | discharged: {total_energy_discharged:.1f} kWh')
+        f'  - Total energy charged: {toal_energy_charged:.1f} | discharged: {total_energy_discharged:.1f} kWh')    
     print(
         f'  - Power Tracking squared error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW')
     print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %\n')
@@ -529,8 +532,9 @@ def visualize_step(ev_env):
             print(tr)
 
         # print current current power setpoint
-        print(f'  - Power setpoint: {ev_env.current_power_setpoints[ev_env.current_step - 1]:.1f} /' +
-              f' {ev_env.power_setpoints[ev_env.current_step - 1]:.1f} kWh')
+        print(f'  - Power setpoint: {ev_env.current_power_setpoints[ev_env.current_step - 1]:.1f} Actual/' +
+              f' {ev_env.power_setpoints[ev_env.current_step - 1]:.1f} Setpoint/'
+              f' {ev_env.charge_power_potential[ev_env.current_step - 1]:.1f} Potential in kWh')
 
 
 def spawn_EV(ev_env, cs_id):

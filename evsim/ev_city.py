@@ -153,6 +153,7 @@ class EVCity(gym.Env):
         # Load power setpoint of simulation
         self.power_setpoints = load_power_setpoints(self, randomly=True)
         self.current_power_setpoints = np.zeros(self.simulation_length)
+        self.charge_power_potential = np.zeros(self.simulation_length)
 
         self.number_of_ports = np.array(
             [cs.n_ports for cs in self.charging_stations]).sum()
@@ -374,6 +375,9 @@ class EVCity(gym.Env):
         self.update_power_statistics()
 
         self.current_step += 1
+        if self.current_step < self.simulation_length:
+            self.charge_power_potential[self.current_step] = self._calculate_charge_power_potential()
+            
         self._step_date()
         self.current_evs_parked += self.current_ev_arrived - self.current_ev_departed
 
@@ -465,7 +469,7 @@ class EVCity(gym.Env):
                     self.port_energy_level[port, cs.id,
                                            self.current_step] = ev.current_capacity
                     
-    def _calculate_charge_power_potenital(self):
+    def _calculate_charge_power_potential(self):
         '''
         This function calculates the total charge power potential of all currently parked EVs        
         '''
@@ -476,14 +480,21 @@ class EVCity(gym.Env):
             for port in range(cs.n_ports):
                 ev = cs.evs_connected[port]
                 if ev is not None:
-                    
-                    phases = min(cs.phases, ev.ev_phases)
-                    current = min(cs.max_charge_current, ev.max_ac_charge_power)
-                    cs_power_potential += math.sqrt(phases)*cs.voltage*current/1000
+                    if ev.time_of_arrival-1 != self.current_step:                        
+                        phases = min(cs.phases, ev.ev_phases)
+                        ev_current = ev.max_ac_charge_power*1000/(math.sqrt(phases)*cs.voltage)
+                        current = min(cs.max_charge_current,ev_current)                        
+                        cs_power_potential += math.sqrt(phases)*cs.voltage*current/1000
                     
             max_cs_power = math.sqrt(cs.phases)*cs.voltage*cs.max_charge_current/1000                                        
+            min_cs_power = math.sqrt(cs.phases)*cs.voltage*cs.min_charge_current/1000
+            
             if cs_power_potential > max_cs_power:
                 power_potential += max_cs_power
+            elif cs_power_potential < min_cs_power:
+                power_potential += 0
+            else:
+                power_potential += cs_power_potential
         
         return power_potential
 
@@ -546,7 +557,7 @@ class EVCity(gym.Env):
             # reward = min(2, 1 * 4 * self.cs / (0.00001 + (
             #     self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
                         
-            reward -= (min(self.power_setpoints[self.current_step-1], self._calculate_charge_power_potenital()) -
+            reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
                       self.current_power_setpoints[self.current_step-1])**2
             
             # if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
