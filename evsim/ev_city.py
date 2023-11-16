@@ -557,8 +557,8 @@ class EVCity(gym.Env):
             # reward = min(2, 1 * 4 * self.cs / (0.00001 + (
             #     self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
                         
-            reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-                      self.current_power_setpoints[self.current_step-1])**2
+            reward = min(2, 1/(min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
+                      self.current_power_setpoints[self.current_step-1])**2)
             
             # if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
             #     reward -=(self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
@@ -566,11 +566,11 @@ class EVCity(gym.Env):
             # for score in user_satisfaction_list:
             #     reward -= 100 * (1 - score)
             
-            for tr in self.transformers:
-                if tr.current_amps > tr.max_current:
-                    reward -= 1000 * abs(tr.current_amps - tr.max_current)
-                elif tr.current_amps < tr.min_current:
-                    reward -= 1000 * abs(tr.current_amps - tr.min_current)
+            # for tr in self.transformers:
+            #     if tr.current_amps > tr.max_current:
+            #         reward -= 1000 * abs(tr.current_amps - tr.max_current)
+            #     elif tr.current_amps < tr.min_current:
+            #         reward -= 1000 * abs(tr.current_amps - tr.min_current)
                     
                 # reward -= 100 * (tr.current_amps < tr.min_amps)
 
