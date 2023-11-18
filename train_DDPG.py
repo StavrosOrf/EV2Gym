@@ -282,9 +282,10 @@ if __name__ == "__main__":
             #                     abs(test_stats[i]['opt_profits']))
             #                for i in range(len(test_stats))]
             
-            opt_tracking_error = [1 - ((test_stats[i]['opt_tracking_error'] - test_stats[i]['tracking_error']) /
-                                        abs(test_stats[i]['opt_tracking_error']))
+            opt_tracking_error = [1 - min(1,abs(test_stats[i]['opt_tracking_error'] - test_stats[i]['tracking_error']) /
+                                        (test_stats[i]['tracking_error']+0.000001))
                                      for i in range(len(test_stats))]
+            print(opt_tracking_error)
 
             # print(opt_profits)
             for ind in range(args.n_test_cycles):

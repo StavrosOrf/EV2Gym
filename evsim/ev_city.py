@@ -557,11 +557,12 @@ class EVCity(gym.Env):
             # reward = min(2, 1 * 4 * self.cs / (0.00001 + (
             #     self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
                         
-            reward = min(2, 1/((min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-                      self.current_power_setpoints[self.current_step-1])**2 + 0.000001))
-            
-            # if self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1] < 0:
-            #     reward -=(self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
+            #this is the new reward function
+            # reward = min(2, 1/((min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
+            #           self.current_power_setpoints[self.current_step-1])**2 + 0.000001))
+                                    
+            if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1] :
+                reward -= (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
 
             # for score in user_satisfaction_list:
             #     reward -= 100 * (1 - score)
@@ -574,8 +575,11 @@ class EVCity(gym.Env):
                     
                 # reward -= 100 * (tr.current_amps < tr.min_amps)
 
-            # reward += self.current_power_setpoints[self.current_step-1]
-            # reward = reward / 100
+            reward += self.current_power_setpoints[self.current_step-1]/100
+            
+            # reward -= 2 * (invalid_action_punishment/self.number_of_ports)
+            # reward /= 100
+            # reward = (100 +reward) / 1000
             # print(f'current_power_setpoints: {self.current_power_setpoints[self.current_step-1]}')
 
         return reward
