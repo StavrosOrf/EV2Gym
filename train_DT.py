@@ -48,8 +48,7 @@ def experiment(
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    env = "ev_city-v0"
-    max_ep_len = 150
+    env = "ev_city-v0"    
     scale = 1
     env_targets = [50]  # evaluation conditioning targets
 
@@ -57,34 +56,34 @@ def experiment(
         # since BC ignores target, no need for different evaluations
         env_targets = env_targets[:1]
 
-    state_dim = 7  # env.observation_space.shape[0]
-    act_dim = 2  # env.action_space.shape[0]
+    state_dim = env.observation_space.shape[0]
+    act_dim = env.action_space.shape[0]
 
     # load dataset
     dataset_path = f'trajectories/{env_name}-{dataset}-v2.pkl'
 
     #random trajectories
     if dataset == 'random':
+        raise NotImplementedError("Dataset not found")
         dataset_path = f'./trajectories/random_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_100000_trajectories.pkl'
     elif dataset == 'ddpg':
         #DDPG semi-random trajectories
+        raise NotImplementedError("Dataset not found")
         dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
     elif dataset == "optimal":
-        dataset_path = f'trajectories/optimal_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_100000_trajectories.pkl'
+        dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_1000000_trajectories.pkl'
     else:
         raise NotImplementedError("Dataset not found")
 
     #split dataset path to get group name
     number_of_charging_stations = dataset_path.split("_")[1]
-    n_transformers = dataset_path.split("_")[3]
-    prices = dataset_path.split("_")[5]
-    ev_spawn_rate = dataset_path.split("_")[7]
-    timesteps = dataset_path.split("_")[11]
-    timescale = dataset_path.split("_")[13]
-    score_threshold = dataset_path.split("_")[15]
+    n_transformers = dataset_path.split("_")[3]        
+    timesteps = dataset_path.split("_")[5]
+    max_ep_len = timesteps
+    timescale = dataset_path.split("_")[7]
     g_name = variant['group_name']
 
-    group_name = f'{g_name}_DT_{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate'    
+    group_name = f'{g_name}_DT_{number_of_charging_stations}cs_{n_transformers}tr'    
 
     with open(dataset_path, 'rb') as f:
         trajectories = pickle.load(f)

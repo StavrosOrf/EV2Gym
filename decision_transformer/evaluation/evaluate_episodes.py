@@ -89,12 +89,11 @@ def evaluate_episode_rtg(
     test_stats = []
     highest_opt_ratio = np.NINF
 
-    number_of_charging_stations = 1
-    n_transformers = 1
-    prices = "static"
+    number_of_charging_stations = 10
+    n_transformers = 1    
 
     eval_replay_path = "./replay/" + \
-        f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices/'
+        f'{number_of_charging_stations}cs_{n_transformers}tr/'
     eval_replay_files = [f for f in os.listdir(
         eval_replay_path) if os.path.isfile(os.path.join(eval_replay_path, f))]
     
@@ -112,6 +111,7 @@ def evaluate_episode_rtg(
                                     load_ev_from_replay=True,
                                     load_prices_from_replay=True,
                                     save_replay=False,
+                                    generate_rnd_game=True,
                                     save_plots=save_plots,
                                     simulation_length=max_ep_len,
                                     extra_sim_name=exp_prefix,)        
