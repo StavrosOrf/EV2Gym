@@ -300,7 +300,7 @@ if __name__ == "__main__":
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
                            'test/total_ev_served': stats['total_ev_served'],
                         #    'test/total_profits': stats['total_profits'],
-                           'test/toal_energy_charged': stats['toal_energy_charged'],
+                           'test/total_energy_charged': stats['total_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
                            #    'test/highest_opt_ratio': highest_opt_ratio,

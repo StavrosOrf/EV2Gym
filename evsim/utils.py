@@ -402,7 +402,7 @@ def get_statistics(ev_env):
         [cs.total_evs_served for cs in ev_env.charging_stations]).sum()
     total_profits = np.array(
         [cs.total_profits for cs in ev_env.charging_stations]).sum()
-    toal_energy_charged = np.array(
+    total_energy_charged = np.array(
         [cs.total_energy_charged for cs in ev_env.charging_stations]).sum()
     total_energy_discharged = np.array(
         [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
@@ -432,7 +432,7 @@ def get_statistics(ev_env):
 
     stats = {'total_ev_served': total_ev_served,
              'total_profits': total_profits,
-             'toal_energy_charged': toal_energy_charged,
+             'total_energy_charged': total_energy_charged,
              'total_energy_discharged': total_energy_discharged,
              'average_user_satisfaction': average_user_satisfaction,
              'power_tracker_violation': power_tracker_violation,

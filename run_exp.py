@@ -7,13 +7,14 @@ import time
 
 # run trai_DT.py in a tmux pane for each K and dataset
 
-counter = 0
-for K in [25,150]:
+batch_size = 512
 
+counter = 0
+for K in [50]:
     # for dataset in ['ddpg', 'random']:
-    for dataset in ['random']:
-        for embed_dim in [128, 256, 512]:
-            for n_layer, n_head in [(3, 1), (3, 4)]:
+    for dataset in ['optimal']:
+        for embed_dim in [512]:
+            for n_layer, n_head in [(3, 4)]: #(3, 1),
                 command = 'tmux new-session -d \; send-keys "python train_DT.py' + \
                     ' --dataset ' + dataset + \
                     ' --K ' + str(K) + \
@@ -25,6 +26,7 @@ for K in [25,150]:
                     ' --name K=' + str(K) + \
                     ',embed_dim=' + str(embed_dim) + \
                     ',n_layer=' + str(n_layer) +\
+                    ',batch_size=' + str(batch_size) + \
                     ',n_head=' + str(n_head) + \
                     '" Enter'
                 os.system(command=command)
