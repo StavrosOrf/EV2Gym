@@ -53,8 +53,7 @@ class EV_Charger:
                  voltage=230,  # Volts
                  n_ports=2,
                  charger_type="AC",  # AC or DC
-                 phases=3,
-                 bi_directional=True,
+                 phases=3,                 
                  timescale=5,
                  verbose=False):
 
@@ -68,7 +67,6 @@ class EV_Charger:
         # EV Charger technical characteristics
         self.n_ports = n_ports
         self.charger_type = charger_type
-        self.bi_directional = bi_directional
         self.timescale = timescale
 
         self.min_charge_current = min_charge_current
@@ -163,18 +161,16 @@ class EV_Charger:
                 self.current_total_amps += actual_amps
 
             elif action < 0:
-                if not self.bi_directional:
-                    actual_amps, actual_power = 0, 0
-                else:
-                    amps = action * abs(self.max_discharge_current)
-                    if amps > self.min_discharge_current-0.01:
-                        amps = self.min_discharge_current
 
-                    actual_power, actual_amps = self.evs_connected[i].step(
-                        amps,
-                        self.voltage,
-                        phases=self.phases,
-                        type=self.charger_type)
+                amps = action * abs(self.max_discharge_current)
+                if amps > self.min_discharge_current-0.01:
+                    amps = self.min_discharge_current
+
+                actual_power, actual_amps = self.evs_connected[i].step(
+                    amps,
+                    self.voltage,
+                    phases=self.phases,
+                    type=self.charger_type)
                 profit += abs(actual_power) * discharge_price
                 self.total_energy_discharged += abs(actual_power)
                 self.current_power_output += actual_power
