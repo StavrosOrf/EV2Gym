@@ -123,6 +123,7 @@ class Attention(nn.Module):
 
         n_state = nx  # in Attention: n_state=768 (nx=n_embd)            
         # [switch nx => n_state from Block to Attention to keep identical to TF implem]
+        print(f'n_state: {n_state}, n_head: {config.n_head}')
         assert n_state % config.n_head == 0
         self.register_buffer(
             "bias", torch.tril(torch.ones((n_ctx, n_ctx), dtype=torch.uint8)).view(1, 1, n_ctx, n_ctx)

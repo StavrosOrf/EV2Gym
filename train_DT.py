@@ -85,9 +85,8 @@ def experiment(
     dataset_path = f'trajectories/{env_name}-{dataset}-v2.pkl'
 
     #random trajectories
-    if dataset == 'random':
-        raise NotImplementedError("Dataset not found")
-        dataset_path = f'./trajectories/random_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_100000_trajectories.pkl'
+    if dataset == 'random':        
+        dataset_path = f'./trajectories/random_10_cs_1_tr_288_steps_5_timescale_15000_trajectories.pkl'
     elif dataset == 'ddpg':
         #DDPG semi-random trajectories
         raise NotImplementedError("Dataset not found")
@@ -300,9 +299,10 @@ def experiment(
         lr=variant['learning_rate'],
         weight_decay=variant['weight_decay'],
     )
+    max_iters = variant['max_iters']
     scheduler = torch.optim.lr_scheduler.LambdaLR(
         optimizer,
-        lambda steps: min((steps+1)/warmup_steps, 1)
+        lambda max_iters: min((max_iters+1)/warmup_steps, 1)
     )
 
     if model_type == 'dt':
