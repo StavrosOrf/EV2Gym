@@ -1,5 +1,6 @@
 import argparse
 
+# Algorithm specific arguments
 def arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", default="ev-city-v0",
