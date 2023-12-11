@@ -249,10 +249,10 @@ class EV_Charger:
             state = [
                 # self.current_charge_price,
                 # self.current_discharge_price,
-                self.max_charge_current/100,  # normalize to be around 1
-                self.min_charge_current/100, 
-                self.max_discharge_current/100,
-                self.min_discharge_current/100,
+                # self.max_charge_current/100,  # normalize to be around 1
+                # self.min_charge_current/100, 
+                # self.max_discharge_current/100,
+                # self.min_discharge_current/100,
                 # self.n_ports,
                 # self.n_evs_connected
             ]
@@ -264,7 +264,7 @@ class EV_Charger:
                                               voltage=self.voltage,
                                               phases=self.phases,))
                 else:
-                    state.append(np.zeros(6))
+                    state.append(np.zeros(9))
 
             return np.hstack(state)
 

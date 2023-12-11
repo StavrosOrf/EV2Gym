@@ -220,9 +220,17 @@ class EV():
             return [self.total_energy_exchanged, \
                 self.max_ac_charge_power*1000/(voltage*math.sqrt(phases)), 
                 self.min_ac_charge_power*1000/(voltage*math.sqrt(phases)),
-                self.max_discharge_power*1000/(voltage*math.sqrt(phases)),
-                self.min_discharge_power*1000/(voltage*math.sqrt(phases)), 
-                (current_step-self.time_of_arrival) / self.simulation_length] # time stayed
+            #    self.max_discharge_power*1000/(voltage*math.sqrt(phases)),
+            #    self.min_discharge_power*1000/(voltage*math.sqrt(phases)), 
+                (current_step-self.time_of_arrival) / self.simulation_length, # time stayed
+                (self.earlier_time_of_departure - self.time_of_arrival) / self.simulation_length, # total time stayed   
+                (((self.battery_capacity - self.battery_capacity_at_arrival) / 
+                    (self.earlier_time_of_departure - self.time_of_arrival)) / self.max_ac_charge_power), # average charging speed
+                    self.earlier_time_of_departure / self.simulation_length, # time of departure
+                    self.get_soc(), # soc
+                    self.required_power / self.battery_capacity, # required energy
+                    self.time_of_arrival / self.simulation_length, # time of arrival
+             ] 
             # return self.required_power, self.current_step-self.time_of_arrival
 
         else:               

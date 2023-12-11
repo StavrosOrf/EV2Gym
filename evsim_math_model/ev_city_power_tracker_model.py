@@ -333,10 +333,10 @@ class EV_City_Math_Model():
                                        if t_dep[p, i, t] == 1)
 
         # Objective function
-        self.m.setObjective( 10000000 * power_error.sum() - total_soc.sum(),
-                             GRB.MINIMIZE)        
-        # self.m.setObjective(power_error.sum(),
-        #                    GRB.MINIMIZE)
+        #self.m.setObjective( 10000000 * power_error.sum() - total_soc.sum(),
+        #                     GRB.MINIMIZE)        
+        self.m.setObjective(power_error.sum(),
+                            GRB.MINIMIZE)
 
         # print constraints
         # self.m.write("model.lp")

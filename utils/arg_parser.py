@@ -35,7 +35,7 @@ def arg_parser():
                         help="Enable logging to wandb (default: True)")
 
     # Environment specific arguments
-    parser.add_argument("--cs", default=2, type=int,
+    parser.add_argument("--cs", default=1, type=int,
                         help="Num. of CS (default: 2)")
     parser.add_argument("--transformers", default=1, type=int,
                         help="Num. of Transformers (default: 1)")
