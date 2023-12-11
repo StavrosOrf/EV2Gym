@@ -1,58 +1,98 @@
-#write script to read in data and do some basic EDA for the elaad data
+# #write script to read in data and do some basic EDA for the elaad data
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import datetime
 
+# #print all file in directory
+# for dirname, _, filenames in os.walk('.\data'):
+#     for filename in filenames:
+#         print(os.path.join(dirname, filename))
 
-#read in data from xlsx file
-df = pd.read_excel('.\data\elaadnl_open_ev_datasets.xlsx',
-                    sheet_name='open_transactions')
+# # df_arrival_week = pd.read_csv('.\data\distribution-of-arrival.csv') #weekdays
+# # df_arrival_weekend = pd.read_csv('.\data\distribution-of-arrival-weekend.csv') #weekends
+# # df_connection_time = pd.read_csv('.\data\distribution-of-connection-time.csv') #connection time
+# # df_denergy_demand = pd.read_csv('.\data\distribution-of-energy-demand.csv') #energy demand
 
-print(df.head())
+# print(df_arrival_week['public'].sum())
+# print(df_arrival_weekend['public'].sum())
+# print(df_arrival_week)
+# print(df_arrival_weekend)
 
-#create a new column for hour of arrival and departure
-df['hour_of_arrival'] = df['UTCTransactionStart'].dt.hour
-df['hour_of_departure'] = df['UTCTransactionStop'].dt.hour
+# date = datetime.datetime(2021, 1, 1, 0, 0, 0)
 
-#create a new column for day of arrival and departure
-df['day_of_arrival'] = df['UTCTransactionStart'].dt.day
-df['day_of_departure'] = df['UTCTransactionStop'].dt.day
+# arrival_times = []
+# energy_demand = []
+# connection_time = []
 
-#sample from  df['hour_of_arrival'] to get a sense of the distribution
-print(f'Hour of arrival: {df["hour_of_arrival"].sample(10)}')
-print(f' Charge time: {df["ChargeTime"].sample(10)}')
+# numbers = np.random.randint(0,100,size=1)
 
-print(df.nunique())
+# for i in numbers:
+#     energy_demand.append(df_denergy_demand['public'].iloc[i])
+#     connection_time.append(df_connection_time['public'].iloc[i])
+# plt.hist(energy_demand, bins=20)
+# plt.show()
+# plt.hist(connection_time, bins=24)
+# for k in range(3650):
+#     # for i in range(int(24*60/15)):    
+#     #     date += datetime.timedelta(minutes=15)
 
-#plot histogram of uniqe chargepoint_IDs of the sum of the charge time
-df.groupby('ChargePoint').hist(bins=850, figsize=(10,8))
-plt.show()
+#         # print(date)
+#         #this is how I am gonna sample public ev spawns
+#         #Allow to choose residential, public, workplace scenarios
+#         # if np.random.rand(1)*100 < df_arrival_week['public'].iloc[i]:
+#         #     arrival_times.append(i)
 
-
-#check for outliers
-print(df.describe())
-
-#plot histograms
-df.hist(bins=31, figsize=(10,8))
+    
+        
+# # plot histogram of arrival times
+# plt.hist(arrival_times, bins=96)
 # plt.show()
 
-exit()
+# #read in data from xlsx file
 df = pd.read_excel('.\data\elaadnl_open_ev_datasets.xlsx',
-                    sheet_name='open_metervalues')
+                    sheet_name='open_transactions')
+#get all keys
+keys = df.keys()
+
+df['hour_of_arrival'] = df['UTCTransactionStart'].dt.hour
+
+#drop all other columns except for "ChargeTime" and "UTCTransactionStart"
+for k in keys:
+    if k != "ChargeTime" and k != "hour_of_arrival":
+        df = df.drop(k, axis=1)
+
 
 print(df.head())
-print(df.info())
 
-#check for missing values
-print(df.isnull().sum())
+#plot a histogram of the hour_of_arrival vs the Chargetime for every hour in the same figure
+# also add legends and labels, and make plots transparent
+# plt.figure()
+#save the bins and edges for later use
 
-#check for duplicates
-print(df.duplicated().sum())
+data_table = np.zeros((24,48))
 
-#check for outliers
-print(df.describe())
+for i in range(24):
+    bins, edges = np.histogram(df['ChargeTime'].loc[df['hour_of_arrival'] == i], bins=48)
+    #normalize the bins
+    bins = bins/bins.sum()
+    data_table[i,:] = bins
 
-#plot histograms
-df.hist(bins=50, figsize=(10,8))
+    #smooth the data
+    bins = np.convolve(bins, np.ones(5)/5, mode='same')
+
+
+    #plot cdf    
+    # plt.plot(edges[:-1], np.cumsum(bins), label=f'Hour {i}')
+
+    plt.plot(edges[:-1], bins, label=f'Hour {i}')
+plt.legend()
+plt.xlabel('Charge Time')
+plt.ylabel('Frequency')
+plt.title('Charge Time vs Hour of Arrival')
 plt.show()
+
+#save data_table as numpy array
+np.save('time_of_connection_vs_hour.npy', data_table)

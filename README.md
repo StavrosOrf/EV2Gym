@@ -3,6 +3,11 @@
 # EVsSimulator
 A V2X Simulation Environment for large scale EV charging optimization
 
+## Use-Cases
+- [ ] Public residential chargers Power Management and Transformer capacity management (follow setpoint)
+- [ ] Fast chargers capacity management
+- [ ] Office building chargers capacity management 100+ EVSEs
+
 ### Insights for RL in EVsSimulator
 - The state should be normalized [0,1] for better convergence
 - The reward should be either positive or negative so that policy loss converges
@@ -20,7 +25,7 @@ A V2X Simulation Environment for large scale EV charging optimization
   - [~] Then, enable dynamic prices (tested:works for 1 cs but makes learning slower)
   - [x] Then, enable dynamic EV spawn rate (works perfectly--tested for cs<4 )
   - [ ] Then, enable transformer aggregation (new reward should be designed)
-  - [ ] Then, enable dynamic transformer power level (because of grid constraints or because of very expensive energy "greenflux")
+  - [ ] Then, enable dynamic transformer power level (because of grid constraints or because of very expensive energy)
   - [~] Then, enable different spawn rates in each test case (under testing now, much harder to have very good solutions with DDPG)
   - [ ] Then, enable heterogeneous EVs and EV chargers 
 - [ ] Normalize reward based on the number of EVs in the parking lot (e.g., if there are 100 EVs, the reward should be divided by 100)
@@ -53,6 +58,10 @@ Here, I will write down the debugging tasks I am currently working on:
 - [x] Add power limit to the problem formulation and in the environment
 - [x] Add rest period so every EV has time to leave the parking lot (stop spawning EVs after a while)
 - [ ] Research about electricity prices and how to include them in the problem formulation
+- [ ] Get distributions about EV characteristics (battery size, max charging and discharging power per level--max_current--, etc.)
+  - [ ] Each EV has unique battery capacitance (50-100 kWh) and max charging and discharging acceptance ratio (max amps) 
+  - [ ] Each charger has unique charging and discharging power depending on the level (1,2, fast charging) and an efficiency factor 95%+ to model power losses.
+  - [ ] TODO - Implement both DC and AC chargers and specifications for both.
 
 
 #### PyOmo/ Gurobi Optimization
@@ -88,10 +97,10 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 - [ ] Add the **grid** as a part of the problem formulation
 - [x] Add power limit as part of the problem formulation: https://ev.caltech.edu/assets/images/conventional_v_adaptive.svg (the power limit is the maximum power that can be drawn from a group of ev chargers) https://ev.caltech.edu/info
 - [x] Add **j number of ports** per charging station and include related constraints
-- [ ] Add the battery behavior model 0-80 fast, 80-100 slow
-- [ ] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
-- [ ] Create a highly heterogeneous EV/ EV Charger environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids) https://site.ieee.org/pes-iss/data-sets/#elec (check the 34 ev types dataset)
-- [ ] Improve the user satisfaction term
+- [x] Add the battery behavior model 0-80 fast, 80-100 slow
+- [x] Add battery degradation model (simple -> just include charge cycles, more complex -> include temperature, SOC, etc.)
+- [x] Create a highly heterogeneous EV/ EV Charger environment -> Closer to realistic cases (different chargers, different EVs, different parking lots, different buildings, different transformers, different grids) https://site.ieee.org/pes-iss/data-sets/#elec (check the 34 ev types dataset)
+- [x] Improve the user satisfaction term
 
 ## Limitations
 - The transformer power limit makes the problem harder to solve (more constraints) for gurobi
@@ -104,6 +113,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
 ## Datasets
  - EV charging transactions: https://platform.elaad.io/download-data/
  - EV charging prices and transactions [Not free]: https://www.chargeprice.app/
+ - Day-ahaed prices 2015-2023 hourly https://ember-climate.org/data/data-tools/europe-power-prices/
 
 ## RL Benchmarks
  - DDPG: https://github.com/schneimo/ddpg-pytorch
@@ -118,6 +128,7 @@ Here, I will write down abstract ideas about the V2X problem I am trying to solv
  - EV battery characteristics: https://axlewise.com/ev-car-battery/#:~:text=The%20size%20of%20an%20electric%20car%20battery%20can,depending%20on%20the%20car%E2%80%99s%20make%2C%20model%2C%20and%20year.
  - EV charger manufacturer: https://new.abb.com/ev-charging
  - Useful V2G info: https://www.virta.global/vehicle-to-grid-v2g#:~:text=With%20V2G%20technology%2C%20an%20EV,back%20to%20the%20power%20grid.
+ - EV charger 2 port specs: https://cyberswitching.com/product/dual-chargers-on-pedestal/
   #### Code repositories
   - EV simulator and datasets: https://github.com/zach401/acnportal
 

@@ -1,0 +1,38 @@
+{
+    "EV_chargers": [
+        {
+            "type": "level1",
+            "min_voltage": "120",
+            "max_voltage": "120",
+            "usual_voltage": "120",
+            "min_current": "15",
+            "max_current": "20",
+            "usual_current": "20"
+        },
+        {
+            "type": "level2",
+            "min_voltage": "208",
+            "max_voltage": "240",
+            "usual_voltage": "230",
+            "min_current": "8",
+            "max_current": "80",
+            "usual_current": "32"
+        },
+        {
+            "type": "DC",
+            "min_voltage": "208",
+            "max_voltage": "600",
+            "usual_voltage": "480",
+            "min_current": "60",
+            "max_current": "200",
+            "usual_current": "60"
+        }
+    ],
+    "V2G_chargers": [],
+    "EV_specifications": [
+        {
+            "max_charge_power": "100", -> max_current per type of conection
+            "battery_capacity": "100"
+        }
+    ]
+}

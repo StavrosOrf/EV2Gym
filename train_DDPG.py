@@ -6,7 +6,6 @@ import time
 
 import gym
 import numpy as np
-# import roboschool
 from evsim import ev_city
 
 import torch
@@ -41,43 +40,32 @@ if __name__ == "__main__":
     if args.name:
         run_name = args.name
     else:
-        run_name = 'r_' + time.strftime("%Y%m%d-%H%M%S")    
+        run_name = 'r_' + time.strftime("%Y%m%d-%H%M%S")
 
     run_name += "_DDPG"
     # Create the env
     # env = NormalizedActions(env)
-    #     
+    #
     log_to_wandb = args.wandb
     verbose = False
     n_transformers = args.transformers
     number_of_charging_stations = args.cs
     steps = args.steps  # 288 steps = 1 day with 5 minutes per step
     timescale = args.timescale  # (5 minutes per step)
-    score_threshold = args.score_threshold  # 1
-    static_prices = args.static_prices
-    static_ev_spawn_rate = args.static_ev_spawn_rate
     n_test_cycles = args.n_test_cycles
-
-    replay_path = "replay/replay_ev_city_150_2023-09-08_11-44.pkl"
+    
     replay_path = None
 
-    args.env = 'evcity-v0'
+    args.env = 'evcity-v1'
 
-    gym.register(id='evcity-v0', entry_point='gym_env.ev_city:EVCity')
-    
+    gym.register(id=args.env, entry_point='gym_env.ev_city:EVCity')
+
     env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_ports_per_cs=2,
                          number_of_transformers=n_transformers,
-                         static_ev_spawn_rate=True,
-                         load_ev_from_replay=False,
-                         load_prices_from_replay=False,
-                         static_prices=static_prices,
                          load_from_replay_path=replay_path,
-                         empty_ports_at_end_of_simulation=True,
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
-                         score_threshold=score_threshold,
                          save_plots=False,
                          save_replay=False,
                          verbose=verbose,)
@@ -103,19 +91,9 @@ if __name__ == "__main__":
                  checkpoint_dir=checkpoint_dir
                  )
 
-    if static_prices:
-        prices = "static"
-    else:
-        prices = "dynamic"
-
-    if static_ev_spawn_rate:
-        ev_spawn_rate = "static"
-    else:
-        ev_spawn_rate = "dynamic"
-
     # Check if replay folder exists
     eval_replay_path = "./replay/" + \
-        f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices/'
+        f'{number_of_charging_stations}cs_{n_transformers}tr/'
     assert os.path.exists(
         eval_replay_path), "Evaluation Replay folder does not exist"
     # count number of files in replay folder
@@ -127,12 +105,13 @@ if __name__ == "__main__":
     print(f'Found {len(eval_replay_files)} replay files in {eval_replay_path}')
     if n_test_cycles > len(eval_replay_files):
         n_test_cycles = len(eval_replay_files)
-        print(f'Number of test cycles set to {n_test_cycles} due to the number of replay files found')
+        print(
+            f'Number of test cycles set to {n_test_cycles} due to the number of replay files found')
 
     if log_to_wandb:
         wandb.init(
             name=run_name,
-            group=f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate',
+            group=f'{number_of_charging_stations}cs_{n_transformers}tr',
             project='EVsSimulator',
             config={"batch_size": args.batch_size,
                     "replay_size": args.replay_size,
@@ -142,14 +121,11 @@ if __name__ == "__main__":
                     "hidden_size": args.hidden_size,
                     "n_test_cycles": args.n_test_cycles,
                     "seed": args.seed,
-                    "score_threshold": score_threshold,
                     "timescale": timescale,
                     "steps": steps,
                     "number_of_charging_stations": number_of_charging_stations,
                     "replay_path": replay_path,
-                    "n_transformers": n_transformers,
-                    "static_prices": static_prices,
-                    "static_ev_spawn_rate": static_ev_spawn_rate
+                    "n_transformers": n_transformers
                     }
         )
         wandb.watch(agent.actor)
@@ -175,7 +151,7 @@ if __name__ == "__main__":
     t = 0
     time_last_checkpoint = time.time()
 
-    highest_opt_ratio = -np.inf
+    highest_opt_ratio = np.inf
 
     # Start training
     logger.info('Train agent on {} env'.format({args.env}))
@@ -198,7 +174,7 @@ if __name__ == "__main__":
             action = agent.calc_action(state, ou_noise)
             # print(f'action: {action}')
             next_state, reward, done, stats = env.step(action.cpu().numpy()[0])
-        
+
             timestep += 1
             epoch_return += reward
 
@@ -237,13 +213,14 @@ if __name__ == "__main__":
         if log_to_wandb:
             wandb.log({'epoch/return': epoch_return,
                        'epoch/ev_served': stats['total_ev_served'],
-                       'epoch/profits': stats['total_profits'],
+                    #    'epoch/profits': stats['total_profits'],
                        'epoch/energy_charged': stats['toal_energy_charged'],
                        'epoch/energy_discharged': stats['total_energy_discharged'],
                        'epoch/user_satisfaction': stats['average_user_satisfaction'],
+                       'epoch/tracking_error': stats['tracking_error'],
+                       'epoch/power_tracker_violation': stats['power_tracker_violation'],
                        'epoch/value_loss': epoch_value_loss,
-                       'epoch/policy_loss': epoch_policy_loss,
-                       'epoch/ev_spawn_rt': stats['ev_spawn_rate']})
+                       'epoch/policy_loss': epoch_policy_loss})
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 5000 * t:
@@ -252,23 +229,25 @@ if __name__ == "__main__":
             test_stats = []
             for test_cycle in range(n_test_cycles):
 
-                # load evaluation enviroments from replay files               
-                
-                if test_cycle == 0:                        
+                # load evaluation enviroments from replay files
+
+                if test_cycle == 0:
                     save_plots = True
                 else:
                     save_plots = False
-                eval_env = ev_city.EVCity(load_from_replay_path= eval_replay_path + 
+                eval_env = ev_city.EVCity(load_from_replay_path=eval_replay_path +
                                           eval_replay_files[test_cycle],
                                           load_ev_from_replay=True,
                                           load_prices_from_replay=True,
                                           save_replay=False,
+                                          generate_rnd_game=True,
                                           save_plots=save_plots,
-                                          simulation_length=steps,)
+                                          simulation_length=steps,
+                                          extra_sim_name=run_name,)
 
                 state = torch.Tensor([eval_env.reset()]).to(device)
                 test_reward = 0
-                while True:                    
+                while True:
 
                     # Selection without noise
                     action = agent.calc_action(state)
@@ -285,7 +264,8 @@ if __name__ == "__main__":
                     state = next_state
 
                     if done:
-                        test_stats.append(stats)
+                        test_stats.append(stats)                        
+                        print(stats)
                         break
                 test_rewards.append(test_reward)
 
@@ -296,16 +276,21 @@ if __name__ == "__main__":
             for key in test_stats[0].keys():
                 stats[key] = np.mean([test_stats[i][key]
                                      for i in range(len(test_stats))])
-                
-            # get all values of a key in a list
-            opt_profits = [1 - ((test_stats[i]['opt_profits'] - test_stats[i]['total_profits']) / 
-                                abs(test_stats[i]['opt_profits'])) \
-                                 for i in range(len(test_stats))]                        
 
-            print(opt_profits)
+            # get all values of a key in a list
+            # opt_profits = [1 - ((test_stats[i]['opt_profits'] - test_stats[i]['total_profits']) /
+            #                     abs(test_stats[i]['opt_profits']))
+            #                for i in range(len(test_stats))]
+            
+            opt_tracking_error = [1 - min(1,abs(test_stats[i]['opt_tracking_error'] - test_stats[i]['tracking_error']) /
+                                        (test_stats[i]['tracking_error']+0.000001))
+                                     for i in range(len(test_stats))]
+            print(opt_tracking_error)
+
+            # print(opt_profits)
             for ind in range(args.n_test_cycles):
-                if np.mean(opt_profits) > highest_opt_ratio and test_stats[ind]['average_user_satisfaction'] == 1:
-                    highest_opt_ratio = np.mean(opt_profits)
+                if np.mean(opt_tracking_error) < highest_opt_ratio:# and test_stats[ind]['average_user_satisfaction'] == 1:
+                    highest_opt_ratio = np.mean(opt_tracking_error)
                     agent.save_checkpoint(timestep, memory, run_name+"_best")
                     time_last_checkpoint = time.time()
                     logger.info('Saved model at {}'.format(time.strftime(
@@ -314,14 +299,17 @@ if __name__ == "__main__":
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
                            'test/total_ev_served': stats['total_ev_served'],
-                           'test/total_profits': stats['total_profits'],
-                           'test/toal_energy_charged': stats['toal_energy_charged'],
+                        #    'test/total_profits': stats['total_profits'],
+                           'test/total_energy_charged': stats['total_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
-                           'test/highest_opt_ratio': highest_opt_ratio,
-                           'test/mean_opt_ratio': np.mean(opt_profits),
-                           'test/std_opt_ratio': np.std(opt_profits),})
-                            
+                           #    'test/highest_opt_ratio': highest_opt_ratio,
+                              'test/mean_opt_ratio': np.mean(opt_tracking_error),
+                           'test/tracking_error': stats['tracking_error'],
+                           'test/power_tracker_violation': stats['power_tracker_violation'],
+                           'test/energy_user_satisfaction': stats['energy_user_satisfaction']/100,
+                        #    'test/std_opt_ratio': np.std(opt_profits), 
+                           })
 
             logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
                         "mean reward: {}, mean test reward {}".format(epoch,

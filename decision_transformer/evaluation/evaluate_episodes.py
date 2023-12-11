@@ -89,12 +89,11 @@ def evaluate_episode_rtg(
     test_stats = []
     highest_opt_ratio = np.NINF
 
-    number_of_charging_stations = 1
-    n_transformers = 1
-    prices = "static"
+    number_of_charging_stations = 10
+    n_transformers = 1    
 
     eval_replay_path = "./replay/" + \
-        f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices/'
+        f'{number_of_charging_stations}cs_{n_transformers}tr/'
     eval_replay_files = [f for f in os.listdir(
         eval_replay_path) if os.path.isfile(os.path.join(eval_replay_path, f))]
     
@@ -112,6 +111,7 @@ def evaluate_episode_rtg(
                                     load_ev_from_replay=True,
                                     load_prices_from_replay=True,
                                     save_replay=False,
+                                    generate_rnd_game=True,
                                     save_plots=save_plots,
                                     simulation_length=max_ep_len,
                                     extra_sim_name=exp_prefix,)        
@@ -179,25 +179,25 @@ def evaluate_episode_rtg(
                                 for i in range(len(test_stats))])
         
     # get all values of a key in a list
-    opt_profits = [1 - ((test_stats[i]['opt_profits'] - test_stats[i]['total_profits']) / 
-                        abs(test_stats[i]['opt_profits'])) \
-                            for i in range(len(test_stats))]                        
+    opt_tracking_error = [1 - min(1,abs(test_stats[i]['opt_tracking_error'] - test_stats[i]['tracking_error']) /
+                            (test_stats[i]['tracking_error']+0.000001))
+                            for i in range(len(test_stats))]                 
 
     #drop key 'opt_profits' from dict stats
     stats.pop('opt_profits')    
-    stats.pop('ev_spawn_rate')    
+    print('stats', stats)
 
-    ic(opt_profits)
+    ic(opt_tracking_error)
     for ind in range(n_test_episodes):
-        if np.mean(opt_profits) > highest_opt_ratio and test_stats[ind]['average_user_satisfaction'] == 1:
-            highest_opt_ratio = np.mean(opt_profits)
+        if np.mean(opt_tracking_error) > highest_opt_ratio:
+            highest_opt_ratio = np.mean(opt_tracking_error)
             # agent.save_checkpoint(timestep, memory, run_name+"_best")
             # time_last_checkpoint = time.time()
             # logger.info('Saved model at {}'.format(time.strftime(
             #     '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
-    stats['mean_opt_ratio'] = np.mean(opt_profits)
-    stats['std_opt_ratio'] = np.std(opt_profits)
+    stats['mean_opt_ratio'] = np.mean(opt_tracking_error)
+    stats['std_opt_ratio'] = np.std(opt_tracking_error)
     stats['highest_opt_ratio'] = highest_opt_ratio
     stats['mean_test_return'] = np.mean(test_rewards)
 

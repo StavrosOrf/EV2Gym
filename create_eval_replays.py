@@ -1,5 +1,5 @@
 from evsim import ev_city
-from evsim_math_model import ev_city_model
+from evsim_math_model import ev_city_power_tracker_model
 
 import numpy as np
 import os
@@ -14,26 +14,20 @@ The replay files are saved in the replay folder and can be used to evaluate the 
 def evalreplay(number_of_charging_stations,
                n_transformers,
                steps,
-               timescale,
-               static_prices,
+               timescale,               
                save_opt_trajectories,
                save_replay):
     
     verbose = False
 
-    env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_ports_per_cs=2,
-                         number_of_transformers=n_transformers,
-                         static_ev_spawn_rate=True,
+    env = ev_city.EVCity(cs=number_of_charging_stations,                         
+                         number_of_transformers=n_transformers,                         
                          load_ev_from_replay=True,
-                         load_prices_from_replay=False,
-                         static_prices=static_prices,
+                         load_prices_from_replay=False,                         
                          load_from_replay_path=None,
-                         empty_ports_at_end_of_simulation=True,
                          generate_rnd_game=True,
                          simulation_length=steps,
-                         timescale=timescale,
-                         score_threshold=1,
+                         timescale=timescale,                         
                          save_plots=False,
                          save_replay=True,
                          verbose=verbose,)
@@ -62,24 +56,19 @@ def evalreplay(number_of_charging_stations,
             exit()
 
     # Solve optimally
-    math_model = ev_city_model.EV_City_Math_Model(
+    math_model = ev_city_power_tracker_model.EV_City_Math_Model(
         sim_file_path=new_replay_path)
     opt_actions = math_model.get_actions()
 
-    if static_prices:
-        prices = "static"
-    else:
-        prices = "dynamic"
-
-    group_name = f'{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices'
+    group_name = f'{number_of_charging_stations}cs_{n_transformers}tr'
 
     # Simulate in the gym environment and get the rewards
+    # save replay in the replay folder for evaluating pther algorithms
     env = ev_city.EVCity(cs=number_of_charging_stations,
                          number_of_transformers=n_transformers,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
                          load_from_replay_path=new_replay_path,
-                         empty_ports_at_end_of_simulation=True,
                          replay_path="./replay/"+group_name+"/",
                          generate_rnd_game=False,
                          simulation_length=steps,
@@ -95,10 +84,7 @@ def evalreplay(number_of_charging_stations,
                     "rewards": [],
                     "dones": []}
 
-    for i in range(steps):
-        # all ports are charging instantly
-        # print(f'Optimal actions: {opt_actions[:,:,i]}')
-        # print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
+    for i in range(steps):        
         actions = opt_actions[:, :, i].T.reshape(-1)
         if verbose:
             print(f' OptimalActions: {actions}')
@@ -139,17 +125,12 @@ if __name__ == "__main__":
 
     number_of_charging_stations = args.cs
     n_transformers = args.transformers
-    prices = args.static_prices
-    ev_spawn_rate = args.static_ev_spawn_rate
     steps = args.steps
     timescale = args.timescale
-    score_threshold = args.score_threshold
+    # score_threshold = args.score_threshold
     n_trajectories = args.n_trajectories
 
-    prices = "static" if prices else "dynamic"
-    ev_spawn_rate = "static" if ev_spawn_rate else "dynamic"
-
-    file_name = f"optimal_{number_of_charging_stations}_cs_{n_transformers}_tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate_{steps}_steps_{timescale}_timescale_{score_threshold}_score_threshold_{n_trajectories}_trajectories.pkl"
+    file_name = f"optimal_{number_of_charging_stations}_cs_{n_transformers}_tr_{steps}_steps_{timescale}_timescale_{n_trajectories}_trajectories.pkl"
 
     save_folder_path = f"./trajectories/"
     if not os.path.exists(save_folder_path):
@@ -161,9 +142,8 @@ if __name__ == "__main__":
                                 n_transformers=n_transformers,
                                 steps=steps,
                                 timescale=timescale,
-                                static_prices=prices,
                                 save_opt_trajectories=True,
-                                save_replay=False)
+                                save_replay=True)
         trajectories.append(trajectory)
 
         if i % 1000 == 0:

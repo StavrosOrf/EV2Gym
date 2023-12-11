@@ -25,9 +25,9 @@ def arg_parser():
                         help="Discount factor (default: 0.99)")
     parser.add_argument("--tau", default=0.001,
                         help="Update factor for the soft update of the target networks (default: 0.001)")
-    parser.add_argument("--noise_stddev", default=0.3, type=int,
+    parser.add_argument("--noise_stddev", default=0.2, type=int,
                         help="Standard deviation of the OU-Noise (default: 0.2)")
-    parser.add_argument("--hidden_size", nargs=2, default=[64, 64], type=tuple,
+    parser.add_argument("--hidden_size", nargs=2, default=[128, 128], type=tuple,
                         help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
     parser.add_argument("--n_test_cycles", default=10, type=int,
                         help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
@@ -35,28 +35,26 @@ def arg_parser():
                         help="Enable logging to wandb (default: True)")
 
     # Environment specific arguments
-    parser.add_argument("--cs", default=1, type=int,
+    parser.add_argument("--cs", default=10, type=int,
                         help="Num. of CS (default: 1)")
     parser.add_argument("--transformers", default=1, type=int,
                         help="Num. of Transformers (default: 1)")
     parser.add_argument("--ports", default=2, type=int,
                         help="Num. of Ports per CS (default: 2)")
-    parser.add_argument("--steps", default=150, type=int,
-                        help="Num. of steps (default: 150)")
+    parser.add_argument("--steps", default=288, type=int,
+                        help="Num. of steps (default: 288)")
     parser.add_argument("--timescale", default=5, type=int,
                         help="Timescale (default: 5)")
-    parser.add_argument("--score_threshold", default=1, type=int,
-                        help="Score threshold (default: 1)")
-    parser.add_argument("--static_prices", default=True, type=bool,
-                        help="Static prices (default: True)")
-    parser.add_argument("--static_ev_spawn_rate", default=True, type=bool,
-                        help="Static ev spawn rate (default: True)")
+    # parser.add_argument("--score_threshold", default=0, type=int,
+    #                     help="Score threshold (default: 1)")
+    # parser.add_argument("--static_ev_spawn_rate", default=True, type=bool,
+    #                     help="Static ev spawn rate (default: True)")
     
     # Generate trajectories specific arguments
     parser.add_argument("--n_trajectories", default=10, type=int,
                         help="Num. of trajectories to generate (default: 10)")
     parser.add_argument("--dataset", default="-", type=str)
-    parser.add_argument("--save_opt_trajectories", default=False, type=bool,
+    parser.add_argument("--save_opt_trajectories", default=True, type=bool,
                         help="Save Optimal trajectories (default: False)")
     
 

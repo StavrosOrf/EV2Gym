@@ -52,7 +52,7 @@ class EV_City_Math_Model():
         # create model
         print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
-        self.m.setParam('OutputFlag', 0)
+        # self.m.setParam('OutputFlag', 0)
         # self.m.setParam('MIPGap', 0.5)
         
 

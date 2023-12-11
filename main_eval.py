@@ -1,5 +1,5 @@
 from evsim import ev_city
-from evsim_math_model import ev_city_model
+from evsim_math_model import ev_city_model, ev_city_power_tracker_model, ev_city_profit_maximization
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,14 +8,11 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    n_transformers = 2
-    number_of_charging_stations = 5
-    steps = 150  # 288 steps = 1 day with 5 minutes per step
+    n_transformers = 1
+    number_of_charging_stations = 10
+    steps = 288  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
     save_plots = True
-
-    replay_path = "replay/replay_ev_city_50_2023-07-27_10-12.pkl"
-    replay_path = "replay/replay_ev_city_250_2023-07-27_16-48.pkl"
     replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
@@ -23,24 +20,29 @@ if __name__ == "__main__":
                          number_of_transformers=n_transformers,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
-                         load_from_replay_path=replay_path,
-                         empty_ports_at_end_of_simulation=True,
+                         load_from_replay_path=replay_path,                         
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
-                         save_plots=False,
+                         save_plots=True,
+                         lightweight_plots=False,
+                         score_threshold=0,
+                         date=(2023, 3, 17),
+                        #  hour=(10, 0),
+                         scenario='public_PowerSetpointTracking',
+                         heterogeneous_specs=False,
                          verbose=verbose,)
 
-    new_replay_path = f"replay/replay_{env.sim_name}.pkl"
-    # new_replay_path = replay_path
+    new_replay_path = f"replay/replay_{env.sim_name}.pkl"    
     
     state = env.reset()
-    env.visualize()
+
     rewards = []    
 
     for i in range(steps):        
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
+        # actions = np.random.rand(env.number_of_ports) * -2 + 1
         if verbose:
             print(f'Actions: {actions}')
 
@@ -51,14 +53,21 @@ if __name__ == "__main__":
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
 
+        # input("Press Enter to continue...")
+
         if done and i < steps - 1:
             print(f'End of simulation at step {i}')
             exit()
 
     # env.plot()
     
+    # exit()
     # Solve optimally
-    math_model = ev_city_model.EV_City_Math_Model(sim_file_path=new_replay_path)
+    #Power tracker optimizer
+    # math_model = ev_city_power_tracker_model.EV_City_Math_Model(sim_file_path=new_replay_path)
+    #Profit maximization optimizer
+    math_model = ev_city_profit_maximization.EV_City_Math_Model(sim_file_path=new_replay_path)
+    # Old optimizer (V2G), probably not compatible now
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")
     opt_actions = math_model.get_actions()
     print(f'Optimal actions: {opt_actions.shape}')
@@ -68,15 +77,14 @@ if __name__ == "__main__":
                          number_of_transformers=n_transformers,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
-                         load_from_replay_path=new_replay_path,
-                         empty_ports_at_end_of_simulation=True,
+                         load_from_replay_path=new_replay_path,                         
                          generate_rnd_game=False,
                          simulation_length=steps,
                          timescale=timescale,
+                         score_threshold=0,
                          save_plots=True,
                          verbose=verbose,)
-    state = env.reset()
-    env.visualize()
+    state = env.reset()    
     rewards_opt = []
 
     for i in range(steps):        

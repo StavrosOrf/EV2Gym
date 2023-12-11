@@ -14,6 +14,8 @@ from decision_transformer.models.mlp_bc import MLPBCModel
 from decision_transformer.training.act_trainer import ActTrainer
 from decision_transformer.training.seq_trainer import SequenceTrainer
 
+from evsim import ev_city
+
 
 def discount_cumsum(x, gamma):
     discount_cumsum = np.zeros_like(x)
@@ -48,43 +50,61 @@ def experiment(
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    env = "ev_city-v0"
-    max_ep_len = 150
+    env = "ev_city-v1"    
     scale = 1
     env_targets = [50]  # evaluation conditioning targets
 
     if model_type == 'bc':
         # since BC ignores target, no need for different evaluations
         env_targets = env_targets[:1]
+        
+    n_transformers = 1
+    number_of_charging_stations = 10
+    steps = 288  # 288 steps = 1 day with 5 minutes per step
+    timescale = 5  # (5 minutes per step)
+    # n_test_cycles = args.n_test_cycles
+    
+    replay_path = None
 
-    state_dim = 7  # env.observation_space.shape[0]
-    act_dim = 2  # env.action_space.shape[0]
+    args.env = 'evcity-v1'
+
+    env = ev_city.EVCity(cs=number_of_charging_stations,
+                         number_of_transformers=n_transformers,
+                         load_from_replay_path=replay_path,
+                         generate_rnd_game=True,
+                         simulation_length=steps,
+                         timescale=timescale,
+                         save_plots=False,
+                         save_replay=False,)
+
+    state_dim = env.observation_space.shape[0]
+    act_dim = env.action_space.shape[0]
+    print(f'Observation space: {env.observation_space.shape[0]}, action space: {env.action_space.shape[0]}')
 
     # load dataset
     dataset_path = f'trajectories/{env_name}-{dataset}-v2.pkl'
 
     #random trajectories
-    if dataset == 'random':
-        dataset_path = f'./trajectories/random_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_100000_trajectories.pkl'
+    if dataset == 'random':        
+        dataset_path = f'./trajectories/random_10_cs_1_tr_288_steps_5_timescale_15000_trajectories.pkl'
     elif dataset == 'ddpg':
         #DDPG semi-random trajectories
+        raise NotImplementedError("Dataset not found")
         dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
     elif dataset == "optimal":
-        dataset_path = f'trajectories/optimal_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_100000_trajectories.pkl'
+        dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_1000000_trajectories.pkl'
     else:
         raise NotImplementedError("Dataset not found")
 
     #split dataset path to get group name
     number_of_charging_stations = dataset_path.split("_")[1]
-    n_transformers = dataset_path.split("_")[3]
-    prices = dataset_path.split("_")[5]
-    ev_spawn_rate = dataset_path.split("_")[7]
-    timesteps = dataset_path.split("_")[11]
-    timescale = dataset_path.split("_")[13]
-    score_threshold = dataset_path.split("_")[15]
+    n_transformers = dataset_path.split("_")[3]        
+    timesteps = int(dataset_path.split("_")[5])
+    max_ep_len = int(timesteps)
+    timescale = int(dataset_path.split("_")[7])
     g_name = variant['group_name']
 
-    group_name = f'{g_name}_DT_{number_of_charging_stations}cs_{n_transformers}tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate'    
+    group_name = f'{g_name}_DT_{number_of_charging_stations}cs_{n_transformers}tr'    
 
     with open(dataset_path, 'rb') as f:
         trajectories = pickle.load(f)
@@ -279,9 +299,10 @@ def experiment(
         lr=variant['learning_rate'],
         weight_decay=variant['weight_decay'],
     )
+    max_iters = variant['max_iters']
     scheduler = torch.optim.lr_scheduler.LambdaLR(
         optimizer,
-        lambda steps: min((steps+1)/warmup_steps, 1)
+        lambda max_iters: min((max_iters+1)/warmup_steps, 1)
     )
 
     if model_type == 'dt':
@@ -332,10 +353,10 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int,default=42)
 
     # medium, medium-replay, medium-expert, expert
-    parser.add_argument('--dataset', type=str, default='random')
+    parser.add_argument('--dataset', type=str, default='optimal')
     # normal for standard setting, delayed for sparse
     parser.add_argument('--mode', type=str, default='normal')
-    parser.add_argument('--K', type=int, default=20)
+    parser.add_argument('--K', type=int, default=24)
     parser.add_argument('--pct_traj', type=float, default=1.)
     parser.add_argument('--batch_size', type=int, default=128)
     # dt for decision transformer, bc for behavior cloning

@@ -14,7 +14,7 @@ import pickle
 from utils.arg_parser import arg_parser
 
 from DDPG.ddpg import DDPG
-from utils.noise import OrnsteinUhlenbeckActionNoise
+from DDPG.noise import OrnsteinUhlenbeckActionNoise
 
 # if gpu is to be used
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -36,30 +36,19 @@ if __name__ == "__main__":
     n_transformers = args.transformers
     number_of_charging_stations = args.cs
     steps = args.steps  # 288 steps = 1 day with 5 minutes per step
-    timescale = args.timescale  # (5 minutes per step)
-    score_threshold = args.score_threshold  # 1
-    static_prices = args.static_prices
-    static_ev_spawn_rate = args.static_ev_spawn_rate
+    timescale = args.timescale  # (5 minutes per step)    
     n_trajectories = args.n_trajectories
 
     gym.register(id='evcity-v0', entry_point='gym_env.ev_city:EVCity')
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_ports_per_cs=2,
                          number_of_transformers=n_transformers,
-                         static_ev_spawn_rate=True,
-                         load_ev_from_replay=False,
-                         load_prices_from_replay=False,
-                         static_prices=static_prices,
                          load_from_replay_path=None,
-                         empty_ports_at_end_of_simulation=True,
                          generate_rnd_game=True,
                          simulation_length=steps,
                          timescale=timescale,
-                         score_threshold=score_threshold,
                          save_plots=False,
-                         save_replay=False,
-                         verbose=verbose,)
+                         save_replay=False,)
 
     trajectories = []
 
@@ -84,17 +73,6 @@ if __name__ == "__main__":
                  checkpoint_dir=checkpoint_dir
                  )
 
-    if static_prices:
-        prices = "static"
-    else:
-        prices = "dynamic"
-
-    if static_ev_spawn_rate:
-        ev_spawn_rate = "static"
-    else:
-        ev_spawn_rate = "dynamic"
-
-
     if args.dataset not in ["ddpg","random","optimal"]:
         raise ValueError("Dataset not supported")
     
@@ -102,7 +80,7 @@ if __name__ == "__main__":
 
 
 
-    file_name = f"{trajecotries_type}_{number_of_charging_stations}_cs_{n_transformers}_tr_{prices}_prices_{ev_spawn_rate}_ev_spawn_rate_{steps}_steps_{timescale}_timescale_{score_threshold}_score_threshold_{n_trajectories}_trajectories.pkl"
+    file_name = f"{trajecotries_type}_{number_of_charging_stations}_cs_{n_transformers}_tr_{steps}_steps_{timescale}_timescale_{n_trajectories}_trajectories.pkl"
     save_folder_path = f"./trajectories/"
     if not os.path.exists(save_folder_path):
         os.makedirs(save_folder_path)
@@ -150,7 +128,7 @@ if __name__ == "__main__":
             if args.dataset == "ddpg-random":
                 action = agent.calc_action(state, ou_noise)
             elif args.dataset == "random":
-                action = torch.rand(1,env.number_of_ports)*2-1
+                action = torch.rand(1,env.number_of_ports) #*2-1
 
             next_state, reward, done, stats = env.step(
                 action.cpu().numpy()[0])
