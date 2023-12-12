@@ -392,19 +392,21 @@ def ev_city_plot(ev_env):
 
     # for cs in tr.cs_ids:
     #     plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
-    plt.title(f'Setpoint Tracker')
-    plt.xlabel(f'Time')
-    plt.ylabel(f'Power (kW)')
+    # plt.title(f'Aggreagated Power vs Power Setpoint', fontsize=44)
+    plt.xlabel(f'Time',fontsize=44)
+    plt.ylabel(f'Power (kW)',fontsize=44)
     plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
     plt.xticks(ticks=date_range_print,
-               labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+               labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45, fontsize=30)
+    #set ytick font size
+    plt.yticks(fontsize=30)
     if len(ev_env.transformers) < 10:
         plt.legend([f'Tr {i}' for i in range(len(ev_env.transformers))] +
                    ['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Unsteered Load Potential (kW)'])
     plt.grid(True, which='minor', axis='both')
 
     plt.tight_layout()
-    # plt.show()
+    plt.show()
     fig_name = f'plots/{ev_env.sim_name}/Total_Aggregated_Power.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
