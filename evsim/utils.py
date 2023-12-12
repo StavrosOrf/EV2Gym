@@ -17,6 +17,9 @@ def ev_city_plot(ev_env):
         - The total power of the CPO
     '''
     print("Plotting simulation data at ./plots/" + ev_env.sim_name + "/")
+    
+    
+    
     # date_range = pd.date_range(start=ev_env.sim_starting_date,
     #                            end=ev_env.sim_date -
     #                            datetime.timedelta(
@@ -36,6 +39,7 @@ def ev_city_plot(ev_env):
         plt.figure(figsize=(20, 17))
         plt.style.use('seaborn-darkgrid')
         plt.rcParams.update({'font.size': 16})
+        plt.rcParams['font.family'] = ['serif']
         counter = 1
         dim_x = int(np.ceil(np.sqrt(ev_env.cs)))
         dim_y = int(np.ceil(ev_env.cs/dim_x))
@@ -69,12 +73,13 @@ def ev_city_plot(ev_env):
                                      alpha=0.7,
                                      label=f'EV {i}, Port {port}')
 
-            plt.title(f'Charging Station {cs.id}')
-            plt.xlabel(f'Time')
-            plt.ylabel('Energy Level (kWh)')
+            plt.title(f'Charging Station {cs.id}', fontsize=24)
+            plt.xlabel(f'Time', fontsize=24)
+            plt.ylabel('Energy Level (kWh)', fontsize=24)
             plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
             plt.xticks(ticks=date_range_print,
-                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
+                       fontsize=22)
             # if len(ev_env.port_arrival[f'{cs.id}.{port}']) < 6:
             if dim_x < 5:
                 plt.legend()
@@ -83,9 +88,14 @@ def ev_city_plot(ev_env):
 
         plt.tight_layout()
         # Save plt to html
-        fig_name = f'plots/{ev_env.sim_name}/EV_Energy_Level.png'  # .html
+        fig_name = f'plots/{ev_env.sim_name}/EV_Energy_Level.png'  # .html       
+        # plt.show() 
+        #save in pdf format
         plt.savefig(fig_name, format='png',  # svg
                     dpi=60, bbox_inches='tight')
+        
+        # plt.savefig(fig_name, format='png',  # svg
+        #             dpi=60, bbox_inches='tight')
 
         # Plot the total power of each transformer
         plt.figure(figsize=(20, 17))
@@ -170,15 +180,21 @@ def ev_city_plot(ev_env):
 
             plt.subplot(dim_x, dim_y, counter)
             df = pd.DataFrame([], index=date_range)
+            df_signal = pd.DataFrame([], index=date_range)
 
             for port in range(cs.n_ports):
                 df[port] = ev_env.port_current[port, cs.id, :]
+                df_signal[port] = ev_env.port_current_signal[port, cs.id, :]
                 # create 2 dfs, one for positive power and one for negative
             df_pos = df.copy()
             df_pos[df_pos < 0] = 0
             df_neg = df.copy()
             df_neg[df_neg > 0] = 0
+            
+
+            
             colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, cs.n_ports))
+            
 
             # Add another row with one datetime step to make the plot look better
             df_pos.loc[df_pos.index[-1] +
@@ -191,7 +207,9 @@ def ev_city_plot(ev_env):
                           step='post',
                           alpha=0.7,
                           colors=colors)
+            
             df['total'] = df.sum(axis=1)
+            df_signal['total'] = df_signal.sum(axis=1)            
 
             # plot the power limit
             max_charge_current = cs.max_charge_current  # * ev_env.timescale / 60
@@ -202,6 +220,10 @@ def ev_city_plot(ev_env):
                      [max_charge_current, max_charge_current], 'r--')
             plt.step(df.index, df['total'], 'darkgreen',
                      where='post', linestyle='--')
+            plt.step(df_signal.index, df_signal['total'], 'cyan', where='post', alpha=1,
+                     linestyle='--')
+        
+                     
             plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
                      [min_charge_current, min_charge_current], 'b--')
             plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
@@ -214,31 +236,35 @@ def ev_city_plot(ev_env):
                           step='post',
                           colors=colors,
                           alpha=0.7)
+
             plt.plot([ev_env.sim_starting_date,
                      ev_env.sim_date], [0, 0], 'black')
 
             # for i in range(cs.n_ports):
             #     plt.step(df.index, df[i], 'grey', where='post', linestyle='--')
 
-            plt.title(f'Charging Station {cs.id}')
-            plt.xlabel(f'Time')
-            plt.ylabel(f'Current (A)')
+            plt.title(f'Charging Station {cs.id}', fontsize=24)
+            plt.xlabel(f'Time', fontsize=24)
+            plt.ylabel(f'Current (A)', fontsize=24)
             plt.ylim([max_discharge_current*1.1, max_charge_current*1.1])
             plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
             plt.xticks(ticks=date_range_print,
-                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
+                       fontsize=22)
             # place the legend under each plot
 
             if dim_x < 5:
                 plt.legend([f'Port {i}' for i in range(
                     cs.n_ports)] + ['Total Current Limit (A)',
-                                    'Total Current (A)',
-                                    'Minimum EVSE Current Limit (A)'])
+                                    'Actual Current (A)',
+                                    'Current Signal (A)',
+                                    'Minimum EVSE Current Limit (A)'],
+                    fontsize=22,)
             plt.grid(True, which='minor', axis='both')
             counter += 1
 
         plt.tight_layout()
-        # Save plt to html
+        # Save plt to html        
         fig_name = f'plots/{ev_env.sim_name}/CS_Current_signals.png'
         plt.savefig(fig_name, format='png', dpi=60, bbox_inches='tight')
 
@@ -617,6 +643,7 @@ def spawn_EV(ev_env, cs_id):
                       earlier_time_of_departure=int(
                           time_of_stay + ev_env.current_step + 3),
                       ev_phases=3,
-                      transition_soc=0.999,
+                    #   transition_soc=0.999,
+                      transition_soc=0.8,
                       timescale=ev_env.timescale,
                       simulation_length=ev_env.simulation_length,)

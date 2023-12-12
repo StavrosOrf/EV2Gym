@@ -271,6 +271,12 @@ class EVCity(gym.Env):
                                           self.simulation_length],
                                          dtype=np.float16,
                                          )
+            self.port_current_signal = np.zeros([self.number_of_ports,
+                                          self.cs,
+                                          self.simulation_length],
+                                         dtype=np.float16,
+                                         )
+            
             self.port_energy_level = np.zeros([self.number_of_ports,
                                                self.cs,
                                                self.simulation_length],
@@ -467,7 +473,7 @@ class EVCity(gym.Env):
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output
-            self.cs_current[cs.id, self.current_step] = cs.current_total_amps
+            self.cs_current[cs.id, self.current_step] = cs.current_total_amps            
 
             for port in range(cs.n_ports):
                 ev = cs.evs_connected[port]
@@ -476,6 +482,9 @@ class EVCity(gym.Env):
                     #                 self.current_step] = ev.current_power
                     self.port_current[port, cs.id,
                                       self.current_step] = ev.actual_current
+                    self.port_current_signal[port, cs.id,
+                                      self.current_step] = cs.current_signal[port]
+                    
                     self.port_energy_level[port, cs.id,
                                            self.current_step] = ev.current_capacity
                     

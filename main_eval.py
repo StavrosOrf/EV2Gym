@@ -7,16 +7,16 @@ import matplotlib.pyplot as plt
 # main funtion for testing
 if __name__ == "__main__":
 
-    verbose = True
-    n_transformers = 5
-    number_of_charging_stations = 19
+    verbose = False
+    n_transformers = 1
+    number_of_charging_stations = 1
     steps = 288  # 288 steps = 1 day with 5 minutes per step
     timescale = 5  # (5 minutes per step)
     save_plots = True
     replay_path = None
 
     env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_ports_per_cs=2,
+                         number_of_ports_per_cs=1,
                          number_of_transformers=n_transformers,
                          load_ev_from_replay=True,
                          load_prices_from_replay=True,
@@ -32,7 +32,7 @@ if __name__ == "__main__":
                          scenario='public_PowerSetpointTracking',
                          heterogeneous_specs=False,
                          verbose=verbose,
-                         render_mode=True,)
+                         render_mode=False,)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"    
     
