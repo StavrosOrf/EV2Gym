@@ -55,7 +55,7 @@ columns_to_plot = ["P_kocos_200",
                    f"Output_Power_ID{port}",
                    f"Output_Current_ID{port}",
                    f"Output_Voltage_ID{port}",
-
+                    "AC_Power_set_ID4",
                    # "Output_Power_ID",                   
                    "V_L1_kocos_200",
                      "I_L1_kocos_200",                     
@@ -65,13 +65,13 @@ columns_to_plot = ["P_kocos_200",
                    # "Output_Voltage_ID3",
                   #  "current_setpoint",
                   #  "model_actual_curent",
-                    "Linear Model",
-                    "SoC"
+                    # "Linear Model",
+                    # "SoC"
                    ]
 
 #plot the current
 df["current_setpoint"] = 55.22
-max_battery_capacity = 90 #57.5# kWh
+max_battery_capacity = 45 #57.5# kWh
 
 df['power_setpoint'] = df['P_kocos_200'].iloc[20] * math.sqrt(3)
 print(f'power_setpoint: {df["power_setpoint"].iloc[0]}')
@@ -92,10 +92,11 @@ timestep = timestep.total_seconds()/60
 print(f'timestep: {timestep} minutes')
 
 
-ef = 0.8
+ef = 1
 for [i, row] in df.iterrows():
    if i > 0:
-      df['SoC'].at[i] = df['SoC'].iloc[i-1] + (( ef * df['P_kocos_200'].iloc[i-1] * math.sqrt(3) * timestep/60) / max_battery_capacity) * 100
+    #   df['SoC'].at[i] = df['SoC'].iloc[i-1] + (( ef * df['P_kocos_200'].iloc[i-1] * math.sqrt(3) * timestep/60) / max_battery_capacity) * 100
+      df['SoC'].at[i] = df['SoC'].iloc[i-1] + (( ef * df['Output_Current_ID4'].iloc[i-1] * df['V_L3_kocos_200'].iloc[i-1] *math.sqrt(3)  /1000 * timestep/60) / max_battery_capacity) * 100
         
       if df['Linear Model'].iloc[i-1] >= 100:
          df['Linear Model'].at[i] = 100
@@ -103,6 +104,8 @@ for [i, row] in df.iterrows():
          df['Linear Model'].at[i] = df['Linear Model'].iloc[i-1] + (( ef * df['power_setpoint'].iloc[i-1] * timestep/60) / max_battery_capacity) * 100
 
 print(f'final SoC: {df["SoC"].iloc[-1]}')
+
+df.plot(x="epoch", y=columns_to_plot, subplots=True, figsize=(10, 10))
 
 df.plot(x="epoch", y=columns_to_plot_ch, subplots=False, figsize=(10, 10))
 plt.show()
