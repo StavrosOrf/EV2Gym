@@ -344,6 +344,10 @@ def ev_city_plot(ev_env):
 
     # Plot the total power of the CPO
     plt.figure(figsize=(20, 17))
+    
+    plt.style.use('seaborn-darkgrid')
+    plt.rcParams.update({'font.size': 16})
+    plt.rcParams['font.family'] = ['serif']
 
     # create 2 dfs, one for positive power and one for negative
     df_pos = df_total_power.copy()
@@ -358,6 +362,15 @@ def ev_city_plot(ev_env):
     df_neg.loc[df_neg.index[-1] +
                datetime.timedelta(minutes=ev_env.timescale)] = df_neg.iloc[-1]
 
+    df_total_power['total'] = df_total_power.sum(axis=1)
+    # print(df_total_power)
+
+    plt.step(df_total_power.index, df_total_power['total'], 'darkgreen',
+             where='post', linestyle='--')
+
+    # plt.step(df_total_power.index, ev_env.power_setpoints, 'r--', where='post',)
+
+
     # plot the positive power
     plt.stackplot(df_pos.index, df_pos.values.T,
                   interpolate=True,
@@ -366,13 +379,6 @@ def ev_city_plot(ev_env):
                   colors=colors,
                   linestyle='--')
 
-    df_total_power['total'] = df_total_power.sum(axis=1)
-    # print(df_total_power)
-
-    plt.step(df_total_power.index, df_total_power['total'], 'darkgreen',
-             where='post', linestyle='--')
-
-    plt.step(df_total_power.index, ev_env.power_setpoints, 'r--', where='post',)
 
     if ev_env.load_from_replay_path is not None:
         plt.step(df_total_power.index, ev_env.replay.ev_load_potential,
@@ -393,18 +399,29 @@ def ev_city_plot(ev_env):
     # for cs in tr.cs_ids:
     #     plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
     # plt.title(f'Aggreagated Power vs Power Setpoint', fontsize=44)
-    plt.xlabel(f'Time',fontsize=44)
-    plt.ylabel(f'Power (kW)',fontsize=44)
+    plt.xlabel(f'Time',fontsize=38)
+    plt.ylabel(f'Power (kW)',fontsize=38)
     plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
+    
+    date_range_print = pd.date_range(start=ev_env.sim_starting_date,
+                                     end=ev_env.sim_date,
+                                     periods=7)
+    # plt.xticks(ticks=date_range_print,
+    #            labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45, fontsize=28)
     plt.xticks(ticks=date_range_print,
-               labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45, fontsize=30)
+               labels=[f'{d.strftime("%A")}' for d in date_range_print], rotation=45, fontsize=28)
+    
+    
     #set ytick font size
-    plt.yticks(fontsize=30)
+    plt.yticks(fontsize=28)
     if len(ev_env.transformers) < 10:
-        plt.legend([f'Tr {i}' for i in range(len(ev_env.transformers))] +
-                   ['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Unsteered Load Potential (kW)'])
+        plt.legend(['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Unsteered Load Potential (kW)']
+                   + [f'Tr {i}' for i in range(len(ev_env.transformers))])
+    else:
+        # plt.legend(['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Unsteered Load Potential (kW)'])
+        plt.legend(['Total Power (kW)'],fontsize=28) 
     plt.grid(True, which='minor', axis='both')
-
+    
     plt.tight_layout()
     plt.show()
     fig_name = f'plots/{ev_env.sim_name}/Total_Aggregated_Power.png'

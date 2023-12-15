@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    n_transformers = 5
-    number_of_charging_stations = 10
-    steps = 96  # 288 steps = 1 day with 5 minutes per step
+    n_transformers = 1000
+    number_of_charging_stations = 10000
+    steps = 96*7  # 288 steps = 1 day with 5 minutes per step
     timescale = 15  # (5 minutes per step)
     save_plots = True
     replay_path = None
@@ -28,11 +28,11 @@ if __name__ == "__main__":
                          lightweight_plots=False,
                          score_threshold=0,
                          date=(2023, 3, 17),
-                        #  hour=(10, 0),
+                         hour=(3, 0),
                          scenario='public_PowerSetpointTracking',
                          heterogeneous_specs=False,
                          verbose=verbose,
-                         render_mode=True,)
+                         render_mode=False,)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"    
     

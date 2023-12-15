@@ -207,6 +207,8 @@ for [i, row] in df.iterrows():
 print(f'final SoC: {df["SoC"].iloc[-1]}')
 
 # df.plot(x="epoch", y=columns_to_plot, subplots=True, figsize=(10, 10))
+# plt.show()
+# plt.exit()
 
 
 plt.figure(figsize=(10, 7))
@@ -214,25 +216,75 @@ plt.style.use('seaborn-darkgrid')
 plt.rcParams.update({'font.size': 16})
 plt.rcParams['font.family'] = ['serif']
 
-plt.plot(df.epoch.iloc[20:], df[columns_to_plot_ch].iloc[20:], linewidth=1.5)
+plt.plot(df.epoch.iloc[20:], df[columns_to_plot_ch].iloc[20:], linewidth=2)
 
-
-#add xtixks, yticks, grid, legend, title, and labels, and increase font size
-plt.xticks(fontsize=28)
-#change xtick labels to show only hours and minutes
-plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-
-
-plt.yticks(fontsize=28)
-
-plt.legend(fontsize=34)
-#write legend text
-plt.legend(['Actual SoC', 'Linear Model', 'Two Stage Model'], fontsize=34)
-
-# plt.title('Mitsubishi Outlander PHEV Charging Curve', fontsize=34)
-plt.xlabel('Time', fontsize=38)
+plt.legend(['Actual SoC', 'Linear Model', 'Two Stage\n   Model'], fontsize=28,loc='upper left')
 plt.ylabel('State of Charge (%)', fontsize=38)
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+plt.yticks(fontsize=28)
+plt.xlabel('Time', fontsize=38)
+# plt.legend(fontsize=28)
 plt.grid(True, which='minor', axis='both')
 plt.xlim(df.epoch.iloc[20], df.epoch.iloc[-1])
+plt.xticks(fontsize=28, rotation=45)
+
+#make new df column named "current setpoint" and fill it with 14.5 after index 180
+df['current_setpoint'] = df['Output_Current_ID4']
+df['current_setpoint'].iloc[180:] = 14.5
+
+#plot the current setpoint and the actual current in separate axes on the same plot
+#plot on the right y axis that is 30% of the height of the plot
+
+ax = plt.gca()
+ax2 = ax.twinx()
+ax2.plot(df.epoch.iloc[20:], df['current_setpoint'].iloc[20:], linewidth=2.5, color='lightcoral',label='Setpoint')
+ax2.plot(df.epoch.iloc[20:], df['Output_Current_ID4'].iloc[20:], linewidth=2.5, color='red', linestyle='--',label='Actual')
+
+plt.legend(loc='center right', fontsize=28)
+plt.ylabel('Current (A)', fontsize=38,color='lightcoral')    
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+plt.yticks(fontsize=28,color='lightcoral')
+plt.ylim(0, 45)
+#turn off grid
+ax2.grid(False)
+
+# plt.plot(df.epoch.iloc[20:], df['current_setpoint'].iloc[20:], linewidth=1.5)
+# plt.plot(df.epoch.iloc[20:], df['Output_Current_ID4'].iloc[20:], linewidth=1.5)
+
+
+# #make a magnified inset on the last 100 points of the curve
+# from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
+# import matplotlib.patches as patches
+# import matplotlib.transforms as transforms
+
+# axins = zoomed_inset_axes(plt.gca(), 2.5, loc='center right') # zoom-factor: 2.5, location: upper-left
+# axins.plot(df.epoch.iloc[-100:], df[columns_to_plot_ch].iloc[-100:], linewidth=1.5)
+# axins.set_xlim(df.epoch.iloc[-100], df.epoch.iloc[-1])
+# axins.set_ylim(92, 100.1)
+# plt.xticks(visible=False)
+# plt.yticks(visible=False)
+# # draw a bbox of the region of the inset axes in the parent axes and
+# # connecting lines between the bbox and the inset axes area
+# # mark_inset(plt.gca(), axins, loc1=2, loc2=4, fc="none", ec="0.5")
+# print(df.epoch.iloc[-1]-df.epoch.iloc[-100])
+# #add a rectangle to show the region of the inset axes
+# rect = patches.Rectangle((df.epoch.iloc[-100],92),
+#                          df.epoch.iloc[-1]-df.epoch.iloc[-100],
+#                          1,
+#                          linewidth=1,edgecolor='r',facecolor='none')
+# plt.gca().add_patch(rect)
+
+# #add a line to show the end of the curve
+# plt.axvline(x=df.epoch.iloc[-1], color='r', linestyle='--')
+
+# #add a line to show the start of the curve
+# plt.axvline(x=df.epoch.iloc[20], color='r', linestyle='--')   
+
+# #add xtixks, yticks, grid, legend, title, and labels, and increase font size
+# plt.xticks(fontsize=28)
+# #change xtick labels to show only hours and minutes
+# plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+
+
 plt.tight_layout()  
 plt.show()
