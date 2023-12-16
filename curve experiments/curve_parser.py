@@ -212,19 +212,19 @@ print(f'final SoC: {df["SoC"].iloc[-1]}')
 
 
 plt.figure(figsize=(10, 7))
-plt.style.use('seaborn-darkgrid')
-plt.rcParams.update({'font.size': 16})
+# plt.style.use('seaborn-darkgrid')
+# plt.rcParams.update({'font.size': 16})
 plt.rcParams['font.family'] = ['serif']
 
 plt.plot(df.epoch.iloc[20:], df[columns_to_plot_ch].iloc[20:], linewidth=2)
 
 plt.legend(['Actual SoC', 'Linear Model', 'Two Stage\n   Model'], fontsize=28,loc='upper left')
-plt.ylabel('State of Charge (%)', fontsize=38)
+plt.ylabel('State of Charge (%)', fontsize=32)
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
 plt.yticks(fontsize=28)
-plt.xlabel('Time', fontsize=38)
+# plt.xlabel('Time', fontsize=32)
+plt.grid(True, which='major', axis='both')
 # plt.legend(fontsize=28)
-plt.grid(True, which='minor', axis='both')
 plt.xlim(df.epoch.iloc[20], df.epoch.iloc[-1])
 plt.xticks(fontsize=28, rotation=45)
 

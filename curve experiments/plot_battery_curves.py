@@ -46,7 +46,7 @@ for [i, row] in df_dis.iterrows():
 # plt.show()
 
 plt.figure(figsize=(10, 7))
-plt.style.use('seaborn-darkgrid')
+# plt.style.use('seaborn-darkgrid')
 # plt.rcParams.update({'font.size': 16})
 plt.rcParams['font.family'] = ['serif']
 
@@ -65,11 +65,11 @@ plt.legend(['Actual SoC', 'Linear Model'], fontsize=28, loc='center left')
 
 
 # plt.title('Mitsubishi Outlander PHEV Charging Curve', fontsize=34)
-plt.xlabel('Time', fontsize=38)
-plt.ylabel('State of Charge (%)', fontsize=38)
+plt.xlabel('Time', fontsize=32)
+plt.ylabel('State of Charge (%)', fontsize=32)
 # plt.grid(True, which='minor', axis='both')
 plt.xlim([df_dis.epoch.iloc[500], df_dis.epoch.iloc[-500]])
-
+plt.grid(True, which='major', axis='both')
 ax = plt.gca()
 ax2 = ax.twinx()
 ax2.plot(df_dis.epoch.iloc[:-10], df_dis['current_setpoint'].iloc[:-10], linewidth=2.5, color='lightcoral',label='Setpoint')

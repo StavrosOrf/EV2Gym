@@ -87,9 +87,9 @@ def two_stage_model(amps,voltage,timescale,max_battery_capacity,threshold,soc):
     return dsoc # this is the soc change
 
 print(df_dis['Two Stage Model'].iloc[:10])
-max_battery_capacity = 28
-ef = 0.92
-threshold = 0.9
+max_battery_capacity = 30 #8
+ef = 0.97
+threshold = 0.90
 for [i, row] in df_dis.iterrows():
     if i > 0:
         df_dis['Linear Model'].at[i] = df_dis['Linear Model'].iloc[i-1] + \
@@ -103,7 +103,7 @@ for [i, row] in df_dis.iterrows():
         else:
             df_dis['Two Stage Model'].at[i] = df_dis['Two Stage Model'].iloc[i-1] + ef * two_stage_model(
                                                                 df_dis['current_setpoint'].iloc[i-1],
-                                                                df_dis['V_L3_kocos_200'].iloc[i-1],
+                                                                230, #df_dis['V_L3_kocos_200'].iloc[i-1],
                                                                 # 230,
                                                                 timestep,
                                                                 max_battery_capacity,
@@ -118,10 +118,11 @@ print(df_dis['Two Stage Model'].iloc[:10])
 # exit()
 
 plt.figure(figsize=(10, 7))
-plt.style.use('seaborn-darkgrid')
+# plt.style.use('seaborn-darkgrid')
+# plt.style.use('seaborn')
 # plt.rcParams.update({'font.size': 16})
 plt.rcParams['font.family'] = ['serif']
-
+plt.grid(True, which='major', axis='both')
 plt.plot(df_dis.epoch.iloc[:-10], df_dis[columns_to_plot_dis].iloc[:-10], linewidth=2.5)
 
 
@@ -137,8 +138,8 @@ plt.legend(['Actual SoC', 'Linear Model','Two Stage Model'], fontsize=28, loc='u
 
 
 # plt.title('Mitsubishi Outlander PHEV Charging Curve', fontsize=34)
-plt.xlabel('Time', fontsize=38)
-plt.ylabel('State of Charge (%)', fontsize=38)
+# plt.xlabel('Time', fontsize=38)
+plt.ylabel('State of Charge (%)', fontsize=32)
 # plt.grid(True, which='minor', axis='both')
 plt.xlim([df_dis.epoch.iloc[500], df_dis.epoch.iloc[-500]])
 
@@ -148,7 +149,7 @@ ax2.plot(df_dis.epoch.iloc[:-10], df_dis['current_setpoint'].iloc[:-10], linewid
 ax2.plot(df_dis.epoch.iloc[:-10], df_dis['Output_Current_ID2'].iloc[:-10], linewidth=2, color='red', linestyle='--',label='Actual')
 
 
-plt.ylabel('Current (A)', fontsize=38,color='lightcoral')    
+plt.ylabel('Current (A)', fontsize=32,color='lightcoral')    
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
 plt.yticks(np.arange(0, 101, 25)
     ,fontsize=28,color='lightcoral')
