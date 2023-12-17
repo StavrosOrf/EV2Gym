@@ -37,7 +37,8 @@ def ev_city_plot(ev_env):
     if not ev_env.lightweight_plots:
         # Plot the energy level of each EV for each charging station
         plt.figure(figsize=(20, 17))
-        plt.style.use('seaborn-darkgrid')
+        # plt.style.use('seaborn-darkgrid')
+        plt.grid(True, which='major', axis='both')
         plt.rcParams.update({'font.size': 16})
         plt.rcParams['font.family'] = ['serif']
         counter = 1
@@ -89,7 +90,7 @@ def ev_city_plot(ev_env):
         plt.tight_layout()
         # Save plt to html
         fig_name = f'plots/{ev_env.sim_name}/EV_Energy_Level.png'  # .html       
-        # plt.show() 
+        plt.show() 
         #save in pdf format
         plt.savefig(fig_name, format='png',  # svg
                     dpi=60, bbox_inches='tight')
@@ -166,7 +167,7 @@ def ev_city_plot(ev_env):
             counter += 1
 
         plt.tight_layout()
-        # plt.show()
+        plt.show()
         fig_name = f'plots/{ev_env.sim_name}/Transformer_Current.png'
         plt.savefig(fig_name, format='png',
                     dpi=60, bbox_inches='tight')
@@ -345,7 +346,7 @@ def ev_city_plot(ev_env):
     # Plot the total power of the CPO
     plt.figure(figsize=(20, 17))
     
-    plt.style.use('seaborn-darkgrid')
+    # plt.style.use('seaborn-darkgrid')
     plt.rcParams.update({'font.size': 16})
     plt.rcParams['font.family'] = ['serif']
 
