@@ -408,11 +408,12 @@ def get_statistics(ev_env):
         [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
         [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
-    tracking_error = (min(ev_env.power_setpoints[ev_env.current_step-1], ev_env.charge_power_potential[ev_env.current_step-1]) -
-                      ev_env.current_power_setpoints[ev_env.current_step-1])**2
-
+    
+    tracking_error = 0
     power_tracker_violation = 0
     for t in range(ev_env.simulation_length):
+        tracking_error += (min(ev_env.power_setpoints[t], ev_env.charge_power_potential[t]) -
+                      ev_env.current_power_setpoints[t])**2
         if ev_env.current_power_setpoints[t] > ev_env.power_setpoints[t]:
             power_tracker_violation += ev_env.current_power_setpoints[t] - \
                 ev_env.power_setpoints[t]
@@ -463,11 +464,11 @@ def print_statistics(ev_env):
         [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
     # tracking_error = ((ev_env.current_power_setpoints -
     #                   ev_env.power_setpoints)**2).sum()
-    tracking_error = (min(ev_env.power_setpoints[ev_env.current_step-1], ev_env.charge_power_potential[ev_env.current_step-1]) -
-                      ev_env.current_power_setpoints[ev_env.current_step-1])**2
-    
+    tracking_error = 0
     power_tracker_violation = 0
     for t in range(ev_env.simulation_length):
+        tracking_error += (min(ev_env.power_setpoints[t], ev_env.charge_power_potential[t]) -
+                      ev_env.current_power_setpoints[t])**2
         if ev_env.current_power_setpoints[t] > ev_env.power_setpoints[t]:
             power_tracker_violation += ev_env.current_power_setpoints[t] - \
                 ev_env.power_setpoints[t]

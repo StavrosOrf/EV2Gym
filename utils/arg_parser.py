@@ -17,7 +17,7 @@ def arg_parser():
                         help="Random seed (default: 0)")
     parser.add_argument("--timesteps", default=5*1e6, type=int,
                         help="Num. of total timesteps of training (default: 1e6)")
-    parser.add_argument("--batch_size", default=128, type=int,
+    parser.add_argument("--batch_size", default=256, type=int,#128
                         help="Batch size (default: 64; OpenAI: 128)")
     parser.add_argument("--replay_size", default=1e5, type=int,
                         help="Size of the replay buffer (default: 1e6; OpenAI: 1e5)")
@@ -29,7 +29,7 @@ def arg_parser():
                         help="Standard deviation of the OU-Noise (default: 0.2)")
     parser.add_argument("--hidden_size", nargs=2, default=[128, 128], type=tuple,
                         help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
-    parser.add_argument("--n_test_cycles", default=10, type=int,
+    parser.add_argument("--n_test_cycles", default=100, type=int,
                         help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
     parser.add_argument("--wandb", default=True, type=bool,
                         help="Enable logging to wandb (default: True)")

@@ -562,12 +562,12 @@ class EVCity(gym.Env):
             #           self.current_power_setpoints[self.current_step-1])**2 + 0.000001))
             
             ### new_*10*charging
-            if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-                reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-                        self.current_power_setpoints[self.current_step-1])
-            else:
-                reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-                        self.current_power_setpoints[self.current_step-1])*10
+            # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
+            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
+            #             self.current_power_setpoints[self.current_step-1])
+            # else:
+            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
+            #             self.current_power_setpoints[self.current_step-1])*10
             
             ### new_1_equal
             # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
@@ -604,16 +604,18 @@ class EVCity(gym.Env):
                     
                 # reward -= 100 * (tr.current_amps < tr.min_amps)
                 
-                
-                
             # best reward so far
             ############################################################################################################
-            # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-            #     reward -= (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
+            if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
+                reward -= (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
                 
-            # reward += self.current_power_setpoints[self.current_step-1]/75
+            reward += self.current_power_setpoints[self.current_step-1]/75
             ############################################################################################################
-            
+            #normalize reward to -1 1
+            reward = reward/1000
+            # reward = (100 +reward) / 1000
+            # print(f'reward: {reward}')
+
             # reward -= 2 * (invalid_action_punishment/self.number_of_ports)
             # reward /= 100
             # reward = (100 +reward) / 1000

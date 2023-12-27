@@ -92,7 +92,8 @@ def experiment(
         raise NotImplementedError("Dataset not found")
         dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
     elif dataset == "optimal":
-        dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_1000000_trajectories.pkl'
+        # dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_1000000_trajectories.pkl'
+        dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_100000_trajectories.pkl'
     else:
         raise NotImplementedError("Dataset not found")
 

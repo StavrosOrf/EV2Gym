@@ -152,6 +152,7 @@ if __name__ == "__main__":
     time_last_checkpoint = time.time()
 
     highest_opt_ratio = np.inf
+    best_trackking_error = np.inf
 
     # Start training
     logger.info('Train agent on {} env'.format({args.env}))
@@ -214,7 +215,7 @@ if __name__ == "__main__":
             wandb.log({'epoch/return': epoch_return,
                        'epoch/ev_served': stats['total_ev_served'],
                     #    'epoch/profits': stats['total_profits'],
-                       'epoch/energy_charged': stats['toal_energy_charged'],
+                       'epoch/energy_charged': stats['total_energy_charged'],
                        'epoch/energy_discharged': stats['total_energy_discharged'],
                        'epoch/user_satisfaction': stats['average_user_satisfaction'],
                        'epoch/tracking_error': stats['tracking_error'],
@@ -289,12 +290,13 @@ if __name__ == "__main__":
 
             # print(opt_profits)
             for ind in range(args.n_test_cycles):
-                if np.mean(opt_tracking_error) < highest_opt_ratio:# and test_stats[ind]['average_user_satisfaction'] == 1:
-                    highest_opt_ratio = np.mean(opt_tracking_error)
+                # if np.mean(opt_tracking_error) < highest_opt_ratio:# and test_stats[ind]['average_user_satisfaction'] == 1:
+                if stats['tracking_error'] < best_trackking_error:
+                    best_trackking_error = stats['tracking_error']
                     agent.save_checkpoint(timestep, memory, run_name+"_best")
-                    time_last_checkpoint = time.time()
-                    logger.info('Saved model at {}'.format(time.strftime(
-                        '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+                    # time_last_checkpoint = time.time()
+                    # logger.info('Saved model at {}'.format(time.strftime(
+                    #     '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
