@@ -143,7 +143,7 @@ if __name__ == "__main__":
                                 steps=steps,
                                 timescale=timescale,
                                 save_opt_trajectories=True,
-                                save_replay=True)
+                                save_replay=False)
         trajectories.append(trajectory)
 
         if i % 1000 == 0:

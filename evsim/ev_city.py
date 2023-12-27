@@ -1,6 +1,7 @@
 '''    
 This file contains the EVCity class, which is used to represent the environment of the city.    
-The environment is a gym environment and can be used with the OpenAI baselines.
+The environment is a gym environment and can be also used with the OpenAI gym standards and baselines.
+The environment an also be used for standalone simulations without the gym environment.
 
 ===================================
 Author: Stavros Orfanoudakis 2023
@@ -21,7 +22,7 @@ from copy import deepcopy
 from .replay import EvCityReplay
 from .utils import ev_city_plot, get_statistics, print_statistics, visualize_step, spawn_EV
 from .loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
-
+from .render import Renderer
 
 class EVCity(gym.Env):
 
@@ -32,7 +33,7 @@ class EVCity(gym.Env):
                  load_from_replay_path=None,  # path of replay file to load
                  #  load_power_setpoints_from_replay=True, # load power setpoints from replay file if true
                  #  empty_ports_at_end_of_simulation=True,
-                 simulate_grid=False,
+                #  simulate_grid=False,
                  scenario="public_PowerSetpointTracking",
                  heterogeneous_specs=False,
                  replay_path='./replay/',
@@ -49,6 +50,7 @@ class EVCity(gym.Env):
                  lightweight_plots=False,
                  extra_sim_name=None,
                  verbose=False,
+                 render_mode = None,
                  simulation_length=1000):
 
         super(EVCity, self).__init__()
@@ -64,6 +66,8 @@ class EVCity(gym.Env):
         self.save_plots = save_plots
         self.lightweight_plots = lightweight_plots
         self.verbose = verbose  # Whether to print the simulation progress or not
+        self.render_mode = render_mode # Whether to render the simulation in real-time or not
+        
         self.simulation_length = simulation_length
         self.replay_path = replay_path
 
@@ -83,7 +87,7 @@ class EVCity(gym.Env):
             self.sim_name = sim_name + '_replay'
             # self.save_replay = False
             self.sim_date = self.replay.sim_date
-            self.simulate_grid = self.replay.simulate_grid
+            # self.simulate_grid = self.replay.simulate_grid
             self.timescale = self.replay.timescale
             # self.simulation_length = self.replay.sim_length
             self.cs = self.replay.n_cs
@@ -114,10 +118,12 @@ class EVCity(gym.Env):
             self.sim_name = f'ev_city_{self.simulation_length}_' + \
                 f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'
 
-            self.simulate_grid = simulate_grid  # Whether to simulate the grid or not
+            
             self.scenario = scenario
             self.heterogeneous_specs = heterogeneous_specs
 
+        self.simulate_grid = False  # Whether to simulate the grid or not (Future feature...)
+        
         if self.cs > 100:
             self.lightweight_plots = True
         self.sim_starting_date = self.sim_date
@@ -163,8 +169,13 @@ class EVCity(gym.Env):
         if self.ev_profiles is None:
             load_ev_spawn_scenarios(self)
 
+        # Variable showing whether the simulation is done or not
         self.done = False
-
+        
+        if self.render_mode:
+            # Initialize the rendering of the simulation
+            self.renderer = Renderer(self)            
+        
         # Make folders for results
         if self.save_replay:
             os.makedirs(self.replay_path, exist_ok=True)
@@ -178,16 +189,12 @@ class EVCity(gym.Env):
         self.EVs = []  # Store all of the EVs in the simulation that arrived
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
-
         high = np.ones([self.number_of_ports])
         self.action_space = spaces.Box(low=-high, high=high, dtype=np.float64)
 
         # Observation space: is a matrix of size ("Sum of all ports of all charging stations",n_features)
-        obs_dim = len(self._get_observation())
-        # + number_of_transformers * 3
-
-        # print(f'Observation space dimension: {obs_dim}')
-
+        obs_dim = len(self._get_observation())        
+        
         high = np.inf*np.ones([obs_dim])
         self.observation_space = spaces.Box(
             low=-high, high=high, dtype=np.float64)
@@ -264,6 +271,12 @@ class EVCity(gym.Env):
                                           self.simulation_length],
                                          dtype=np.float16,
                                          )
+            self.port_current_signal = np.zeros([self.number_of_ports,
+                                          self.cs,
+                                          self.simulation_length],
+                                         dtype=np.float16,
+                                         )
+            
             self.port_energy_level = np.zeros([self.number_of_ports,
                                                self.cs,
                                                self.simulation_length],
@@ -321,7 +334,7 @@ class EVCity(gym.Env):
                 cs.current_total_amps)
 
             self.current_power_setpoints[self.current_step] += cs.current_power_output * \
-                60/self.timescale
+                60/self.timescale # transform from energy to power
 
             total_costs += costs
             total_invalid_action_punishment += invalid_action_punishment
@@ -394,6 +407,9 @@ class EVCity(gym.Env):
 
         if visualize:
             visualize_step(self)
+            
+        if self.render_mode:
+            self.renderer.render()
 
         return self._check_termination(user_satisfaction_list, reward)
 
@@ -457,7 +473,7 @@ class EVCity(gym.Env):
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output
-            self.cs_current[cs.id, self.current_step] = cs.current_total_amps
+            self.cs_current[cs.id, self.current_step] = cs.current_total_amps            
 
             for port in range(cs.n_ports):
                 ev = cs.evs_connected[port]
@@ -466,6 +482,9 @@ class EVCity(gym.Env):
                     #                 self.current_step] = ev.current_power
                     self.port_current[port, cs.id,
                                       self.current_step] = ev.actual_current
+                    self.port_current_signal[port, cs.id,
+                                      self.current_step] = cs.current_signal[port]
+                    
                     self.port_energy_level[port, cs.id,
                                            self.current_step] = ev.current_capacity
                     
