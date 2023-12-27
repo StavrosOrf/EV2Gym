@@ -294,9 +294,9 @@ if __name__ == "__main__":
                 if stats['tracking_error'] < best_trackking_error:
                     best_trackking_error = stats['tracking_error']
                     agent.save_checkpoint(timestep, memory, run_name+"_best")
-                    # time_last_checkpoint = time.time()
-                    # logger.info('Saved model at {}'.format(time.strftime(
-                    #     '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+                    time_last_checkpoint = time.time()
+                    logger.info('Saved model at {}'.format(time.strftime(
+                        '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
@@ -306,7 +306,7 @@ if __name__ == "__main__":
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
                            #    'test/highest_opt_ratio': highest_opt_ratio,
-                              'test/mean_opt_ratio': np.mean(opt_tracking_error),
+                           'test/mean_opt_ratio': np.mean(opt_tracking_error),
                            'test/tracking_error': stats['tracking_error'],
                            'test/power_tracker_violation': stats['power_tracker_violation'],
                            'test/energy_user_satisfaction': stats['energy_user_satisfaction']/100,
