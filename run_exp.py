@@ -10,11 +10,12 @@ import time
 batch_size = 32
 num_steps_per_iter = 20000
 max_iters = 2000
+num_eval_episodes = 100
 
 counter = 0
 for K in [288]:
     # for dataset in ['ddpg', 'random']:
-    for dataset in ["random"]:
+    for dataset in ["optimal"]:
         for embed_dim in [512]:
             #   ' --device cuda:0' + str(counter % 2) + \
             for n_layer, n_head in [(3, 4)]: #(3, 1),
@@ -28,6 +29,7 @@ for K in [288]:
                     ' --max_iters=' + str(max_iters) + \
                     ' --batch_size=' + str(batch_size) + \
                     ' --num_steps_per_iter=' + str(num_steps_per_iter) + \
+                    ' --num_eval_episodes=' + str(num_eval_episodes) + \
                     ' --group_name ' + '"ModelSize_"' + \
                     ' --name K=' + str(K) + \
                     ',embed_dim=' + str(embed_dim) + \
@@ -36,6 +38,7 @@ for K in [288]:
                     ',num_steps_per_iter=' + str(num_steps_per_iter) + \
                     ',batch_size=' + str(batch_size) + \
                     ',n_head=' + str(n_head) + \
+                    ',num_eval_episodes=' + str(num_eval_episodes) + \
                     '" Enter'
                 os.system(command=command)
                 print(command)

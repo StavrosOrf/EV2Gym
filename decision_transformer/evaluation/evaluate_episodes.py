@@ -196,9 +196,9 @@ def evaluate_episode_rtg(
             # logger.info('Saved model at {}'.format(time.strftime(
             #     '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
-    stats['mean_opt_ratio'] = np.mean(opt_tracking_error)
-    stats['std_opt_ratio'] = np.std(opt_tracking_error)
-    stats['highest_opt_ratio'] = highest_opt_ratio
+    # stats['mean_opt_ratio'] = np.mean(opt_tracking_error)
+    # stats['std_opt_ratio'] = np.std(opt_tracking_error)
+    # stats['highest_opt_ratio'] = highest_opt_ratio
     stats['mean_test_return'] = np.mean(test_rewards)
 
     return stats #, episode_length
