@@ -1,5 +1,5 @@
 from EVsSimulator import ev_city
-from evsim_math_model import ev_city_model, ev_city_power_tracker_model, ev_city_profit_maximization
+from baselines.gurobi_models import ev_city_model, ev_city_power_tracker_model, ev_city_profit_maximization
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,9 +10,9 @@ if __name__ == "__main__":
     verbose = False
     save_plots = True
     replay_path = None
+    replay_path = "./replay/replay_ev_city_30_2024-01-08_15-10-38-827430_replay.pkl"
 
-    env = ev_city.EVCity(config_file = "config.yaml",
-                         load_ev_from_replay=True,
+    env = ev_city.EVCity(config_file = "config_files/config.yaml",                         
                          load_from_replay_path=replay_path,                         
                          generate_rnd_game=True,                                                  
                          verbose=verbose,
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     rewards = []    
 
-    while True:        
+    for i in range(env.simulation_length):        
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
@@ -49,30 +49,25 @@ if __name__ == "__main__":
     # exit()
     # Solve optimally
     #Power tracker optimizer
-    # math_model = ev_city_power_tracker_model.EV_City_Math_Model(sim_file_path=new_replay_path)
+    math_model = ev_city_power_tracker_model.EV_City_Math_Model(sim_file_path=new_replay_path)
     #Profit maximization optimizer
-    math_model = ev_city_profit_maximization.EV_City_Math_Model(sim_file_path=new_replay_path)
+    # math_model = ev_city_profit_maximization.EV_City_Math_Model(sim_file_path=new_replay_path)
     # Old optimizer (V2G), probably not compatible now
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")
     opt_actions = math_model.get_actions()
     print(f'Optimal actions: {opt_actions.shape}')
 
     # Simulate in the gym environment and get the rewards
-    env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_transformers=n_transformers,
-                         load_ev_from_replay=True,
-                         load_prices_from_replay=True,
-                         load_from_replay_path=new_replay_path,                         
-                         generate_rnd_game=False,
-                         simulation_length=steps,
-                         timescale=timescale,
-                         score_threshold=0,
-                         save_plots=True,
-                         verbose=verbose,)
+
+    env = ev_city.EVCity(config_file = "config_files/config.yaml",                         
+                         load_from_replay_path=new_replay_path,                                                                                                
+                         verbose=verbose,
+                         render_mode=True,
+                         )
     state = env.reset()    
     rewards_opt = []
 
-    for i in range(steps):        
+    for i in range(env.simulation_length):        
         # all ports are charging instantly
         # print(f'Optimal actions: {opt_actions[:,:,i]}')
         # print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')

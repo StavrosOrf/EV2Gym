@@ -11,6 +11,7 @@ from .ev_charger import EV_Charger
 from .ev import EV
 from .transformer import Transformer
 
+
 def load_ev_spawn_scenarios(env):
     '''Loads the EV spawn scenarios of the simulation'''
 
@@ -25,26 +26,28 @@ def load_ev_spawn_scenarios(env):
     env.time_of_connection_vs_hour = np.load(
         './data/time_of_connection_vs_hour.npy')
 
-def load_power_setpoints(env,randomly):
+
+def load_power_setpoints(env, randomly):
     '''
     Loads the power setpoints of the simulation based on the day-ahead prices'''
-    
-    #It is necessary to run the simulation first in order to get the ev_load_potential
+
+    # It is necessary to run the simulation first in order to get the ev_load_potential
     if not randomly and env.load_from_replay_path is None:
-        raise ValueError('Cannot load power setpoints from day-ahead prices if load_from_replay_path is None')
-    
+        raise ValueError(
+            'Cannot load power setpoints from day-ahead prices if load_from_replay_path is None')
+
     power_setpoints = np.ones(env.simulation_length)
-    
-    if env.load_from_replay_path:    
+
+    if env.load_from_replay_path:
         return env.replay.power_setpoints
 
     if randomly:
-        inverse_prices = 1/abs(env.charge_prices[0,:]+0.001)
-        return power_setpoints*(inverse_prices*env.cs)*np.random.uniform(0.25,0.35,1)        
+        inverse_prices = 1/abs(env.charge_prices[0, :]+0.001)
+        return power_setpoints*(inverse_prices*env.cs)*np.random.uniform(0.2, 0.25, 1)
     else:
-        raise NotImplementedError('Loading power setpoints from is not implemented yet')
+        raise NotImplementedError(
+            'Loading power setpoints from is not implemented yet')
 
-    
 
 def load_transformers(env):
     '''Loads the transformers of the simulation
@@ -54,20 +57,38 @@ def load_transformers(env):
         - transformers: a list of transformer objects'''
 
     transformers = []
-    if env.load_from_replay_path is None:
-        if env.number_of_transformers > env.cs:
-            raise ValueError('The number of transformers cannot be greater than the number of charging stations')                
-        for i in range(env.number_of_transformers):            
-            #get indexes where the transformer is connected
-            transformer = Transformer(id=i,
-                                        cs_ids=np.where(
-                                            np.array(env.cs_transformers) == i)[0],
-                                        timescale=env.timescale,)
-            transformers.append(transformer)        
-    else:
+    if env.load_from_replay_path is not None:
         transformers = env.replay.transformers
 
+    elif env.charging_network_topology:
+        # parse the topology file and create the transformers
+        cs_counter = 0
+        for i,tr in enumerate(env.charging_network_topology):
+            cs_ids = []
+            for cs in env.charging_network_topology[tr]['charging_stations']:
+                cs_ids.append(cs_counter)
+                cs_counter += 1            
+            transformer = Transformer(id=i,
+                                      cs_ids=cs_ids,
+                                      min_current=env.charging_network_topology[tr]['min_current'],
+                                      max_current=env.charging_network_topology[tr]['max_current'],
+                                      timescale=env.timescale,)            
+            transformers.append(transformer)
+        
+    else:
+        if env.number_of_transformers > env.cs:
+            raise ValueError(
+                'The number of transformers cannot be greater than the number of charging stations')
+        for i in range(env.number_of_transformers):
+            # get indexes where the transformer is connected
+            transformer = Transformer(id=i,
+                                      cs_ids=np.where(
+                                          np.array(env.cs_transformers) == i)[0],
+                                      timescale=env.timescale,)
+            transformers.append(transformer)
+        env.n_transformers = len(transformers)
     return transformers
+
 
 def load_ev_charger_profiles(env):
     '''Loads the EV charger profiles of the simulation
@@ -77,10 +98,35 @@ def load_ev_charger_profiles(env):
         - ev_charger_profiles: a list of ev_charger_profile objects'''
 
     charging_stations = []
-    if env.load_from_replay_path is None:
+    if env.load_from_replay_path is not None:
+        return env.replay.charging_stations
+    elif env.charging_network_topology:
+        # parse the topology file and create the charging stations
+        cs_counter = 0
+        for i,tr in enumerate(env.charging_network_topology):
+            for cs in env.charging_network_topology[tr]['charging_stations']:
+                ev_charger = EV_Charger(id=cs_counter,
+                                        connected_bus=0, 
+                                        connected_transformer=i,
+                                        min_charge_current=env.charging_network_topology[tr]['charging_stations'][cs]['min_charge_current'],
+                                        max_charge_current=env.charging_network_topology[tr]['charging_stations'][cs]['max_charge_current'],
+                                        min_discharge_current=env.charging_network_topology[tr]['charging_stations'][cs]['min_discharge_current'],
+                                        max_discharge_current=env.charging_network_topology[tr]['charging_stations'][cs]['max_discharge_current'],
+                                        voltage=env.charging_network_topology[tr]['charging_stations'][cs]['voltage'],
+                                        n_ports=env.charging_network_topology[tr]['charging_stations'][cs]['n_ports'],
+                                        charger_type=env.charging_network_topology[tr]['charging_stations'][cs]['charger_type'],
+                                        phases=env.charging_network_topology[tr]['charging_stations'][cs]['phases'],                                        
+                                        timescale=env.timescale,
+                                        verbose=env.verbose,)
+                cs_counter += 1
+                charging_stations.append(ev_charger)
+        env.cs = len(charging_stations)
+        return charging_stations
+    
+    else:
         for i in range(env.cs):
             ev_charger = EV_Charger(id=i,
-                                    connected_bus= 0, #env.cs_buses[i],
+                                    connected_bus=0,  # env.cs_buses[i],
                                     connected_transformer=env.cs_transformers[i],
                                     n_ports=env.number_of_ports_per_cs,
                                     timescale=env.timescale,
@@ -89,7 +135,8 @@ def load_ev_charger_profiles(env):
             charging_stations.append(ev_charger)
         return charging_stations
 
-    return env.replay.charging_stations
+    
+
 
 def load_ev_profiles(env):
     '''Loads the EV profiles of the simulation
@@ -99,11 +146,10 @@ def load_ev_profiles(env):
         - ev_profiles: a list of ev_profile objects'''
 
     if env.load_from_replay_path is None:
-        return None
-    elif env.load_ev_from_replay:
-        return env.replay.EVs
+        return None    
     else:
-        return None
+        return env.replay.EVs
+
 
 def load_electricity_prices(env):
     '''Loads the electricity prices of the simulation
@@ -113,46 +159,49 @@ def load_electricity_prices(env):
         - charge_prices: a matrix of size (number of charging stations, simulation length) with the charge prices
         - discharge_prices: a matrix of size (number of charging stations, simulation length) with the discharge prices'''
 
-    # if env.load_from_replay_path is not None and env.load_prices_from_replay:     
+    # if env.load_from_replay_path is not None and env.load_prices_from_replay:
     #     return env.replay.charge_prices, env.replay.discharge_prices
-    
-    #else load historical prices
-    data = pd.read_csv(env.config['electricity_prices_file'], sep=',', header=0)
-    drop_columns = ['Country','Datetime (UTC)']
+
+    # else load historical prices
+    data = pd.read_csv(
+        env.config['electricity_prices_file'], sep=',', header=0)
+    drop_columns = ['Country', 'Datetime (UTC)']
     data.drop(drop_columns, inplace=True, axis=1)
     data['year'] = pd.DatetimeIndex(data['Datetime (Local)']).year
     data['month'] = pd.DatetimeIndex(data['Datetime (Local)']).month
     data['day'] = pd.DatetimeIndex(data['Datetime (Local)']).day
     data['hour'] = pd.DatetimeIndex(data['Datetime (Local)']).hour
 
-    #assume charge and discharge prices are the same
-    #assume prices are the same for all charging stations
-    
+    # assume charge and discharge prices are the same
+    # assume prices are the same for all charging stations
+
     charge_prices = np.zeros((env.cs, env.simulation_length))
     discharge_prices = np.zeros((env.cs, env.simulation_length))
-    #for every simulation step, take the price of the corresponding hour
+    # for every simulation step, take the price of the corresponding hour
     sim_temp_date = env.sim_starting_date
     for i in range(env.simulation_length):
-        
+
         year = sim_temp_date.year
         month = sim_temp_date.month
         day = sim_temp_date.day
         hour = sim_temp_date.hour
-        #find the corresponding price
-        try: 
-            charge_prices[:,i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
-                                    'Price (EUR/MWhe)'].iloc[0]/1000 #€/kWh
-            discharge_prices[:,i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
-                                    'Price (EUR/MWhe)'].iloc[0]/1000 #€/kWh
+        # find the corresponding price
+        try:
+            charge_prices[:, i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
+                                            'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
+            discharge_prices[:, i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
+                                              'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
         except IndexError:
-            print('Error: no price found for the given date and hour. Using 2022 prices instead.')
-            
+            print(
+                'Error: no price found for the given date and hour. Using 2022 prices instead.')
+
             year = 2022
-            charge_prices[:,i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
-                                    'Price (EUR/MWhe)'].iloc[0]/1000 #€/kWh
-            discharge_prices[:,i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
-                                    'Price (EUR/MWhe)'].iloc[0]/1000 #€/kWh
-        
-        #step to next 
-        sim_temp_date = sim_temp_date + datetime.timedelta(minutes=env.timescale)
+            charge_prices[:, i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
+                                            'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
+            discharge_prices[:, i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
+                                              'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
+
+        # step to next
+        sim_temp_date = sim_temp_date + \
+            datetime.timedelta(minutes=env.timescale)
     return charge_prices, discharge_prices

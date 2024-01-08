@@ -18,6 +18,7 @@ import os
 import random
 from copy import deepcopy
 import yaml
+import json
 
 # from .grid import Grid
 from .replay import EvCityReplay
@@ -29,10 +30,8 @@ from .render import Renderer
 class EVCity(gym.Env):
 
     def __init__(self,
-                 config_file=None,
-                 load_ev_from_replay=False,  # load EVs from replay file if true
+                 config_file=None,                 
                  load_from_replay_path=None,  # path of replay file to load
-                 replay_path='./replay/',
                  generate_rnd_game=False,  # generate a random game without terminating conditions
                  seed=42,
                  save_replay=True,
@@ -49,11 +48,9 @@ class EVCity(gym.Env):
 
         # read yaml config file
         self.config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
-        print(f'self.config: {self.config}')
 
         self.generate_rnd_game = generate_rnd_game
-        self.load_from_replay_path = load_from_replay_path
-        self.load_ev_from_replay = load_ev_from_replay
+        self.load_from_replay_path = load_from_replay_path        
         # self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
         self.save_replay = save_replay
         self.save_plots = save_plots
@@ -63,6 +60,8 @@ class EVCity(gym.Env):
         self.render_mode = render_mode
 
         self.simulation_length = self.config['simulation_length']
+        
+        replay_path='./replay/'
         self.replay_path = replay_path
 
         self.score_threshold = self.config['score_threshold']
@@ -95,8 +94,7 @@ class EVCity(gym.Env):
             # Threshold for the user satisfaction score
 
             self.number_of_ports_per_cs = self.config['number_of_ports_per_cs']
-            self.number_of_transformers = self.config['number_of_transformers']
-            # Timescale of the simulation (in minutes)
+            self.number_of_transformers = self.config['number_of_transformers']            
             self.timescale = self.config['timescale']
             self.simulation_length = self.config['simulation_length']
             # Simulation time
@@ -119,7 +117,17 @@ class EVCity(gym.Env):
         if self.cs > 100:
             self.lightweight_plots = True
         self.sim_starting_date = self.sim_date
-
+        
+        # Read the config.charging_network_topology json file and read the topology
+        try:
+            with open(self.config['charging_network_topology']) as json_file:
+                self.charging_network_topology = json.load(json_file)
+            
+        except FileNotFoundError:
+            if not self.config['charging_network_topology'] == 'None':
+                print(f'Did not find file {self.config["charging_network_topology"]}')
+            self.charging_network_topology = None
+        
         self.sim_name = extra_sim_name + \
             self.sim_name if extra_sim_name is not None else self.sim_name
         # Simulate grid
@@ -130,7 +138,7 @@ class EVCity(gym.Env):
             # self.cs_transformers = self.grid.get_bus_transformers()
         else:
             # self.cs_buses = [None] * self.cs
-            if self.config['charging_network_topology'] == "None" :
+            if self.charging_network_topology is None :
                 self.cs_transformers = [
                     *np.arange(self.number_of_transformers)] * (self.cs // self.number_of_transformers)
                 self.cs_transformers += random.sample(
@@ -165,14 +173,16 @@ class EVCity(gym.Env):
 
         # Variable showing whether the simulation is done or not
         self.done = False
+        
+        # Make folders for results
+        if self.save_replay:
+            os.makedirs(self.replay_path, exist_ok=True)
 
         if self.render_mode:
             # Initialize the rendering of the simulation
             self.renderer = Renderer(self)
 
-        # Make folders for results
-        if self.save_replay:
-            os.makedirs(self.replay_path, exist_ok=True)
+
 
         if self.save_plots:
             os.makedirs("./plots", exist_ok=True)

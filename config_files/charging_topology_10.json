@@ -3,10 +3,9 @@
         "id": 1,
         "max_current": 150,
         "min_current": 0,
-        "chargers": {
+        "charging_stations": {
             "charger_1": {
-                "id": 1,
-                "connected_transformer": 1,
+                "id": 0,                
                 "min_charge_current": 8,
                 "max_charge_current": 55,
                 "min_discharge_current": 0,
@@ -17,8 +16,7 @@
                 "phases": 3
             },
             "charger_2": {
-                "id": 2,
-                "connected_transformer": 1,
+                "id": 1,                
                 "min_charge_current": 8,
                 "max_charge_current": 55,
                 "min_discharge_current": 0,
@@ -29,8 +27,7 @@
                 "phases": 3
             },
             "charger_3": {
-                "id": 3,
-                "connected_transformer": 1,
+                "id": 2,                
                 "min_charge_current": 8,
                 "max_charge_current": 55,
                 "min_discharge_current": 0,
@@ -41,8 +38,7 @@
                 "phases": 3
             },
             "charger_4": {
-                "id": 4,
-                "connected_transformer": 1,
+                "id": 3,                
                 "min_charge_current": 8,
                 "max_charge_current": 55,
                 "min_discharge_current": 0,
@@ -59,10 +55,9 @@
         "id": 2,
         "max_current": 150,
         "min_current": 0,
-        "chargers": {
+        "charging_stations": {
             "charger_1": {
-                "id": 1,
-                "connected_transformer": 2,
+                "id": 4,                
                 "min_charge_current": 8,
                 "max_charge_current": 55,
                 "min_discharge_current": 0,
@@ -73,32 +68,7 @@
                 "phases": 3
             },
             "charger_2": {
-                "id": 2,
-                "connected_transformer": 2,
-                "min_charge_current": 8,
-                "max_charge_current": 55,
-                "min_discharge_current": 0,
-                "max_discharge_current": 0,
-                "voltage": 230,
-                "n_ports": 2,
-                "charger_type": "AC",
-                "phases": 3
-            },
-            "charger_3": {
-                "id": 3,
-                "connected_transformer": 2,
-                "min_charge_current": 8,
-                "max_charge_current": 55,
-                "min_discharge_current": 0,
-                "max_discharge_current": 0,
-                "voltage": 230,
-                "n_ports": 2,
-                "charger_type": "AC",
-                "phases": 3
-            },
-            "charger_4": {
-                "id": 4,
-                "connected_transformer": 2,
+                "id": 5,                
                 "min_charge_current": 8,
                 "max_charge_current": 55,
                 "min_discharge_current": 0,
@@ -108,7 +78,6 @@
                 "charger_type": "AC",
                 "phases": 3
             }
-
         }
     }
 }

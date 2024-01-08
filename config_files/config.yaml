@@ -2,7 +2,7 @@
 
 # Simulation Parameters
   timescale: 15 # in minutes per step
-  simulation_length: 96 # in steps per simulation
+  simulation_length: 30 # in steps per simulation
 
 # Date:
   year: 2015
@@ -12,12 +12,12 @@
   minute: 0
 
 # Charging Topology
-  number_of_charging_stations: 4
-  number_of_transformers: 2
+  number_of_charging_stations: 1
+  number_of_transformers: 1
   number_of_ports_per_cs: 2
   #provide path if you want to load a specific charging topology, 
   # else write None for a randomized one with the above parameters
-  charging_network_topology: None 
+  charging_network_topology: None #./config_files/charging_topology_10.json
 
 # EV Specifications
   heterogeneous_ev_specs: False #if False, each EV has its own specifications

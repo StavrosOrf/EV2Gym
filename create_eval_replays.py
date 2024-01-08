@@ -1,5 +1,5 @@
 from EVsSimulator import ev_city
-from evsim_math_model import ev_city_power_tracker_model
+from gurobi_models import ev_city_power_tracker_model
 
 import numpy as np
 import os

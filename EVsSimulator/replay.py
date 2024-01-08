@@ -31,7 +31,7 @@ class EvCityReplay():
         self.timescale = env.timescale
         self.score_threshold = env.score_threshold
         self.sim_date = env.sim_starting_date
-        self.cs_transformers = env.cs_transformers
+        # self.cs_transformers = env.cs_transformers
         self.power_setpoints = env.power_setpoints
         self.scenario = env.scenario
         self.heterogeneous_specs = env.heterogeneous_specs

@@ -125,6 +125,7 @@ class EV_Charger:
                 invalid_action_punishment += 1
 
         # normalize actions to sum to 1 for charging surplass or -1 for discharging surplass
+        print(actions)
         if sum(actions) > 1:
             normalized_actions = [action / sum(actions) for action in actions]
         elif sum(actions) < -1:
