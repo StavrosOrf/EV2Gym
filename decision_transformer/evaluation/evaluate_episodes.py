@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from evsim import ev_city
+from EVsSimulator import ev_city
 import os
 from icecream import ic
 

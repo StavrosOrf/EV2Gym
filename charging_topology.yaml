@@ -1,0 +1,6 @@
+# this yaml contains the network topology of the charging network
+# with every charging station and transformer and their parameters
+
+transformer_1:
+ ....
+ 

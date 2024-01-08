@@ -1,4 +1,4 @@
-from evsim import ev_city
+from EVsSimulator import ev_city
 from evsim_math_model import ev_city_model, ev_city_power_tracker_model, ev_city_profit_maximization
 
 import numpy as np
@@ -8,31 +8,16 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
 
     verbose = False
-    n_transformers = 1
-    number_of_charging_stations = 1
-    steps = 96  # 288 steps = 1 day with 5 minutes per step
-    timescale = 15  # (5 minutes per step)
     save_plots = True
     replay_path = None
 
-    env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_ports_per_cs=2,
-                         number_of_transformers=n_transformers,
+    env = ev_city.EVCity(config_file = "config.yaml",
                          load_ev_from_replay=True,
-                         load_prices_from_replay=True,
                          load_from_replay_path=replay_path,                         
-                         generate_rnd_game=True,
-                         simulation_length=steps,
-                         timescale=timescale,
-                         save_plots=True,
-                         lightweight_plots=False,
-                         score_threshold=0,
-                         date=(2023, 3, 17),
-                         hour=(3, 0),
-                         scenario='public_PowerSetpointTracking',
-                         heterogeneous_specs=False,
+                         generate_rnd_game=True,                                                  
                          verbose=verbose,
-                         render_mode=False,)
+                         render_mode=True,
+                         )
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"    
     
@@ -40,7 +25,7 @@ if __name__ == "__main__":
 
     rewards = []    
 
-    for i in range(steps):        
+    while True:        
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
@@ -54,11 +39,10 @@ if __name__ == "__main__":
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
 
-        # input("Press Enter to continue...")
-
-        if done and i < steps - 1:
-            print(f'End of simulation at step {i}')
-            exit()
+        # input("Press Enter to continue...")        
+        if done:
+            print(f'End of simulation at step {env.current_step}')
+            break
 
     # env.plot()
     

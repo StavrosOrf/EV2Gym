@@ -6,7 +6,7 @@ import time
 
 import gym
 import numpy as np
-from evsim import ev_city
+from EVsSimulator import ev_city
 
 import torch
 import pickle

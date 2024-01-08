@@ -14,7 +14,7 @@ from decision_transformer.models.mlp_bc import MLPBCModel
 from decision_transformer.training.act_trainer import ActTrainer
 from decision_transformer.training.seq_trainer import SequenceTrainer
 
-from evsim import ev_city
+from EVsSimulator import ev_city
 
 
 def discount_cumsum(x, gamma):

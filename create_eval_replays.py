@@ -1,4 +1,4 @@
-from evsim import ev_city
+from EVsSimulator import ev_city
 from evsim_math_model import ev_city_power_tracker_model
 
 import numpy as np
