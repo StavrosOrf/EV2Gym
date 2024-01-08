@@ -10,7 +10,6 @@ if __name__ == "__main__":
     verbose = False
     save_plots = True
     replay_path = None
-    replay_path = "./replay/replay_ev_city_30_2024-01-08_15-10-38-827430_replay.pkl"
 
     env = ev_city.EVCity(config_file = "config_files/config.yaml",                         
                          load_from_replay_path=replay_path,                         
