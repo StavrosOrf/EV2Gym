@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # main funtion for testing
 if __name__ == "__main__":
 
-    verbose = True
+    verbose = False
     save_plots = True
     replay_path = None
 
