@@ -526,6 +526,8 @@ class EVCity(gym.Env):
                 power_potential += cs_power_potential
 
         return power_potential
+    
+    # def _calculate_unstirred_energy_level(self):
 
     def _step_date(self):
         '''Steps the simulation date by one timestep'''
