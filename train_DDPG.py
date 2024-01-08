@@ -214,7 +214,6 @@ if __name__ == "__main__":
         if log_to_wandb:
             wandb.log({'epoch/return': epoch_return,
                        'epoch/ev_served': stats['total_ev_served'],
-                    #    'epoch/profits': stats['total_profits'],
                        'epoch/energy_charged': stats['total_energy_charged'],
                        'epoch/energy_discharged': stats['total_energy_discharged'],
                        'epoch/user_satisfaction': stats['average_user_satisfaction'],

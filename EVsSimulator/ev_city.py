@@ -32,6 +32,7 @@ class EVCity(gym.Env):
     def __init__(self,
                  config_file=None,                 
                  load_from_replay_path=None,  # path of replay file to load
+                 replay_path='./replay/', # where to save the replay file
                  generate_rnd_game=False,  # generate a random game without terminating conditions
                  seed=42,
                  save_replay=True,
@@ -61,7 +62,7 @@ class EVCity(gym.Env):
 
         self.simulation_length = self.config['simulation_length']
         
-        replay_path='./replay/'
+        
         self.replay_path = replay_path
 
         self.score_threshold = self.config['score_threshold']

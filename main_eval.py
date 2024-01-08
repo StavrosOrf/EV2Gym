@@ -7,13 +7,14 @@ import matplotlib.pyplot as plt
 # main funtion for testing
 if __name__ == "__main__":
 
-    verbose = False
+    verbose = True
     save_plots = True
     replay_path = None
 
     env = ev_city.EVCity(config_file = "config_files/config.yaml",                                                                
                          generate_rnd_game=True,                                 
-                         render_mode=True,
+                         render_mode=False,
+                         verbose=verbose,
                          )
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"    
@@ -43,7 +44,6 @@ if __name__ == "__main__":
 
     # env.plot()
     
-    # exit()
     # Solve optimally
     #Power tracker optimizer
     math_model = ev_city_power_tracker_model.EV_City_Math_Model(sim_file_path=new_replay_path)

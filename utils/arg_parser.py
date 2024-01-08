@@ -35,21 +35,9 @@ def arg_parser():
                         help="Enable logging to wandb (default: True)")
 
     # Environment specific arguments
-    parser.add_argument("--cs", default=10, type=int,
-                        help="Num. of CS (default: 1)")
-    parser.add_argument("--transformers", default=1, type=int,
-                        help="Num. of Transformers (default: 1)")
-    parser.add_argument("--ports", default=2, type=int,
-                        help="Num. of Ports per CS (default: 2)")
-    parser.add_argument("--steps", default=288, type=int,
-                        help="Num. of steps (default: 288)")
-    parser.add_argument("--timescale", default=5, type=int,
-                        help="Timescale (default: 5)")
-    # parser.add_argument("--score_threshold", default=0, type=int,
-    #                     help="Score threshold (default: 1)")
-    # parser.add_argument("--static_ev_spawn_rate", default=True, type=bool,
-    #                     help="Static ev spawn rate (default: True)")
-    
+    parser.add_argument("--config_file", default="config_files/config.yaml",
+                        help="Path to the config file (default: config_files/config.yaml)")
+
     # Generate trajectories specific arguments
     parser.add_argument("--n_trajectories", default=10, type=int,
                         help="Num. of trajectories to generate (default: 10)")
