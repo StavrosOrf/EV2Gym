@@ -11,10 +11,8 @@ if __name__ == "__main__":
     save_plots = True
     replay_path = None
 
-    env = ev_city.EVCity(config_file = "config_files/config.yaml",                         
-                         load_from_replay_path=replay_path,                         
-                         generate_rnd_game=True,                                                  
-                         verbose=verbose,
+    env = ev_city.EVCity(config_file = "config_files/config.yaml",                                                                
+                         generate_rnd_game=True,                                 
                          render_mode=True,
                          )
 

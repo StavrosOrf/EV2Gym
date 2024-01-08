@@ -12,9 +12,9 @@
   minute: 0
 
 # Charging Topology
-  number_of_charging_stations: 1
-  number_of_transformers: 1
-  number_of_ports_per_cs: 2
+  number_of_charging_stations: 5
+  number_of_transformers: 2
+  number_of_ports_per_cs: 1
   #provide path if you want to load a specific charging topology, 
   # else write None for a randomized one with the above parameters
   charging_network_topology: None #./config_files/charging_topology_10.json
