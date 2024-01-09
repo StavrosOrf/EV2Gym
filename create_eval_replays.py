@@ -22,6 +22,7 @@ def evalreplay(config_file,
                          load_from_replay_path=None,
                          generate_rnd_game=True,                                                  
                          save_plots=False,
+                         eval_mode="unstirred",
                          save_replay=True)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
@@ -62,6 +63,7 @@ def evalreplay(config_file,
                          generate_rnd_game=False,
                          save_plots=False,
                          save_replay=save_replay,
+                         eval_mode="optimal"
                          )
     _ = env.reset()
     rewards_opt = []

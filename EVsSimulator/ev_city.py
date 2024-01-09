@@ -37,6 +37,7 @@ class EVCity(gym.Env):
                  seed=42,
                  save_replay=True,
                  save_plots=True,
+                 eval_mode = "Normal",
                  lightweight_plots=False,
                  extra_sim_name=None,
                  verbose=False,
@@ -56,6 +57,7 @@ class EVCity(gym.Env):
         self.save_replay = save_replay
         self.save_plots = save_plots
         self.lightweight_plots = lightweight_plots
+        self.eval_mode = eval_mode
         self.verbose = verbose  # Whether to print the simulation progress or not
         # Whether to render the simulation in real-time or not
         self.render_mode = render_mode

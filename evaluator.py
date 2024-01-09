@@ -40,6 +40,8 @@ opt_energy_user_satisfaction = []
 
 for i in range(n_test_cycles):    
     replay = pickle.load(open(eval_replay_path + eval_replay_files[i], 'rb'))
+    print(replay.unstirred_stats)
+    print(replay.optimal_stats)
     opt_energy_charged.append(replay.stats["total_energy_charged"])
     opt_tracking_errors.append(replay.stats["tracking_error"])
     opt_tracking_surpluses.append(replay.stats["power_tracker_violation"])

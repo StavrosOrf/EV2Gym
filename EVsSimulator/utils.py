@@ -471,15 +471,20 @@ def get_statistics(ev_env):
     #     ev_percentage_charged.append((ev.battery_capacity-ev.current_capacity)/(ev.battery_capacity-ev.battery_capacity_at_arrival))
         
     # find the final battery capacity of evs    
-    if ev_env.load_from_replay_path is not None and len(ev_env.EVs) > 0:        
-        energy_user_satisfaction = 0
-        for i, ev in enumerate(ev_env.EVs):
-            e_actual = ev.current_capacity
-            e_max = ev_env.replay.EVs[i].current_capacity            
-            print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
-            energy_user_satisfaction += e_actual / e_max * 100
+    if ev_env.eval_mode != "unstirred" and len(ev_env.EVs) > 0 \
+        and ev_env.replay is not None:        
+        
+        if ev_env.replay.unstirred_EVs is None:
+            energy_user_satisfaction = -10000000
+        else:
+            energy_user_satisfaction = 0
+            for i, ev in enumerate(ev_env.EVs):
+                e_actual = ev.current_capacity
+                e_max = ev_env.replay.unstirred_EVs[i].current_capacity            
+                # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
+                energy_user_satisfaction += e_actual / e_max * 100
 
-        energy_user_satisfaction /= len(ev_env.EVs)
+            energy_user_satisfaction /= len(ev_env.EVs)
     else:
         energy_user_satisfaction = 100
     
@@ -493,13 +498,13 @@ def get_statistics(ev_env):
              'tracking_error': tracking_error,
              'energy_user_satisfaction': energy_user_satisfaction,
             #  'ev_percentage_charged': ev_percentage_charged,
-             }
-    print(stats)
-    if ev_env.replay is not None:
+             }    
+    if ev_env.eval_mode == "otpimal":
         stats['opt_profits'] = ev_env.replay.stats["total_profits"]
         stats['opt_tracking_error'] = ev_env.replay.stats["tracking_error"]
         stats['opt_power_tracker_violation'] = ev_env.replay.stats["power_tracker_violation"]
         stats['opt_energy_user_satisfaction'] = ev_env.replay.stats["energy_user_satisfaction"]
+        stats['opt_total_energy_charged'] = ev_env.replay.stats["total_energy_charged"]
 
     return stats
 
@@ -528,15 +533,20 @@ def print_statistics(ev_env):
                 ev_env.power_setpoints[t]
 
     # find the final battery capacity of evs    
-    if ev_env.load_from_replay_path is not None and len(ev_env.EVs) > 0:
-        energy_user_satisfaction = 0
-        for i, ev in enumerate(ev_env.EVs):
-            e_actual = ev.current_capacity
-            e_max = ev_env.replay.EVs[i].current_capacity
-            # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
-            energy_user_satisfaction += e_actual / e_max * 100
+    if ev_env.eval_mode != "unstirred" and len(ev_env.EVs) > 0 \
+        and ev_env.replay is not None:        
+        
+        if ev_env.replay.unstirred_EVs is None:
+            energy_user_satisfaction = -10000000
+        else:
+            energy_user_satisfaction = 0
+            for i, ev in enumerate(ev_env.EVs):
+                e_actual = ev.current_capacity
+                e_max = ev_env.replay.unstirred_EVs[i].current_capacity            
+                # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
+                energy_user_satisfaction += e_actual / e_max * 100
 
-        energy_user_satisfaction /= len(ev_env.EVs)
+            energy_user_satisfaction /= len(ev_env.EVs)
     else:
         energy_user_satisfaction = 100
 
