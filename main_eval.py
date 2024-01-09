@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # main funtion for testing
 if __name__ == "__main__":
 
-    verbose = False
+    verbose = True
     save_plots = True
     replay_path = None
 
@@ -15,6 +15,7 @@ if __name__ == "__main__":
                          generate_rnd_game=True,                                 
                          render_mode=False,
                          verbose=verbose,
+                         eval_mode="unstirred",
                          )
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"    
@@ -41,7 +42,7 @@ if __name__ == "__main__":
         if done:
             print(f'End of simulation at step {env.current_step}')
             break
-
+    
     # env.plot()
     
     # Solve optimally
@@ -58,8 +59,7 @@ if __name__ == "__main__":
 
     env = ev_city.EVCity(config_file = "config_files/config.yaml",                         
                          load_from_replay_path=new_replay_path,                                                                                                
-                         verbose=verbose,
-                         render_mode=True,
+                         verbose=verbose,                         
                          )
     state = env.reset()    
     rewards_opt = []

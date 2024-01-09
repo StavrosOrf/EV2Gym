@@ -196,6 +196,8 @@ def load_electricity_prices(env):
                 'Error: no price found for the given date and hour. Using 2022 prices instead.')
 
             year = 2022
+            day = random.randint(1, 28)
+            print("Debug:",year, month, day, hour)
             charge_prices[:, i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
                                             'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
             discharge_prices[:, i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
