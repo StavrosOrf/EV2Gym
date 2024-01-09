@@ -15,7 +15,7 @@ n_transformers = config["number_of_transformers"]
 steps = config["simulation_length"]
 timescale = config["timescale"]
 
-n_test_cycles = 200#args.n_test_cycles
+n_test_cycles = args.n_test_cycles
 
 
 eval_replay_path = "./replay/" + \
