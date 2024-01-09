@@ -4,8 +4,8 @@ import torch.nn as nn
 
 import transformers
 
-from decision_transformer.models.model import TrajectoryModel
-from decision_transformer.models.trajectory_gpt2 import GPT2Model
+from .model import TrajectoryModel
+from .trajectory_gpt2 import GPT2Model
 
 
 class DecisionTransformer(TrajectoryModel):

@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from decision_transformer.models.model import TrajectoryModel
+from .model import TrajectoryModel
 
 
 class MLPBCModel(TrajectoryModel):

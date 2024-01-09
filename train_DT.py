@@ -33,6 +33,8 @@ def experiment(
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = torch.device(variant['device'])
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        device = torch.device('cpu')
     log_to_wandb = variant.get('log_to_wandb', False)
 
     env_name, dataset = variant['env'], variant['dataset']
@@ -51,7 +53,7 @@ def experiment(
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    env = "ev_city-v1"    
+    env = "ev_city-v1"
     scale = 1
     env_targets = [50]  # evaluation conditioning targets
 
@@ -59,7 +61,7 @@ def experiment(
         # since BC ignores target, no need for different evaluations
         env_targets = env_targets[:1]
     
-    config = yaml.load(open(args.config_file, 'r'), Loader=yaml.FullLoader)
+    config = yaml.load(open(variant.get("config_file"), 'r'), Loader=yaml.FullLoader)
     number_of_charging_stations = config["number_of_charging_stations"]
     n_transformers = config["number_of_transformers"]
     steps = config["simulation_length"]
@@ -89,7 +91,7 @@ def experiment(
         #DDPG semi-random trajectories
         raise NotImplementedError("Dataset not found")
         dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
-    elif dataset == "optimal":
+    elif dataset == "optimal":        
         # dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_1000000_trajectories.pkl'
         dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_100000_trajectories.pkl'
     else:
@@ -363,6 +365,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_steps_per_iter', type=int, default=1000)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--log_to_wandb', '-w', type=bool, default=True)
+    parser.add_argument('--config_file', type=str, default="config_files/config.yaml")
 
     args = parser.parse_args()
 
