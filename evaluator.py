@@ -7,6 +7,8 @@ from utils.arg_parser import arg_parser
 import numpy as np
 from EVsSimulator import ev_city
 
+from baselines.heuristics import RoundRobin
+
 args = arg_parser()
 config = yaml.load(open(args.config_file, 'r'), Loader=yaml.FullLoader)
 
@@ -73,9 +75,11 @@ for i in range(n_test_cycles):
     env = ev_city.EVCity(config_file = "config_files/config.yaml",    
                          load_from_replay_path=replay_path,                                                            
                          generate_rnd_game=True,                         
-                         save_plots=False,
+                         save_plots=True,
                          save_replay=False,                  
                          )
+    
+    agent = RoundRobin(env)
     state = env.reset()
 
     rewards = []    
@@ -88,7 +92,8 @@ for i in range(n_test_cycles):
         # discharging might not be supported by the charging station, so negative values might be clipped to 0
                 
         # actions = np.ones(env.number_of_ports)
-        actions = np.zeros(env.number_of_ports)
+        # actions = np.zeros(env.number_of_ports)
+        actions = agent.get_action(env)
         ################# Your algorithm goes here #################
         
         new_state, reward, done, stats = env.step(
@@ -100,7 +105,7 @@ for i in range(n_test_cycles):
         if done:
             # print(f'End of simulation at step {env.current_step}')
             break
-    
+    exit()
     energy_charged.append(stats["total_energy_charged"])
     tracking_errors.append(stats["tracking_error"])
     tracking_surpluses.append(stats["power_tracker_violation"])
