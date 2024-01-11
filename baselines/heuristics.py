@@ -41,6 +41,7 @@ class RoundRobin():
         #get currently parked EVs
         currently_parked_ev_list = self.get_currently_parked_ev(env)
         print(f'Currently parked EVs: {currently_parked_ev_list}')
+        print(f'Served EVs: {self.served_ev_list}')
 
         #remove indexex of already served EVs in this round
         for ev in self.served_ev_list:
