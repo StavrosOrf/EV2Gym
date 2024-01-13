@@ -456,6 +456,8 @@ def get_statistics(ev_env):
         [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
         [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
+    #get transformer overload from ev_env.tr_overload
+    total_transformer_overload = np.array(ev_env.tr_overload).sum()
     
     tracking_error = 0
     power_tracker_violation = 0
@@ -497,15 +499,17 @@ def get_statistics(ev_env):
              'power_tracker_violation': power_tracker_violation,
              'tracking_error': tracking_error,
              'energy_user_satisfaction': energy_user_satisfaction,
+             'total_transformer_overload': total_transformer_overload,
             #  'ev_percentage_charged': ev_percentage_charged,
              }    
-    if ev_env.eval_mode == "otpimal":
-        stats['opt_profits'] = ev_env.replay.stats["total_profits"]
-        stats['opt_tracking_error'] = ev_env.replay.stats["tracking_error"]
-        stats['opt_power_tracker_violation'] = ev_env.replay.stats["power_tracker_violation"]
-        stats['opt_energy_user_satisfaction'] = ev_env.replay.stats["energy_user_satisfaction"]
-        stats['opt_total_energy_charged'] = ev_env.replay.stats["total_energy_charged"]
-
+    if ev_env.eval_mode != "optimal" and ev_env.replay is not None:
+        if ev_env.replay.optimal_stats is not None:
+            stats['opt_profits'] = ev_env.replay.optimal_stats["total_profits"]
+            stats['opt_tracking_error'] = ev_env.replay.optimal_stats["tracking_error"]
+            stats['opt_power_tracker_violation'] = ev_env.replay.optimal_stats["power_tracker_violation"]
+            stats['opt_energy_user_satisfaction'] = ev_env.replay.optimal_stats["energy_user_satisfaction"]
+            stats['opt_total_energy_charged'] = ev_env.replay.optimal_stats["total_energy_charged"]    
+        
     return stats
 
 
@@ -521,8 +525,8 @@ def print_statistics(ev_env):
         [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
         [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
-    # tracking_error = ((ev_env.current_power_setpoints -
-    #                   ev_env.power_setpoints)**2).sum()
+    total_transformer_overload = np.array(ev_env.tr_overload).sum()
+
     tracking_error = 0
     power_tracker_violation = 0
     for t in range(ev_env.simulation_length):
@@ -564,8 +568,8 @@ def print_statistics(ev_env):
         f'  - Total energy charged: {toal_energy_charged:.1f} | discharged: {total_energy_discharged:.1f} kWh')    
     print(
         f'  - Power Tracking squared error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW')
-    print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %\n')
-
+    print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %')
+    print(f'  - Total transformer overload: {total_transformer_overload:.2f} Amperes / DT \n')
     print("==============================================================\n\n")
 
 

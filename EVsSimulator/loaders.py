@@ -159,18 +159,18 @@ def load_electricity_prices(env):
         - charge_prices: a matrix of size (number of charging stations, simulation length) with the charge prices
         - discharge_prices: a matrix of size (number of charging stations, simulation length) with the discharge prices'''
 
-    # if env.load_from_replay_path is not None and env.load_prices_from_replay:
-    #     return env.replay.charge_prices, env.replay.discharge_prices
+    if env.load_from_replay_path is not None:
+        return env.replay.charge_prices, env.replay.discharge_prices
 
     # else load historical prices
     data = pd.read_csv(
         env.config['electricity_prices_file'], sep=',', header=0)
-    drop_columns = ['Country', 'Datetime (UTC)']
+    drop_columns = ['Country', 'Datetime (Local)']
     data.drop(drop_columns, inplace=True, axis=1)
-    data['year'] = pd.DatetimeIndex(data['Datetime (Local)']).year
-    data['month'] = pd.DatetimeIndex(data['Datetime (Local)']).month
-    data['day'] = pd.DatetimeIndex(data['Datetime (Local)']).day
-    data['hour'] = pd.DatetimeIndex(data['Datetime (Local)']).hour
+    data['year'] = pd.DatetimeIndex(data['Datetime (UTC)']).year
+    data['month'] = pd.DatetimeIndex(data['Datetime (UTC)']).month
+    data['day'] = pd.DatetimeIndex(data['Datetime (UTC)']).day
+    data['hour'] = pd.DatetimeIndex(data['Datetime (UTC)']).hour
 
     # assume charge and discharge prices are the same
     # assume prices are the same for all charging stations
@@ -196,6 +196,9 @@ def load_electricity_prices(env):
                 'Error: no price found for the given date and hour. Using 2022 prices instead.')
 
             year = 2022
+            if day > 28:
+                day -= 1
+            print("Debug:",year, month, day, hour)
             charge_prices[:, i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
                                             'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
             discharge_prices[:, i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),

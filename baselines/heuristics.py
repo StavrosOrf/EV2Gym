@@ -8,7 +8,7 @@ class RoundRobin():
         #find average charging power of the simulation
         self.average_power = 0
         for cs in env.charging_stations:
-            self.average_power += cs.max_charge_current * cs.voltage * math.sqrt(cs.phases)
+            self.average_power += cs.max_charge_current * cs.voltage * math.sqrt(cs.phases)/2
         self.average_power /= len(env.charging_stations)
 
         #list with the ids of EVs that were already served in this round
@@ -22,7 +22,7 @@ class RoundRobin():
 
         counter = 0
         # iterate over all ports
-        for cs in self.charging_stations:
+        for cs in env.charging_stations:
             for port in range(cs.n_ports):
                 if cs.evs_connected[port] is not None:        
                     if cs.evs_connected[port].get_soc() < 1:
@@ -34,12 +34,14 @@ class RoundRobin():
     def get_action(self, env):
         #this function returns the actino list based on the round robin algorithm
 
-        total_power = env.power_setpoints[env.current_step]
+        total_power = env.power_setpoints[env.current_step]*1000
 
         number_of_EVs_to_charge = math.ceil(total_power // self.average_power)
-
+        print(f'Number of EVs to charge: {number_of_EVs_to_charge}, total power: {total_power:.2f}, average power: {self.average_power:.2f}')
         #get currently parked EVs
         currently_parked_ev_list = self.get_currently_parked_ev(env)
+        print(f'Currently parked EVs: {currently_parked_ev_list}')
+        print(f'Served EVs: {self.served_ev_list}')
 
         #remove indexex of already served EVs in this round
         for ev in self.served_ev_list:
@@ -63,4 +65,5 @@ class RoundRobin():
         for ev in evs_to_charge:
             action_list[ev] = 1
         
+        print(f'Evs to charge: {evs_to_charge}')        
         return action_list

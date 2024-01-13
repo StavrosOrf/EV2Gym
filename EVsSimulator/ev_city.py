@@ -268,6 +268,8 @@ class EVCity(gym.Env):
 
         self.cs_power = np.zeros([self.cs, self.simulation_length])
         self.cs_current = np.zeros([self.cs, self.simulation_length])
+        
+        self.tr_overload = np.zeros([self.number_of_transformers, self.simulation_length])
         # self.port_power = np.zeros([self.number_of_ports,
         #                             self.cs,
         #                             self.simulation_length],
@@ -476,8 +478,9 @@ class EVCity(gym.Env):
         '''Updates the power statistics of the simulation'''
 
         # if not self.lightweight_plots:
-        # for tr in self.transformers:
-        #     self.transformer_amps[tr.id, self.current_step] = tr.current_amps
+        for tr in self.transformers:
+            # self.transformer_amps[tr.id, self.current_step] = tr.current_amps
+            self.tr_overload[tr.id, self.current_step] = tr.get_how_overloaded()
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output

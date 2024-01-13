@@ -7,12 +7,13 @@ import argparse
 import pickle
 import random
 import sys
+import yaml
 
-from decision_transformer.evaluation.evaluate_episodes import evaluate_episode, evaluate_episode_rtg
-from decision_transformer.models.decision_transformer import DecisionTransformer
-from decision_transformer.models.mlp_bc import MLPBCModel
-from decision_transformer.training.act_trainer import ActTrainer
-from decision_transformer.training.seq_trainer import SequenceTrainer
+from baselines.DT.evaluation.evaluate_episodes import evaluate_episode, evaluate_episode_rtg
+from baselines.DT.models.decision_transformer import DecisionTransformer
+from baselines.DT.models.mlp_bc import MLPBCModel
+from baselines.DT.training.act_trainer import ActTrainer
+from baselines.DT.training.seq_trainer import SequenceTrainer
 
 from EVsSimulator import ev_city
 
@@ -32,6 +33,8 @@ def experiment(
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = torch.device(variant['device'])
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        device = torch.device('cpu')
     log_to_wandb = variant.get('log_to_wandb', False)
 
     env_name, dataset = variant['env'], variant['dataset']
@@ -50,32 +53,29 @@ def experiment(
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    env = "ev_city-v1"    
+    env = "ev_city-v1"
     scale = 1
     env_targets = [50]  # evaluation conditioning targets
 
     if model_type == 'bc':
         # since BC ignores target, no need for different evaluations
         env_targets = env_targets[:1]
-        
-    n_transformers = 1
-    number_of_charging_stations = 10
-    steps = 288  # 288 steps = 1 day with 5 minutes per step
-    timescale = 5  # (5 minutes per step)
-    # n_test_cycles = args.n_test_cycles
     
-    replay_path = None
+    config = yaml.load(open(variant.get("config_file"), 'r'), Loader=yaml.FullLoader)
+    number_of_charging_stations = config["number_of_charging_stations"]
+    n_transformers = config["number_of_transformers"]
+    steps = config["simulation_length"]
+    # timescale = config["timescale"]
+
+    # replay_path = None
 
     args.env = 'evcity-v1'
 
-    env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_transformers=n_transformers,
-                         load_from_replay_path=replay_path,
+    env = ev_city.EVCity(config_file=args.config_file,
                          generate_rnd_game=True,
-                         simulation_length=steps,
-                         timescale=timescale,
                          save_plots=False,
-                         save_replay=False,)
+                         save_replay=False,
+                         )
 
     state_dim = env.observation_space.shape[0]
     act_dim = env.action_space.shape[0]
@@ -91,18 +91,13 @@ def experiment(
         #DDPG semi-random trajectories
         raise NotImplementedError("Dataset not found")
         dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
-    elif dataset == "optimal":
+    elif dataset == "optimal":        
         # dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_1000000_trajectories.pkl'
         dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_100000_trajectories.pkl'
     else:
         raise NotImplementedError("Dataset not found")
 
-    #split dataset path to get group name
-    number_of_charging_stations = dataset_path.split("_")[1]
-    n_transformers = dataset_path.split("_")[3]        
-    timesteps = int(dataset_path.split("_")[5])
-    max_ep_len = int(timesteps)
-    timescale = int(dataset_path.split("_")[7])
+    max_ep_len = steps
     g_name = variant['group_name']
 
     group_name = f'{g_name}_DT_{number_of_charging_stations}cs_{n_transformers}tr'    
@@ -241,6 +236,7 @@ def experiment(
                         state_std=state_std,
                         device=device,
                         n_test_episodes=num_eval_episodes,
+                        config_file=args.config_file,
                     )
                 else:
                     ret, length = evaluate_episode(
@@ -255,15 +251,9 @@ def experiment(
                         state_std=state_std,
                         device=device,
                     )
-                # returns.append(ret)
-                # lengths.append(length)
+
             return stats
-        # {
-        #         f'target_{target_rew}_return_mean': np.mean(returns),
-        #         f'target_{target_rew}_return_std': np.std(returns),
-        #         f'target_{target_rew}_length_mean': np.mean(lengths),
-        #         f'target_{target_rew}_length_std': np.std(lengths),
-        #     }
+
         return fn
 
     if model_type == 'dt':
@@ -370,11 +360,12 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', '-lr', type=float, default=1e-4)
     parser.add_argument('--weight_decay', '-wd', type=float, default=1e-4)
     parser.add_argument('--warmup_steps', type=int, default=10000)
-    parser.add_argument('--num_eval_episodes', type=int, default=10)
+    parser.add_argument('--num_eval_episodes', type=int, default=100)
     parser.add_argument('--max_iters', type=int, default=500)
     parser.add_argument('--num_steps_per_iter', type=int, default=1000)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--log_to_wandb', '-w', type=bool, default=True)
+    parser.add_argument('--config_file', type=str, default="config_files/config.yaml")
 
     args = parser.parse_args()
 
