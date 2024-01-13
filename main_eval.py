@@ -75,6 +75,8 @@ if __name__ == "__main__":
         new_state, reward, done, _ = env.step(
             actions, visualize=True)  # takes action
         rewards_opt.append(reward)
+        
+        input("Press Enter to continue...")
 
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')

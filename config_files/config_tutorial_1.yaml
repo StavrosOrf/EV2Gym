@@ -12,8 +12,8 @@
   minute: 0
 
 # Charging Topology
-  number_of_charging_stations: 7
-  number_of_transformers: 2
+  number_of_charging_stations: 1
+  number_of_transformers: 1
   number_of_ports_per_cs: 2
   #provide path if you want to load a specific charging topology, 
   # else write None for a randomized one with the above parameters
