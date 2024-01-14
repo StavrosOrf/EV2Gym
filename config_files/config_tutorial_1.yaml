@@ -2,13 +2,13 @@
 
 # Simulation Parameters
   timescale: 15 # in minutes per step
-  simulation_length: 96 # in steps per simulation
+  simulation_length: 40 # in steps per simulation
 
 # Date:
   year: 2015
   month: 1
   day: 1
-  hour: 5
+  hour: 10
   minute: 0
 
 # Charging Topology
