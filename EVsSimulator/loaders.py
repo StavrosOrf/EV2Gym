@@ -6,10 +6,11 @@ import numpy as np
 import pandas as pd
 import datetime
 import random
+import math
 
-from .ev_charger import EV_Charger
-from .ev import EV
-from .transformer import Transformer
+from .models.ev_charger import EV_Charger
+from .models.ev import EV
+from .models.transformer import Transformer
 
 
 def load_ev_spawn_scenarios(env):
@@ -43,6 +44,13 @@ def load_power_setpoints(env, randomly):
 
     if randomly:
         inverse_prices = 1/abs(env.charge_prices[0, :]+0.001)
+        
+        if env.cs == 1:
+            cs = env.charging_stations[0]
+            power_setpoints = power_setpoints * cs.max_charge_current * cs.voltage * math.sqrt(cs.phases)/1000
+            power_setpoints = power_setpoints * np.random.randint(2,size=env.simulation_length)
+            return power_setpoints
+                                            
         return power_setpoints*(inverse_prices*env.cs)*np.random.uniform(0.08, 0.09, 1)
     else:
         raise NotImplementedError(

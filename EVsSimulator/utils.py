@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from .ev import EV
+from .models.ev import EV
 
 
 def ev_city_plot(ev_env):
@@ -612,7 +612,7 @@ def spawn_EV(ev_env, cs_id):
     day = time.weekday()
     hour = time.hour
     minute = time.minute
-    # Divide by 15 because the spawn rate is in 15 minute intervals
+    # Divide by 15 because the spawn rate is in 15 minute intervals (in the csv file)
     i = hour*4 + minute//15
 
     scenario = ev_env.scenario.split("_")[0]

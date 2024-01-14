@@ -46,7 +46,8 @@ class EVCity(gym.Env):
 
         super(EVCity, self).__init__()
 
-        print(f'Initializing EVCity environment...')
+        if verbose:
+            print(f'Initializing EVCity environment...')
 
         # read yaml config file
         self.config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
@@ -441,15 +442,15 @@ class EVCity(gym.Env):
             if self.verbose:
                 print_statistics(self)
 
-            if any(score < self.score_threshold for score in user_satisfaction_list):
-                print(
-                    f"User satisfaction score below threshold of {self.score_threshold}, {self.current_step} timesteps\n")
-            elif any(tr.is_overloaded() for tr in self.transformers):
-                print(
-                    f"Transformer overloaded, {self.current_step} timesteps\n")
-            else:
-                print(
-                    f"Episode finished after {self.current_step} timesteps\n")
+                if any(score < self.score_threshold for score in user_satisfaction_list):
+                    print(
+                        f"User satisfaction score below threshold of {self.score_threshold}, {self.current_step} timesteps\n")
+                elif any(tr.is_overloaded() for tr in self.transformers):
+                    print(
+                        f"Transformer overloaded, {self.current_step} timesteps\n")
+                else:
+                    print(
+                        f"Episode finished after {self.current_step} timesteps\n")
 
             if self.save_replay:
                 self.save_sim_replay()
@@ -641,15 +642,15 @@ class EVCity(gym.Env):
             # reward -= 100 * (tr.current_amps < tr.min_amps)
             #######################################################################################################
             # squared tracking error
-            reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-                       self.current_power_setpoints[self.current_step-1])**2
+            # reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
+            #            self.current_power_setpoints[self.current_step-1])**2
 
             # best reward so far
             ############################################################################################################
-            # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-            #     reward -= (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
+            if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
+                reward -= (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
 
-            # reward += self.current_power_setpoints[self.current_step-1]/75
+            reward += self.current_power_setpoints[self.current_step-1]/75
             ############################################################################################################
             # normalize reward to -1 1
             # reward = reward/1000
