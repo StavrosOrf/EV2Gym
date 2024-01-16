@@ -642,15 +642,15 @@ class EVCity(gym.Env):
             # reward -= 100 * (tr.current_amps < tr.min_amps)
             #######################################################################################################
             # squared tracking error
-            # reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #            self.current_power_setpoints[self.current_step-1])**2
+            reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
+                       self.current_power_setpoints[self.current_step-1])**2
 
             # best reward so far
             ############################################################################################################
-            if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-                reward -= (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
+            # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
+            #     reward -= (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
 
-            reward += self.current_power_setpoints[self.current_step-1]/75
+            # reward += self.current_power_setpoints[self.current_step-1]/75
             ############################################################################################################
             # normalize reward to -1 1
             # reward = reward/1000
