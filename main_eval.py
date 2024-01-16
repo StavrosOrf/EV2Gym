@@ -11,7 +11,7 @@ if __name__ == "__main__":
     save_plots = True
     replay_path = None
     config_file = "config_files/config.yaml"
-    config_file = "config_files/config_tutorial_1.yaml"
+    # config_file = "config_files/config_tutorial_1.yaml"
 
     env = ev_city.EVCity(config_file = config_file,                                                                                                                             
                          generate_rnd_game=True,                                 

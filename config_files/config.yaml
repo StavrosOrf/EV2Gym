@@ -1,8 +1,8 @@
 # this yml file is used to configure the evsim simulation
 
 # Simulation Parameters
-  timescale: 15 # in minutes per step
-  simulation_length: 96 # in steps per simulation
+  timescale: 0.016 # in minutes per step
+  simulation_length: 86400 # in steps per simulation
 
 # Date:
   year: 2015

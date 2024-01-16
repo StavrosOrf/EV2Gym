@@ -5,7 +5,6 @@ This file contains the loaders for the EV City environment.
 import numpy as np
 import pandas as pd
 import datetime
-import random
 import math
 
 from .models.ev_charger import EV_Charger
