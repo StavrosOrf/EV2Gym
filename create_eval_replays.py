@@ -1,36 +1,29 @@
-from evsim import ev_city
-from evsim_math_model import ev_city_power_tracker_model
+from EVsSimulator import ev_city
+from baselines.gurobi_models import ev_city_power_tracker_model
 
 import numpy as np
 import os
 import pickle
 from utils.arg_parser import arg_parser
+import yaml
 
 """"
 This file is used to create replay files with optimal profits for evaluation purposes.
 The replay files are saved in the replay folder and can be used to evaluate the performance of the RL agent."""
 
 
-def evalreplay(number_of_charging_stations,
-               n_transformers,
-               steps,
-               timescale,               
+def evalreplay(config_file,   
                save_opt_trajectories,
                save_replay):
     
     verbose = False
 
-    env = ev_city.EVCity(cs=number_of_charging_stations,                         
-                         number_of_transformers=n_transformers,                         
-                         load_ev_from_replay=True,
-                         load_prices_from_replay=False,                         
+    env = ev_city.EVCity(config_file = config_file,                         
                          load_from_replay_path=None,
-                         generate_rnd_game=True,
-                         simulation_length=steps,
-                         timescale=timescale,                         
+                         generate_rnd_game=True,                                                  
                          save_plots=False,
-                         save_replay=True,
-                         verbose=verbose,)
+                         eval_mode="unstirred",
+                         save_replay=True)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
     # new_replay_path = replay_path
@@ -64,18 +57,14 @@ def evalreplay(number_of_charging_stations,
 
     # Simulate in the gym environment and get the rewards
     # save replay in the replay folder for evaluating pther algorithms
-    env = ev_city.EVCity(cs=number_of_charging_stations,
-                         number_of_transformers=n_transformers,
-                         load_ev_from_replay=True,
-                         load_prices_from_replay=True,
+    env = ev_city.EVCity(config_file = config_file,                         
                          load_from_replay_path=new_replay_path,
                          replay_path="./replay/"+group_name+"/",
                          generate_rnd_game=False,
-                         simulation_length=steps,
-                         timescale=timescale,
                          save_plots=False,
                          save_replay=save_replay,
-                         verbose=verbose,)
+                         eval_mode="optimal"
+                         )
     _ = env.reset()
     rewards_opt = []
 
@@ -122,13 +111,16 @@ if __name__ == "__main__":
     args = arg_parser()
 
     trajectories = []
+    
+    config = yaml.load(open(args.config_file, 'r'), Loader=yaml.FullLoader)
 
-    number_of_charging_stations = args.cs
-    n_transformers = args.transformers
-    steps = args.steps
-    timescale = args.timescale
-    # score_threshold = args.score_threshold
+    number_of_charging_stations = config["number_of_charging_stations"]
+    n_transformers = config["number_of_transformers"]
+    steps = config["simulation_length"]
+    timescale = config["timescale"]
+       
     n_trajectories = args.n_trajectories
+    save_opt_trajectories = args.save_opt_trajectories
 
     file_name = f"optimal_{number_of_charging_stations}_cs_{n_transformers}_tr_{steps}_steps_{timescale}_timescale_{n_trajectories}_trajectories.pkl"
 
@@ -138,15 +130,13 @@ if __name__ == "__main__":
 
     for i in range(n_trajectories):
         print(f'Trajectory: {i}')
-        trajectory = evalreplay(number_of_charging_stations=number_of_charging_stations,
-                                n_transformers=n_transformers,
-                                steps=steps,
-                                timescale=timescale,
-                                save_opt_trajectories=True,
+        trajectory = evalreplay(config_file=args.config_file,
+                                save_opt_trajectories=save_opt_trajectories,
                                 save_replay=True)
         trajectories.append(trajectory)
 
-        if i % 1000 == 0:
+        
+        if i % 1000 == 0 and save_opt_trajectories:
             print(f'Saving trajectories to {save_folder_path+file_name}')
             f = open(save_folder_path+file_name, 'wb')
             # source, destination

@@ -346,17 +346,17 @@ class EV():
         if abs(given_power/1000) > abs(self.max_discharge_power):
             given_power = self.max_discharge_power
 
-        given_power = given_power * self.discharge_efficiency * self.timescale / 60
+        given_energy = given_power * self.discharge_efficiency * self.timescale / 60
 
-        if self.current_capacity + given_power < 0:
+        if self.current_capacity + given_energy < 0:
             self.current_power = -self.current_capacity  # * 60 / self.timescale
             self.prev_capacity = self.current_capacity
             self.current_capacity = 0
         else:
-            self.current_power = given_power  # * 60 / self.timescale
+            self.current_power = given_energy  # * 60 / self.timescale
             self.prev_capacity = self.current_capacity
-            self.current_capacity += given_power
+            self.current_capacity += given_energy
 
         self.required_power = self.required_power + self.current_power
 
-        return given_power*60/self.timescale * 1000 / voltage
+        return given_energy*60/self.timescale * 1000 / voltage

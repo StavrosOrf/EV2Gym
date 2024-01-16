@@ -85,6 +85,7 @@ class EV_Charger:
         self.current_charge_price = 0
         self.current_discharge_price = 0
         self.current_total_amps = 0
+        self.current_signal = [0]*n_ports
 
         # EV Charger Statistics
         self.total_energy_charged = 0
@@ -113,7 +114,8 @@ class EV_Charger:
         self.current_total_amps = 0
         self.current_charge_price = charge_price
         self.current_discharge_price = discharge_price
-
+        self.current_signal = []
+        
         assert (len(actions) == self.n_ports)
         # if no EV is connected, set action to 0
         invalid_action_punishment = 0
@@ -122,7 +124,7 @@ class EV_Charger:
                 actions[i] = 0
                 invalid_action_punishment += 1
 
-        # normalize actions to sum to 1 for charging surplass or -1 for discharging surplass
+        # normalize actions to sum to 1 for charging surplass or -1 for discharging surplass        
         if sum(actions) > 1:
             normalized_actions = [action / sum(actions) for action in actions]
         elif sum(actions) < -1:
@@ -139,10 +141,12 @@ class EV_Charger:
             action = round(action, 5)
             assert (action >= -1 and action <= 1,
                     f'Action {action} is not in range [-1,1]')
-
+            
+            amps = 0
             if action == 0 and self.evs_connected[i] is not None:
+                
                 actual_power, actual_amps = self.evs_connected[i].step(
-                    0, self.voltage)
+                    amps, self.voltage)                
                 # actual_power, actual_amps = 0, 0
 
             elif action > 0:
@@ -176,6 +180,8 @@ class EV_Charger:
                 self.current_power_output += actual_power
                 self.current_total_amps += actual_amps
 
+            self.current_signal.append(amps)
+            
             if self.current_total_amps - 0.0001 > self.max_charge_current:
                 raise Exception(
                     f'sum of amps {self.current_total_amps} is higher than max charge current {self.max_charge_current}')

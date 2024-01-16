@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from evsim import ev_city
+from EVsSimulator import ev_city
 import os
 from icecream import ic
 
@@ -77,6 +77,7 @@ def evaluate_episode_rtg(
         target_return=None,
         mode='normal',
         n_test_episodes=10,
+        config_file="config_files/config.yaml",
     ):
 
     model.eval()
@@ -106,15 +107,14 @@ def evaluate_episode_rtg(
         else:
             save_plots = False
 
-        env = ev_city.EVCity(load_from_replay_path= eval_replay_path + 
-                                    eval_replay_files[test_cycle],
-                                    load_ev_from_replay=True,
-                                    load_prices_from_replay=True,
-                                    save_replay=False,
-                                    generate_rnd_game=True,
-                                    save_plots=save_plots,
-                                    simulation_length=max_ep_len,
-                                    extra_sim_name=exp_prefix,)        
+        env = ev_city.EVCity(config_file=config_file,
+                            load_from_replay_path=eval_replay_path +
+                            eval_replay_files[test_cycle],
+                            save_replay=False,
+                            generate_rnd_game=True,
+                            save_plots=save_plots,
+                            extra_sim_name=exp_prefix,)
+              
 
         state = env.reset()
         if mode == 'noise':
@@ -188,17 +188,17 @@ def evaluate_episode_rtg(
     print('stats', stats)
 
     ic(opt_tracking_error)
-    for ind in range(n_test_episodes):
-        if np.mean(opt_tracking_error) > highest_opt_ratio:
-            highest_opt_ratio = np.mean(opt_tracking_error)
-            # agent.save_checkpoint(timestep, memory, run_name+"_best")
-            # time_last_checkpoint = time.time()
-            # logger.info('Saved model at {}'.format(time.strftime(
-            #     '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+    
+    if np.mean(opt_tracking_error) > highest_opt_ratio:
+        highest_opt_ratio = np.mean(opt_tracking_error)
+        # agent.save_checkpoint(timestep, memory, run_name+"_best")
+        # time_last_checkpoint = time.time()
+        # logger.info('Saved model at {}'.format(time.strftime(
+        #     '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
-    stats['mean_opt_ratio'] = np.mean(opt_tracking_error)
-    stats['std_opt_ratio'] = np.std(opt_tracking_error)
-    stats['highest_opt_ratio'] = highest_opt_ratio
+    # stats['mean_opt_ratio'] = np.mean(opt_tracking_error)
+    # stats['std_opt_ratio'] = np.std(opt_tracking_error)
+    # stats['highest_opt_ratio'] = highest_opt_ratio
     stats['mean_test_return'] = np.mean(test_rewards)
 
     return stats #, episode_length

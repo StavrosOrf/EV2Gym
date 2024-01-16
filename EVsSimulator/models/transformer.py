@@ -47,6 +47,18 @@ class Transformer():
             return True
         else:
             return False
+    
+    def get_how_overloaded(self):
+        '''
+        Check how overloaded the transformer is
+
+        Returns:
+            - a amps value if the transformer is overloaded
+        '''
+        if self.is_overloaded():
+            return np.abs(self.current_amps - self.max_current)
+        else:
+            return 0
 
     def get_state(self, scenario):
         '''

@@ -54,8 +54,8 @@ class EV_City_Math_Model():
         # create model
         # print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
-        self.m.setParam('OutputFlag', 0)
-        self.m.setParam('MIPGap', 0.1)
+        # self.m.setParam('OutputFlag', 0)
+        # self.m.setParam('MIPGap', 0)
 
         # energy of EVs t timeslot t
         energy = self.m.addVars(self.number_of_ports_per_cs,
@@ -344,7 +344,7 @@ class EV_City_Math_Model():
                             GRB.MINIMIZE)
 
         # print constraints
-        # self.m.write("model.lp")
+        self.m.write("model.lp")
         print(f'Optimizing....')        
         self.m.params.NonConvex = 2
         self.m.optimize()
