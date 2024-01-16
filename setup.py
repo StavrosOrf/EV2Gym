@@ -7,8 +7,6 @@ setup(
     version='0.0.1',
     description='A realistic V2X environment using gym',    
     author='Stavros Orfanoudakis',
-    py_modules=['EVsSimulator'],
-    long_description=open('README.md').read(),
-    long_description_content_type='text/markdown',
+    py_modules=['EVsSimulator']
 )
                       
