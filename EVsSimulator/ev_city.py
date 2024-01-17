@@ -37,7 +37,7 @@ class EVCity(gym.Env):
                  seed=42,
                  save_replay=True,
                  save_plots=True,
-                 eval_mode = "Normal",
+                 eval_mode = "Normal", #eval mode can be "Normal", "Unstirred" or "Optimal" in order to save the correct statistics in the replay file
                  lightweight_plots=False,
                  extra_sim_name=None,
                  verbose=False,

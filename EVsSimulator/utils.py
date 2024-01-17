@@ -34,7 +34,8 @@ def ev_city_plot(ev_env):
                                      periods=10)
     plt.close('all')
     #close plt ion
-    plt.ioff()
+    plt.ioff()            
+        
     # light weight plots when there are too many charging stations
     if not ev_env.lightweight_plots:
         # Plot the energy level of each EV for each charging station
@@ -99,6 +100,29 @@ def ev_city_plot(ev_env):
         
         # plt.savefig(fig_name, format='png',  # svg
         #             dpi=60, bbox_inches='tight')
+        
+        #Plot the charging and discharging prices
+        plt.figure(figsize=(20, 17))
+        
+        df = pd.DataFrame([], index=date_range)
+        df['discharge'] = ev_env.discharge_prices[0,:]
+        # df['discharge'] = ev_env.discharge_prices[0,:]
+        plt.plot(df['discharge'], label='Electricity prices (€/kW))')
+        # plt.plot(df['discharge'], label='Discharge prices (€/kW))')
+        #plot y = 0 line
+        plt.plot([ev_env.sim_starting_date, ev_env.sim_date], [0, 0], 'black')        
+        plt.legend(fontsize=24)
+        plt.grid(True, which='major', axis='both')
+        plt.ylabel('Price (€/kW)',fontsize=24)
+        plt.xlabel('Time',fontsize=24)
+        plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
+        plt.xticks(ticks=date_range_print,
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
+                       fontsize=22)
+        plt.tight_layout()
+        fig_name = f'plots/{ev_env.sim_name}/Prices.png'
+        plt.savefig(fig_name, format='png',
+                    dpi=60, bbox_inches='tight')
 
         # Plot the total power of each transformer
         plt.figure(figsize=(20, 17))

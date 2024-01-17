@@ -6,8 +6,6 @@ Author: Stavros Orfanoudakis 2023
 '''
 
 import numpy as np
-from .ev import EV
-import math
 
 
 class EV_Charger:

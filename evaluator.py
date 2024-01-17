@@ -19,7 +19,6 @@ timescale = config["timescale"]
 
 n_test_cycles = args.n_test_cycles
 
-
 eval_replay_path = "./replay/" + \
         f'{number_of_charging_stations}cs_{n_transformers}tr/'
         

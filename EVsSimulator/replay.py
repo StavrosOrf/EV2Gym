@@ -176,9 +176,9 @@ class EvCityReplay():
             if original_t_dep < self.sim_length:
                 self.t_dep[port, cs_id, t_dep] = 1            
                 if ev.prev_capacity < ev.battery_capacity:
-                    self.max_energy_at_departure[port, cs_id, t_dep] = ev.prev_capacity-5
+                    self.max_energy_at_departure[port, cs_id, t_dep] = ev.prev_capacity #-5
                 else:
-                    self.max_energy_at_departure[port, cs_id, t_dep] = ev.prev_capacity
+                    self.max_energy_at_departure[port, cs_id, t_dep] = ev.battery_capacity
             else:
                 self.t_dep[port, cs_id, t_dep-1] = 1                            
                 self.max_energy_at_departure[port, cs_id, t_dep-1] = ev.prev_capacity

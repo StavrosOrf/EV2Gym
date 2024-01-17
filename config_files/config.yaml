@@ -1,19 +1,19 @@
 # this yml file is used to configure the evsim simulation
 
 # Simulation Parameters
-  timescale: 0.016 # in minutes per step
-  simulation_length: 86400 # in steps per simulation
+  timescale: 5 # in minutes per step
+  simulation_length: 96 # in steps per simulation
 
 # Date:
-  year: 2015
-  month: 1
-  day: 1
-  hour: 5
+  year: 2022 # 2015-2023
+  month: 1 # 1-12
+  day: 17 # 1-31
+  hour: 5 # 24 hour format
   minute: 0
 
 # Charging Topology
-  number_of_charging_stations: 7
-  number_of_transformers: 2
+  number_of_charging_stations: 5
+  number_of_transformers: 1
   number_of_ports_per_cs: 2
   #provide path if you want to load a specific charging topology, 
   # else write None for a randomized one with the above parameters
