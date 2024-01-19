@@ -21,12 +21,13 @@ import yaml
 import json
 
 # from .grid import Grid
-from .replay import EvCityReplay
-from .utils import ev_city_plot, get_statistics, print_statistics, visualize_step, spawn_EV
-from .loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
+from .models.replay import EvCityReplay
+from .vizuals.plots import ev_city_plot, visualize_step
+from .utilities.utils import get_statistics, print_statistics, spawn_EV, CalculateChargePowerPotential
+from .utilities.loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
 from .rl_agent.reward import SquaredTrackingErrorReward
 from .rl_agent.state import PublicPST
-from .render import Renderer
+from .vizuals.render import Renderer
 
 
 class EVCity(gym.Env):
@@ -340,6 +341,7 @@ class EVCity(gym.Env):
         # Reset current power of all transformers
         for tr in self.transformers:
             tr.current_amps = 0
+            tr.current_power = 0
 
         # Call step for each charging station and spawn EVs where necessary
         for i, cs in enumerate(self.charging_stations):
@@ -352,11 +354,13 @@ class EVCity(gym.Env):
             for u in user_satisfaction:
                 user_satisfaction_list.append(u)
 
-            self.transformers[cs.connected_transformer].step(
-                cs.current_total_amps)
-
-            self.current_power_setpoints[self.current_step] += cs.current_power_output * \
+            power = cs.current_power_output * \
                 60/self.timescale  # transform from energy to power
+            self.current_power_setpoints[self.current_step] += power
+
+            # Update transformer variables for this timestep
+            self.transformers[cs.connected_transformer].step(
+                cs.current_total_amps, power)
 
             total_costs += costs
             total_invalid_action_punishment += invalid_action_punishment
@@ -407,14 +411,14 @@ class EVCity(gym.Env):
                 elif ev.time_of_arrival > self.current_step + 1:
                     break
 
-        self.update_power_statistics()
+        self._update_power_statistics()
 
         self.current_step += 1
         self._step_date()
 
         if self.current_step < self.simulation_length:
-            self.charge_power_potential[self.current_step] = self._calculate_charge_power_potential(
-            )
+            self.charge_power_potential[self.current_step] = CalculateChargePowerPotential(
+                self)
 
         self.current_evs_parked += self.current_ev_arrived - self.current_ev_departed
 
@@ -466,7 +470,7 @@ class EVCity(gym.Env):
                         f"Episode finished after {self.current_step} timesteps\n")
 
             if self.save_replay:
-                self.save_sim_replay()
+                self._save_sim_replay()
 
             if self.save_plots:
                 ev_city_plot(self)
@@ -479,7 +483,7 @@ class EVCity(gym.Env):
         else:
             return self._get_observation(), reward, False, None
 
-    def save_sim_replay(self):
+    def _save_sim_replay(self):
         '''Saves the simulation data in a pickle file'''
         replay = EvCityReplay(self)
         print(f"Saving replay file at {replay.replay_path}")
@@ -488,7 +492,7 @@ class EVCity(gym.Env):
 
         return replay.replay_path
 
-    def update_power_statistics(self):
+    def _update_power_statistics(self):
         '''Updates the power statistics of the simulation'''
 
         # if not self.lightweight_plots:
@@ -514,41 +518,6 @@ class EVCity(gym.Env):
                     self.port_energy_level[port, cs.id,
                                            self.current_step] = ev.current_capacity
 
-    def _calculate_charge_power_potential(self):
-        '''
-        This function calculates the total charge power potential of all currently parked EVs        
-        '''
-
-        power_potential = 0
-        for cs in self.charging_stations:
-            cs_power_potential = 0
-            for port in range(cs.n_ports):
-                ev = cs.evs_connected[port]
-                if ev is not None:
-                    if ev.time_of_arrival-1 != self.current_step:
-                        phases = min(cs.phases, ev.ev_phases)
-                        ev_current = ev.max_ac_charge_power * \
-                            1000/(math.sqrt(phases)*cs.voltage)
-                        current = min(cs.max_charge_current, ev_current)
-                        cs_power_potential += math.sqrt(phases) * \
-                            cs.voltage*current/1000
-
-            max_cs_power = math.sqrt(cs.phases) * \
-                cs.voltage*cs.max_charge_current/1000
-            min_cs_power = math.sqrt(cs.phases) * \
-                cs.voltage*cs.min_charge_current/1000
-
-            if cs_power_potential > max_cs_power:
-                power_potential += max_cs_power
-            elif cs_power_potential < min_cs_power:
-                power_potential += 0
-            else:
-                power_potential += cs_power_potential
-
-        return power_potential
-
-    # def _calculate_unstirred_energy_level(self):
-
     def _step_date(self):
         '''Steps the simulation date by one timestep'''
         self.sim_date = self.sim_date + \
@@ -557,9 +526,12 @@ class EVCity(gym.Env):
     def _get_observation(self):
 
         if self.state_function is None:
-            return self.PublicPST()
+            return PublicPST(self)
         else:
             return self.state_function(self)
+
+    def set_reward_function(self, reward_function):
+        self.reward_function = reward_function
 
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''

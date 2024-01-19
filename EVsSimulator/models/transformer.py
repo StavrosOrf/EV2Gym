@@ -25,12 +25,14 @@ class Transformer():
         self.cs_ids = cs_ids
 
         self.current_amps = 0
+        self.current_power = 0
 
-    def step(self, amps):
+    def step(self, amps, power):
         '''
         Update current power of the transformer
         '''
         self.current_amps += amps
+        self.current_power += power
 
     def is_overloaded(self):
         '''

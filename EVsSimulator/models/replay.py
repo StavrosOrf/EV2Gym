@@ -7,7 +7,7 @@ Author: Stavros Orfanoudakis 2023
 import os
 import numpy as np
 import math
-from .utils import get_statistics
+from ..utilities.utils import get_statistics
 
 class EvCityReplay():
     '''
