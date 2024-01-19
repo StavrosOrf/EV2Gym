@@ -118,7 +118,7 @@ if __name__ == "__main__":
     n_transformers = config["number_of_transformers"]
     steps = config["simulation_length"]
     timescale = config["timescale"]
-       
+    
     n_trajectories = args.n_trajectories
     save_opt_trajectories = args.save_opt_trajectories
 

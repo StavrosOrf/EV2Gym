@@ -24,20 +24,24 @@ import json
 from .replay import EvCityReplay
 from .utils import ev_city_plot, get_statistics, print_statistics, visualize_step, spawn_EV
 from .loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
+from .rl_agent.reward import SquaredTrackingErrorReward
+from .rl_agent.state import PublicPST
 from .render import Renderer
 
 
 class EVCity(gym.Env):
 
     def __init__(self,
-                 config_file=None,                 
+                 config_file=None,
                  load_from_replay_path=None,  # path of replay file to load
-                 replay_path='./replay/', # where to save the replay file
+                 replay_path='./replay/',  # where to save the replay file
                  generate_rnd_game=False,  # generate a random game without terminating conditions
-                 seed=42,
+                 seed=None,
                  save_replay=True,
                  save_plots=True,
-                 eval_mode = "Normal", #eval mode can be "Normal", "Unstirred" or "Optimal" in order to save the correct statistics in the replay file
+                 state_function=None,
+                 reward_function=None,
+                 eval_mode="Normal",  # eval mode can be "Normal", "Unstirred" or "Optimal" in order to save the correct statistics in the replay file
                  lightweight_plots=False,
                  extra_sim_name=None,
                  verbose=False,
@@ -53,7 +57,7 @@ class EVCity(gym.Env):
         self.config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
 
         self.generate_rnd_game = generate_rnd_game
-        self.load_from_replay_path = load_from_replay_path        
+        self.load_from_replay_path = load_from_replay_path
         # self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
         self.save_replay = save_replay
         self.save_plots = save_plots
@@ -64,17 +68,23 @@ class EVCity(gym.Env):
         self.render_mode = render_mode
 
         self.simulation_length = self.config['simulation_length']
-        
-        
+
         self.replay_path = replay_path
 
         self.score_threshold = self.config['score_threshold']
         cs = self.config['number_of_charging_stations']
 
-        self.seed = seed
+        if seed is None:
+            self.seed = np.random.randint(0, 1000000)
+        else:
+            self.seed = seed
+
+        self.reward_function = reward_function
+        self.state_function = state_function
 
         # set random seed
-        # np.random.seed(self.seed)
+        np.random.seed(self.seed)
+        random.seed(self.seed)
 
         if load_from_replay_path is not None:
             with open(load_from_replay_path, 'rb') as file:
@@ -98,7 +108,7 @@ class EVCity(gym.Env):
             # Threshold for the user satisfaction score
 
             self.number_of_ports_per_cs = self.config['number_of_ports_per_cs']
-            self.number_of_transformers = self.config['number_of_transformers']            
+            self.number_of_transformers = self.config['number_of_transformers']
             self.timescale = self.config['timescale']
             self.simulation_length = self.config['simulation_length']
             # Simulation time
@@ -121,17 +131,18 @@ class EVCity(gym.Env):
         if self.cs > 100:
             self.lightweight_plots = True
         self.sim_starting_date = self.sim_date
-        
+
         # Read the config.charging_network_topology json file and read the topology
         try:
             with open(self.config['charging_network_topology']) as json_file:
                 self.charging_network_topology = json.load(json_file)
-            
+
         except FileNotFoundError:
             if not self.config['charging_network_topology'] == 'None':
-                print(f'Did not find file {self.config["charging_network_topology"]}')
+                print(
+                    f'Did not find file {self.config["charging_network_topology"]}')
             self.charging_network_topology = None
-        
+
         self.sim_name = extra_sim_name + \
             self.sim_name if extra_sim_name is not None else self.sim_name
         # Simulate grid
@@ -142,7 +153,7 @@ class EVCity(gym.Env):
             # self.cs_transformers = self.grid.get_bus_transformers()
         else:
             # self.cs_buses = [None] * self.cs
-            if self.charging_network_topology is None :
+            if self.charging_network_topology is None:
                 self.cs_transformers = [
                     *np.arange(self.number_of_transformers)] * (self.cs // self.number_of_transformers)
                 self.cs_transformers += random.sample(
@@ -177,7 +188,7 @@ class EVCity(gym.Env):
 
         # Variable showing whether the simulation is done or not
         self.done = False
-        
+
         # Make folders for results
         if self.save_replay:
             os.makedirs(self.replay_path, exist_ok=True)
@@ -185,8 +196,6 @@ class EVCity(gym.Env):
         if self.render_mode:
             # Initialize the rendering of the simulation
             self.renderer = Renderer(self)
-
-
 
         if self.save_plots:
             os.makedirs("./plots", exist_ok=True)
@@ -224,8 +233,10 @@ class EVCity(gym.Env):
             self.sim_date = datetime.datetime(2022,
                                               1,
                                               1,
-                                              5,
-                                              0) + datetime.timedelta(days=random.randint(0, int(1.5*365)))
+                                              self.config['hour'],
+                                              self.config['minute'],
+                                              ) + datetime.timedelta(days=random.randint(0, int(1.5*365)))
+
             self.sim_starting_date = self.sim_date
 
         # print(f'Simulation starting date: {self.sim_date}')
@@ -269,8 +280,9 @@ class EVCity(gym.Env):
 
         self.cs_power = np.zeros([self.cs, self.simulation_length])
         self.cs_current = np.zeros([self.cs, self.simulation_length])
-        
-        self.tr_overload = np.zeros([self.number_of_transformers, self.simulation_length])
+
+        self.tr_overload = np.zeros(
+            [self.number_of_transformers, self.simulation_length])
         # self.port_power = np.zeros([self.number_of_ports,
         #                             self.cs,
         #                             self.simulation_length],
@@ -398,11 +410,12 @@ class EVCity(gym.Env):
         self.update_power_statistics()
 
         self.current_step += 1
+        self._step_date()
+
         if self.current_step < self.simulation_length:
             self.charge_power_potential[self.current_step] = self._calculate_charge_power_potential(
             )
 
-        self._step_date()
         self.current_evs_parked += self.current_ev_arrived - self.current_ev_departed
 
         # Call step for the grid
@@ -481,7 +494,8 @@ class EVCity(gym.Env):
         # if not self.lightweight_plots:
         for tr in self.transformers:
             # self.transformer_amps[tr.id, self.current_step] = tr.current_amps
-            self.tr_overload[tr.id, self.current_step] = tr.get_how_overloaded()
+            self.tr_overload[tr.id,
+                             self.current_step] = tr.get_how_overloaded()
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output
@@ -532,7 +546,7 @@ class EVCity(gym.Env):
                 power_potential += cs_power_potential
 
         return power_potential
-    
+
     # def _calculate_unstirred_energy_level(self):
 
     def _step_date(self):
@@ -541,125 +555,16 @@ class EVCity(gym.Env):
             datetime.timedelta(minutes=self.timescale)
 
     def _get_observation(self):
-        '''Returns the current state of the environment'''
 
-        scenario = self.scenario.split('_')[1]
-
-        if scenario == 'PowerSetpointTracking':
-
-            state = [
-                (self.current_step-1) / self.simulation_length,
-                # self.sim_date.year / 2025,
-                # self.sim_date.month / 12,
-                self.sim_date.weekday() / 7,
-                # turn hour and minutes in sin and cos
-                math.sin(self.sim_date.hour/24*2*math.pi),
-                math.cos(self.sim_date.hour/24*2*math.pi),
-                self.power_setpoints[self.current_step-1]/100,  # /self.cs,
-            ]
-
-            for tr in self.transformers:
-                state.append(tr.get_state(scenario=scenario))
-                for cs in self.charging_stations:
-                    if cs.connected_transformer == tr.id:
-                        state.append(cs.get_state(scenario=scenario))
-
-            # if include_grid:
-            #     state.append(self.grid.get_grid_state())
-
-            state = np.array(np.hstack(state))
-
-            np.set_printoptions(suppress=True)
-
-            # print(f'state: {state}')
-            return state  # .reshape(-1)
+        if self.state_function is None:
+            return self.PublicPST()
         else:
-            raise NotImplementedError
+            return self.state_function(self)
 
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''
-        reward = 0
-        # reward = total_costs  # - 0.5
-        # print(f'total_costs: {total_costs}')
-        # print(f'user_satisfaction_list: {user_satisfaction_list}')
-        # for score in user_satisfaction_list:
-        #     reward -= 100 * (1 - score)
 
-        # Punish invalid actions (actions that try to charge or discharge when there is no EV connected)
-        # reward -= 2 * (invalid_action_punishment/self.number_of_ports)
-
-        scenario = self.scenario.split('_')[1]
-        if scenario == "PowerSetpointTracking":
-
-            # reward = min(2, 1 * 4 * self.cs / (0.00001 + (
-            #     self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
-
-            # this is the new reward function
-            # reward = min(2, 1/((min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #           self.current_power_setpoints[self.current_step-1])**2 + 0.000001))
-
-            # new_*10*charging
-            # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #             self.current_power_setpoints[self.current_step-1])
-            # else:
-            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #             self.current_power_setpoints[self.current_step-1])*10
-
-            # new_1_equal
-            # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #             self.current_power_setpoints[self.current_step-1])
-            # else:
-            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #             self.current_power_setpoints[self.current_step-1])
-
-            # new_0.1
-            # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #             self.current_power_setpoints[self.current_step-1])**2
-            # else:
-            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #             self.current_power_setpoints[self.current_step-1])*0.1
-
-            # new_reward squared
-            # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #           self.current_power_setpoints[self.current_step-1])**2
-            # else:
-            #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-            #           self.current_power_setpoints[self.current_step-1])
-
-            # for score in user_satisfaction_list:
-            #     reward -= 100 * (1 - score)
-
-            # for tr in self.transformers:
-            #     if tr.current_amps > tr.max_current:
-            #         reward -= 1000 * abs(tr.current_amps - tr.max_current)
-            #     elif tr.current_amps < tr.min_current:
-            #         reward -= 1000 * abs(tr.current_amps - tr.min_current)
-
-            # reward -= 100 * (tr.current_amps < tr.min_amps)
-            #######################################################################################################
-            # squared tracking error
-            reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-                       self.current_power_setpoints[self.current_step-1])**2
-
-            # best reward so far
-            ############################################################################################################
-            # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-            #     reward -= (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
-
-            # reward += self.current_power_setpoints[self.current_step-1]/75
-            ############################################################################################################
-            # normalize reward to -1 1
-            # reward = reward/1000
-            # reward = (100 +reward) / 1000
-            # print(f'reward: {reward}')
-
-            # reward -= 2 * (invalid_action_punishment/self.number_of_ports)
-            # reward /= 100
-            # reward = (100 +reward) / 1000
-            # print(f'current_power_setpoints: {self.current_power_setpoints[self.current_step-1]}')
-
-            return reward
+        if self.reward_function is None:
+            return SquaredTrackingErrorReward(self)
+        else:
+            return self.reward_function(self, total_costs, user_satisfaction_list, invalid_action_punishment)

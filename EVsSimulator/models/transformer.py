@@ -60,22 +60,6 @@ class Transformer():
         else:
             return 0
 
-    def get_state(self, scenario):
-        '''
-        Returns the state of the transformer
-        '''
-        if scenario == "PowerSetpointTracking":
-            state = [
-                # self.max_current/100,
-                # self.min_current/100
-            ]
-            #  self.cs_ids] #TODO check observation space if needed
-
-            # return np.hstack(state)
-            return state
-        else:
-            raise NotImplementedError
-
     def __str__(self) -> str:
         return f'  - Transformer {self.id}:  {self.min_current:.1f} / ' +\
             f'{self.current_amps:5.1f} /{self.max_current:5.1f} A' +\

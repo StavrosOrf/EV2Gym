@@ -215,36 +215,6 @@ class EV_Charger:
 
         return profit, user_satisfaction, invalid_action_punishment
 
-    def get_state(self, scenario):
-        '''
-        Returns the state of the EV charger
-        '''
-
-        if scenario == 'PowerSetpointTracking':
-
-            state = [
-                # self.current_charge_price,
-                # self.current_discharge_price,
-                # self.max_charge_current/100,  # normalize to be around 1
-                # self.min_charge_current/100, 
-                # self.max_discharge_current/100,
-                # self.min_discharge_current/100,
-                # self.n_ports,
-                # self.n_evs_connected
-            ]
-
-            for EV in self.evs_connected:
-                if EV is not None:
-                    state.append(EV.get_state(self.current_step,
-                                              scenario = scenario,
-                                              voltage=self.voltage,
-                                              phases=self.phases,))
-                else:
-                    state.append(np.zeros(4))
-
-            return np.hstack(state)
-        else:
-            raise Exception(f'Unknown scenario {scenario}')
 
     def __str__(self) -> str:
 

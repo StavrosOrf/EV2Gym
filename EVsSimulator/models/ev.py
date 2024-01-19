@@ -196,29 +196,6 @@ class EV():
         '''
         return (self.current_capacity/self.battery_capacity)
 
-    def get_state(self, current_step, scenario, voltage, phases):
-        '''
-        A function that returns the state of the EV.
-        Outputs: 
-            - State: the state of the EV
-        '''
-        timestep_left = self.earlier_time_of_departure - current_step
-        
-        if scenario == 'PowerSetpointTracking':
-            #In this scenario we have very limited inforamtion about the EVs
-            # we do not know the time of departure, the soc and the required energy
-            
-            return [self.total_energy_exchanged/100, \
-                self.max_ac_charge_power*1000/(voltage*math.sqrt(phases))/100, 
-                self.min_ac_charge_power*1000/(voltage*math.sqrt(phases))/100,
-                # self.max_discharge_power*1000/(voltage*math.sqrt(phases)),
-                # self.min_discharge_power*1000/(voltage*math.sqrt(phases)), 
-                (current_step-self.time_of_arrival) / self.simulation_length] # time stayed
-            # return self.required_power, self.current_step-self.time_of_arrival
-        else:               
-            raise NotImplementedError
-            return self.get_soc(), timestep_left / self.simulation_length
-
     def __str__(self):
         return f' {self.current_power*60/self.timescale :5.1f} kWh |' + \
             f' {(self.current_capacity/self.battery_capacity)*100:5.1f} % |' + \

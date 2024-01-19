@@ -18,10 +18,8 @@ from baselines.DDPG.ddpg import DDPG
 from baselines.DDPG.noise import OrnsteinUhlenbeckActionNoise
 from baselines.DDPG.replay_memory import ReplayMemory, Transition
 from baselines.DDPG.normalized_actions import NormalizedActions
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorRewardWithPenalty
 
-# Create logger
-logger = logging.getLogger('train')
-logger.setLevel(logging.INFO)
 
 # Libdom raises an error if this is not set to true on Mac OSX
 # see https://github.com/openai/spinningup/issues/16 for more information
@@ -29,7 +27,6 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 # if gpu is to be used
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-logger.info("Using {}".format(device))
 
 if __name__ == "__main__":
 
@@ -64,18 +61,27 @@ if __name__ == "__main__":
     args.env = 'evcity-v1'
 
     gym.register(id=args.env, entry_point='gym_env.ev_city:EVCity')
+    
+    
+    ####### Set the reward function here #######
+    reward_function = SquaredTrackingErrorRewardWithPenalty
+    
+    ####### Set the State function here #######
+    state_function = ev_city.PublicPST
 
     env = ev_city.EVCity(config_file=args.config_file,
                          generate_rnd_game=True,
                          save_plots=False,
                          save_replay=False,
+                         reward_function=reward_function,
                          )
 
     # Set random seed for all used libraries where possible
-    # env.seed(args.seed)
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
-    random.seed(args.seed)
+    # seed = np.random.randint(0, 1000000)
+    # env.seed(seed)
+    # torch.manual_seed(seed)
+    # np.random.seed(seed)
+    # random.seed(seed)
 
     if torch.cuda.is_available():
         torch.cuda.manual_seed(args.seed)
@@ -156,19 +162,12 @@ if __name__ == "__main__":
     highest_opt_ratio = np.inf
     best_trackking_error = np.inf
 
-    # Start training
-    logger.info('Train agent on {} env'.format({args.env}))
-    logger.info('Doing {} timesteps'.format(args.timesteps))
-    logger.info('Start at timestep {0} with t = {1}'.format(timestep, t))
-    logger.info('Start training at {}'.format(
-        time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-
     # Main training loop
     while timestep <= args.timesteps:
         ou_noise.reset()
         epoch_return = 0
 
-        print(f'Epoch: {epoch} timestep: {timestep}')
+        print(f'Epoch: {epoch} | Timestep: {timestep}')
         state = torch.Tensor([env.reset()]).to(device)
 
         while True:
@@ -215,17 +214,17 @@ if __name__ == "__main__":
         policy_losses.append(epoch_policy_loss)
 
         if log_to_wandb:
-            wandb.log({'epoch/return': epoch_return,
-                       'epoch/ev_served': stats['total_ev_served'],
-                       'epoch/energy_charged': stats['total_energy_charged'],
-                       'epoch/energy_discharged': stats['total_energy_discharged'],
-                       'epoch/user_satisfaction': stats['average_user_satisfaction'],
-                       'epoch/tracking_error': stats['tracking_error'],
-                       'epoch/power_tracker_violation': stats['power_tracker_violation'],
-                       'epoch/energy_user_satisfaction': stats['energy_user_satisfaction']/100,
-                       'epoch/transformer_overload': stats['total_transformer_overload'],
-                       'epoch/value_loss': epoch_value_loss,
-                       'epoch/policy_loss': epoch_policy_loss})
+            wandb.log({'train/return': epoch_return,
+                       'train/ev_served': stats['total_ev_served'],
+                       'train/energy_charged': stats['total_energy_charged'],
+                       'train/energy_discharged': stats['total_energy_discharged'],
+                       'train/user_satisfaction': stats['average_user_satisfaction'],
+                       'train/tracking_error': stats['tracking_error'],
+                       'train/power_tracker_violation': stats['power_tracker_violation'],
+                       'train/energy_user_satisfaction': stats['energy_user_satisfaction']/100,
+                       'train/transformer_overload': stats['total_transformer_overload'],
+                       'train/value_loss': epoch_value_loss,
+                       'train/policy_loss': epoch_policy_loss})
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 5000 * t:
@@ -246,7 +245,8 @@ if __name__ == "__main__":
                                           save_replay=False,
                                           generate_rnd_game=True,
                                           save_plots=save_plots,
-                                          extra_sim_name=run_name,)
+                                          extra_sim_name=run_name,
+                                          reward_function=reward_function)
 
                 state = torch.Tensor([eval_env.reset()]).to(device)
                 test_reward = 0
@@ -259,16 +259,16 @@ if __name__ == "__main__":
                         action.cpu().numpy()[0])
                     test_reward += reward
 
-                    if test_cycle == 0:
-                        print('Action', action.detach().cpu().numpy(), reward)
-                        print('State', next_state)
+                    # if test_cycle == 0:
+                    #     print('Action', action.detach().cpu().numpy(), reward)
+                    #     print('State', next_state)
 
                     next_state = torch.Tensor([next_state]).to(device)
                     state = next_state
 
                     if done:
                         test_stats.append(stats)
-                        print(stats)
+                        # print(stats)
                         break
                 test_rewards.append(test_reward)
 
@@ -286,10 +286,10 @@ if __name__ == "__main__":
             #                for i in range(len(test_stats))]
 
             
-            opt_tracking_error = [1 - min(1, abs(test_stats[i]['opt_tracking_error'] - test_stats[i]['tracking_error']) /
-                                          (test_stats[i]['tracking_error']+0.000001))
-                                  for i in range(len(test_stats))]
-            print(opt_tracking_error)
+            # opt_tracking_error = [1 - min(1, abs(test_stats[i]['opt_tracking_error'] - test_stats[i]['tracking_error']) /
+            #                               (test_stats[i]['tracking_error']+0.000001))
+            #                       for i in range(len(test_stats))]
+            # print(opt_tracking_error)
 
             # print(opt_profits)
             for ind in range(args.n_test_cycles):
@@ -298,8 +298,6 @@ if __name__ == "__main__":
                     best_trackking_error = stats['tracking_error']
                     agent.save_checkpoint(timestep, memory, run_name+"_best")
                     time_last_checkpoint = time.time()
-                    logger.info('Saved model at {}'.format(time.strftime(
-                        '%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
@@ -309,7 +307,9 @@ if __name__ == "__main__":
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
                            #    'test/highest_opt_ratio': highest_opt_ratio,
-                           'test/mean_opt_ratio': np.mean(opt_tracking_error),
+                           'test/opt_tracking_error': stats['opt_tracking_error'],
+                           'test/opt_energy_user_satisfaction': stats['opt_energy_user_satisfaction']/100,
+                           'test/opt_power_tracker_violation': stats['opt_power_tracker_violation'],
                            'test/tracking_error': stats['tracking_error'],
                            'test/power_tracker_violation': stats['power_tracker_violation'],
                            'test/energy_user_satisfaction': stats['energy_user_satisfaction']/100,
@@ -317,19 +317,8 @@ if __name__ == "__main__":
                            #    'test/std_opt_ratio': np.std(opt_profits),
                            })
 
-            logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
-                        "mean reward: {}, mean test reward {}".format(epoch,
-                                                                      timestep,
-                                                                      rewards[-1],
-                                                                      np.mean(
-                                                                          rewards[-10:]),
-                                                                      np.mean(test_rewards)))
         epoch += 1
 
     agent.save_checkpoint(timestep, memory, run_name+"_last")
 
-    logger.info('Saved model at endtime {}'.format(
-        time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-    logger.info('Stopping training at {}'.format(
-        time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
     env.close()

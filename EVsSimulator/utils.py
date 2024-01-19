@@ -105,10 +105,10 @@ def ev_city_plot(ev_env):
         plt.figure(figsize=(20, 17))
         
         df = pd.DataFrame([], index=date_range)
+        df['charge'] = - ev_env.charge_prices[0,:]
         df['discharge'] = ev_env.discharge_prices[0,:]
-        # df['discharge'] = ev_env.discharge_prices[0,:]
-        plt.plot(df['discharge'], label='Electricity prices (€/kW))')
-        # plt.plot(df['discharge'], label='Discharge prices (€/kW))')
+        plt.plot(df['charge'], label='Charge prices (€/kW))')
+        plt.plot(df['discharge'], label='Discharge prices (€/kW))')
         #plot y = 0 line
         plt.plot([ev_env.sim_starting_date, ev_env.sim_date], [0, 0], 'black')        
         plt.legend(fontsize=24)
