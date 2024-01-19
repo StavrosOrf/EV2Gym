@@ -79,7 +79,10 @@ def load_transformers(env):
                                       cs_ids=cs_ids,
                                       min_current=env.charging_network_topology[tr]['min_current'],
                                       max_current=env.charging_network_topology[tr]['max_current'],
-                                      timescale=env.timescale,)            
+                                      timescale=env.timescale,
+                                      simulation_length=env.simulation_length,
+                                      standard_transformer_loading=np.zeros(env.simulation_length),
+                                      )            
             transformers.append(transformer)
         
     else:

@@ -1,5 +1,5 @@
 # This file contains the reward function for the RL agent
-
+# Users can create their own reward function here or in their own file using the same structure as below
 
 def SquaredTrackingErrorReward(env,*args):
     # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
@@ -42,7 +42,7 @@ def MinimizeTrackerSurplusWithChargeRewards(env,*args):
     
     return reward
 
-# YOu can create your own reward function here
+
 
 
 # Previous reward functions for testing
