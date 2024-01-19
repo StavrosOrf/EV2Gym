@@ -55,31 +55,48 @@ def PublicPST(env, *args):
 
 
 def BusinessPSTwithMoreKnowledge(env, *args):
-    # This state function is the business power setpoints with complete knowledge
-    # The state is the business power setpoints
-    # The state is a vector
+    '''
+    This state function is used for the business case scenario that requires more knowledge such as SoC and time of departure for each EV present.
+    '''
 
     state = [
-        (env.current_step-1) / env.simulation_length,
+        (env.current_step) / env.simulation_length,
         env.sim_date.weekday() / 7,
         # turn hour and minutes in sin and cos
         math.sin(env.sim_date.hour/24*2*math.pi),
         math.cos(env.sim_date.hour/24*2*math.pi),
-        env.power_setpoints[env.current_step-1]/100,
-        env.power_potential[env.current_step-1]/100,
     ]
+
+    #the final state of each simulation
+    if env.current_step < env.simulation_length:
+        state.append(env.power_setpoints[env.current_step]/100)
+        state.append(env.charge_power_potential[env.current_step]/100)
+    else:   
+        state.append(env.power_setpoints[env.current_step-1]/100)
+        state.append(env.charge_power_potential[env.current_step-1]/100)
+    
 
     for tr in env.transformers:
         for cs in env.charging_stations:
             if cs.connected_transformer == tr.id:
                 for EV in cs.evs_connected:
                     if EV is not None:
-                        state.append(EV.get_state(self.current_step,
-                                                  scenario=scenario,
-                                                  voltage=self.voltage,
-                                                  phases=self.phases,))
+                        state.append([EV.total_energy_exchanged, \
+                        EV.max_ac_charge_power*1000/(cs.voltage*math.sqrt(cs.phases)), 
+                        EV.min_ac_charge_power*1000/(cs.voltage*math.sqrt(cs.phases)),
+                    #    self.max_discharge_power*1000/(voltage*math.sqrt(phases)),
+                    #    self.min_discharge_power*1000/(voltage*math.sqrt(phases)), 
+                        (env.current_step-EV.time_of_arrival) / env.simulation_length, # time stayed
+                        (EV.earlier_time_of_departure - EV.time_of_arrival) / env.simulation_length, # total time stayed   
+                        (((EV.battery_capacity - EV.battery_capacity_at_arrival) / 
+                            (EV.earlier_time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power), # average charging speed
+                            EV.earlier_time_of_departure / env.simulation_length, # time of departure
+                            EV.get_soc(), # soc
+                            EV.required_power / EV.battery_capacity, # required energy
+                            EV.time_of_arrival / env.simulation_length, # time of arrival
+                            ])
                     else:
-                        state.append(np.zeros(4))
+                        state.append(np.zeros(6))
                 state.append()
 
     state = np.array(np.hstack(state))
