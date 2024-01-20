@@ -1,0 +1,37 @@
+# this yml file is used to configure the evsim simulation
+
+# Simulation Parameters
+  timescale: 15 # in minutes per step
+  simulation_length: 34 # in steps per simulation
+
+# Date:
+# Year, month, and day change after the envrionment has been reset
+  year: 2022 # 2015-2023
+  month: 1 # 1-12
+  day: 17 # 1-31
+  
+# Simulation Starting Time 
+  hour: 8 # Simulation starting hour (24 hour format)
+  minute: 0 # Simulation starting minute (0-59)
+  # Hour and minute do not change after the environment has been reset
+
+# Charging Topology
+  number_of_charging_stations: 2
+  number_of_transformers: 1
+  number_of_ports_per_cs: 1
+  # Provide path if you want to load a specific charging topology, 
+  # else write None for a randomized one with the above parameters
+  charging_network_topology: None #./config_files/charging_topology_10.json
+
+# EV Specifications
+  heterogeneous_ev_specs: False #if False, each EV has its own specifications
+  # such as battery capacity, charging rate, etc.
+
+# EV Spawn Behavior
+  scenario: workplace # public, private, or workplace
+  score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
+
+
+
+
+

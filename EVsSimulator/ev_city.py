@@ -54,6 +54,7 @@ class EVsSimulator(gym.Env):
             print(f'Initializing EVCity environment...')
 
         # read yaml config file
+        assert config_file is not None, "Please provide a config file!!!"
         self.config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
 
         self.generate_rnd_game = generate_rnd_game
