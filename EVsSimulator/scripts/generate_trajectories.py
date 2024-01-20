@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     gym.register(id='evcity-v0', entry_point='gym_env.ev_city:EVCity')
 
-    env = ev_city.EVCity(cs=number_of_charging_stations,
+    env = ev_city.EVsSimulator(cs=number_of_charging_stations,
                          number_of_transformers=n_transformers,
                          load_from_replay_path=None,
                          generate_rnd_game=True,

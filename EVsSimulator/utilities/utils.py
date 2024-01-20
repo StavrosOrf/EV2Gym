@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from ..models.ev import EV
+from EVsSimulator.models.ev import EV
 
 
 def get_statistics(ev_env):

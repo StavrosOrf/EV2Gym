@@ -71,7 +71,7 @@ transformer_overloads = []
 for i in range(n_test_cycles):    
     replay_path = eval_replay_path + eval_replay_files[i]
 
-    env = ev_city.EVCity(config_file = "config_files/config.yaml",    
+    env = ev_city.EVsSimulator(config_file = "config_files/config.yaml",    
                          load_from_replay_path=replay_path,                                                            
                          generate_rnd_game=True,                         
                          save_plots=True,

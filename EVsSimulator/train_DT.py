@@ -71,7 +71,7 @@ def experiment(
 
     args.env = 'evcity-v1'
 
-    env = ev_city.EVCity(config_file=args.config_file,
+    env = ev_city.EVsSimulator(config_file=args.config_file,
                          generate_rnd_game=True,
                          save_plots=False,
                          save_replay=False,

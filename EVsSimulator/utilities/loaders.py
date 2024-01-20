@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import math
+import pkg_resources
 
 from ..models.ev_charger import EV_Charger
 from ..models.ev import EV
@@ -15,16 +16,22 @@ from ..models.transformer import Transformer
 def load_ev_spawn_scenarios(env):
     '''Loads the EV spawn scenarios of the simulation'''
 
-    env.df_arrival_week = pd.read_csv(
-        '.EVsSimulator/data/distribution-of-arrival.csv')  # weekdays
-    env.df_arrival_weekend = pd.read_csv(
-        '.EVsSimulator/data/distribution-of-arrival-weekend.csv')  # weekends
-    env.df_connection_time = pd.read_csv(
-        '.EVsSimulator/data/distribution-of-connection-time.csv')  # connection time
-    env.df_energy_demand = pd.read_csv(
-        '.EVsSimulator/data/distribution-of-energy-demand.csv')  # energy demand
-    env.time_of_connection_vs_hour = np.load(
-        '.EVsSimulator/data/time_of_connection_vs_hour.npy')
+    df_arrival_week_file = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/distribution-of-arrival.csv')
+    df_arrival_weekend_file = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/distribution-of-arrival-weekend.csv')
+    df_connection_time_file = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/distribution-of-connection-time.csv')
+    df_energy_demand_file = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/distribution-of-energy-demand.csv')
+    time_of_connection_vs_hour_file = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/time_of_connection_vs_hour.npy')
+    
+    env.df_arrival_week = pd.read_csv(df_arrival_week_file)  # weekdays
+    env.df_arrival_weekend = pd.read_csv(df_arrival_weekend_file)  # weekends
+    env.df_connection_time = pd.read_csv(df_connection_time_file)  # connection time
+    env.df_energy_demand = pd.read_csv(df_energy_demand_file)  # energy demand
+    env.time_of_connection_vs_hour = np.load(time_of_connection_vs_hour_file)  # time of connection vs hour
 
 
 def load_power_setpoints(env, randomly):
@@ -181,8 +188,9 @@ def load_electricity_prices(env):
         return env.replay.charge_prices, env.replay.discharge_prices
 
     # else load historical prices
-    data = pd.read_csv(
-        env.config['electricity_prices_file'], sep=',', header=0)
+    file_path = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/Netherlands_day-ahead-2015-2023.csv')
+    data = pd.read_csv(file_path, sep=',', header=0)
     drop_columns = ['Country', 'Datetime (Local)']
     data.drop(drop_columns, inplace=True, axis=1)
     data['year'] = pd.DatetimeIndex(data['Datetime (UTC)']).year

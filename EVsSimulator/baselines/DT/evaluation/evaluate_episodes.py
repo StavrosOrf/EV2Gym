@@ -107,7 +107,7 @@ def evaluate_episode_rtg(
         else:
             save_plots = False
 
-        env = ev_city.EVCity(config_file=config_file,
+        env = ev_city.EVsSimulator(config_file=config_file,
                             load_from_replay_path=eval_replay_path +
                             eval_replay_files[test_cycle],
                             save_replay=False,

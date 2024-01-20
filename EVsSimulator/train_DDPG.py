@@ -1,12 +1,11 @@
-import argparse
-import logging
+  
 import os
-import random
 import time
+import pkg_resources
 
 import gym
 import numpy as np
-from EVsSimulator import ev_city
+from EVsSimulator.ev_city import EVsSimulator
 
 import torch
 import wandb
@@ -59,18 +58,16 @@ if __name__ == "__main__":
 
     replay_path = None
 
-    args.env = 'evcity-v1'
-
-    gym.register(id=args.env, entry_point='gym_env.ev_city:EVCity')
+    gym.register(id=args.env, entry_point='gym_env.ev_city:EVsSimulator')
     
     
     ####### Set the reward function here #######
     reward_function = SquaredTrackingErrorRewardWithPenalty
     
     ####### Set the State function here #######
-    state_function = ev_city.PublicPST
+    state_function = BusinessPSTwithMoreKnowledge
 
-    env = ev_city.EVCity(config_file=args.config_file,
+    env = EVsSimulator(config_file=args.config_file,
                          generate_rnd_game=True,
                          save_plots=False,
                          save_replay=False,
@@ -240,7 +237,7 @@ if __name__ == "__main__":
                     save_plots = True
                 else:
                     save_plots = False
-                eval_env = ev_city.EVCity(config_file=args.config_file,
+                eval_env = EVsSimulator(config_file=args.config_file,
                                           load_from_replay_path=eval_replay_path +
                                           eval_replay_files[test_cycle],
                                           save_replay=False,

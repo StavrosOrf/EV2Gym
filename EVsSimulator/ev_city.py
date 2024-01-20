@@ -11,7 +11,6 @@ Author: Stavros Orfanoudakis 2023
 import gym
 from gym import spaces
 import numpy as np
-import math
 import datetime
 import pickle
 import os
@@ -21,16 +20,16 @@ import yaml
 import json
 
 # from .grid import Grid
-from .models.replay import EvCityReplay
-from .vizuals.plots import ev_city_plot, visualize_step
-from .utilities.utils import get_statistics, print_statistics, spawn_EV, CalculateChargePowerPotential
-from .utilities.loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
-from .rl_agent.reward import SquaredTrackingErrorReward
-from .rl_agent.state import PublicPST
-from .vizuals.render import Renderer
+from EVsSimulator.models.replay import EvCityReplay
+from EVsSimulator.vizuals.plots import ev_city_plot, visualize_step
+from EVsSimulator.utilities.utils import get_statistics, print_statistics, spawn_EV, CalculateChargePowerPotential
+from EVsSimulator.utilities.loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward
+from EVsSimulator.rl_agent.state import PublicPST
+from EVsSimulator.vizuals.render import Renderer
 
 
-class EVCity(gym.Env):
+class EVsSimulator(gym.Env):
 
     def __init__(self,
                  config_file=None,
@@ -49,7 +48,7 @@ class EVCity(gym.Env):
                  render_mode=None,
                  ):
 
-        super(EVCity, self).__init__()
+        super(EVsSimulator, self).__init__()
 
         if verbose:
             print(f'Initializing EVCity environment...')

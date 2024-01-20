@@ -27,8 +27,6 @@
   scenario: public_PowerSetpointTracking
   score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
 
-# Electricity Prices
-  electricity_prices_file: ./data/Netherlands_day-ahead-2015-2023.csv
 
 
 

@@ -18,7 +18,7 @@ def evalreplay(config_file,
     
     verbose = False
 
-    env = ev_city.EVCity(config_file = config_file,                         
+    env = ev_city.EVsSimulator(config_file = config_file,                         
                          load_from_replay_path=None,
                          generate_rnd_game=True,                                                  
                          save_plots=False,
@@ -57,7 +57,7 @@ def evalreplay(config_file,
 
     # Simulate in the gym environment and get the rewards
     # save replay in the replay folder for evaluating pther algorithms
-    env = ev_city.EVCity(config_file = config_file,                         
+    env = ev_city.EVsSimulator(config_file = config_file,                         
                          load_from_replay_path=new_replay_path,
                          replay_path="./replay/"+group_name+"/",
                          generate_rnd_game=False,
