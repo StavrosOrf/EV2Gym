@@ -72,6 +72,7 @@ if __name__ == "__main__":
                          save_plots=False,
                          save_replay=False,
                          reward_function=reward_function,
+                         state_function=state_function,
                          )
 
     # Set random seed for all used libraries where possible
@@ -300,7 +301,7 @@ if __name__ == "__main__":
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
                            'test/total_ev_served': stats['total_ev_served'],
-                           #    'test/total_profits': stats['total_profits'],
+                              'test/total_profits': stats['total_profits'],
                            'test/total_energy_charged': stats['total_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
