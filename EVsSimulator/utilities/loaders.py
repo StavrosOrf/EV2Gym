@@ -16,15 +16,15 @@ def load_ev_spawn_scenarios(env):
     '''Loads the EV spawn scenarios of the simulation'''
 
     env.df_arrival_week = pd.read_csv(
-        './data/distribution-of-arrival.csv')  # weekdays
+        '.EVsSimulator/data/distribution-of-arrival.csv')  # weekdays
     env.df_arrival_weekend = pd.read_csv(
-        './data/distribution-of-arrival-weekend.csv')  # weekends
+        '.EVsSimulator/data/distribution-of-arrival-weekend.csv')  # weekends
     env.df_connection_time = pd.read_csv(
-        './data/distribution-of-connection-time.csv')  # connection time
+        '.EVsSimulator/data/distribution-of-connection-time.csv')  # connection time
     env.df_energy_demand = pd.read_csv(
-        './data/distribution-of-energy-demand.csv')  # energy demand
+        '.EVsSimulator/data/distribution-of-energy-demand.csv')  # energy demand
     env.time_of_connection_vs_hour = np.load(
-        './data/time_of_connection_vs_hour.npy')
+        '.EVsSimulator/data/time_of_connection_vs_hour.npy')
 
 
 def load_power_setpoints(env, randomly):
@@ -43,13 +43,15 @@ def load_power_setpoints(env, randomly):
 
     if randomly:
         inverse_prices = 1/abs(env.charge_prices[0, :]+0.001)
-        
+
         if env.cs == 1:
             cs = env.charging_stations[0]
-            power_setpoints = power_setpoints * cs.max_charge_current * cs.voltage * math.sqrt(cs.phases)/1000
-            power_setpoints = power_setpoints * np.random.randint(2,size=env.simulation_length)
+            power_setpoints = power_setpoints * cs.max_charge_current * \
+                cs.voltage * math.sqrt(cs.phases)/1000
+            power_setpoints = power_setpoints * \
+                np.random.randint(2, size=env.simulation_length)
             return power_setpoints
-                                            
+
         return power_setpoints*(inverse_prices*env.cs)*np.random.uniform(0.08, 0.09, 1)
     else:
         raise NotImplementedError(
@@ -70,21 +72,22 @@ def load_transformers(env):
     elif env.charging_network_topology:
         # parse the topology file and create the transformers
         cs_counter = 0
-        for i,tr in enumerate(env.charging_network_topology):
+        for i, tr in enumerate(env.charging_network_topology):
             cs_ids = []
             for cs in env.charging_network_topology[tr]['charging_stations']:
                 cs_ids.append(cs_counter)
-                cs_counter += 1            
+                cs_counter += 1
             transformer = Transformer(id=i,
                                       cs_ids=cs_ids,
                                       min_current=env.charging_network_topology[tr]['min_current'],
                                       max_current=env.charging_network_topology[tr]['max_current'],
                                       timescale=env.timescale,
                                       simulation_length=env.simulation_length,
-                                      standard_transformer_loading=np.zeros(env.simulation_length),
-                                      )            
+                                      standard_transformer_loading=np.zeros(
+                                          env.simulation_length),
+                                      )
             transformers.append(transformer)
-        
+
     else:
         if env.number_of_transformers > env.cs:
             raise ValueError(
@@ -113,26 +116,33 @@ def load_ev_charger_profiles(env):
     elif env.charging_network_topology:
         # parse the topology file and create the charging stations
         cs_counter = 0
-        for i,tr in enumerate(env.charging_network_topology):
+        for i, tr in enumerate(env.charging_network_topology):
             for cs in env.charging_network_topology[tr]['charging_stations']:
                 ev_charger = EV_Charger(id=cs_counter,
-                                        connected_bus=0, 
+                                        connected_bus=0,
                                         connected_transformer=i,
-                                        min_charge_current=env.charging_network_topology[tr]['charging_stations'][cs]['min_charge_current'],
-                                        max_charge_current=env.charging_network_topology[tr]['charging_stations'][cs]['max_charge_current'],
-                                        min_discharge_current=env.charging_network_topology[tr]['charging_stations'][cs]['min_discharge_current'],
-                                        max_discharge_current=env.charging_network_topology[tr]['charging_stations'][cs]['max_discharge_current'],
-                                        voltage=env.charging_network_topology[tr]['charging_stations'][cs]['voltage'],
-                                        n_ports=env.charging_network_topology[tr]['charging_stations'][cs]['n_ports'],
-                                        charger_type=env.charging_network_topology[tr]['charging_stations'][cs]['charger_type'],
-                                        phases=env.charging_network_topology[tr]['charging_stations'][cs]['phases'],                                        
+                                        min_charge_current=env.charging_network_topology[tr][
+                                            'charging_stations'][cs]['min_charge_current'],
+                                        max_charge_current=env.charging_network_topology[tr][
+                                            'charging_stations'][cs]['max_charge_current'],
+                                        min_discharge_current=env.charging_network_topology[tr][
+                                            'charging_stations'][cs]['min_discharge_current'],
+                                        max_discharge_current=env.charging_network_topology[tr][
+                                            'charging_stations'][cs]['max_discharge_current'],
+                                        voltage=env.charging_network_topology[tr][
+                                            'charging_stations'][cs]['voltage'],
+                                        n_ports=env.charging_network_topology[tr][
+                                            'charging_stations'][cs]['n_ports'],
+                                        charger_type=env.charging_network_topology[tr][
+                                            'charging_stations'][cs]['charger_type'],
+                                        phases=env.charging_network_topology[tr]['charging_stations'][cs]['phases'],
                                         timescale=env.timescale,
                                         verbose=env.verbose,)
                 cs_counter += 1
                 charging_stations.append(ev_charger)
         env.cs = len(charging_stations)
         return charging_stations
-    
+
     else:
         for i in range(env.cs):
             ev_charger = EV_Charger(id=i,
@@ -145,8 +155,6 @@ def load_ev_charger_profiles(env):
             charging_stations.append(ev_charger)
         return charging_stations
 
-    
-
 
 def load_ev_profiles(env):
     '''Loads the EV profiles of the simulation
@@ -156,7 +164,7 @@ def load_ev_profiles(env):
         - ev_profiles: a list of ev_profile objects'''
 
     if env.load_from_replay_path is None:
-        return None    
+        return None
     else:
         return env.replay.EVs
 
@@ -208,7 +216,7 @@ def load_electricity_prices(env):
             year = 2022
             if day > 28:
                 day -= 1
-            print("Debug:",year, month, day, hour)
+            print("Debug:", year, month, day, hour)
             charge_prices[:, i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
                                             'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
             discharge_prices[:, i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),

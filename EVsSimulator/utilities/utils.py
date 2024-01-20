@@ -143,7 +143,7 @@ def spawn_EV(ev_env, cs_id):
     # Divide by 15 because the spawn rate is in 15 minute intervals (in the csv file)
     i = hour*4 + minute//15
 
-    scenario = ev_env.scenario.split("_")[0]
+    scenario = ev_env.scenario
 
     if day < 5:
         tau = ev_env.df_arrival_week[scenario].iloc[i]
@@ -171,7 +171,7 @@ def spawn_EV(ev_env, cs_id):
             battery_capacity = 50
 
         if battery_capacity < required_energy:
-            initial_battery_capacity = 0.05*battery_capacity
+            initial_battery_capacity = 0.05 * battery_capacity
         else:
             initial_battery_capacity = battery_capacity - required_energy
 
@@ -214,8 +214,7 @@ def spawn_EV(ev_env, cs_id):
                       earlier_time_of_departure=int(
                           time_of_stay + ev_env.current_step + 3),
                       ev_phases=3,
-                      transition_soc=0.999,
-                      #   transition_soc=0.8,
+                      transition_soc=0.9999,
                       timescale=ev_env.timescale,
                       simulation_length=ev_env.simulation_length,)
 

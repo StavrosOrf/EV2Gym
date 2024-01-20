@@ -5,12 +5,12 @@ import numpy as np
 
 # Image URLs for graph nodes
 icons = {
-    "cpo": "./EVsSimulator/icons/cpo.png",
-    "transformer": "./EVsSimulator/icons/transformer.png",
-    "charger_1": "./EVsSimulator/icons/charging-station_1_port.png",
-    "charger_2": "./EVsSimulator/icons/charging-station_2_ports.png",
-    "charger_wallbox": "./EVsSimulator/icons/charger_wallbox.png",
-    "ev": "./EVsSimulator/icons/ev.png"
+    "cpo": "./EVsSimulator/vizuals/icons/cpo.png",
+    "transformer": "./EVsSimulator/vizuals/icons/transformer.png",
+    "charger_1": "./EVsSimulator/vizuals/icons/charging-station_1_port.png",
+    "charger_2": "./EVsSimulator/vizuals/icons/charging-station_2_ports.png",
+    "charger_wallbox": "./EVsSimulator/vizuals/icons/charger_wallbox.png",
+    "ev": "./EVsSimulator/vizuals/icons/ev.png"
 }
 
 
@@ -202,7 +202,7 @@ class Renderer():
         # self.fig.suptitle("EV Charging Network", fontsize=16)
 
         # add icon to the bottom of the figure
-        icon = PIL.Image.open("./EVsSimulator/icons/logo.png")
+        icon = PIL.Image.open("./EVsSimulator/vizuals/icons/logo.png")
         icon = icon.resize((100, 50), PIL.Image.ANTIALIAS)
         self.fig.figimage(icon, 20, 20, alpha=1, zorder=1)
 

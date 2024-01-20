@@ -29,11 +29,11 @@
   # such as battery capacity, charging rate, etc.
 
 # EV Spawn Behavior
-  scenario: public # public, private, or business
+  scenario: public # public, private, or workplace
   score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
 
 # Electricity Prices
-  electricity_prices_file: ./data/Netherlands_day-ahead-2015-2023.csv
+  electricity_prices_file: .EVsSimulator/data/Netherlands_day-ahead-2015-2023.csv
 
 
 
