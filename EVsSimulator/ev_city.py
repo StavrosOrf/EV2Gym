@@ -120,7 +120,7 @@ class EVsSimulator(gym.Env):
                                               self.config['hour'],
                                               self.config['minute'])
             self.replay = None
-            self.sim_name = f'ev_city_{self.simulation_length}_' + \
+            self.sim_name = f'sim_{self.simulation_length}_' + \
                 f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'
 
             self.scenario = self.config['scenario']
