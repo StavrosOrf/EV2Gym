@@ -2,15 +2,17 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import PIL
 import numpy as np
+import pkg_resources
 
 # Image URLs for graph nodes
+
 icons = {
-    "cpo": "./EVsSimulator/vizuals/icons/cpo.png",
-    "transformer": "./EVsSimulator/vizuals/icons/transformer.png",
-    "charger_1": "./EVsSimulator/vizuals/icons/charging-station_1_port.png",
-    "charger_2": "./EVsSimulator/vizuals/icons/charging-station_2_ports.png",
-    "charger_wallbox": "./EVsSimulator/vizuals/icons/charger_wallbox.png",
-    "ev": "./EVsSimulator/vizuals/icons/ev.png"
+    "cpo": pkg_resources.resource_filename('EVsSimulator', "vizuals/icons/cpo.png"),
+    "transformer": pkg_resources.resource_filename('EVsSimulator', "vizuals/icons/transformer.png"),
+    "charger_1": pkg_resources.resource_filename('EVsSimulator', "vizuals/icons/charging-station_1_port.png"),
+    "charger_2": pkg_resources.resource_filename('EVsSimulator', "vizuals/icons/charging-station_2_ports.png"),
+    "charger_wallbox": pkg_resources.resource_filename('EVsSimulator', "vizuals/icons/charger_wallbox.png"),
+    "ev": pkg_resources.resource_filename('EVsSimulator', "vizuals/icons/ev.png")
 }
 
 
@@ -202,7 +204,9 @@ class Renderer():
         # self.fig.suptitle("EV Charging Network", fontsize=16)
 
         # add icon to the bottom of the figure
-        icon = PIL.Image.open("./EVsSimulator/vizuals/icons/logo.png")
+        image_path = pkg_resources.resource_filename(
+            'EVsSimulator', "vizuals/icons/logo.png")
+        icon = PIL.Image.open(image_path)
         icon = icon.resize((100, 50), PIL.Image.ANTIALIAS)
         self.fig.figimage(icon, 20, 20, alpha=1, zorder=1)
 

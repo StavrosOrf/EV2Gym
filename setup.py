@@ -11,7 +11,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='EVsSimulator',
-    version='0.0.6',
+    version='0.0.10',
     description='A realistic V2X environment using gym',
     author='Stavros Orfanoudakis',
     long_description=long_description,

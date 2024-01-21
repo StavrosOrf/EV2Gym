@@ -246,8 +246,7 @@ class EVsSimulator(gym.Env):
 
         # self.sim_name = f'ev_city_{self.simulation_length}_' + \
         # f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}'
-
-        # TODO reset grid if implemented
+        
         self.init_statistic_variables()
 
         return self._get_observation()
@@ -399,6 +398,7 @@ class EVsSimulator(gym.Env):
                     ev.reset()
                     ev.simulation_length = self.simulation_length
                     index = self.charging_stations[ev.location].spawn_ev(ev)
+                    
                     if not self.lightweight_plots:
                         self.port_arrival[f'{ev.location}.{index}'].append(
                             (self.current_step+1, ev.earlier_time_of_departure))
