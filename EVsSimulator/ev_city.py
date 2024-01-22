@@ -399,7 +399,8 @@ class EVsSimulator(gym.Env):
         if self.current_step < self.simulation_length:
             self.charge_power_potential[self.current_step] = calculate_charge_power_potential(
                 self)
-            self.power_setpoints[self.current_step] = create_power_setpoint_one_step(self)
+            if self.replay is None:
+                self.power_setpoints[self.current_step] = create_power_setpoint_one_step(self)
 
         self.current_evs_parked += self.current_ev_arrived - self.current_ev_departed
 

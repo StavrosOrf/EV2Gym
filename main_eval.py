@@ -18,7 +18,7 @@ def eval():
     verbose = False
     save_plots = True
     replay_path = None
-    config_file = "/example_config_files/config.yaml"
+    config_file = "/example_config_files/BusinessPST_config.yaml"
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
     # config_file = "config_files/config_tutorial_1.yaml"
 
@@ -55,7 +55,6 @@ def eval():
             break
     
     # env.plot()
-    exit()
     
     # Solve optimally
     #Power tracker optimizer

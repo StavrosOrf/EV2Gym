@@ -284,25 +284,12 @@ if __name__ == "__main__":
             for key in test_stats[0].keys():
                 stats[key] = np.mean([test_stats[i][key]
                                      for i in range(len(test_stats))])
-
-            # get all values of a key in a list
-            # opt_profits = [1 - ((test_stats[i]['opt_profits'] - test_stats[i]['total_profits']) /
-            #                     abs(test_stats[i]['opt_profits']))
-            #                for i in range(len(test_stats))]
-
             
-            # opt_tracking_error = [1 - min(1, abs(test_stats[i]['opt_tracking_error'] - test_stats[i]['tracking_error']) /
-            #                               (test_stats[i]['tracking_error']+0.000001))
-            #                       for i in range(len(test_stats))]
-            # print(opt_tracking_error)
-
-            # print(opt_profits)
-            for ind in range(args.n_test_cycles):
-                # if np.mean(opt_tracking_error) < highest_opt_ratio:# and test_stats[ind]['average_user_satisfaction'] == 1:
-                if stats['tracking_error'] < best_trackking_error:
-                    best_trackking_error = stats['tracking_error']
-                    agent.save_checkpoint(timestep, memory, run_name+"_best")
-                    time_last_checkpoint = time.time()
+                       
+            if stats['tracking_error'] < best_trackking_error:
+                best_trackking_error = stats['tracking_error']
+                agent.save_checkpoint(timestep, memory, run_name+"_best")
+                time_last_checkpoint = time.time()
 
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
