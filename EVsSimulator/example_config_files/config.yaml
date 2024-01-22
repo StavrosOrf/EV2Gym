@@ -2,7 +2,7 @@
 
 # Simulation Parameters
   timescale: 15 # in minutes per step
-  simulation_length: 96 # in steps per simulation
+  simulation_length: 20 # in steps per simulation
 
 # Date:
 # Year, month, and day change after the envrionment has been reset
@@ -11,12 +11,12 @@
   day: 17 # 1-31
   
 # Simulation Starting Time 
-  hour: 5 # Simulation starting hour (24 hour format)
+  hour: 7 # Simulation starting hour (24 hour format)
   minute: 0 # Simulation starting minute (0-59)
   # Hour and minute do not change after the environment has been reset
 
 # Charging Topology
-  number_of_charging_stations: 5
+  number_of_charging_stations: 2
   number_of_transformers: 1
   number_of_ports_per_cs: 2
   # Provide path if you want to load a specific charging topology, 
@@ -29,6 +29,7 @@
 
 # EV Spawn Behavior
   scenario: public # public, private, or workplace
+  spawn_multiplier: 1 # 1 is default, the higher the number the more EVs spawn
   score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
 
 

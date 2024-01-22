@@ -59,7 +59,7 @@ def evalreplay(config_file,
     # save replay in the replay folder for evaluating pther algorithms
     env = ev_city.EVsSimulator(config_file = config_file,                         
                          load_from_replay_path=new_replay_path,
-                         replay_path="./replay/"+group_name+"/",
+                         replay_save_path="./replay/"+group_name+"/",
                          generate_rnd_game=False,
                          save_plots=False,
                          save_replay=save_replay,

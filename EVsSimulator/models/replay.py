@@ -169,7 +169,7 @@ class EvCityReplay():
                                   t_arr:t_dep] = ev.max_discharge_power
             # self.ev_min_dis_power[port, cs_id,
             #                       t_arr:t_dep] = 0
-            self.u[port, cs_id, t_arr:t_dep] = 1
+            self.u[port, cs_id, t_arr:t_dep] = 1            
             self.energy_at_arrival[port, cs_id,
                                    t_arr] = ev.battery_capacity_at_arrival
             self.ev_arrival[port, cs_id, t_arr] = 1

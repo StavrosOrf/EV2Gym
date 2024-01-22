@@ -18,13 +18,13 @@ def eval():
     verbose = False
     save_plots = True
     replay_path = None
-    config_file = "/example_config_files/simple_config.yaml"
+    config_file = "/example_config_files/config.yaml"
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
     # config_file = "config_files/config_tutorial_1.yaml"
 
     env = EVsSimulator(config_file = config_file,                                                                                                                             
                          generate_rnd_game=True,                                 
-                         render_mode=False,
+                         render_mode=False,                         
                          verbose=verbose,
                          eval_mode="unstirred",
                          )
@@ -45,7 +45,7 @@ def eval():
         new_state, reward, done, _ = env.step(
             actions, visualize=True)  # takes action
         rewards.append(reward)
-        print(f'New state: {new_state}')
+        
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
 
@@ -55,6 +55,7 @@ def eval():
             break
     
     # env.plot()
+    exit()
     
     # Solve optimally
     #Power tracker optimizer

@@ -8,9 +8,11 @@ import datetime
 import math
 import pkg_resources
 
-from ..models.ev_charger import EV_Charger
-from ..models.ev import EV
-from ..models.transformer import Transformer
+from EVsSimulator.models.ev_charger import EV_Charger
+from EVsSimulator.models.ev import EV
+from EVsSimulator.models.transformer import Transformer
+
+from EVsSimulator.utilities.utils import EV_spawner
 
 
 def load_ev_spawn_scenarios(env):
@@ -171,7 +173,7 @@ def load_ev_profiles(env):
         - ev_profiles: a list of ev_profile objects'''
 
     if env.load_from_replay_path is None:
-        return None
+        return EV_spawner(env)
     else:
         return env.replay.EVs
 

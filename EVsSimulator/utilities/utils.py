@@ -3,51 +3,53 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import datetime
+
 from EVsSimulator.models.ev import EV
 
 
-def get_statistics(ev_env):
+def get_statistics(env):
     total_ev_served = np.array(
-        [cs.total_evs_served for cs in ev_env.charging_stations]).sum()
+        [cs.total_evs_served for cs in env.charging_stations]).sum()
     total_profits = np.array(
-        [cs.total_profits for cs in ev_env.charging_stations]).sum()
+        [cs.total_profits for cs in env.charging_stations]).sum()
     total_energy_charged = np.array(
-        [cs.total_energy_charged for cs in ev_env.charging_stations]).sum()
+        [cs.total_energy_charged for cs in env.charging_stations]).sum()
     total_energy_discharged = np.array(
-        [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
+        [cs.total_energy_discharged for cs in env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
-        [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
-    # get transformer overload from ev_env.tr_overload
-    total_transformer_overload = np.array(ev_env.tr_overload).sum()
+        [cs.get_avg_user_satisfaction() for cs in env.charging_stations]))
+    # get transformer overload from env.tr_overload
+    total_transformer_overload = np.array(env.tr_overload).sum()
 
     tracking_error = 0
     power_tracker_violation = 0
-    for t in range(ev_env.simulation_length):
-        tracking_error += (min(ev_env.power_setpoints[t], ev_env.charge_power_potential[t]) -
-                           ev_env.current_power_setpoints[t])**2
-        if ev_env.current_power_setpoints[t] > ev_env.power_setpoints[t]:
-            power_tracker_violation += ev_env.current_power_setpoints[t] - \
-                ev_env.power_setpoints[t]
+    for t in range(env.simulation_length):
+        tracking_error += (min(env.power_setpoints[t], env.charge_power_potential[t]) -
+                           env.current_power_setpoints[t])**2
+        if env.current_power_setpoints[t] > env.power_setpoints[t]:
+            power_tracker_violation += env.current_power_setpoints[t] - \
+                env.power_setpoints[t]
 
     # ev_percentage_charged = []
-    # for i, ev in enumerate(ev_env.EVs):
+    # for i, ev in enumerate(env.EVs):
     #     ev_percentage_charged.append((ev.battery_capacity-ev.current_capacity)/(ev.battery_capacity-ev.battery_capacity_at_arrival))
 
     # find the final battery capacity of evs
-    if ev_env.eval_mode != "unstirred" and len(ev_env.EVs) > 0 \
-            and ev_env.replay is not None:
+    if env.eval_mode != "unstirred" and len(env.EVs) > 0 \
+            and env.replay is not None:
 
-        if ev_env.replay.unstirred_EVs is None:
+        if env.replay.unstirred_EVs is None:
             energy_user_satisfaction = -10000000
         else:
             energy_user_satisfaction = 0
-            for i, ev in enumerate(ev_env.EVs):
+            for i, ev in enumerate(env.EVs):
                 e_actual = ev.current_capacity
-                e_max = ev_env.replay.unstirred_EVs[i].current_capacity
+                e_max = env.replay.unstirred_EVs[i].current_capacity
                 # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
                 energy_user_satisfaction += e_actual / e_max * 100
 
-            energy_user_satisfaction /= len(ev_env.EVs)
+            energy_user_satisfaction /= len(env.EVs)
     else:
         energy_user_satisfaction = 100
 
@@ -62,64 +64,64 @@ def get_statistics(ev_env):
              'total_transformer_overload': total_transformer_overload,
              #  'ev_percentage_charged': ev_percentage_charged,
              }
-    if ev_env.eval_mode != "optimal" and ev_env.replay is not None:
-        if ev_env.replay.optimal_stats is not None:
-            stats['opt_profits'] = ev_env.replay.optimal_stats["total_profits"]
-            stats['opt_tracking_error'] = ev_env.replay.optimal_stats["tracking_error"]
-            stats['opt_power_tracker_violation'] = ev_env.replay.optimal_stats["power_tracker_violation"]
-            stats['opt_energy_user_satisfaction'] = ev_env.replay.optimal_stats["energy_user_satisfaction"]
-            stats['opt_total_energy_charged'] = ev_env.replay.optimal_stats["total_energy_charged"]
+    if env.eval_mode != "optimal" and env.replay is not None:
+        if env.replay.optimal_stats is not None:
+            stats['opt_profits'] = env.replay.optimal_stats["total_profits"]
+            stats['opt_tracking_error'] = env.replay.optimal_stats["tracking_error"]
+            stats['opt_power_tracker_violation'] = env.replay.optimal_stats["power_tracker_violation"]
+            stats['opt_energy_user_satisfaction'] = env.replay.optimal_stats["energy_user_satisfaction"]
+            stats['opt_total_energy_charged'] = env.replay.optimal_stats["total_energy_charged"]
 
     return stats
 
 
-def print_statistics(ev_env):
+def print_statistics(env):
     '''Prints the statistics of the simulation'''
     total_ev_served = np.array(
-        [cs.total_evs_served for cs in ev_env.charging_stations]).sum()
+        [cs.total_evs_served for cs in env.charging_stations]).sum()
     total_profits = np.array(
-        [cs.total_profits for cs in ev_env.charging_stations]).sum()
+        [cs.total_profits for cs in env.charging_stations]).sum()
     toal_energy_charged = np.array(
-        [cs.total_energy_charged for cs in ev_env.charging_stations]).sum()
+        [cs.total_energy_charged for cs in env.charging_stations]).sum()
     total_energy_discharged = np.array(
-        [cs.total_energy_discharged for cs in ev_env.charging_stations]).sum()
+        [cs.total_energy_discharged for cs in env.charging_stations]).sum()
     average_user_satisfaction = np.average(np.array(
-        [cs.get_avg_user_satisfaction() for cs in ev_env.charging_stations]))
-    total_transformer_overload = np.array(ev_env.tr_overload).sum()
+        [cs.get_avg_user_satisfaction() for cs in env.charging_stations]))
+    total_transformer_overload = np.array(env.tr_overload).sum()
 
     tracking_error = 0
     power_tracker_violation = 0
-    for t in range(ev_env.simulation_length):
-        tracking_error += (min(ev_env.power_setpoints[t], ev_env.charge_power_potential[t]) -
-                           ev_env.current_power_setpoints[t])**2
-        if ev_env.current_power_setpoints[t] > ev_env.power_setpoints[t]:
-            power_tracker_violation += ev_env.current_power_setpoints[t] - \
-                ev_env.power_setpoints[t]
+    for t in range(env.simulation_length):
+        tracking_error += (min(env.power_setpoints[t], env.charge_power_potential[t]) -
+                           env.current_power_setpoints[t])**2
+        if env.current_power_setpoints[t] > env.power_setpoints[t]:
+            power_tracker_violation += env.current_power_setpoints[t] - \
+                env.power_setpoints[t]
 
     # find the final battery capacity of evs
-    if ev_env.eval_mode != "unstirred" and len(ev_env.EVs) > 0 \
-            and ev_env.replay is not None:
+    if env.eval_mode != "unstirred" and len(env.EVs) > 0 \
+            and env.replay is not None:
 
-        if ev_env.replay.unstirred_EVs is None:
+        if env.replay.unstirred_EVs is None:
             energy_user_satisfaction = -10000000
         else:
             energy_user_satisfaction = 0
-            for i, ev in enumerate(ev_env.EVs):
+            for i, ev in enumerate(env.EVs):
                 e_actual = ev.current_capacity
-                e_max = ev_env.replay.unstirred_EVs[i].current_capacity
+                e_max = env.replay.unstirred_EVs[i].current_capacity
                 # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
                 energy_user_satisfaction += e_actual / e_max * 100
 
-            energy_user_satisfaction /= len(ev_env.EVs)
+            energy_user_satisfaction /= len(env.EVs)
     else:
         energy_user_satisfaction = 100
 
     print("\n\n==============================================================")
     print("Simulation statistics:")
-    for cs in ev_env.charging_stations:
+    for cs in env.charging_stations:
         print(cs)
     print(
-        f'  - Total EVs spawned: {ev_env.total_evs_spawned} |  served: {total_ev_served}')
+        f'  - Total EVs spawned: {env.total_evs_spawned} |  served: {total_ev_served}')
     print(f'  - Total profits: {total_profits*100:.2f} €')
     print(
         f'  - Average user satisfaction: {average_user_satisfaction*100:.2f} %')
@@ -134,92 +136,138 @@ def print_statistics(ev_env):
     print("==============================================================\n\n")
 
 
-def spawn_EV(ev_env, cs_id):
-    '''Spawns EVs based on the spawn rate'''
-    time = ev_env.sim_date
-    day = time.weekday()
-    hour = time.hour
-    minute = time.minute
-    # Divide by 15 because the spawn rate is in 15 minute intervals (in the csv file)
-    i = hour*4 + minute//15
+def spawn_single_EV(env, scenario, cs_id, port, hour, step):
 
-    scenario = ev_env.scenario
+    required_energy = env.df_energy_demand[scenario].iloc[np.random.randint(
+        0, 100, size=1)].values[0]  # kWh
 
-    if day < 5:
-        tau = ev_env.df_arrival_week[scenario].iloc[i]
-        multiplier = 5
+    if required_energy < 5:
+        required_energy = 5
+
+    if env.heterogeneous_specs:
+        battery_capacity = np.random.randint(40, 80)  # kWh
     else:
-        if scenario == "workplace":
-            return None
-        tau = ev_env.df_arrival_weekend[scenario].iloc[i]
-        if day == 5:
-            multiplier = 4
+        battery_capacity = 50
+
+    if battery_capacity < required_energy:
+        initial_battery_capacity = 0.05 * battery_capacity
+    else:
+        initial_battery_capacity = battery_capacity - required_energy
+
+    time_of_stay = np.random.choice(
+        np.arange(0, 48, 1), 1, p=env.time_of_connection_vs_hour[hour, :])/2
+    time_of_stay = time_of_stay[0] * 60 / env.timescale + 1
+
+    # Alternative method for time of stay
+    # time_of_stay = env.df_connection_time[scenario].iloc[np.random.randint(
+    #     0, 100, size=1)].values[0] * 60 / env.timescale
+
+    # if time_of_stay + env.current_step + 1 > env.simulation_length:
+    # TODO think about "empty_ports_at_end_of_simulation"
+
+    if env.heterogeneous_specs:
+        return EV(id=port,
+                  location=cs_id,
+                  battery_capacity_at_arrival=initial_battery_capacity,
+                  max_ac_charge_power=np.random.rand.choice(
+                      [11, 22], [0.2, 0.8]),
+                  max_dc_charge_power=np.random.randint(50, 150),
+                  max_discharge_power=-np.random.randint(3, 15),
+                  discharge_efficiency=np.round(1 -
+                                                (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
+                  transition_soc=np.round(0.9 - \
+                                          (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
+                  battery_capacity=battery_capacity,
+                  time_of_arrival=step+1,
+                  earlier_time_of_departure=int(
+                      time_of_stay + step + 3),
+                  ev_phases=np.random.choice([1, 2, 3], p=[0.2, 0.1, 0.7]),
+                  timescale=env.timescale,
+                  simulation_length=env.simulation_length,)
+    else:
+        return EV(id=port,
+                  location=cs_id,
+                  battery_capacity_at_arrival=initial_battery_capacity,
+                  battery_capacity=battery_capacity,
+                  time_of_arrival=step+1,
+                  earlier_time_of_departure=int(
+                      time_of_stay + step + 3),
+                  ev_phases=3,
+                  transition_soc=0.9999,
+                  timescale=env.timescale,
+                  simulation_length=env.simulation_length,)
+
+
+def EV_spawner(env):
+    '''
+    This function spawns all the EVs of the current simulation and returns the list of EVs
+
+    Returns:
+        EVs: list of EVs
+
+    '''
+
+    ev_list = []
+
+    occupancy_list = np.zeros((env.number_of_ports, env.simulation_length))
+
+    arrival_probabilities = np.random.rand(
+        env.number_of_ports, env.simulation_length)
+
+    scenario = env.scenario
+    user_spawn_multiplier = env.config["spawn_multiplier"]
+    time = env.sim_date
+
+    for t in range(env.simulation_length-1):
+        day = time.weekday()
+        hour = time.hour
+        minute = time.minute
+        # Divide by 15 because the spawn rate is in 15 minute intervals (in the csv file)
+        i = hour*4 + minute//15
+
+        if day < 5:
+            tau = env.df_arrival_week[scenario].iloc[i]
+            multiplier = 10
         else:
-            multiplier = 3
+            if scenario == "workplace":
+                multiplier = 0
+            tau = env.df_arrival_weekend[scenario].iloc[i]
+            if day == 5:
+                multiplier = 8
+            else:
+                multiplier = 6
 
-    if np.random.rand(1)*100 < tau * multiplier * (ev_env.timescale/60) * 2:
+        # multiplier = 1
+        counter = 0
+        for cs in env.charging_stations:
+            for port in range(cs.n_ports):
+                # if port is empty and there is an EV arriving
+                if occupancy_list[counter, t] == 0:
+                    if arrival_probabilities[counter, t]*100 < tau * multiplier * (env.timescale/60) * user_spawn_multiplier:
+                        ev = spawn_single_EV(
+                            env, scenario, cs.id, port, hour, t)
 
-        required_energy = ev_env.df_energy_demand[scenario].iloc[np.random.randint(
-            0, 100, size=1)].values[0]  # kWh
+                        ev_list.append(ev)
+                        occupancy_list[counter, t +
+                                       1:ev.earlier_time_of_departure] = 1
 
-        if required_energy < 5:
-            required_energy = 5
+                counter += 1
+        # step the time
+        time = time + datetime.timedelta(minutes=env.timescale)
+    return ev_list
 
-        if ev_env.heterogeneous_specs:
-            battery_capacity = np.random.randint(40, 80)  # kWh
-        else:
-            battery_capacity = 50
+def create_power_setpoints(env):
+    '''
+    This function creates the power setpoints for the current simulation
+    '''
 
-        if battery_capacity < required_energy:
-            initial_battery_capacity = 0.05 * battery_capacity
-        else:
-            initial_battery_capacity = battery_capacity - required_energy
+    power_setpoints = np.zeros(env.simulation_length)
+    for t in range(env.simulation_length):
+        power_setpoints[t] = calculate_charge_power_potential(env)
 
-        time_of_stay = np.random.choice(
-            np.arange(0, 48, 1), 1, p=ev_env.time_of_connection_vs_hour[hour, :])/2
-        time_of_stay = time_of_stay[0] * 60 / ev_env.timescale + 1
+    return power_setpoints
 
-        # Alternative method for time of stay
-        # time_of_stay = ev_env.df_connection_time[scenario].iloc[np.random.randint(
-        #     0, 100, size=1)].values[0] * 60 / ev_env.timescale
-
-        # if time_of_stay + ev_env.current_step + 1 > ev_env.simulation_length:
-        # TODO think about "empty_ports_at_end_of_simulation"
-
-        if ev_env.heterogeneous_specs:
-            return EV(id=None,
-                      location=cs_id,
-                      battery_capacity_at_arrival=initial_battery_capacity,
-                      max_ac_charge_power=np.random.rand.choice(
-                          [11, 22], [0.2, 0.8]),
-                      max_dc_charge_power=np.random.randint(50, 150),
-                      max_discharge_power=-np.random.randint(3, 15),
-                      discharge_efficiency=np.round(1 -
-                                                    (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
-                      transition_soc=np.round(0.9 - \
-                                              (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
-                      battery_capacity=battery_capacity,
-                      time_of_arrival=ev_env.current_step+1,
-                      earlier_time_of_departure=int(
-                          time_of_stay + ev_env.current_step + 3),
-                      ev_phases=np.random.choice([1, 2, 3], p=[0.2, 0.1, 0.7]),
-                      timescale=ev_env.timescale,
-                      simulation_length=ev_env.simulation_length,)
-        else:
-            return EV(id=None,
-                      location=cs_id,
-                      battery_capacity_at_arrival=initial_battery_capacity,
-                      battery_capacity=battery_capacity,
-                      time_of_arrival=ev_env.current_step+1,
-                      earlier_time_of_departure=int(
-                          time_of_stay + ev_env.current_step + 3),
-                      ev_phases=3,
-                      transition_soc=0.9999,
-                      timescale=ev_env.timescale,
-                      simulation_length=ev_env.simulation_length,)
-
-
-def CalculateChargePowerPotential(env):
+def calculate_charge_power_potential(env):
     '''
     This function calculates the total charge power potential of all currently parked EVs for the current time step     
     '''

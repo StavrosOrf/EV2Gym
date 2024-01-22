@@ -61,13 +61,16 @@ if __name__ == "__main__":
     gym.register(id=args.env, entry_point='gym_env.ev_city:EVsSimulator')
     
     
+    ###### Set the config file here ######
+    config_file = "EVsSimulator/example_config_files/BusinessPST_config.yaml"
+    
     ####### Set the reward function here #######
     reward_function = SquaredTrackingErrorRewardWithPenalty
     
     ####### Set the State function here #######
     state_function = BusinessPSTwithMoreKnowledge
 
-    env = EVsSimulator(config_file=args.config_file,
+    env = EVsSimulator(config_file=config_file,
                          generate_rnd_game=True,
                          save_plots=False,
                          save_replay=False,
@@ -222,6 +225,7 @@ if __name__ == "__main__":
                        'train/power_tracker_violation': stats['power_tracker_violation'],
                        'train/energy_user_satisfaction': stats['energy_user_satisfaction']/100,
                        'train/transformer_overload': stats['total_transformer_overload'],
+                       'tran/total_profits': stats['total_profits'],
                        'train/value_loss': epoch_value_loss,
                        'train/policy_loss': epoch_policy_loss})
 

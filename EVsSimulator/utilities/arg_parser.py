@@ -13,7 +13,7 @@ def arg_parser():
                         help="Load a pretrained model (default: False)")
     parser.add_argument("--save_dir", default="./saved_models/",
                         help="Dir. path to save and load a model (default: ./saved_models/)")
-    parser.add_argument("--seed", default=0, type=int,
+    parser.add_argument("--seed", default=42, type=int,
                         help="Random seed (default: 0)")
     parser.add_argument("--timesteps", default=10*1e6, type=int,
                         help="Num. of total timesteps of training (default: 1e6)")
@@ -35,11 +35,11 @@ def arg_parser():
                         help="Enable logging to wandb (default: True)")
 
     # Environment specific arguments
-    parser.add_argument("--config_file", default="config_files/config.yaml",
+    parser.add_argument("--config_file", default="EVsSimulator/example_config_files/BusinessPST_config.yaml",
                         help="Path to the config file (default: config_files/config.yaml)")
 
     # Generate trajectories specific arguments
-    parser.add_argument("--n_trajectories", default=10, type=int,
+    parser.add_argument("--n_trajectories", default=100, type=int,
                         help="Num. of trajectories to generate (default: 10)")
     parser.add_argument("--dataset", default="-", type=str)
     parser.add_argument("--save_opt_trajectories", default=True, type=bool,
