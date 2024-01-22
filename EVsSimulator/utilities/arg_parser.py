@@ -39,7 +39,7 @@ def arg_parser():
                         help="Path to the config file (default: config_files/config.yaml)")
 
     # Generate trajectories specific arguments
-    parser.add_argument("--n_trajectories", default=100, type=int,
+    parser.add_argument("--n_trajectories", default=10, type=int,
                         help="Num. of trajectories to generate (default: 10)")
     parser.add_argument("--dataset", default="-", type=str)
     parser.add_argument("--save_opt_trajectories", default=True, type=bool,

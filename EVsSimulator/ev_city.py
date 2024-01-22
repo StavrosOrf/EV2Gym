@@ -22,7 +22,7 @@ import json
 # from .grid import Grid
 from EVsSimulator.models.replay import EvCityReplay
 from EVsSimulator.vizuals.plots import ev_city_plot, visualize_step
-from EVsSimulator.utilities.utils import get_statistics, print_statistics, calculate_charge_power_potential
+from EVsSimulator.utilities.utils import get_statistics, print_statistics, calculate_charge_power_potential, create_power_setpoint_one_step
 from EVsSimulator.utilities.loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
 from EVsSimulator.vizuals.render import Renderer
 
@@ -399,6 +399,7 @@ class EVsSimulator(gym.Env):
         if self.current_step < self.simulation_length:
             self.charge_power_potential[self.current_step] = calculate_charge_power_potential(
                 self)
+            self.power_setpoints[self.current_step] = create_power_setpoint_one_step(self)
 
         self.current_evs_parked += self.current_ev_arrived - self.current_ev_departed
 
