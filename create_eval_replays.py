@@ -1,10 +1,10 @@
 from EVsSimulator import ev_city
-from baselines.gurobi_models import ev_city_power_tracker_model
+from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model
 
 import numpy as np
 import os
 import pickle
-from utils.arg_parser import arg_parser
+from EVsSimulator.utilities.arg_parser import arg_parser
 import yaml
 
 """"
@@ -18,7 +18,7 @@ def evalreplay(config_file,
     
     verbose = False
 
-    env = ev_city.EVCity(config_file = config_file,                         
+    env = ev_city.EVsSimulator(config_file = config_file,                         
                          load_from_replay_path=None,
                          generate_rnd_game=True,                                                  
                          save_plots=False,
@@ -57,9 +57,9 @@ def evalreplay(config_file,
 
     # Simulate in the gym environment and get the rewards
     # save replay in the replay folder for evaluating pther algorithms
-    env = ev_city.EVCity(config_file = config_file,                         
+    env = ev_city.EVsSimulator(config_file = config_file,                         
                          load_from_replay_path=new_replay_path,
-                         replay_path="./replay/"+group_name+"/",
+                         replay_save_path="./replay/"+group_name+"/",
                          generate_rnd_game=False,
                          save_plots=False,
                          save_replay=save_replay,
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     n_transformers = config["number_of_transformers"]
     steps = config["simulation_length"]
     timescale = config["timescale"]
-       
+    
     n_trajectories = args.n_trajectories
     save_opt_trajectories = args.save_opt_trajectories
 

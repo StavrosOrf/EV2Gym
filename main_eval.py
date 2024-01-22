@@ -1,21 +1,30 @@
-from EVsSimulator import ev_city
-from baselines.gurobi_models import ev_city_model, ev_city_power_tracker_model, ev_city_profit_maximization
+"""
+This script is used to evaluate the performance of the EVsSimulator environment.
+"""
+
+if __name__ == "__main__":
+    import sys,os
+    sys.path.append(os.path.realpath('../'))
+
+from EVsSimulator.ev_city import EVsSimulator
+from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model, ev_city_profit_maximization
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pkg_resources
 
-# main funtion for testing
-if __name__ == "__main__":
+def eval():
 
     verbose = False
     save_plots = True
     replay_path = None
-    config_file = "config_files/config.yaml"
-    config_file = "config_files/config_tutorial_1.yaml"
+    config_file = "/example_config_files/BusinessPST_config.yaml"
+    config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
+    # config_file = "config_files/config_tutorial_1.yaml"
 
-    env = ev_city.EVCity(config_file = config_file,                                                                                                                             
+    env = EVsSimulator(config_file = config_file,                                                                                                                             
                          generate_rnd_game=True,                                 
-                         render_mode=False,
+                         render_mode=False,                         
                          verbose=verbose,
                          eval_mode="unstirred",
                          )
@@ -36,7 +45,7 @@ if __name__ == "__main__":
         new_state, reward, done, _ = env.step(
             actions, visualize=True)  # takes action
         rewards.append(reward)
-
+        
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
 
@@ -59,9 +68,9 @@ if __name__ == "__main__":
 
     # Simulate in the gym environment and get the rewards
 
-    env = ev_city.EVCity(config_file = config_file,                         
+    env = EVsSimulator(config_file = config_file,                         
                          load_from_replay_path=new_replay_path,                                                                                                
-                         verbose=verbose,                         
+                         verbose=True,                         
                          )
     state = env.reset()    
     rewards_opt = []
@@ -109,3 +118,5 @@ if __name__ == "__main__":
         plt.savefig(f'plots/{env.sim_name}/RewardsComparison.html',
                     format='svg', dpi=600, bbox_inches='tight')
         
+if __name__ == "__main__":
+    eval()

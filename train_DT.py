@@ -9,11 +9,11 @@ import random
 import sys
 import yaml
 
-from baselines.DT.evaluation.evaluate_episodes import evaluate_episode, evaluate_episode_rtg
-from baselines.DT.models.decision_transformer import DecisionTransformer
-from baselines.DT.models.mlp_bc import MLPBCModel
-from baselines.DT.training.act_trainer import ActTrainer
-from baselines.DT.training.seq_trainer import SequenceTrainer
+from EVsSimulator.baselines.DT.evaluation.evaluate_episodes import evaluate_episode, evaluate_episode_rtg
+from EVsSimulator.baselines.DT.models.decision_transformer import DecisionTransformer
+from EVsSimulator.baselines.DT.models.mlp_bc import MLPBCModel
+from EVsSimulator.baselines.DT.training.act_trainer import ActTrainer
+from EVsSimulator.baselines.DT.training.seq_trainer import SequenceTrainer
 
 from EVsSimulator import ev_city
 
@@ -71,7 +71,7 @@ def experiment(
 
     args.env = 'evcity-v1'
 
-    env = ev_city.EVCity(config_file=args.config_file,
+    env = ev_city.EVsSimulator(config_file=args.config_file,
                          generate_rnd_game=True,
                          save_plots=False,
                          save_replay=False,

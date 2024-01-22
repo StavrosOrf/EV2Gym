@@ -16,21 +16,29 @@ class Transformer():
                  max_current=150,  # The maximum capacity of the transformer in A
                  min_current=0,  # (can be negative for discharging)
                  cs_ids=[],  # the charging stations connected to the transformer
-                 timescale=5):
+                 timescale=5,
+                 standard_transformer_loading = None,
+                 ):
 
         self.id = id
         self.max_current = max_current
-        self.min_current = min_current
+        self.min_current = min_current        
+        self.standard_transformer_loading = standard_transformer_loading
         self.timescale = timescale
         self.cs_ids = cs_ids
 
         self.current_amps = 0
+        self.current_power = 0
+        
+              
+        
 
-    def step(self, amps):
+    def step(self, amps, power):
         '''
         Update current power of the transformer
         '''
         self.current_amps += amps
+        self.current_power += power
 
     def is_overloaded(self):
         '''
@@ -59,22 +67,6 @@ class Transformer():
             return np.abs(self.current_amps - self.max_current)
         else:
             return 0
-
-    def get_state(self, scenario):
-        '''
-        Returns the state of the transformer
-        '''
-        if scenario == "PowerSetpointTracking":
-            state = [
-                # self.max_current/100,
-                # self.min_current/100
-            ]
-            #  self.cs_ids] #TODO check observation space if needed
-
-            # return np.hstack(state)
-            return state
-        else:
-            raise NotImplementedError
 
     def __str__(self) -> str:
         return f'  - Transformer {self.id}:  {self.min_current:.1f} / ' +\
