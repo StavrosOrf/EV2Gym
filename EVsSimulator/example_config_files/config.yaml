@@ -16,7 +16,7 @@
   # Hour and minute do not change after the environment has been reset
 
 # Charging Topology
-  number_of_charging_stations: 2000
+  number_of_charging_stations: 10
   number_of_transformers: 1
   number_of_ports_per_cs: 2
   # Provide path if you want to load a specific charging topology, 

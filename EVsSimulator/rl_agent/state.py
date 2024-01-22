@@ -99,7 +99,7 @@ def BusinessPSTwithMoreKnowledge(env, *args):
                                       EV.time_of_arrival / env.simulation_length,  # time of arrival
                                       ])
                     else:
-                        state.append(np.zeros(9))
+                        state.append(np.zeros(10))
 
     state = np.array(np.hstack(state))
 

@@ -17,7 +17,7 @@ from EVsSimulator.baselines.DDPG.ddpg import DDPG
 from EVsSimulator.baselines.DDPG.noise import OrnsteinUhlenbeckActionNoise
 from EVsSimulator.baselines.DDPG.replay_memory import ReplayMemory, Transition
 
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorRewardWithPenalty
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorRewardWithPenalty, SquaredTrackingErrorReward
 from EVsSimulator.rl_agent.state import BusinessPSTwithMoreKnowledge
 
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     config_file = "EVsSimulator/example_config_files/BusinessPST_config.yaml"
     
     ####### Set the reward function here #######
-    reward_function = SquaredTrackingErrorRewardWithPenalty
+    reward_function = SquaredTrackingErrorReward
     
     ####### Set the State function here #######
     state_function = BusinessPSTwithMoreKnowledge
@@ -231,6 +231,7 @@ if __name__ == "__main__":
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 5000 * t:
+            print(f'Testing at timestep {timestep}')
             t += 1
             test_rewards = []
             test_stats = []
@@ -242,14 +243,15 @@ if __name__ == "__main__":
                     save_plots = True
                 else:
                     save_plots = False
-                eval_env = EVsSimulator(config_file=args.config_file,
+                eval_env = EVsSimulator(config_file=config_file,
                                           load_from_replay_path=eval_replay_path +
                                           eval_replay_files[test_cycle],
                                           save_replay=False,
                                           generate_rnd_game=True,
                                           save_plots=save_plots,
                                           extra_sim_name=run_name,
-                                          reward_function=reward_function)
+                                          reward_function=reward_function,
+                                          state_function=state_function)
 
                 state = torch.Tensor([eval_env.reset()]).to(device)
                 test_reward = 0
@@ -320,6 +322,7 @@ if __name__ == "__main__":
                            #    'test/std_opt_ratio': np.std(opt_profits),
                            })
 
+            print(f'Testing at timestep {timestep}, Mean test return: {mean_test_rewards[-1]}')
         epoch += 1
 
     agent.save_checkpoint(timestep, memory, run_name+"_last")
