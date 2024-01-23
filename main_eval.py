@@ -3,7 +3,8 @@ This script is used to evaluate the performance of the EVsSimulator environment.
 """
 
 if __name__ == "__main__":
-    import sys,os
+    import sys
+    import os
     sys.path.append(os.path.realpath('../'))
 
 from EVsSimulator.ev_city import EVsSimulator
@@ -13,29 +14,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pkg_resources
 
+
 def eval():
 
     verbose = False
     save_plots = True
-    replay_path = None
+    replay_path = None #"./replay/replay_sim_48_2024-01-23_07-24-33-885068_replay_replay.pkl"
     config_file = "/example_config_files/BusinessPST_config.yaml"
+    config_file = "/example_config_files/simple_config.yaml"
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
     # config_file = "config_files/config_tutorial_1.yaml"
 
-    env = EVsSimulator(config_file = config_file,                                                                                                                             
-                         generate_rnd_game=True,                                 
-                         render_mode=False,                         
-                         verbose=verbose,
-                         eval_mode="unstirred",
-                         )
+    env = EVsSimulator(config_file=config_file,
+                       load_from_replay_path=replay_path,
+                       generate_rnd_game=True,
+                       render_mode=False,
+                       verbose=True,
+                       eval_mode="unstirred",
+                       )
 
-    new_replay_path = f"replay/replay_{env.sim_name}.pkl"    
-    
+    new_replay_path = f"replay/replay_{env.sim_name}.pkl"
+
     state = env.reset()
 
-    rewards = []    
+    rewards = []
 
-    for i in range(env.simulation_length):        
+    for i in range(env.simulation_length):
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
@@ -45,21 +49,22 @@ def eval():
         new_state, reward, done, _ = env.step(
             actions, visualize=True)  # takes action
         rewards.append(reward)
-        
+
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
 
-        # input("Press Enter to continue...")        
+        # input("Press Enter to continue...")
         if done:
             print(f'End of simulation at step {env.current_step}')
             break
-    
+
     # env.plot()
-    
+
     # Solve optimally
-    #Power tracker optimizer
-    math_model = ev_city_power_tracker_model.EV_City_Math_Model(sim_file_path=new_replay_path)
-    #Profit maximization optimizer
+    # Power tracker optimizer
+    math_model = ev_city_power_tracker_model.EV_City_Math_Model(
+        sim_file_path=new_replay_path)
+    # Profit maximization optimizer
     # math_model = ev_city_profit_maximization.EV_City_Math_Model(sim_file_path=new_replay_path)
     # Old optimizer (V2G), probably not compatible now
     # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")
@@ -68,30 +73,30 @@ def eval():
 
     # Simulate in the gym environment and get the rewards
 
-    env = EVsSimulator(config_file = config_file,                         
-                         load_from_replay_path=new_replay_path,                                                                                                
-                         verbose=True,                         
-                         )
-    state = env.reset()    
+    env = EVsSimulator(config_file=config_file,
+                       load_from_replay_path=new_replay_path,
+                       verbose=True,
+                       )
+    state = env.reset()
     rewards_opt = []
 
-    for i in range(env.simulation_length):        
+    for i in range(env.simulation_length):
         # all ports are charging instantly
         # print(f'Optimal actions: {opt_actions[:,:,i]}')
         # print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
-        actions = opt_actions[:,:,i].T.reshape(-1)        
+        actions = opt_actions[:, :, i].T.reshape(-1)
         if verbose:
             print(f' OptimalActions: {actions}')
 
         new_state, reward, done, _ = env.step(
             actions, visualize=True)  # takes action
-        rewards_opt.append(reward)        
+        rewards_opt.append(reward)
 
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
 
         if done:
-            break    
+            break
 
     if save_plots:
         plt.figure(figsize=(10, 10))
@@ -114,9 +119,10 @@ def eval():
         # plt.xticks(np.arange(0, steps, 1))
         plt.title('Reward per time step')
 
-        plt.tight_layout()    
+        plt.tight_layout()
         plt.savefig(f'plots/{env.sim_name}/RewardsComparison.html',
                     format='svg', dpi=600, bbox_inches='tight')
-        
+
+
 if __name__ == "__main__":
     eval()

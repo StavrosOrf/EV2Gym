@@ -273,7 +273,7 @@ def create_power_setpoint_one_step(env):
         for port in range(cs.n_ports):
             ev = cs.evs_connected[port]
             if ev is not None:
-                if ev.time_of_arrival-1 != env.current_step and ev.get_soc() < 1:
+                if ev.time_of_arrival != env.current_step and ev.get_soc() < 1:
                     phases = min(cs.phases, ev.ev_phases)
                     ev_current = ev.max_ac_charge_power * \
                         1000/(math.sqrt(phases)*cs.voltage)
@@ -310,7 +310,7 @@ def calculate_charge_power_potential(env):
         for port in range(cs.n_ports):
             ev = cs.evs_connected[port]
             if ev is not None:
-                if ev.time_of_arrival-1 != env.current_step and ev.get_soc() < 1:
+                if ev.time_of_arrival != env.current_step and ev.get_soc() < 1:
                     phases = min(cs.phases, ev.ev_phases)
                     ev_current = ev.max_ac_charge_power * \
                         1000/(math.sqrt(phases)*cs.voltage)
