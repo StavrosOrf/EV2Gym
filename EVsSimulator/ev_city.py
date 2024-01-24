@@ -29,6 +29,7 @@ from EVsSimulator.vizuals.render import Renderer
 from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward
 from EVsSimulator.rl_agent.state import PublicPST
 
+
 class EVsSimulator(gym.Env):
 
     def __init__(self,
@@ -77,7 +78,7 @@ class EVsSimulator(gym.Env):
 
         self.reward_function = reward_function
         self.state_function = state_function
-        
+
         if seed is None:
             self.seed = np.random.randint(0, 1000000)
         else:
@@ -160,13 +161,12 @@ class EVsSimulator(gym.Env):
                     [*np.arange(self.number_of_transformers)], self.cs % self.number_of_transformers)
                 random.shuffle(self.cs_transformers)
 
-        
         # Instatiate Transformers
         self.transformers = load_transformers(self)
 
         # Instatiate Charging Stations
         self.charging_stations = load_ev_charger_profiles(self)
-        
+
         # Calculate the total number of ports in the simulation
         self.number_of_ports = np.array(
             [cs.n_ports for cs in self.charging_stations]).sum()
@@ -187,10 +187,8 @@ class EVsSimulator(gym.Env):
         self.power_setpoints = load_power_setpoints(self, randomly=True)
         self.current_power_setpoints = np.zeros(self.simulation_length)
         self.charge_power_potential = np.zeros(self.simulation_length)
-        
+
         self.init_statistic_variables()
-
-
 
         # Variable showing whether the simulation is done or not
         self.done = False
@@ -222,20 +220,19 @@ class EVsSimulator(gym.Env):
 
         # Observation mask: is a vector of size ("Sum of all ports of all charging stations") showing in which ports an EV is connected
         self.observation_mask = np.zeros(self.number_of_ports)
-        
 
-    def reset(self, seed=None,*args):
+    def reset(self, seed=None, options=None, **kwargs):
         '''Resets the environment to its initial state'''
-        
+
         if seed is None:
             self.seed = np.random.randint(0, 1000000)
         else:
             self.seed = seed
-            
+
         # set random seed
         np.random.seed(self.seed)
         random.seed(self.seed)
-        
+
         self.current_step = 0
         # Reset all charging stations
         for cs in self.charging_stations:
@@ -253,7 +250,7 @@ class EVsSimulator(gym.Env):
                                               ) + datetime.timedelta(days=random.randint(0, int(1.5*365)))
 
             self.sim_starting_date = self.sim_date
-            self.EVs_profiles = load_ev_profiles(self)            
+            self.EVs_profiles = load_ev_profiles(self)
             self.EVs = []
 
         # print(f'Simulation starting date: {self.sim_date}')
@@ -381,7 +378,7 @@ class EVsSimulator(gym.Env):
 
             port_counter += n_ports
 
-        # Spawn EVs         
+        # Spawn EVs
         counter = self.total_evs_spawned
         for i, ev in enumerate(self.EVs_profiles[counter:]):
             if ev.time_of_arrival == self.current_step + 1:
@@ -395,8 +392,8 @@ class EVsSimulator(gym.Env):
                         (self.current_step+1, ev.earlier_time_of_departure))
 
                 self.total_evs_spawned += 1
-                self.current_ev_arrived += 1     
-                self.EVs.append(ev)                           
+                self.current_ev_arrived += 1
+                self.EVs.append(ev)
 
             elif ev.time_of_arrival > self.current_step + 1:
                 break
@@ -410,7 +407,8 @@ class EVsSimulator(gym.Env):
             self.charge_power_potential[self.current_step] = calculate_charge_power_potential(
                 self)
             if self.replay is None:
-                self.power_setpoints[self.current_step] = create_power_setpoint_one_step(self)
+                self.power_setpoints[self.current_step] = create_power_setpoint_one_step(
+                    self)
 
         self.current_evs_parked += self.current_ev_arrived - self.current_ev_departed
 
@@ -428,14 +426,13 @@ class EVsSimulator(gym.Env):
         if visualize:
             visualize_step(self)
 
-        if self.render_mode:
-            self.renderer.render()
+        self.render()
 
         return self._check_termination(user_satisfaction_list, reward)
 
     def _check_termination(self, user_satisfaction_list, reward):
-        
-        truncated = False            
+
+        truncated = False
         # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
                 any(score < self.score_threshold for score in user_satisfaction_list) or \
@@ -476,6 +473,11 @@ class EVsSimulator(gym.Env):
             return self._get_observation(), reward, True, truncated, get_statistics(self)
         else:
             return self._get_observation(), reward, False, truncated, {'None': None}
+
+    def render(self):
+        '''Renders the simulation'''
+        if self.render_mode:
+            self.renderer.render()
 
     def _save_sim_replay(self):
         '''Saves the simulation data in a pickle file'''
