@@ -12,8 +12,8 @@ def PublicPST(env, *args):
         (env.current_step) / env.simulation_length,
         env.sim_date.weekday() / 7,
         # turn hour and minutes in sin and cos
-        math.sin(env.sim_date.hour/24*2*math.pi),
-        math.cos(env.sim_date.hour/24*2*math.pi),
+        # math.sin(env.sim_date.hour/24*2*math.pi),
+        # math.cos(env.sim_date.hour/24*2*math.pi),
     ]
 
     # the final state of each simulation
@@ -23,7 +23,9 @@ def PublicPST(env, *args):
     else:
         state.append(env.power_setpoints[env.current_step-1]/100)
         state.append(env.charge_power_potential[env.current_step-1]/100)
-
+        
+    state.append(env.current_power_setpoints[env.current_step-1]/100)
+    
     # For every transformer
     for tr in env.transformers:
 

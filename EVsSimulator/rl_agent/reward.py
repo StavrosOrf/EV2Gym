@@ -36,9 +36,9 @@ def MinimizeTrackerSurplusWithChargeRewards(env,*args):
     
     reward = 0
     if env.power_setpoints[env.current_step-1] < env.current_power_setpoints[env.current_step-1]:
-            reward -= (env.current_power_setpoints[env.current_step-1]-env.power_setpoints[env.current_step-1])
+            reward -= (env.current_power_setpoints[env.current_step-1]-env.power_setpoints[env.current_step-1])**2
 
-    reward += env.current_power_setpoints[env.current_step-1]/75
+    reward += env.current_power_setpoints[env.current_step-1] #/75
     
     return reward
 
