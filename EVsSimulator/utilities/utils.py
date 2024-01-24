@@ -157,7 +157,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step):
     # time_of_stay = np.random.choice(
     #     np.arange(0, 48, 1), 1, p=env.time_of_connection_vs_hour[hour, :])/2
     # time_of_stay = time_of_stay[0] * 60 / env.timescale + 1
-        
+
     # Alternative method for time of stay
     time_of_stay = env.df_connection_time[scenario].iloc[np.random.randint(
         0, 100, size=1)].values[0] * 60 / env.timescale + 1
@@ -237,7 +237,7 @@ def EV_spawner(env):
                 multiplier = 8
             else:
                 multiplier = 6
-            
+
         # multiplier = 1
         counter = 0
         for cs in env.charging_stations:

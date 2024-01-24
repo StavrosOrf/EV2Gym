@@ -42,6 +42,12 @@ def MinimizeTrackerSurplusWithChargeRewards(env,*args):
     
     return reward
 
+def profit_maximization(env, total_costs,*args):
+    # This reward function is the profit maximization reward function
+    
+    reward = env.total_costs
+    
+    return reward
 
 
 

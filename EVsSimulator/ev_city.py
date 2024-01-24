@@ -8,8 +8,8 @@ Author: Stavros Orfanoudakis 2023
 ===================================
 '''
 
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 import numpy as np
 import datetime
 import pickle
@@ -37,8 +37,8 @@ class EVsSimulator(gym.Env):
                  replay_save_path='./replay/',  # where to save the replay file
                  generate_rnd_game=False,  # generate a random game without terminating conditions
                  seed=None,
-                 save_replay=True,
-                 save_plots=True,
+                 save_replay=False,
+                 save_plots=False,
                  state_function=PublicPST,
                  reward_function=SquaredTrackingErrorReward,
                  eval_mode="Normal",  # eval mode can be "Normal", "Unstirred" or "Optimal" in order to save the correct statistics in the replay file
@@ -75,14 +75,13 @@ class EVsSimulator(gym.Env):
         self.score_threshold = self.config['score_threshold']
         cs = self.config['number_of_charging_stations']
 
+        self.reward_function = reward_function
+        self.state_function = state_function
+        
         if seed is None:
             self.seed = np.random.randint(0, 1000000)
         else:
             self.seed = seed
-
-        self.reward_function = reward_function
-        self.state_function = state_function
-
         # set random seed
         np.random.seed(self.seed)
         random.seed(self.seed)
@@ -211,7 +210,8 @@ class EVsSimulator(gym.Env):
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         high = np.ones([self.number_of_ports])
-        self.action_space = spaces.Box(low=-high, high=high, dtype=np.float64)
+        lows = np.zeros([self.number_of_ports])
+        self.action_space = spaces.Box(low=-lows, high=high, dtype=np.float64)
 
         # Observation space: is a matrix of size ("Sum of all ports of all charging stations",n_features)
         obs_dim = len(self._get_observation())
@@ -224,8 +224,18 @@ class EVsSimulator(gym.Env):
         self.observation_mask = np.zeros(self.number_of_ports)
         
 
-    def reset(self):
+    def reset(self, seed=None,*args):
         '''Resets the environment to its initial state'''
+        
+        if seed is None:
+            self.seed = np.random.randint(0, 1000000)
+        else:
+            self.seed = seed
+            
+        # set random seed
+        np.random.seed(self.seed)
+        random.seed(self.seed)
+        
         self.current_step = 0
         # Reset all charging stations
         for cs in self.charging_stations:
@@ -253,7 +263,7 @@ class EVsSimulator(gym.Env):
 
         self.init_statistic_variables()
 
-        return self._get_observation()
+        return self._get_observation(), {}
 
     def _calculate_ev_load_curve(self):
         '''This function calculates the load curve of the EVs in the simulation'''
@@ -424,6 +434,8 @@ class EVsSimulator(gym.Env):
         return self._check_termination(user_satisfaction_list, reward)
 
     def _check_termination(self, user_satisfaction_list, reward):
+        
+        truncated = False            
         # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
                 any(score < self.score_threshold for score in user_satisfaction_list) or \
@@ -461,9 +473,9 @@ class EVsSimulator(gym.Env):
 
             # create an objext with statistics about the simulation for vizualization
 
-            return self._get_observation(), reward, True, get_statistics(self)
+            return self._get_observation(), reward, True, truncated, get_statistics(self)
         else:
-            return self._get_observation(), reward, False, None
+            return self._get_observation(), reward, False, truncated, {'None': None}
 
     def _save_sim_replay(self):
         '''Saves the simulation data in a pickle file'''
