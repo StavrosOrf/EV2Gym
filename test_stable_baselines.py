@@ -3,8 +3,8 @@
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 from EVsSimulator.ev_city import EVsSimulator
+from EVsSimulator.rl_agent.reward import MinimizeTrackerSurplusWithChargeRewards
 
-import pkg_resources
 import gymnasium as gym
 
 # config_file = "/example_config_files/simple_config.yaml"
@@ -29,7 +29,9 @@ if __name__ == "__main__":
                       kwargs={'config_file': config_file,
                               'verbose': False,
                               'save_plots': False,
-                              'generate_rnd_game': True, })
+                              'generate_rnd_game': True, 
+                              'reward_function': MinimizeTrackerSurplusWithChargeRewards,
+                              })
 
     env = gym.make('evs-v0')
 
@@ -65,7 +67,7 @@ if __name__ == "__main__":
        
     model.learn(total_timesteps=1_000_000, progress_bar=True,)
 
-    model.save("./saved_models/"+algorithm+"_20cs_1_port")
+    model.save("./saved_models/"+algorithm+"_20cs_1_port_SquaredTrackingErrorRewardWithPenalty")
     # exit()
     # del model  # delete trained model to demonstrate loading
 
