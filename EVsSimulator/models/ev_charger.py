@@ -6,7 +6,7 @@ Author: Stavros Orfanoudakis 2023
 '''
 
 import numpy as np
-
+import math
 
 class EV_Charger:
     '''
@@ -196,7 +196,7 @@ class EV_Charger:
         for i, ev in enumerate(self.evs_connected):
             if ev is not None:
                 # print(f'EV {ev.id} check departure step {self.current_step}' +\
-                #       f' earlier time of departure {ev.earlier_time_of_departure}' +\
+                #       f' earlier time of departure {ev.time_of_departure}' +\
                 #       f', Is departing: {ev.is_departing(self.current_step)}')
                 if ev.is_departing(self.current_step) is not None:
                     self.evs_connected[i] = None
@@ -231,6 +231,9 @@ class EV_Charger:
             f' |{self.total_profits: 7.1f} € |' + \
             f' +{self.total_energy_charged: 5.1f} /' + \
             f' -{self.total_energy_discharged: 5.1f} kW'
+            
+    def get_max_power(self):
+        return self.max_charge_current * self.voltage * math.sqrt(self.phases) / 1000
 
     def get_avg_user_satisfaction(self):
         if self.total_evs_served == 0:
@@ -252,7 +255,7 @@ class EV_Charger:
 
         if self.verbose:
             print(f'+ EV connected to Charger {self.id} at port {index}' +
-                  f' leaving at {ev.earlier_time_of_departure}' +
+                  f' leaving at {ev.time_of_departure}' +
                   f' SoC {ev.get_soc()*100:.1f}%')
 
         return index

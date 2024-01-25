@@ -9,6 +9,7 @@ if __name__ == "__main__":
 
 from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model, ev_city_profit_maximization
+from EVsSimulator.baselines.mpc.mpc import MPC
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,9 +20,10 @@ def eval():
 
     verbose = False
     save_plots = True
-    replay_path = None #"./replay/replay_sim_48_2024-01-23_07-24-33-885068_replay_replay.pkl"
+    replay_path = './replay/replay_sim_25_2024-01-25_15-18-34-238404.pkl'
     config_file = "/example_config_files/BusinessPST_config.yaml"
     config_file = "/example_config_files/simple_config.yaml"
+    config_file = "/example_config_files/v2g_config.yaml"
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
     # config_file = "config_files/config_tutorial_1.yaml"
 
@@ -36,7 +38,9 @@ def eval():
                        )
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
-
+    
+    mpc = MPC(env, control_horizon=10, verbose=True)
+    exit()
     state, _ = env.reset()
 
     rewards = []

@@ -44,6 +44,7 @@ class EVsSimulator(gym.Env):
                  reward_function=SquaredTrackingErrorReward,
                  eval_mode="Normal",  # eval mode can be "Normal", "Unstirred" or "Optimal" in order to save the correct statistics in the replay file
                  lightweight_plots=False,
+                 empty_ports_at_end_of_simulation=True, # whether to empty the ports at the end of the simulation or not
                  extra_sim_name=None,
                  verbose=False,
                  render_mode=None,
@@ -60,7 +61,7 @@ class EVsSimulator(gym.Env):
 
         self.generate_rnd_game = generate_rnd_game
         self.load_from_replay_path = load_from_replay_path
-        # self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
+        self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
         self.save_replay = save_replay
         self.save_plots = save_plots
         self.lightweight_plots = lightweight_plots
@@ -389,7 +390,7 @@ class EVsSimulator(gym.Env):
 
                 if not self.lightweight_plots:
                     self.port_arrival[f'{ev.location}.{index}'].append(
-                        (self.current_step+1, ev.earlier_time_of_departure))
+                        (self.current_step+1, ev.time_of_departure))
 
                 self.total_evs_spawned += 1
                 self.current_ev_arrived += 1

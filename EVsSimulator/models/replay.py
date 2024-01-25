@@ -149,7 +149,7 @@ class EvCityReplay():
             port = ev.id
             cs_id = ev.location
             t_arr = ev.time_of_arrival
-            original_t_dep = ev.earlier_time_of_departure
+            original_t_dep = ev.time_of_departure
             # print(f'EV {i} is at port {port} of CS {cs_id} from {t_arr} to {original_t_dep}')            
 
             if t_arr >= self.sim_length:

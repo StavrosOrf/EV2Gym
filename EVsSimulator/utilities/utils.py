@@ -162,8 +162,11 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step):
     time_of_stay = env.df_connection_time[scenario].iloc[np.random.randint(
         0, 100, size=1)].values[0] * 60 / env.timescale + 1
 
-    # if time_of_stay + env.current_step + 1 > env.simulation_length:
-    # TODO think about "empty_ports_at_end_of_simulation"
+    if env.empty_ports_at_end_of_simulation:        
+        if time_of_stay + step + 3 > env.simulation_length:
+            time_of_stay = env.simulation_length - step - 4
+            
+    # "empty_ports_at_end_of_simulation"
 
     if env.heterogeneous_specs:
         return EV(id=port,
@@ -179,7 +182,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step):
                                           (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
                   battery_capacity=battery_capacity,
                   time_of_arrival=step+1,
-                  earlier_time_of_departure=int(
+                  time_of_departure=int(
                       time_of_stay + step + 3),
                   ev_phases=np.random.choice([1, 2, 3], p=[0.2, 0.1, 0.7]),
                   timescale=env.timescale,
@@ -190,7 +193,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step):
                   battery_capacity_at_arrival=initial_battery_capacity,
                   battery_capacity=battery_capacity,
                   time_of_arrival=step+1,
-                  earlier_time_of_departure=int(
+                  time_of_departure=int(
                       time_of_stay + step + 3),
                   ev_phases=3,
                   transition_soc=0.9999,
@@ -250,7 +253,7 @@ def EV_spawner(env):
 
                         ev_list.append(ev)
                         occupancy_list[counter, t +
-                                       1:ev.earlier_time_of_departure] = 1
+                                       1:ev.time_of_departure] = 1
 
                 counter += 1
         # step the time
@@ -273,7 +276,7 @@ def create_power_setpoint_one_step(env):
         for port in range(cs.n_ports):
             ev = cs.evs_connected[port]
             if ev is not None:
-                if ev.get_soc() < 1 and ev.earlier_time_of_departure > env.current_step:
+                if ev.get_soc() < 1 and ev.time_of_departure > env.current_step:
                     phases = min(cs.phases, ev.ev_phases)
                     ev_current = ev.max_ac_charge_power * \
                         1000/(math.sqrt(phases)*cs.voltage)
@@ -310,7 +313,7 @@ def calculate_charge_power_potential(env):
         for port in range(cs.n_ports):
             ev = cs.evs_connected[port]
             if ev is not None:
-                if ev.get_soc() < 1 and ev.earlier_time_of_departure > env.current_step:
+                if ev.get_soc() < 1 and ev.time_of_departure > env.current_step:
                     phases = min(cs.phases, ev.ev_phases)
                     ev_current = ev.max_ac_charge_power * \
                         1000/(math.sqrt(phases)*cs.voltage)

@@ -92,11 +92,11 @@ def BusinessPSTwithMoreKnowledge(env, *args):
                                       (env.current_step-EV.time_of_arrival) /
                                       env.simulation_length,  # time stayed
                                       # total time stayed
-                                      (EV.earlier_time_of_departure - \
+                                      (EV.time_of_departure - \
                                        EV.time_of_arrival) / env.simulation_length,
                                       (((EV.battery_capacity - EV.battery_capacity_at_arrival) /
-                                        (EV.earlier_time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed
-                                      EV.earlier_time_of_departure / env.simulation_length,  # time of departure
+                                        (EV.time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed
+                                      EV.time_of_departure / env.simulation_length,  # time of departure
                                       EV.get_soc(),  # soc
                                       EV.required_power / EV.battery_capacity,  # required energy
                                       EV.time_of_arrival / env.simulation_length,  # time of arrival
@@ -137,11 +137,11 @@ def RewardMaximizationState(env, *args):
                                       (env.current_step-EV.time_of_arrival) /
                                       env.simulation_length,  # time stayed
                                       # total time stayed
-                                      (EV.earlier_time_of_departure - \
+                                      (EV.time_of_departure - \
                                        EV.time_of_arrival) / env.simulation_length,
                                       (((EV.battery_capacity - EV.battery_capacity_at_arrival) /
-                                        (EV.earlier_time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed
-                                      EV.earlier_time_of_departure / env.simulation_length,  # time of departure
+                                        (EV.time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed
+                                      EV.time_of_departure / env.simulation_length,  # time of departure
                                       EV.get_soc(),  # soc
                                       EV.required_power / EV.battery_capacity,  # required energy
                                       EV.time_of_arrival / env.simulation_length,  # time of arrival

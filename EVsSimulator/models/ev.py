@@ -20,7 +20,7 @@ class EV():
         - location: the location of the EV (charging station id)
         - battery_capacity_at_arrival: the battery capacity of the EV at arrival time in kWh
         - time_of_arrival: the time of arrival of the EV in the charging station in simulation timesteps
-        - earlier_time_of_departure: the earliest time of departure of the EV in the charging station in simulation timesteps (if use_probabilistic_time_of_departure is False, then earlier_time_of_departure is equal to time_of_departure)
+        - time_of_departure: the earliest time of departure of the EV in the charging station in simulation timesteps (if use_probabilistic_time_of_departure is False, then time_of_departure is equal to time_of_departure)
         - desired_capacity: the desired capacity of the EV at departure time in kWh
         - use_probabilistic_time_of_departure: whether the EV will use a probabilistic time of departure or not
         - battery_capacity: the battery capacity of the EV in kWh
@@ -49,7 +49,7 @@ class EV():
                  location,
                  battery_capacity_at_arrival,
                  time_of_arrival,
-                 earlier_time_of_departure,
+                 time_of_departure,
                  use_probabilistic_time_of_departure=False,
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
@@ -74,7 +74,7 @@ class EV():
 
         # EV simulation characteristics
         self.time_of_arrival = time_of_arrival
-        self.earlier_time_of_departure = earlier_time_of_departure
+        self.time_of_departure = time_of_departure
         self.use_probabilistic_time_of_departure = use_probabilistic_time_of_departure
         self.desired_capacity = battery_capacity if desired_capacity is None else desired_capacity
         self.battery_capacity_at_arrival = battery_capacity_at_arrival  # kWh
@@ -163,15 +163,15 @@ class EV():
         Outputs:
             - Returns the user satisfaction of the EV in departing else None
         '''
-        if timestep < self.earlier_time_of_departure:
+        if timestep < self.time_of_departure:
             return None
 
         if self.use_probabilistic_time_of_departure:
             raise NotImplementedError
-            if np.random.poisson(lam=2.0) < timestep - self.earlier_time_of_departure:
+            if np.random.poisson(lam=2.0) < timestep - self.time_of_departure:
                 return self.get_user_satisfaction()
         else:
-            # if timestep >= self.earlier_time_of_departure:
+            # if timestep >= self.time_of_departure:
             return self.get_user_satisfaction()
 
     def get_user_satisfaction(self):
@@ -200,7 +200,7 @@ class EV():
         return f' {self.current_power*60/self.timescale :5.1f} kWh |' + \
             f' {(self.current_capacity/self.battery_capacity)*100:5.1f} % |' + \
             f't_stay: {self.time_of_arrival}-' + \
-            f'{self.earlier_time_of_departure} |' + \
+            f'{self.time_of_departure} |' + \
             f' {self.max_ac_charge_power}/' + \
             f'{self.max_discharge_power} kWh|' + \
             f' {self.battery_capacity} kW |'
