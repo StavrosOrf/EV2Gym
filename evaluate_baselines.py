@@ -9,8 +9,10 @@ from EVsSimulator.ev_city import EVsSimulator
 import gymnasium as gym
 from EVsSimulator.rl_agent.reward import MinimizeTrackerSurplusWithChargeRewards
 
+import pickle
+
 algorithms = ['ddpg', 'td3', 'sac', 'a2c', 'ppo', 'tqc', 'trpo', 'ars', 'rppo']
-algorithms = ['trpo']
+# algorithms = ['ddpg']
 device = "cuda"
 
 config_file = "EVsSimulator/example_config_files/config.yaml"
@@ -18,16 +20,16 @@ config_file = "EVsSimulator/example_config_files/config.yaml"
 gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
                   kwargs={'config_file': config_file,
                           'verbose': False,
-                          'save_plots': True,
+                        #   'save_plots': True,
                           'generate_rnd_game': True,
-                          'reward_function': MinimizeTrackerSurplusWithChargeRewards,
+                        #   'reward_function': MinimizeTrackerSurplusWithChargeRewards,
                           })
 
 env = gym.make('evs-v0')
 
-for algorithm in algorithms:
-
-    load_path = "./saved_models/" + algorithm + "_20cs_1_port_best_reward.zip"
+for algorithm in algorithms:    
+    # load_path = "./saved_models/" + algorithm + "_20cs_1_port_best_reward.zip"
+    load_path = "./saved_models/" + algorithm + "_20cs_1_port_SquaredTrackingErrorRewardWithPenalty.zip"
     # load_path = "./saved_models/" + algorithm + "_20cs_1_port.zip"
 
     if algorithm == "ddpg":
@@ -55,7 +57,7 @@ for algorithm in algorithms:
     obs = env.reset()
 
     stats = []
-    for i in tqdm(range(96*2)):
+    for i in tqdm(range(96*1000)):
 
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = env.step(action)
@@ -64,6 +66,9 @@ for algorithm in algorithms:
             stats.append(info)
             # obs = env.reset()
 
+    #save stats to file   
+    pickle.dump(stats, open("./results/"+algorithm+"_20cs_1_port_SquaredTrackingErrorRewardWithPenalty.pkl", "wb"))
+    
     # print average stats
     print("=====================================================")
     print(f' Average stats for {algorithm} algorithm, {len(stats)} episodes')
