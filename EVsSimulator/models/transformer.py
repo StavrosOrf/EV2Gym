@@ -17,21 +17,18 @@ class Transformer():
                  min_current=0,  # (can be negative for discharging)
                  cs_ids=[],  # the charging stations connected to the transformer
                  timescale=5,
-                 standard_transformer_loading = None,
+                 standard_transformer_loading=None,
                  ):
 
         self.id = id
         self.max_current = max_current
-        self.min_current = min_current        
+        self.min_current = min_current
         self.standard_transformer_loading = standard_transformer_loading
         self.timescale = timescale
         self.cs_ids = cs_ids
 
         self.current_amps = 0
         self.current_power = 0
-        
-              
-        
 
     def step(self, amps, power):
         '''
@@ -55,7 +52,7 @@ class Transformer():
             return True
         else:
             return False
-    
+
     def get_how_overloaded(self):
         '''
         Check how overloaded the transformer is

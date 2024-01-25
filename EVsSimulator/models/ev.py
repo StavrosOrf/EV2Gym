@@ -12,7 +12,7 @@ import math
 class EV():
     '''
     This file contains the EV class, which is used to represent the EVs in the environment.
-    The battery model was adapted from https://github.com/zach401/acnportal/blob/master/acnportal/acnsim/models/battery.py#L186
+    The two-stage battery model was adapted from https://github.com/zach401/acnportal/blob/master/acnportal/acnsim/models/battery.py#L186
 
 
     Attributes:
@@ -53,7 +53,7 @@ class EV():
                  use_probabilistic_time_of_departure=False,
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
-                 max_ac_charge_power=11,  # kWh        
+                 max_ac_charge_power=22,  # kWh        
                  min_ac_charge_power=2,  # kWh         
                  max_dc_charge_power=11,  # kWh
                  max_discharge_power=-5,  # kWh
@@ -199,12 +199,11 @@ class EV():
     def __str__(self):
         return f' {self.current_power*60/self.timescale :5.1f} kWh |' + \
             f' {(self.current_capacity/self.battery_capacity)*100:5.1f} % |' + \
-            f' {self.charging_cycles:2d}  |' + \
-            f' t_dep: {self.earlier_time_of_departure} |' + \
-            f' {self.max_ac_charge_power},' + \
-            f' {self.max_discharge_power} kWh|' + \
-            f' {self.battery_capacity} kW |' + \
-            f' {self.charge_efficiency}, {self.discharge_efficiency}'
+            f't_stay: {self.time_of_arrival}-' + \
+            f'{self.earlier_time_of_departure} |' + \
+            f' {self.max_ac_charge_power}/' + \
+            f'{self.max_discharge_power} kWh|' + \
+            f' {self.battery_capacity} kW |'
 
     def _charge(self, amps, voltage, phases=1):
 

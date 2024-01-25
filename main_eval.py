@@ -30,12 +30,14 @@ def eval():
                        generate_rnd_game=True,
                        render_mode=False,
                        verbose=True,
+                       save_replay=True,
+                       save_plots=save_plots,
                        eval_mode="unstirred",
                        )
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
 
-    state = env.reset()
+    state, _ = env.reset()
 
     rewards = []
 
@@ -46,7 +48,7 @@ def eval():
         if verbose:
             print(f'Actions: {actions}')
 
-        new_state, reward, done, _ = env.step(
+        new_state, reward, done, truncated, _ = env.step(
             actions, visualize=True)  # takes action
         rewards.append(reward)
 
@@ -76,8 +78,9 @@ def eval():
     env = EVsSimulator(config_file=config_file,
                        load_from_replay_path=new_replay_path,
                        verbose=True,
+                       save_plots=True,
                        )
-    state = env.reset()
+    state, _ = env.reset()
     rewards_opt = []
 
     for i in range(env.simulation_length):
@@ -88,7 +91,7 @@ def eval():
         if verbose:
             print(f' OptimalActions: {actions}')
 
-        new_state, reward, done, _ = env.step(
+        new_state, reward, done, truncated,_ = env.step(
             actions, visualize=True)  # takes action
         rewards_opt.append(reward)
 
@@ -97,7 +100,7 @@ def eval():
 
         if done:
             break
-
+        
     if save_plots:
         plt.figure(figsize=(10, 10))
         # Plot the commulative reward in subplot 1
