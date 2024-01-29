@@ -21,9 +21,12 @@ def eval():
     verbose = False
     save_plots = True
     replay_path = './replay/replay_sim_25_2024-01-25_15-18-34-238404.pkl'
+    # replay_path = './replay/replay_sim_25_2024-01-29_11-46-18-998193.pkl'
+    
     config_file = "/example_config_files/BusinessPST_config.yaml"
     config_file = "/example_config_files/simple_config.yaml"
     config_file = "/example_config_files/v2g_config.yaml"
+    
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
     # config_file = "config_files/config_tutorial_1.yaml"
 
@@ -65,7 +68,7 @@ def eval():
             break
 
     # env.plot()
-
+    exit()
     # Solve optimally
     # Power tracker optimizer
     math_model = ev_city_power_tracker_model.EV_City_Math_Model(

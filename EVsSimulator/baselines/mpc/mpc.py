@@ -100,6 +100,9 @@ class MPC():
         # Assume every charging station has the same energy prices
         # prices per KWh for the whole simulation
         self.prices = abs(env.charge_prices[0, :])
+        
+        #extend prices for the control horizon
+        self.prices = np.concatenate((self.prices, np.ones(self.control_horizon)*100000))
 
         self.verbose = verbose
 
@@ -133,20 +136,23 @@ class MPC():
         np.set_printoptions(linewidth=np.inf)
 
         for t in range(self.N):  # Loop for every time slot
-
+            print(f'-------------------------------------------- \n t: {t}')
             # Station model
             Amono = np.dstack([np.diag(self.u[:, i])
-                              for i in range(t + 1, t + 1 + self.control_horizon)])
+                              for i in range(t , t + 1 + self.control_horizon)])
             Bmono = self.T * np.dstack([np.diag(self.u[:, i])
-                                       for i in range(t + 1, t + 1 + self.control_horizon)])
+                                       for i in range(t, t + 1 + self.control_horizon)])
 
             print(f'Amono: {Amono.shape}')
             print(f'Bmono: {Bmono.shape}')
+            print(f'Amono: \n {Amono}')
+            print(f'Bmono: \n {Bmono}')
 
             # Complete model calculation Gxx0, this is the big A in the paper
             Gxx0 = self.x_next
+            #!!!!! Do we want to include the step now?? then self.control_horizon - 1
             if t == 0:
-                for i in range(self.control_horizon-1):
+                for i in range(1,self.control_horizon):
                     Gxx0 = np.concatenate((Gxx0, self.x_init[:, i]))
             else:
                 for i in range(t + 1, t + self.control_horizon):
@@ -157,6 +163,7 @@ class MPC():
                     Gxx0 = np.concatenate((Gxx0, Gx1))
 
             print(f'Gxx0: {Gxx0.shape}')
+            print(f'Gxx0: \n {Gxx0}')
 
             # Complete model calculation Gu, this is the G in the paper
             Gu = np.zeros((self.control_horizon * na,
@@ -169,7 +176,7 @@ class MPC():
                     if i == j:
                         Gu[i * na: (i+1) * na, j * nb: (j+1) * nb] = Bmono[:, :, j]  # H
                     else:
-                        for m in range(j + 2, i + 1):
+                        for m in range(j + 1, i + 1):
                             Abar = np.dot(Abar, Amono[:, :, m])
                         Gu[i * na: (i+1) * na, j *
                             nb: (j+1) * nb] = np.dot(Abar, Bbar)  # H
@@ -199,6 +206,8 @@ class MPC():
             bU = np.concatenate((np.abs(XMAX - Gxx0), -XF + Gxx0))
             
             print(f'AU: {AU.shape}, BU: {bU.shape}')
+            print(f'AU: \n {AU}')
+            print(f'bU: \n {bU}')
 
             # Generate the min cost function
             f = []
@@ -212,6 +221,9 @@ class MPC():
                              for p in range(1, self.control_horizon + 1)]).flatten()
 
             print(f'f: {f.shape}, BinEV: {BinEV.shape}')
+            print(f'f: \n {f}')
+            print(f'BinEV: \n {BinEV}')
+            
             # Boundaries of the power
             LB = np.zeros(self.control_horizon * self.n_ports)
             UB = np.array([self.p_max_MT[j, i + t - 1] for i in range(1,
@@ -225,41 +237,45 @@ class MPC():
                 self.n_ports * self.control_horizon, name='CapF1')
 
             # Constraints
-            constr = [AU @ u1 <= bU, CapF1 <= u1, u1 <=
-                      np.diag(BinEV) @ (UB - CapF1), LB <= CapF1, CapF1 <= UB]
+            constr = [AU @ u1 <= bU,
+                      CapF1 <= u1,
+                      u1 <= np.diag(BinEV) @ (UB - CapF1),
+                      LB <= CapF1, CapF1 <= UB]
 
             # Cost function
             objective = cp.Minimize(f.T @ u1 - f.T @ CapF1)
             prob = cp.Problem(objective, constr)
-            prob.solve()
-
-            self.opti_info.append(prob.status)
+            prob.solve(solver=cp.GUROBI, verbose=False)
+            
             print("--------------------------------------------")
-            if prob.status == cp.OPTIMAL or prob.status == cp.OPTIMAL_INACCURATE:
-                u = u1.value  # Optimal power
-                CapF = CapF1.value  # Optimal power
-                
-                print(f'u: {u.shape} \n {u}')
-                print(f'CapF: {CapF.shape} \n {CapF}')
+            if prob.status != cp.OPTIMAL:
+                print(f'Objective value: {prob.status}')
+                print("Optimal solution not found !!!!!")
+                exit()
+            
+            u = u1.value  # Optimal power
+            CapF = CapF1.value  # Optimal power
+            
+            print(f'u: {u.shape} \n {u}')
+            print(f'CapF: {CapF.shape} \n {CapF}')
+            
+            input("Press Enter to continue...")
 
-                # Selecting the first self.n_ports power levels
-                uc = u[:self.n_ports]
+            # Selecting the first self.n_ports power levels
+            uc = u[:self.n_ports]
 
-                # SoC Equations
-                X2 = Amono[:, :, 0] @ self.x_next + Bmono[:, :, 0] @ uc
-                self.x_next = X2
-                self.x_hist2 = np.concatenate((self.x_hist2, X2.reshape(-1, 1)), axis=1)
-                self.u_hist2 = np.concatenate((self.u_hist2, uc.reshape(-1, 1)), axis=1)
-                self.cap_hist = np.concatenate(
-                    (self.cap_hist, CapF[:self.n_ports].reshape(-1, 1)), axis=1)
+            # SoC Equations
+            X2 = Amono[:, :, 0] @ self.x_next + Bmono[:, :, 0] @ uc
+            self.x_next = X2
+            self.x_hist2 = np.concatenate((self.x_hist2, X2.reshape(-1, 1)), axis=1)
+            self.u_hist2 = np.concatenate((self.u_hist2, uc.reshape(-1, 1)), axis=1)
+            self.cap_hist = np.concatenate(
+                (self.cap_hist, CapF[:self.n_ports].reshape(-1, 1)), axis=1)
 
-                # Building the next initial condition
-                print(f't:{t}')
-                for i in range(self.n_ports):
-                    if self.u[i, t] == 0 and self.u[i, t + 1] == 1:
-                        self.x_next[i] = self.x_init[i, t + 1]
-                        self.x_hist2[i, t + 1] = self.x_init[i, t + 1]
+            # Building the next initial condition
+            print(f't:{t}')
+            for i in range(self.n_ports):
+                if self.u[i, t] == 0 and self.u[i, t + 1] == 1:
+                    self.x_next[i] = self.x_init[i, t + 1]
+                    self.x_hist2[i, t + 1] = self.x_init[i, t + 1]
 
-        # Display optimization info
-        for info in self.opti_info:
-            print(info)
