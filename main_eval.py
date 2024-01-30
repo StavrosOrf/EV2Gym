@@ -21,7 +21,9 @@ def eval():
     verbose = False
     save_plots = True
     replay_path = './replay/replay_sim_25_2024-01-25_15-18-34-238404.pkl'
+    replay_path = './replay/replay_sim_25_2024-01-30_11-01-12-620622.pkl'
     # replay_path = './replay/replay_sim_25_2024-01-29_11-46-18-998193.pkl'
+    # replay_path = None
     
     config_file = "/example_config_files/BusinessPST_config.yaml"
     config_file = "/example_config_files/simple_config.yaml"
@@ -62,12 +64,10 @@ def eval():
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
 
-        # input("Press Enter to continue...")
         if done:
             print(f'End of simulation at step {env.current_step}')
             break
 
-    # env.plot()
     exit()
     # Solve optimally
     # Power tracker optimizer
