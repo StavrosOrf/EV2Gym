@@ -82,7 +82,7 @@ class MPC():
             self.x_init[ev_location, arrival_times[index]
                 : departure_times[index]] = Cx0[index]
             self.x_final[ev_location, arrival_times[index]
-                : departure_times[index]] = Cxf[index]
+                : departure_times[index]] = 35 #Cxf[index]
             self.p_max_MT[ev_location, arrival_times[index]
                 : departure_times[index]] = Pmax
 
@@ -150,7 +150,7 @@ class MPC():
 
             # Complete model calculation Gxx0, this is the big A in the paper
             Gxx0 = self.x_next
-            #!!!!! Do we want to include the step now?? then self.control_horizon - 1
+            #!!!!! Do we want to include the step now?? Yes. then self.control_horizon - 1
             if t == 0:
                 for i in range(1,self.control_horizon):
                     Gxx0 = np.concatenate((Gxx0, self.x_init[:, i]))
@@ -262,15 +262,24 @@ class MPC():
             input("Press Enter to continue...")
 
             # Selecting the first self.n_ports power levels
-            uc = u[:self.n_ports]
-
+            uc = u[:self.n_ports]            
+            
+            #build normalized actions
+            actions = np.zeros(self.n_ports)
+            for i in range(self.n_ports):
+                if uc[i] > 0:
+                    actions[i] = uc[i]/self.p_max_MT[i, t]
+            print(f'actions: {actions.shape} \n {actions}')
+            #return actions 
+            
             # SoC Equations
             X2 = Amono[:, :, 0] @ self.x_next + Bmono[:, :, 0] @ uc
             self.x_next = X2
-            self.x_hist2 = np.concatenate((self.x_hist2, X2.reshape(-1, 1)), axis=1)
-            self.u_hist2 = np.concatenate((self.u_hist2, uc.reshape(-1, 1)), axis=1)
-            self.cap_hist = np.concatenate(
-                (self.cap_hist, CapF[:self.n_ports].reshape(-1, 1)), axis=1)
+            
+            # self.x_hist2 = np.concatenate((self.x_hist2, X2.reshape(-1, 1)), axis=1)
+            # self.u_hist2 = np.concatenate((self.u_hist2, uc.reshape(-1, 1)), axis=1)
+            # self.cap_hist = np.concatenate(
+            #     (self.cap_hist, CapF[:self.n_ports].reshape(-1, 1)), axis=1)
 
             # Building the next initial condition
             print(f't:{t}')

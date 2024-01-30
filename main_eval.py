@@ -20,11 +20,11 @@ def eval():
 
     verbose = False
     save_plots = True
+
     replay_path = './replay/replay_sim_25_2024-01-25_15-18-34-238404.pkl'
-    replay_path = './replay/replay_sim_25_2024-01-30_11-01-12-620622.pkl'
+    replay_path = './replay/replay_sim_25_2024-01-29_11-46-18-998193.pkl'
     # replay_path = './replay/replay_sim_25_2024-01-29_11-46-18-998193.pkl'
     # replay_path = None
-    
     config_file = "/example_config_files/BusinessPST_config.yaml"
     config_file = "/example_config_files/simple_config.yaml"
     config_file = "/example_config_files/v2g_config.yaml"
@@ -36,7 +36,7 @@ def eval():
                        load_from_replay_path=replay_path,
                        generate_rnd_game=True,
                        render_mode=False,
-                       verbose=True,
+                       verbose=False,
                        save_replay=True,
                        save_plots=save_plots,
                        eval_mode="unstirred",
@@ -58,7 +58,7 @@ def eval():
             print(f'Actions: {actions}')
 
         new_state, reward, done, truncated, _ = env.step(
-            actions, visualize=True)  # takes action
+            actions, visualize=False)  # takes action
         rewards.append(reward)
 
         if verbose:
