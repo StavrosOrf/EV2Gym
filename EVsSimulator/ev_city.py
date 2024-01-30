@@ -99,8 +99,7 @@ class EVsSimulator(gym.Env):
             self.timescale = self.replay.timescale
             self.cs = self.replay.n_cs
             self.number_of_transformers = self.replay.n_transformers
-            self.number_of_ports_per_cs = self.replay.max_n_ports
-            self.spawn_rate = -1
+            self.number_of_ports_per_cs = self.replay.max_n_ports            
             self.scenario = self.replay.scenario
             self.heterogeneous_specs = self.replay.heterogeneous_specs
 
