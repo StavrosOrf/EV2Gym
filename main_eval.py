@@ -69,7 +69,7 @@ def eval():
         if done:
             print(f'End of simulation at step {env.current_step}')
             break
-
+    
     exit()
     # Solve optimally
     # Power tracker optimizer
