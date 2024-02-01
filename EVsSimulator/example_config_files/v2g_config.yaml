@@ -29,7 +29,7 @@
 
 # EV Spawn Behavior
   scenario: workplace # public, private, or workplace
-  spawn_multiplier: 15 # 1 is default, the higher the number the more EVs spawn
+  spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn
   score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
 
 

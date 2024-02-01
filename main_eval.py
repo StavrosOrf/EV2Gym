@@ -21,14 +21,15 @@ def eval():
     verbose = False
     save_plots = True
 
-    replay_path = './replay/replay_sim_25_2024-01-25_15-18-34-238404.pkl'    
+    replay_path = './replay/replay_sim_25_2024-01-25_15-18-34-238404.pkl'
     # replay_path = './replay/replay_sim_25_2024-01-29_11-46-18-998193.pkl'
     replay_path = './replay/replay_sim_25_2024-01-30_21-54-45-786820.pkl'
-    # replay_path = None
+    replay_path = None
+
     config_file = "/example_config_files/BusinessPST_config.yaml"
     config_file = "/example_config_files/simple_config.yaml"
     config_file = "/example_config_files/v2g_config.yaml"
-    
+
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
 
     env = EVsSimulator(config_file=config_file,
@@ -37,12 +38,13 @@ def eval():
                        render_mode=False,
                        verbose=True,
                        save_replay=True,
-                       save_plots=save_plots,                       
+                       save_plots=save_plots,
                        )
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
-    
-    mpc = MPC(env, control_horizon=25, verbose=True)    
+
+    mpc = MPC(env, control_horizon=25, verbose=True)
+
     state, _ = env.reset()
 
     rewards = []
@@ -50,7 +52,7 @@ def eval():
     for i in range(env.simulation_length):
         # all ports are charging instantly
         # actions = np.ones(env.number_of_ports)
-        actions = mpc.get_actions(t = i)
+        actions = mpc.get_actions(t=i)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
         if verbose:
             print(f'Actions: {actions}')
@@ -58,9 +60,9 @@ def eval():
         new_state, reward, done, truncated, _ = env.step(
             actions, visualize=True)  # takes action
         rewards.append(reward)
-        
+
         # input("Press Enter to continue...")
-        
+
         if verbose:
             print(f'Reward: {reward} \t Done: {done}')
 
@@ -98,7 +100,7 @@ def eval():
         if verbose:
             print(f' OptimalActions: {actions}')
 
-        new_state, reward, done, truncated,_ = env.step(
+        new_state, reward, done, truncated, _ = env.step(
             actions, visualize=True)  # takes action
         rewards_opt.append(reward)
 
@@ -107,7 +109,7 @@ def eval():
 
         if done:
             break
-        
+
     if save_plots:
         plt.figure(figsize=(10, 10))
         # Plot the commulative reward in subplot 1
