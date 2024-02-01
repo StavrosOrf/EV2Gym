@@ -20,11 +20,9 @@ def eval():
 
     verbose = False
     save_plots = True
-
-    replay_path = './replay/replay_sim_25_2024-01-25_15-18-34-238404.pkl'    
-    # replay_path = './replay/replay_sim_25_2024-01-29_11-46-18-998193.pkl'
-    replay_path = './replay/replay_sim_25_2024-01-30_21-54-45-786820.pkl'
-    # replay_path = None
+    
+    # replay_path = './replay/replay_sim_25_2024-01-30_21-54-45-786820.pkl'
+    replay_path = './replay/replay_sim_25_2024-01-31_11-09-58-894189.pkl'
     config_file = "/example_config_files/BusinessPST_config.yaml"
     config_file = "/example_config_files/simple_config.yaml"
     config_file = "/example_config_files/v2g_config.yaml"
@@ -67,7 +65,7 @@ def eval():
         if done:
             print(f'End of simulation at step {env.current_step}')
             break
-
+    
     exit()
     # Solve optimally
     # Power tracker optimizer

@@ -6,7 +6,7 @@ Authors: Cesar Diaz-Londono, Stavros Orfanoudakis
 
 import numpy as np
 import cvxpy as cp
-
+import matplotlib.pyplot as plt
 
 class MPC():
 
@@ -146,7 +146,8 @@ class MPC():
                     self.x_next[counter] = ev.current_capacity
                 counter += 1
 
-        print(f'x_next: {self.x_next}')
+        if self.verbose:
+            print(f'x_next: {self.x_next}')
 
         na = nb = self.n_ports
 
@@ -157,11 +158,11 @@ class MPC():
                            for i in range(t, t + 1 + self.control_horizon)])
         Bmono = self.T * np.dstack([np.diag(self.u[:, i])
                                     for i in range(t, t + 1 + self.control_horizon)])
-
-        print(f'Amono: {Amono.shape}')
-        print(f'Bmono: {Bmono.shape}')
-        print(f'Amono: \n {Amono}')
-        print(f'Bmono: \n {Bmono}')
+        if self.verbose:
+            print(f'Amono: {Amono.shape}')
+            print(f'Bmono: {Bmono.shape}')
+            print(f'Amono: \n {Amono}')
+            print(f'Bmono: \n {Bmono}')
 
         # Complete model calculation Gxx0, this is the big A in the paper
         Gxx0 = self.x_next
@@ -178,8 +179,9 @@ class MPC():
                         Gx1[j] = self.x_next[j]
                 Gxx0 = np.concatenate((Gxx0, Gx1))
 
-        print(f'Gxx0: {Gxx0.shape}')
-        print(f'Gxx0: \n {Gxx0}')
+        if self.verbose:
+            print(f'Gxx0: {Gxx0.shape}')
+            print(f'Gxx0: \n {Gxx0}')
 
         # Complete model calculation Gu, this is the G in the paper
         Gu = np.zeros((self.control_horizon * na,
@@ -199,14 +201,15 @@ class MPC():
                         nb: (j+1) * nb] = np.dot(Abar, Bbar)  # H
 
                 Bbar = Bmono[:, :, j]
-        print(f'Gu:{Gu.shape} \n {Gu}')
+                
+        if self.verbose:
+            print(f'Gu:{Gu.shape} \n {Gu}')
 
         # Building final SoC XF vector
         XF = np.zeros(self.control_horizon * self.n_ports)
         m = self.n_ports
         for j in range(t + 1, t + self.control_horizon + 1):
             for i in range(self.n_ports):
-                # print(f'i: {i}, j: {j}')
                 m += 1
                 if self.u[i, j] == 0 and self.u[i, j - 1] == 1:
                     XF[m - self.n_ports - 1] = self.x_final[i, j - 1]
@@ -215,31 +218,35 @@ class MPC():
         XMAX = np.array([self.x_final[:, t + i]
                         for i in range(self.control_horizon)]).flatten()
 
-        print(f'XF: {XF.shape} \n {XF}')
-        print(f'XMAX: {XMAX.shape} \n {XMAX}')
+        if self.verbose:
+            print(f'XF: {XF.shape} \n {XF}')
+            print(f'XMAX: {XMAX.shape} \n {XMAX}')
 
         # Inequality constraint
         AU = np.vstack((Gu, -Gu))
         bU = np.concatenate((np.abs(XMAX - Gxx0), -XF + Gxx0))
 
-        print(f'AU: {AU.shape}, BU: {bU.shape}')
-        print(f'AU: \n {AU}')
-        print(f'bU: \n {bU}')
+        if self.verbose:
+            print(f'AU: {AU.shape}, BU: {bU.shape}')
+            print(f'AU: \n {AU}')
+            print(f'bU: \n {bU}')
 
         # Generate the min cost function
+        # !!!! Question: Why not include the cost of the current step?
         f = []
         for i in range(self.control_horizon):
             for j in range(self.n_ports):
-                f.append(self.T * self.prices[t + i])
+                f.append(self.T * self.prices[t + i]) #[t+i+1]
         f = np.array(f).reshape(-1, 1)
 
         # Binary variable
         BinEV = np.array([self.u[:, t + p]
                           for p in range(self.control_horizon)]).flatten()
 
-        print(f'f: {f.shape}, BinEV: {BinEV.shape}')
-        print(f'f: \n {f}')
-        print(f'BinEV: \n {BinEV}')
+        if self.verbose:
+            print(f'f: {f.shape}, BinEV: {BinEV.shape}')
+            print(f'f: \n {f}')
+            print(f'BinEV: \n {BinEV}')
 
         # Boundaries of the power
         # LB = np.array([self.p_min_MT[j, i + t]
@@ -250,8 +257,9 @@ class MPC():
                        for i in range(self.control_horizon)
                        for j in range(self.n_ports)])
 
-        print(f'LB: {LB.shape}, \n {LB}')
-        print(f'UB: {UB.shape}, \n {UB}')
+        if self.verbose:
+            print(f'LB: {LB.shape}, \n {LB}')
+            print(f'UB: {UB.shape}, \n {UB}')
 
         # Optimization with CVXPY
         u1 = cp.Variable(self.n_ports * self.control_horizon, name='u1')
@@ -279,9 +287,10 @@ class MPC():
 
         u = u1.value  # Optimal power
         CapF = CapF1.value  # Optimal power
-
-        print(f'u: {u.shape} \n {u}')
-        print(f'CapF: {CapF.shape} \n {CapF}')
+        
+        if self.verbose:
+            print(f'u: {u.shape} \n {u}')
+            print(f'CapF: {CapF.shape} \n {CapF}')
 
         # Selecting the first self.n_ports power levels
         uc = u[:self.n_ports]
@@ -292,7 +301,9 @@ class MPC():
             if uc[i] > 0:
                 actions[i] = uc[i]/self.p_max_MT[i, t]
 
-        print(f'actions: {actions.shape} \n {actions}')
+        if self.verbose:
+            print(f'actions: {actions.shape} \n {actions}')
+            
         X2 = Amono[:, :, 0] @ self.x_next + Bmono[:, :, 0] @ uc
         # print(X2)
 
@@ -310,3 +321,59 @@ class MPC():
         # SoC Equations
         X2 = Amono[:, :, 0] @ self.x_next + Bmono[:, :, 0] @ uc
         self.x_next = X2
+
+    def plot(self):
+        '''
+        This function plots the results of the MPC baseline in the plot folder of the run.        
+        '''
+        
+        # Colors
+        rojo = [0.6350, 0.0780, 0.1840]
+        azul = [0, 0.4470, 0.7410]
+
+        # Plot price
+        x_v = np.arange(0,self.N+1,step=1)
+        plt.figure()
+        plt.stairs(self.prices[:self.N],x_v, color=azul, linewidth=1)
+        plt.xlabel('Steps', fontsize=12)
+        plt.ylabel('Price [€/kWh]', fontsize=12)
+        # plt.legend(['Prices'], loc='best', fontsize=12)
+        # plt.xlim(0.25, self.T)
+        # plt.ylim(bottom=0)
+        plt.grid(True)
+        plt.show()
+
+        print(f'x_v: {x_v.shape}')
+        print(f'x_v: {x_v}')
+        print(f'prices: {self.prices.shape}')
+        print(f'prices: {self.prices}')
+        
+        print(f'x_hist2: {self.x_hist2.shape}')
+        print(f'u_hist2: {self.u_hist2.shape}')
+        print(f'x_hist2: {self.x_hist2}')
+        print(f'u_hist2: {self.u_hist2}')
+        
+        # Charger responses
+        for i in range(self.n_ports):
+            x_v = np.arange(0,self.N+1,step=1)
+            plt.figure()
+
+            # plt.stairs(x_v, self.Uhist1[i, :self.N], color=rojo, linewidth=1)
+            plt.stairs(self.u_hist2[i, :self.N],x_v, linestyle='--', color=azul, linewidth=1)
+            
+            plt.xlabel('Time [h]', fontsize=12)
+            plt.ylabel('Power [kW]', fontsize=12)
+            plt.legend(['MT', 'OCCF'], loc='best', fontsize=12)
+
+            plt.grid(True)
+            plt.show()
+
+            plt.figure()
+            # plt.stairs(x_v, self.Xhist1[i, :self.N], color=rojo, linewidth=1)
+            plt.stairs(self.x_hist2[i, :self.N],x_v, linestyle='-.', color=azul, linewidth=1)
+            
+            plt.xlabel('Time [h]', fontsize=12)
+            plt.ylabel('Energy [kWh]', fontsize=12)
+            plt.legend(['MT', 'OCCF'], loc='best', fontsize=12)
+            plt.grid(True)
+            plt.show()
