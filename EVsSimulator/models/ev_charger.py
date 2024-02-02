@@ -100,7 +100,7 @@ class EV_Charger:
         '''
         Updates the EV charger status according to the actions taken by the EVs
         Inputs:
-            - actions: a list of actions taken by the EVs connected to the EV charger in the format of (power) *n_ports positive for charging negative for discharging, default is to zer if no ev is connected        
+            - actions: a list of actions taken by the EVs connected to the EV charger in the format of (current) *n_ports positive for charging negative for discharging, default is to zer if no ev is connected        
             - charge_price: the price of charging per kWh in the current timestep
             - discharge_price: the price of discharging per kWh in the current timestep
 

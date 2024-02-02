@@ -53,14 +53,14 @@ class EV():
                  use_probabilistic_time_of_departure=False,
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
-                 max_ac_charge_power=22,  # kWh        
-                 min_ac_charge_power=2,  # kWh         
+                 max_ac_charge_power=22,  # kWh
+                 min_ac_charge_power=2,  # kWh
                  max_dc_charge_power=11,  # kWh
                  max_discharge_power=-5,  # kWh
                  min_discharge_power=-2,  # kWh
-                 ev_phases = 3,
+                 ev_phases=3,
                  noise_level=0,
-                 transition_soc=0.8,                 
+                 transition_soc=0.8,
                  charge_efficiency=1,
                  discharge_efficiency=1,
                  v2g_enabled=True,
@@ -103,8 +103,8 @@ class EV():
         self.previous_power = 0
         self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
         self.total_energy_exchanged = 0
-        
-        #Baterry degradation
+
+        # Baterry degradation
         self.c_lost = 0
 
     def reset(self):
@@ -113,7 +113,7 @@ class EV():
         '''
         self.current_capacity = self.battery_capacity_at_arrival
         self.current_power = 0
-        self.actual_current = 0        
+        self.actual_current = 0
         self.charging_cycles = 0
         self.previous_power = 0
         self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
@@ -130,7 +130,7 @@ class EV():
 
         if type == 'DC':
             raise NotImplementedError
-        
+
         if amps > 0 and amps < self.min_ac_charge_power*1000/(voltage*math.sqrt(phases)):
             amps = 0
         elif amps < 0 and amps > self.max_discharge_power*1000/(voltage*math.sqrt(phases)):
@@ -145,15 +145,15 @@ class EV():
         if self.previous_power == 0 or (self.previous_power/amps) < 0:
             self.charging_cycles += 1
 
-        phases = min(phases, self.ev_phases)                
-        
+        phases = min(phases, self.ev_phases)
+
         if amps > 0:
             self.actual_current = self._charge(amps, voltage, phases)
         elif amps < 0:
             self.actual_current = self._discharge(amps, voltage, phases)
 
         self.previous_power = self.current_power
-        
+
         self.total_energy_exchanged += self.current_power * self.timescale / 60
 
         return self.current_power, self.actual_current
@@ -343,7 +343,7 @@ class EV():
     def get_battery_degradation(self):
         '''
         A function that returns the capacity loss of the EV.
-        
+
         Qacc := Accumulated battery cell throughput (Ah)
         Qsim := Battery cell throughput during simulation (Ah)        
         Tacc := Battery age (days)
@@ -353,52 +353,52 @@ class EV():
         Outputs: 
             - Capacity loss: the capacity loss
         '''
-        
-        #Degradation modelling parameters
+
+        # Degradation modelling parameters
         e0 = 7.543e6
         e1 = 23.75e6
         e2 = 6976
-        
+
         z0 = 7.348e-3
         z1 = 3.667
         z2 = 7.6e-4
         z3 = 4.081e-3
-        
-        b_cap_ah = 2.05 #ah
-        b_cap_kwh = 78 #kwh
-        
-        d_dist = 3650 #km
-        b_age = 1095 #days
-        G = 0.186 #kwh/km
-        
+
+        b_cap_ah = 2.05  # ah
+        b_cap_kwh = 78  # kwh
+
+        d_dist = 3650  # km
+        b_age = 1095  # days
+        G = 0.186  # kwh/km
+
         # Age of the battery in days
         T_acc = b_age
-        
+
         # Simulation time in days
-        T_sim = 1 # Assume the simulation time is 1 day
-        
-        theta = 298.15 #Kelvin
-        k = 0.8263 #Volts
-        
-        
-        v_min = 2.5 #Volts
-        soc_avg = ((self.current_capacity + self.prev_capacity)/2 ) / self.battery_capacity
+        T_sim = 1  # Assume the simulation time is 1 day
+
+        theta = 298.15  # Kelvin
+        k = 0.8263  # Volts
+
+        v_min = 2.5  # Volts
+        soc_avg = ((self.current_capacity + self.prev_capacity)/2) / \
+            self.battery_capacity
         v_avg = v_min + k * self.get_soc()
-        
-        #alpha(v_avg)
-        alpha = (e0 * v_avg - e1) * math.exp(-e2 /theta)
+
+        # alpha(v_avg)
+        alpha = (e0 * v_avg - e1) * math.exp(-e2 / theta)
         d_cal = alpha * 0.75 * T_sim / (T_acc)**0.25
-        
-        #beta(v_avg, soc_avg)
-        delta_DoD =  5 # cahnge this!!!!!!!!
+
+        # beta(v_avg, soc_avg)
+        delta_DoD = 5  # cahnge this!!!!!!!!
         v_half_soc = v_min + k * 0.5
-        beta = z0* (v_half_soc / math.sqrt(2) - z1)**2 + z2 + z3 * delta_DoD
-        
+        beta = z0 * (v_half_soc / math.sqrt(2) - z1)**2 + z2 + z3 * delta_DoD
+
         Q_sim = (self.total_energy_exchanged / b_cap_kwh) * b_cap_ah
-        
-        #accumulated throughput
-        Q_acc = 2* (b_age * (d_dist / 365) * G * b_cap_ah) / b_cap_kwh
-        
+
+        # accumulated throughput
+        Q_acc = 2 * (b_age * (d_dist / 365) * G * b_cap_ah) / b_cap_kwh
+
         d_cyc = beta * 0.5 * Q_sim / (Q_acc)**0.5
-        
+
         return d_cal + d_cyc

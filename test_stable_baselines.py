@@ -17,8 +17,8 @@ import argparse
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str)
-    parser.add_argument('--device', type=str, default="cpu")
+    parser.add_argument('--algorithm', type=str,default="ppo")
+    parser.add_argument('--device', type=str, default="cuda:0")
     
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     else:
         raise ValueError("Unknown algorithm")    
        
-    model.learn(total_timesteps=1_000_000, progress_bar=True,)
+    model.learn(total_timesteps=1_000, progress_bar=True,)
 
     model.save("./saved_models/"+algorithm+"_20cs_1_port_SquaredTrackingErrorRewardWithPenalty")
     # exit()

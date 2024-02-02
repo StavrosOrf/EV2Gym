@@ -28,12 +28,15 @@ def load_ev_spawn_scenarios(env):
         'EVsSimulator', 'data/distribution-of-energy-demand.csv')
     time_of_connection_vs_hour_file = pkg_resources.resource_filename(
         'EVsSimulator', 'data/time_of_connection_vs_hour.npy')
-    
+
     env.df_arrival_week = pd.read_csv(df_arrival_week_file)  # weekdays
     env.df_arrival_weekend = pd.read_csv(df_arrival_weekend_file)  # weekends
-    env.df_connection_time = pd.read_csv(df_connection_time_file)  # connection time
+    env.df_connection_time = pd.read_csv(
+        df_connection_time_file)  # connection time
     env.df_energy_demand = pd.read_csv(df_energy_demand_file)  # energy demand
-    env.time_of_connection_vs_hour = np.load(time_of_connection_vs_hour_file)  # time of connection vs hour
+    env.time_of_connection_vs_hour = np.load(
+        time_of_connection_vs_hour_file)  # time of connection vs hour
+
 
 def load_power_setpoints(env, randomly):
     '''
