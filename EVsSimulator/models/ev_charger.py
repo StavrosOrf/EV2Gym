@@ -36,7 +36,9 @@ class EV_Charger:
 
     Methods:
         - step: updates the EV charger status according to the actions taken by the EVs
-        - reset: resets the EV charger status to the initial state              
+        - reset: resets the EV charger status to the initial state      
+        
+            
 '''
 
     def __init__(self,

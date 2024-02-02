@@ -29,11 +29,12 @@ master_doc = "index"
 
 extensions = [
     # "sphinx.ext.napoleon",
-    # "sphinx.ext.autodoc",
+    "sphinx.ext.autodoc",
     # "sphinx.ext.doctest",
     # "nbsphinx_link",
     'autoapi.extension'
 ]
+autodoc_typehints = 'description'
 
 # templates_path = ['_templates']
 exclude_patterns = []
@@ -43,14 +44,15 @@ language = 'English'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',"**.ipynb_checkpoints"]
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',"**.ipynb_checkpoints",
+                    "*.csv", "*.json", "*.txt", "*.yml", "*.yaml"]
 
 autodoc_default_options = {
     'members': True,
     'show-inheritance': True,
 }
 
-autoapi_dirs = ['../EVsSimulator/']
+autoapi_dirs = ['../EVsSimulator/rl_agent']
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -65,3 +67,12 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']
+
+def skip_submodules(app, what, name, obj, skip, options):
+    if what == "module":
+        skip = True
+    return skip
+
+
+def setup(sphinx):
+    sphinx.connect("autoapi-skip-member", skip_submodules)
