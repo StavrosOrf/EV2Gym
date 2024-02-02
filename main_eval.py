@@ -17,6 +17,10 @@ import pkg_resources
 
 
 def eval():
+    """
+    Runs an evaluation of the EVsSimulator environment.
+    
+    """
 
     verbose = False
     save_plots = True

@@ -9,6 +9,8 @@ import numpy as np
 class Transformer():
     """
     Transformer class for the ev_city environment
+    
+    
     """
 
     def __init__(self,
@@ -19,6 +21,25 @@ class Transformer():
                  timescale=5,
                  standard_transformer_loading=None,
                  ):
+        
+        """
+        Initialize the transformer
+        
+        :param id: unique identifier of the transformer
+        :type id: int
+        :param max_current: The maximum capacity of the transformer in A, defaults to 150
+        :type max_current: int, optional
+        :param min_current: The minimum capacity of the transformer in A, defaults to 0
+        :type min_current: int, optional
+        :param cs_ids: the charging stations connected to the transformer, defaults to []
+        :type cs_ids: list, optional
+        :param timescale: the timescale of the simulation, defaults to 5
+        :type timescale: int, optional
+        :param standard_transformer_loading: the standard transformer loading, defaults to None
+        :type standard_transformer_loading: float, optional
+        
+        """
+        
 
         self.id = id
         self.max_current = max_current

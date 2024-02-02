@@ -4,8 +4,8 @@ import torch.nn as nn
 
 import transformers
 
-from .model import TrajectoryModel
-from .trajectory_gpt2 import GPT2Model
+from EVsSimulator.baselines.DT.models.model import TrajectoryModel
+from EVsSimulator.baselines.DT.models.trajectory_gpt2 import GPT2Model
 
 
 class DecisionTransformer(TrajectoryModel):

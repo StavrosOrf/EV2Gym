@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from .trainer import Trainer
+from EVsSimulator.baselines.DT.training.trainer import Trainer
 
 
 class ActTrainer(Trainer):

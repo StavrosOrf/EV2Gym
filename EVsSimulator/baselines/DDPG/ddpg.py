@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from torch.optim import Adam
 
-from .nets import Actor, Critic
+from EVsSimulator.baselines.DDPG.nets import Actor, Critic
 
 logger = logging.getLogger('ddpg')
 logger.setLevel(logging.INFO)
@@ -35,14 +35,14 @@ class DDPG(object):
         https://arxiv.org/abs/1509.02971
 
         Arguments:
-            gamma:          Discount factor
-            tau:            Update factor for the actor and the critic
-            hidden_size:    Number of units in the hidden layers of the actor and critic. Must be of length 2.
-            num_inputs:     Size of the input states
-            action_space:   The action space of the used environment. Used to clip the actions and 
-                            to distinguish the number of outputs
-            checkpoint_dir: Path as String to the directory to save the networks. 
-                            If None then "./saved_models/" will be used
+        :param gamma:          Discount factor
+        :param tau:            Update factor for the actor and the critic
+        :param hidden_size:    Number of units in the hidden layers of the actor and critic. Must be of length 2.
+        :param num_inputs:     Size of the input states
+        :param action_space:   The action space of the used environment. Used to clip the actions and 
+                        to distinguish the number of outputs
+        :param checkpoint_dir: Path as String to the directory to save the networks. 
+                        If None then "./saved_models/" will be used
         """
 
         self.gamma = gamma
