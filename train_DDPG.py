@@ -17,7 +17,11 @@ from EVsSimulator.baselines.DDPG.ddpg import DDPG
 from EVsSimulator.baselines.DDPG.noise import OrnsteinUhlenbeckActionNoise
 from EVsSimulator.baselines.DDPG.replay_memory import ReplayMemory, Transition
 
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorRewardWithPenalty, SquaredTrackingErrorReward
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorRewardWithPenalty, SquaredTrackingErrorReward, \
+    Squared_efficiency_and_satisfaction_balance_reward, Linear_efficiency_and_satisfaction_balance_reward, \
+    SquaredTrackingErrorRewardwithPSPpenalty, LinearTrackingErrorRewardwithPSPpenalty, SquaredTrackingErrorwithEqualPenalty, \
+    LinearTrackingErrorwithEqualPenalty, SquaredTrackingErrorwithPenaltyandPriorityChargingReward
+    
 from EVsSimulator.rl_agent.state import BusinessPSTwithMoreKnowledge
 
 
@@ -65,7 +69,25 @@ if __name__ == "__main__":
     config_file = "EVsSimulator/example_config_files/BusinessPST_config.yaml"
     
     ####### Set the reward function here #######
-    reward_function = SquaredTrackingErrorReward
+    #reward_function = SquaredTrackingErrorwithPenaltyandPriorityChargingReward
+
+    reward_function_name = os.getenv("REWARD_FUNCTION", "LinearTrackingErrorwithEqualPenalty")
+
+    # Map environment variable values to actual reward function classes
+    reward_functions = {
+    "SquaredTrackingErrorRewardWithPenalty": SquaredTrackingErrorRewardWithPenalty,
+    "SquaredTrackingErrorReward": SquaredTrackingErrorReward,
+    "Squared_efficiency_and_satisfaction_balance_reward": Squared_efficiency_and_satisfaction_balance_reward,
+    "Linear_efficiency_and_satisfaction_balance_reward": Linear_efficiency_and_satisfaction_balance_reward,
+    "SquaredTrackingErrorRewardwithPSPpenalty": SquaredTrackingErrorRewardwithPSPpenalty,
+    "LinearTrackingErrorRewardwithPSPpenalty": LinearTrackingErrorRewardwithPSPpenalty,
+    "SquaredTrackingErrorwithEqualPenalty": SquaredTrackingErrorwithEqualPenalty,
+    "LinearTrackingErrorwithEqualPenalty": LinearTrackingErrorwithEqualPenalty,
+    "SquaredTrackingErrorwithPenaltyandPriorityChargingReward": SquaredTrackingErrorwithPenaltyandPriorityChargingReward
+}
+
+    # Select the reward function based on the environment variable
+    reward_function = reward_functions.get(reward_function_name, LinearTrackingErrorwithEqualPenalty)
     
     ####### Set the State function here #######
     state_function = BusinessPSTwithMoreKnowledge
@@ -230,7 +252,7 @@ if __name__ == "__main__":
                        'train/policy_loss': epoch_policy_loss})
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
-        if timestep >= 5000 * t:
+        if timestep >= 10000 * t:
             print(f'Testing at timestep {timestep}')
             t += 1
             test_rewards = []
