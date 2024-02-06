@@ -213,6 +213,9 @@ class MPC():
                 m += 1
                 if self.u[i, j] == 0 and self.u[i, j - 1] == 1:
                     XF[m - self.n_ports - 1] = self.x_final[i, j - 1]
+                #if we want to limit SoC for v2G
+                # else:
+                    # XF[m - self.n_ports - 1] = minimum capacity of EVs
 
         # Maximum capacity of EVs
         XMAX = np.array([self.x_final[:, t + i]
@@ -264,14 +267,16 @@ class MPC():
         # Optimization with CVXPY
         u1 = cp.Variable(self.n_ports * self.control_horizon, name='u1')
         CapF1 = cp.Variable(
-            self.n_ports * self.control_horizon, name='CapF1')
+            self.n_ports * self.control_horizon, name='CapF1') # not needed for profit maxmization
 
         # Constraints
         constr = [AU @ u1 <= bU,
-                  CapF1 <= u1,
-                  u1 <= np.diag(BinEV) @ (UB - CapF1),
-                  LB <= CapF1,
-                  CapF1 <= UB
+                  CapF1 <= u1, # remove for v2g
+                  u1 <= np.diag(BinEV) @ (UB - CapF1), # remove
+                  LB @ u1 <= CapF1, # LB cannot be positive when u1 is zero
+                  CapF1 <= UB # remove for v2g
+                #   u1 <= UB # new
+                # LB <= u1 # new
                   ]
 
         # Cost function

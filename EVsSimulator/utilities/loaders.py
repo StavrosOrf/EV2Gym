@@ -15,7 +15,7 @@ from EVsSimulator.models.transformer import Transformer
 from EVsSimulator.utilities.utils import EV_spawner
 
 
-def load_ev_spawn_scenarios(env):
+def load_ev_spawn_scenarios(env) -> None:
     '''Loads the EV spawn scenarios of the simulation'''
 
     df_arrival_week_file = pkg_resources.resource_filename(
@@ -71,7 +71,63 @@ def load_power_setpoints(env, randomly) -> np.ndarray:
     #         'Loading power setpoints from is not implemented yet')
 
 
-def load_transformers(env)->list[Transformer]:
+def generate_residential_inflexible_loads(env) -> np.ndarray:
+    '''
+    This function loads the inflexible loads of each transformer
+    in the simulation.
+    '''
+
+    # Load the data
+    data_path = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/residential_loads.csv')
+    data = pd.read_csv(data_path, header=None)
+
+    desired_timescale = env.timescale
+    simulation_length = env.simulation_length
+    simulation_date = env.sim_starting_date.strftime('%Y-%m-%d %H:%M:%S')
+    number_of_transformers = env.number_of_transformers
+
+    dataset_timescale = 15
+    dataset_starting_date = '2022-01-01 00:00:00'
+
+    if desired_timescale > dataset_timescale:
+        data = data.groupby(
+            data.index // (desired_timescale/dataset_timescale)).max()
+    elif desired_timescale < dataset_timescale:
+        # extend the dataset to data.shape[0] * (dataset_timescale/desired_timescale)
+        # by repeating the data every (dataset_timescale/desired_timescale) rows
+        data = data.loc[data.index.repeat(
+            dataset_timescale/desired_timescale)].reset_index(drop=True)
+
+    # duplicate the data to have two years of data
+    data = pd.concat([data, data], ignore_index=True)
+
+    # add a date column to the dataframe
+    data['date'] = pd.date_range(
+        start=dataset_starting_date, periods=data.shape[0], freq=f'{desired_timescale}T')
+
+    # find year of the data
+    year = int(dataset_starting_date.split('-')[0])
+    # replace the year of the simulation date with the year of the data
+    simulation_date = f'{year}-{simulation_date.split("-")[1]}-{simulation_date.split("-")[2]}'
+
+    simulation_index = data[data['date'] == simulation_date].index[0]
+
+    # select the data for the simulation date
+    data = data[simulation_index:simulation_index+simulation_length]
+
+    # drop the date column
+    data = data.drop(columns=['date'])
+    new_data = pd.DataFrame()
+
+    for i in range(number_of_transformers):
+        new_data['tr_'+str(i)] = data.sample(10, axis=1).sum(axis=1)
+
+    # return the "tr_" columns
+    return new_data.to_numpy().T
+
+
+def load_transformers(env) -> list[Transformer]:
     '''Loads the transformers of the simulation
     If load_from_replay_path is None, then the transformers are created randomly
 
@@ -87,8 +143,14 @@ def load_transformers(env)->list[Transformer]:
     assert transformer_mode in ['current', 'power']  # 'current' or 'power'
 
     if env.config['transformer_include_inflexible_loads']:
-        inflexible_loads = np.zeros((env.number_of_transformers,
-                                    env.simulation_length))
+
+        if env.scenario == 'private':
+            inflexible_loads = generate_residential_inflexible_loads(env)
+
+        # TODO add inflexible loads for public and workplace scenarios
+        else:
+            inflexible_loads = generate_residential_inflexible_loads(env)
+
     else:
         inflexible_loads = np.zeros((env.number_of_transformers,
                                     env.simulation_length))
@@ -106,8 +168,18 @@ def load_transformers(env)->list[Transformer]:
                                       max_power=env.charging_network_topology[tr]['max_power'],
                                       max_current=env.charging_network_topology[tr]['max_current'],
                                       inflexible_transformer_loading=inflexible_loads[i, :],
-                                      max_power_or_current_mode = transformer_mode,
+                                      max_power_or_current_mode=transformer_mode,
                                       )
+
+            if env.config['transformer_include_inflexible_loads']:
+                # for each step
+                for j in range(env.simulation_length):
+                    if transformer.inflexible_transformer_loading[j] > transformer.max_power:
+                        transformer.inflexible_transformer_loading[j] = transformer.max_power
+
+                    elif transformer.inflexible_transformer_loading[j] < transformer.min_power:
+                        transformer.inflexible_transformer_loading[j] = transformer.min_power
+
             transformers.append(transformer)
 
     else:
@@ -120,8 +192,26 @@ def load_transformers(env)->list[Transformer]:
                                       cs_ids=np.where(
                                           np.array(env.cs_transformers) == i)[0],
                                       inflexible_transformer_loading=inflexible_loads[i, :],
-                                      max_power_or_current_mode = transformer_mode,
+                                      max_power_or_current_mode=transformer_mode,
                                       )
+
+            # get random float between 0.8-1
+            mult = np.random.uniform(0.7, 1)
+            # scale up the data to match the max_power of the transformers
+            transformer.inflexible_transformer_loading = transformer.inflexible_transformer_loading * \
+                mult * (transformer.max_power /
+                        transformer.inflexible_transformer_loading.max())
+
+            # check that infelxible_loads are lower than the max_power, if not, set them to the max_power
+            if env.config['transformer_include_inflexible_loads']:
+                # for each step
+                for j in range(env.simulation_length):
+                    if transformer.inflexible_transformer_loading[j] > transformer.max_power:
+                        transformer.inflexible_transformer_loading[j] = transformer.max_power
+
+                    elif transformer.inflexible_transformer_loading[j] < transformer.min_power:
+                        transformer.inflexible_transformer_loading[j] = transformer.min_power
+
             transformers.append(transformer)
     env.n_transformers = len(transformers)
     return transformers

@@ -47,7 +47,7 @@ def eval():
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
 
-    mpc = MPC(env, control_horizon=25, verbose=True)
+    # mpc = MPC(env, control_horizon=25, verbose=True)
 
     state, _ = env.reset()
 
@@ -55,8 +55,8 @@ def eval():
 
     for i in range(env.simulation_length):
         # all ports are charging instantly
-        # actions = np.ones(env.number_of_ports)
-        actions = mpc.get_actions(t=i)
+        actions = np.ones(env.number_of_ports)
+        # actions = mpc.get_actions(t=i)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
         if verbose:
             print(f'Actions: {actions}')

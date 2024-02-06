@@ -15,7 +15,7 @@ class Transformer():
 
     def __init__(self,
                  id,  # unique identifier of the transformer
-                 max_current=150,  # The maximum capacity of the transformer in A
+                 max_current=250,  # The maximum capacity of the transformer in A
                  max_power=100,  # The maximum power of the transformer in kW
                  max_power_or_current_mode='current',  # 'current' or 'power'
                  cs_ids=[],  # the charging stations connected to the transformer

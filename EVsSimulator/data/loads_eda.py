@@ -3,20 +3,23 @@
 
 import pandas as pd
 
-# Load the data
-data = pd.read_csv('residential_loads.csv',header=None)
-
 # Print the first few rows of the dataframe
 import matplotlib.pyplot as plt
 # Plot the data using pandas
 # data.plot()
 
-desired_timescale = 60
-dataset_timescale = 15
+# Load the data
+data = pd.read_csv('residential_loads.csv',header=None)
 
+
+desired_timescale = 15 ##### from env
+simulation_length = 96 ##### from env
+simulation_date = '2023-2-1 08:00:00' ##### from env
+number_of_transformers = 3 ##### from env
+
+dataset_timescale = 15
 dataset_starting_date = '2022-01-01 00:00:00'
-simulation_length = 24
-simulation_date = '2023-2-1 08:00:00'
+
 
 if desired_timescale > dataset_timescale:
     data = data.groupby(data.index // (desired_timescale/dataset_timescale)).max()
@@ -50,7 +53,19 @@ data = data.drop(columns=['date'])
 print(data.columns)
 print(data.shape)
 
-data.plot()
+for i in range(number_of_transformers):
+    data['tr_'+str(i)] = data.sample(10, axis=1).sum(axis=1)
+
+#plot data[tr_ data
+data['tr_0'].plot()
+data['tr_1'].plot()
+data['tr_2'].plot()
+
+#show the time of the simulation on the x-axis
+
+plt.xlabel('Time')
+plt.ylabel('Power (kW)')
+
 # Show the plot
 plt.show()
 

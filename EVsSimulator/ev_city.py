@@ -44,7 +44,8 @@ class EVsSimulator(gym.Env):
                  reward_function=SquaredTrackingErrorReward,
                  eval_mode="Normal",  # eval mode can be "Normal", "Unstirred" or "Optimal" in order to save the correct statistics in the replay file
                  lightweight_plots=False,
-                 empty_ports_at_end_of_simulation=True, # whether to empty the ports at the end of the simulation or not
+                 # whether to empty the ports at the end of the simulation or not
+                 empty_ports_at_end_of_simulation=True,
                  extra_sim_name=None,
                  verbose=False,
                  render_mode=None,
@@ -99,7 +100,7 @@ class EVsSimulator(gym.Env):
             self.timescale = self.replay.timescale
             self.cs = self.replay.n_cs
             self.number_of_transformers = self.replay.n_transformers
-            self.number_of_ports_per_cs = self.replay.max_n_ports            
+            self.number_of_ports_per_cs = self.replay.max_n_ports
             self.scenario = self.replay.scenario
             self.heterogeneous_specs = self.replay.heterogeneous_specs
 
@@ -146,7 +147,7 @@ class EVsSimulator(gym.Env):
 
         self.sim_name = extra_sim_name + \
             self.sim_name if extra_sim_name is not None else self.sim_name
-            
+
         # Simulate grid
         if self.simulate_grid:
             pass
@@ -295,6 +296,13 @@ class EVsSimulator(gym.Env):
 
         self.tr_overload = np.zeros(
             [self.number_of_transformers, self.simulation_length])
+
+        self.tr_inflexible_loads = np.zeros(
+            [self.number_of_transformers, self.simulation_length])
+        
+        self.tr_inflexible_loads_current = np.zeros(
+            [self.number_of_transformers, self.simulation_length])
+        
         # self.port_power = np.zeros([self.number_of_ports,
         #                             self.cs,
         #                             self.simulation_length],
@@ -496,6 +504,8 @@ class EVsSimulator(gym.Env):
             # self.transformer_amps[tr.id, self.current_step] = tr.current_amps
             self.tr_overload[tr.id,
                              self.current_step] = tr.get_how_overloaded()
+            self.tr_inflexible_loads[tr.id,
+                                     self.current_step] = tr.inflexible_transformer_loading[self.current_step]
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output

@@ -1,0 +1,19 @@
+{
+    "Tesla Model 3":{
+        "number_of_sales_2023_nl": 4444,
+        "battery_capacity": 57.5,
+        "v2g": "no",
+        "max_ac_charge_power": 11,
+        "max_dc_charge_power": 100,
+        "max_discarging_power": 11
+    },
+    "Volkswagen ID.3":{
+        "number_of_sales_2023_nl": 3333,
+        "battery_capacity": 58,
+        "v2g": "no",
+        "max_ac_charge_power": 11,
+        "max_dc_charge_power": 100
+
+    }
+
+}

@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import datetime
 
+
 def visualize_step(ev_env):
     '''Renders the current state of the environment in the terminal'''
 
@@ -166,6 +167,7 @@ def ev_city_plot(ev_env):
             df = pd.DataFrame([],
                               index=date_range)
 
+            df['inflexible'] = ev_env.tr_inflexible_loads[tr.id, :] * 1000 / 400
             for cs in tr.cs_ids:
                 df[cs] = ev_env.cs_current[cs, :]
 
@@ -174,7 +176,7 @@ def ev_city_plot(ev_env):
             df_pos[df_pos < 0] = 0
             df_neg = df.copy()
             df_neg[df_neg > 0] = 0
-            colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)))
+            colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+1))
 
             # Add another row with one datetime step to make the plot look better
             df_pos.loc[df_pos.index[-1] +
@@ -217,8 +219,9 @@ def ev_city_plot(ev_env):
             plt.xlim([ev_env.sim_starting_date, ev_env.sim_date])
             plt.xticks(ticks=date_range_print,
                        labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
-            if len(tr.cs_ids) < 3:
-                plt.legend([f'CS {i}' for i in tr.cs_ids] +
+            if len(tr.cs_ids) < 4:
+                plt.legend(['Inflexible Loads'] +
+                           [f'CS {i}' for i in tr.cs_ids] +
                            ['Circuit Breaker Limit (A)', 'Total Current (A)'])
             plt.grid(True, which='minor', axis='both')
             counter += 1
@@ -309,10 +312,10 @@ def ev_city_plot(ev_env):
 
             if dim_x < 5:
                 plt.legend([f'Port {i}' for i in range(
-                    cs.n_ports)] + ['Total Current Limit (A)',
-                                    'Actual Current (A)',
-                                    'Current Signal (A)',
-                                    'Minimum EVSE Current Limit (A)'],
+                    cs.n_ports)] + ['Max. Current',
+                                    'Actual Current',
+                                    'Current Signal',
+                                    'Min. Current'],
                     fontsize=22,)
             plt.grid(True, which='minor', axis='both')
             counter += 1
@@ -335,15 +338,17 @@ def ev_city_plot(ev_env):
         df = pd.DataFrame([],
                           index=date_range)
 
+        df['inflexible'] = ev_env.tr_inflexible_loads[tr.id, :]
         for cs in tr.cs_ids:
             df[cs] = ev_env.cs_power[cs, :]*60/ev_env.timescale
+        
 
         # create 2 dfs, one for positive power and one for negative
         df_pos = df.copy()
         df_pos[df_pos < 0] = 0
         df_neg = df.copy()
         df_neg[df_neg > 0] = 0
-        colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)))
+        colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+1))
 
         # Add another row with one datetime step to make the plot look better
         df_pos.loc[df_pos.index[-1] +
@@ -363,7 +368,11 @@ def ev_city_plot(ev_env):
         df_total_power[tr.id] = df['total']
 
         plt.step(df.index, df['total'], 'darkgreen',
-                 where='post', linestyle='--')
+                 where='post', linestyle='--', linewidth=2)
+
+        plt.plot([ev_env.sim_starting_date, ev_env.sim_date],
+                 [tr.max_power, tr.max_power], 'r--')
+
         plt.stackplot(df_neg.index, df_neg.values.T,
                       interpolate=True,
                       step='post',
@@ -381,9 +390,11 @@ def ev_city_plot(ev_env):
         plt.xticks(ticks=date_range_print,
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
 
-        if len(tr.cs_ids) < 3:
-            plt.legend([f'CS {i}' for i in tr.cs_ids] +
-                       ['Total Power (kW)'])
+        if len(tr.cs_ids) < 4:
+            plt.legend(['Inflexible Loads'] +
+                       [f'CS {i}' for i in tr.cs_ids] +
+                       ['Total Power (kW)'] +
+                       ['Power limit (kW)'])
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
