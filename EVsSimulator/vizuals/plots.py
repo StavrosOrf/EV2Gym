@@ -111,7 +111,7 @@ def ev_city_plot(env):
 
             plt.title(f'Charging Station {cs.id}', fontsize=24)
             plt.xlabel(f'Time', fontsize=24)
-            plt.ylabel('Energy Level (kWh)', fontsize=24)
+            plt.ylabel('State of Charge (0-1)', fontsize=24)
             plt.xlim([env.sim_starting_date, env.sim_date])
             plt.xticks(ticks=date_range_print,
                        labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
@@ -129,9 +129,6 @@ def ev_city_plot(env):
         # save in pdf format
         plt.savefig(fig_name, format='png',  # svg
                     dpi=60, bbox_inches='tight')
-
-        # plt.savefig(fig_name, format='png',  # svg
-        #             dpi=60, bbox_inches='tight')
 
         # Plot the charging and discharging prices
         plt.figure(figsize=(20, 17))
@@ -167,8 +164,8 @@ def ev_city_plot(env):
             df = pd.DataFrame([],
                               index=date_range)
 
-            # if env.config['transformer_include_inflexible_loads']:
-            df['inflexible'] = env.tr_inflexible_loads[tr.id, :] * 1000 / 400
+            if env.config['transformer_include_inflexible_loads']:
+                df['inflexible'] = env.tr_inflexible_loads[tr.id, :] * 1000 / 400
                 
             for cs in tr.cs_ids:
                 df[cs] = env.cs_current[cs, :]
@@ -222,9 +219,13 @@ def ev_city_plot(env):
             plt.xticks(ticks=date_range_print,
                        labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
             if len(tr.cs_ids) < 4:
-                plt.legend(['Inflexible Loads'] +
-                           [f'CS {i}' for i in tr.cs_ids] +
-                           ['Circuit Breaker Limit (A)', 'Total Current (A)'])
+                if env.config['transformer_include_inflexible_loads']:
+                    plt.legend(['Inflexible Loads'] +
+                            [f'CS {i}' for i in tr.cs_ids] +
+                            ['Circuit Breaker Limit (A)', 'Total Current (A)'])
+                else:
+                    plt.legend([f'CS {i}' for i in tr.cs_ids] +
+                            ['Circuit Breaker Limit (A)', 'Total Current (A)'])
             plt.grid(True, which='minor', axis='both')
             counter += 1
 
@@ -340,11 +341,11 @@ def ev_city_plot(env):
         df = pd.DataFrame([],
                           index=date_range)
 
-        df['inflexible'] = env.tr_inflexible_loads[tr.id, :]
+        if env.config['transformer_include_inflexible_loads']:
+            df['inflexible'] = env.tr_inflexible_loads[tr.id, :]
         for cs in tr.cs_ids:
             df[cs] = env.cs_power[cs, :]*60/env.timescale
         
-
         # create 2 dfs, one for positive power and one for negative
         df_pos = df.copy()
         df_pos[df_pos < 0] = 0
@@ -393,10 +394,15 @@ def ev_city_plot(env):
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
 
         if len(tr.cs_ids) < 4:
-            plt.legend(['Inflexible Loads'] +
-                       [f'CS {i}' for i in tr.cs_ids] +
-                       ['Total Power (kW)'] +
-                       ['Power limit (kW)'])
+            if env.config['transformer_include_inflexible_loads']:
+                plt.legend(['Inflexible Loads'] +
+                        [f'CS {i}' for i in tr.cs_ids] +
+                        ['Total Power (kW)'] +
+                        ['Power limit (kW)'])
+            else:
+                plt.legend([f'CS {i}' for i in tr.cs_ids] +
+                        ['Total Power (kW)'] +
+                        ['Power limit (kW)'])
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
@@ -421,6 +427,7 @@ def ev_city_plot(env):
     df_pos[df_pos < 0] = 0
     df_neg = df_total_power.copy()
     df_neg[df_neg > 0] = 0
+        
     colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(env.transformers)))
 
     # Add another row with one datetime step to make the plot look better
@@ -440,9 +447,9 @@ def ev_city_plot(env):
     if env.load_from_replay_path is not None:
         plt.step(df_total_power.index, env.replay.ev_load_potential,
                  'b--', where='post', alpha=0.4,)
-    else:
-        plt.step(df_total_power.index, env.current_power_usage,
-                 'b--', where='post', alpha=0.4,)
+    # else:
+    #     plt.step(df_total_power.index, env.current_power_usage,
+    #              'b--', where='post', alpha=0.4,)
 
     # plot the positive power
     plt.stackplot(df_pos.index, df_pos.values.T,
@@ -479,8 +486,15 @@ def ev_city_plot(env):
     # set ytick font size
     plt.yticks(fontsize=28)
     if len(env.transformers) <= 10:
-        plt.legend(['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Unsteered Load Potential (kW)']
-                   + [f'Tr {i}' for i in range(len(env.transformers))])
+        if env.load_from_replay_path is not None:
+            plt.legend(['Total Power']+
+                    [f'Power Setpoint']+
+                    ['EV Unsteered Load Potential (kW)']
+                    + [f'Tr {i}' for i in range(len(env.transformers))])
+        else:
+            plt.legend(['Total Power']+
+                    [f'Power Setpoint']
+                    + [f'Tr {i}' for i in range(len(env.transformers))])
     else:
         # plt.legend(['Total Power (kW)']+[f'Power Setpoint (kW)']+['EV Unsteered Load Potential (kW)'])
         plt.legend(['Total Power (kW)'], fontsize=28)

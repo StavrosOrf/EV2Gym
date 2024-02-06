@@ -119,7 +119,7 @@ class EV():
         self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
         self.c_lost = 0
 
-    def step(self, amps, voltage, phases=1, type='AC'):
+    def step(self, amps, voltage, phases=1, type='AC') -> (float, float):
         '''
         The step method is used to update the EV's status according to the actions taken by the EV charger.
         Inputs:
@@ -159,7 +159,7 @@ class EV():
 
         return self.current_power, self.actual_current
 
-    def is_departing(self, timestep):
+    def is_departing(self, timestep) -> float or None:
         '''
         The is_departing method is used to determine whether the EV is departing or not.
         Inputs:
@@ -178,7 +178,7 @@ class EV():
             # if timestep >= self.time_of_departure:
             return self.get_user_satisfaction()
 
-    def get_user_satisfaction(self):
+    def get_user_satisfaction(self) -> float:
         '''
         A function that returns the user satisfaction of the EV when departing.
         Outputs: 
@@ -192,7 +192,7 @@ class EV():
         else:
             return 1
 
-    def get_soc(self):
+    def get_soc(self) -> float:
         '''
         A function that returns the state of charge of the EV.
         Outputs: 

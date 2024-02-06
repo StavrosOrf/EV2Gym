@@ -89,7 +89,7 @@ class Transformer():
                 return True
 
         return False
-
+    
     def get_how_overloaded(self) -> float:
         '''
         Check how overloaded the transformer is

@@ -519,7 +519,7 @@ class EVsSimulator(gym.Env):
                                              self.current_step] = cs.current_signal[port]
 
                     self.port_energy_level[port, cs.id,
-                                           self.current_step] = ev.current_capacity
+                                           self.current_step] = ev.current_capacity/ev.battery_capacity
 
     def _step_date(self):
         '''Steps the simulation date by one timestep'''

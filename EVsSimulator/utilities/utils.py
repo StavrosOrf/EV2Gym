@@ -301,7 +301,7 @@ def create_power_setpoint_one_step(env):
     return power_potential * (1 - prices[env.current_step])
 
 
-def calculate_charge_power_potential(env):
+def calculate_charge_power_potential(env) -> float:
     '''
     This function calculates the total charge power potential of all currently parked EVs for the current time step     
     '''

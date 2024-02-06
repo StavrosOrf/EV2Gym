@@ -23,9 +23,9 @@ def PublicPST(env, *args):
     else:
         state.append(env.power_setpoints[env.current_step-1]/100)
         state.append(env.charge_power_potential[env.current_step-1]/100)
-        
+
     state.append(env.current_power_usage[env.current_step-1]/100)
-    
+
     # For every transformer
     for tr in env.transformers:
 
@@ -38,7 +38,7 @@ def PublicPST(env, *args):
                     # If there is an EV connected
                     if EV is not None:
                         state.append([
-                            1 if EV.get_soc() == 1 else 0, # we know if the EV is full
+                            1 if EV.get_soc() == 1 else 0,  # we know if the EV is full
                             EV.total_energy_exchanged/100,
                             # EV.max_ac_charge_power*1000 /
                             # (cs.voltage*math.sqrt(cs.phases))/100,
@@ -105,10 +105,11 @@ def BusinessPSTwithMoreKnowledge(env, *args):
                         state.append(np.zeros(10))
 
     state = np.array(np.hstack(state))
-    
+
     np.set_printoptions(suppress=True)
 
     return state
+
 
 def RewardMaximizationState(env, *args):
     '''
@@ -125,7 +126,7 @@ def RewardMaximizationState(env, *args):
 
     state.append(env.charge_prices[env.current_step])
     state.append(env.discharge_prices[env.current_step])
-    
+
     for tr in env.transformers:
         state.append(tr.max_current/100)
         for cs in env.charging_stations:
@@ -150,7 +151,7 @@ def RewardMaximizationState(env, *args):
                         state.append(np.zeros(8))
 
     state = np.array(np.hstack(state))
-    
+
     np.set_printoptions(suppress=True)
 
     return state

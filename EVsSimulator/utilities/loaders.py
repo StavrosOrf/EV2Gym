@@ -217,7 +217,7 @@ def load_transformers(env) -> list[Transformer]:
     return transformers
 
 
-def load_ev_charger_profiles(env):
+def load_ev_charger_profiles(env) -> list[EV_Charger]:
     '''Loads the EV charger profiles of the simulation
     If load_from_replay_path is None, then the EV charger profiles are created randomly
 
@@ -227,7 +227,10 @@ def load_ev_charger_profiles(env):
     charging_stations = []
     if env.load_from_replay_path is not None:
         return env.replay.charging_stations
-    elif env.charging_network_topology:
+    
+    v2g_enabled = env.config['v2g_enabled']
+    
+    if env.charging_network_topology:
         # parse the topology file and create the charging stations
         cs_counter = 0
         for i, tr in enumerate(env.charging_network_topology):
@@ -258,11 +261,20 @@ def load_ev_charger_profiles(env):
         return charging_stations
 
     else:
+        if v2g_enabled:
+            max_discharge_current = -55
+            min_discharge_current = -5
+        else:
+            max_discharge_current = 0
+            min_discharge_current = 0
+            
         for i in range(env.cs):
             ev_charger = EV_Charger(id=i,
                                     connected_bus=0,  # env.cs_buses[i],
                                     connected_transformer=env.cs_transformers[i],
                                     n_ports=env.number_of_ports_per_cs,
+                                    max_discharge_current=max_discharge_current,
+                                    min_discharge_current=min_discharge_current,
                                     timescale=env.timescale,
                                     verbose=env.verbose,)
 
@@ -270,7 +282,7 @@ def load_ev_charger_profiles(env):
         return charging_stations
 
 
-def load_ev_profiles(env):
+def load_ev_profiles(env) -> list[EV]:
     '''Loads the EV profiles of the simulation
     If load_from_replay_path is None, then the EV profiles are created randomly
 
@@ -283,7 +295,7 @@ def load_ev_profiles(env):
         return env.replay.EVs
 
 
-def load_electricity_prices(env):
+def load_electricity_prices(env) -> tuple[np.ndarray, np.ndarray]:
     '''Loads the electricity prices of the simulation
     If load_from_replay_path is None, then the electricity prices are created randomly
 
