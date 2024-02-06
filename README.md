@@ -45,17 +45,15 @@ Focused on **realistic** parameters and **fully customizable**:
 │   │   ├── DT
 │   │   ├── gurobi_models
 
+```
 
 ## Citation
 If you use this code in your research, please cite it using the following BibTeX entry:
 ```bibtex
 @misc{EVsSimulator,
-  author = {M. A. M.},
-  title = {EVsSimulator},
-  year = {2021},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{
+
+}
+```
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
