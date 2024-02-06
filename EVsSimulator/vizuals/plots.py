@@ -33,7 +33,7 @@ def visualize_step(ev_env):
             print(tr)
 
         # print current current power setpoint
-        print(f'  - Power setpoint: {ev_env.current_power_setpoints[ev_env.current_step - 1]:.1f} Actual/' +
+        print(f'  - Power setpoint: {ev_env.current_power_usage[ev_env.current_step - 1]:.1f} Actual/' +
               f' {ev_env.power_setpoints[ev_env.current_step - 1]:.1f} Setpoint/'
               f' {ev_env.charge_power_potential[ev_env.current_step - 1]:.1f} Potential in kWh')
 
@@ -428,7 +428,7 @@ def ev_city_plot(ev_env):
         plt.step(df_total_power.index, ev_env.replay.ev_load_potential,
                  'b--', where='post', alpha=0.4,)
     else:
-        plt.step(df_total_power.index, ev_env.current_power_setpoints,
+        plt.step(df_total_power.index, ev_env.current_power_usage,
                  'b--', where='post', alpha=0.4,)
 
     # plot the positive power

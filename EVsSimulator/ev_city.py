@@ -111,7 +111,7 @@ class EVsSimulator(gym.Env):
             self.number_of_ports_per_cs = self.config['number_of_ports_per_cs']
             self.number_of_transformers = self.config['number_of_transformers']
             self.timescale = self.config['timescale']
-            self.simulation_length = self.config['simulation_length']
+            self.simulation_length = int(self.config['simulation_length'])
             # Simulation time
 
             self.sim_date = datetime.datetime(self.config['year'],
@@ -186,7 +186,7 @@ class EVsSimulator(gym.Env):
 
         # Load power setpoint of simulation
         self.power_setpoints = load_power_setpoints(self, randomly=True)
-        self.current_power_setpoints = np.zeros(self.simulation_length)
+        self.current_power_usage = np.zeros(self.simulation_length)
         self.charge_power_potential = np.zeros(self.simulation_length)
 
         self.init_statistic_variables()
@@ -285,7 +285,7 @@ class EVsSimulator(gym.Env):
         self.current_ev_arrived = 0
         self.current_evs_parked = 0
 
-        self.current_power_setpoints = np.zeros(self.simulation_length)
+        self.current_power_usage = np.zeros(self.simulation_length)
 
         # self.transformer_amps = np.zeros([self.number_of_transformers,
         #                                   self.simulation_length])
@@ -351,8 +351,7 @@ class EVsSimulator(gym.Env):
 
         # Reset current power of all transformers
         for tr in self.transformers:
-            tr.current_amps = 0
-            tr.current_power = 0
+            tr.reset(step=self.current_step)
 
         # Call step for each charging station and spawn EVs where necessary
         for i, cs in enumerate(self.charging_stations):
@@ -367,7 +366,7 @@ class EVsSimulator(gym.Env):
 
             power = cs.current_power_output * \
                 60/self.timescale  # transform from energy to power
-            self.current_power_setpoints[self.current_step] += power
+            self.current_power_usage[self.current_step] += power
 
             # Update transformer variables for this timestep
             self.transformers[cs.connected_transformer].step(

@@ -24,7 +24,7 @@ def PublicPST(env, *args):
         state.append(env.power_setpoints[env.current_step-1]/100)
         state.append(env.charge_power_potential[env.current_step-1]/100)
         
-    state.append(env.current_power_setpoints[env.current_step-1]/100)
+    state.append(env.current_power_usage[env.current_step-1]/100)
     
     # For every transformer
     for tr in env.transformers:

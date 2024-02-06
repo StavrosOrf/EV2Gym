@@ -40,7 +40,7 @@ class EV():
     Methods:
         - step: updates the EV status according to the actions taken by the EV charger
         - _charge: charges the EV
-        - _discharge: discharges the EV
+        - _discharge: discharges the EV        
 
     '''
 
@@ -117,6 +117,7 @@ class EV():
         self.charging_cycles = 0
         self.previous_power = 0
         self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
+        self.c_lost = 0
 
     def step(self, amps, voltage, phases=1, type='AC'):
         '''

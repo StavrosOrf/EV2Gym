@@ -2,7 +2,7 @@
     "transformer_1": {
         "id": 1,
         "max_current": 150,
-        "min_current": 0,
+        "max_power": 0,
         "charging_stations": {
             "charger_1": {
                 "id": 0,                
@@ -54,7 +54,7 @@
     "transformer_2":{
         "id": 2,
         "max_current": 150,
-        "min_current": 0,
+        "max_power": 0,
         "charging_stations": {
             "charger_1": {
                 "id": 4,                

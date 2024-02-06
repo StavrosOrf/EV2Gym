@@ -38,7 +38,7 @@ def load_ev_spawn_scenarios(env):
         time_of_connection_vs_hour_file)  # time of connection vs hour
 
 
-def load_power_setpoints(env, randomly):
+def load_power_setpoints(env, randomly) -> np.ndarray:
     '''
     Loads the power setpoints of the simulation based on the day-ahead prices'''
 
@@ -71,18 +71,29 @@ def load_power_setpoints(env, randomly):
     #         'Loading power setpoints from is not implemented yet')
 
 
-def load_transformers(env):
+def load_transformers(env)->list[Transformer]:
     '''Loads the transformers of the simulation
     If load_from_replay_path is None, then the transformers are created randomly
 
     Returns:
-        - transformers: a list of transformer objects'''
+        - transformers: a list of transformer objects
+    '''
+
+    if env.load_from_replay_path is not None:
+        return env.replay.transformers
 
     transformers = []
-    if env.load_from_replay_path is not None:
-        transformers = env.replay.transformers
+    transformer_mode = env.config['transformer_max_power_or_current_mode']
+    assert transformer_mode in ['current', 'power']  # 'current' or 'power'
 
-    elif env.charging_network_topology:
+    if env.config['transformer_include_inflexible_loads']:
+        inflexible_loads = np.zeros((env.number_of_transformers,
+                                    env.simulation_length))
+    else:
+        inflexible_loads = np.zeros((env.number_of_transformers,
+                                    env.simulation_length))
+
+    if env.charging_network_topology:
         # parse the topology file and create the transformers
         cs_counter = 0
         for i, tr in enumerate(env.charging_network_topology):
@@ -92,12 +103,10 @@ def load_transformers(env):
                 cs_counter += 1
             transformer = Transformer(id=i,
                                       cs_ids=cs_ids,
-                                      min_current=env.charging_network_topology[tr]['min_current'],
+                                      max_power=env.charging_network_topology[tr]['max_power'],
                                       max_current=env.charging_network_topology[tr]['max_current'],
-                                      timescale=env.timescale,
-                                      simulation_length=env.simulation_length,
-                                      standard_transformer_loading=np.zeros(
-                                          env.simulation_length),
+                                      inflexible_transformer_loading=inflexible_loads[i, :],
+                                      max_power_or_current_mode = transformer_mode,
                                       )
             transformers.append(transformer)
 
@@ -110,9 +119,11 @@ def load_transformers(env):
             transformer = Transformer(id=i,
                                       cs_ids=np.where(
                                           np.array(env.cs_transformers) == i)[0],
-                                      timescale=env.timescale,)
+                                      inflexible_transformer_loading=inflexible_loads[i, :],
+                                      max_power_or_current_mode = transformer_mode,
+                                      )
             transformers.append(transformer)
-        env.n_transformers = len(transformers)
+    env.n_transformers = len(transformers)
     return transformers
 
 

@@ -6,7 +6,7 @@ def SquaredTrackingErrorReward(env,*args):
     # The reward is negative
     
     reward = - (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) -
-        env.current_power_setpoints[env.current_step-1])**2
+        env.current_power_usage[env.current_step-1])**2
     
     return reward
 
@@ -15,19 +15,19 @@ def SquaredTrackingErrorRewardWithPenalty(env,*args):
     # The reward is negative
     # If the EV is not charging, the reward is penalized
     
-    if env.current_power_setpoints[env.current_step-1] == 0 and env.charge_power_potential[env.current_step-2] != 0:
+    if env.current_power_usage[env.current_step-1] == 0 and env.charge_power_potential[env.current_step-2] != 0:
         reward = - (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) -
-            env.current_power_setpoints[env.current_step-1])**2 - 100
+            env.current_power_usage[env.current_step-1])**2 - 100
     else:
         reward = - (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) -
-            env.current_power_setpoints[env.current_step-1])**2
+            env.current_power_usage[env.current_step-1])**2
     
     return reward
 
 def SimpleReward(env,*args):
     # This reward function does not consider the charge power potential
     
-    reward = - (env.power_setpoints[env.current_step-1] - env.current_power_setpoints[env.current_step-1])**2
+    reward = - (env.power_setpoints[env.current_step-1] - env.current_power_usage[env.current_step-1])**2
     
     return reward
 
@@ -35,10 +35,10 @@ def MinimizeTrackerSurplusWithChargeRewards(env,*args):
     # This reward function minimizes the tracker surplus and gives a reward for charging
     
     reward = 0
-    if env.power_setpoints[env.current_step-1] < env.current_power_setpoints[env.current_step-1]:
-            reward -= (env.current_power_setpoints[env.current_step-1]-env.power_setpoints[env.current_step-1])**2
+    if env.power_setpoints[env.current_step-1] < env.current_power_usage[env.current_step-1]:
+            reward -= (env.current_power_usage[env.current_step-1]-env.power_setpoints[env.current_step-1])**2
 
-    reward += env.current_power_setpoints[env.current_step-1] #/75
+    reward += env.current_power_usage[env.current_step-1] #/75
     
     return reward
 
@@ -63,43 +63,43 @@ def profit_maximization(env, total_costs,*args):
         # reward -= 2 * (invalid_action_punishment/self.number_of_ports)
 
         # reward = min(2, 1 * 4 * self.cs / (0.00001 + (
-        #     self.power_setpoints[self.current_step-1] - self.current_power_setpoints[self.current_step-1])**2))
+        #     self.power_setpoints[self.current_step-1] - self.current_power_usage[self.current_step-1])**2))
 
         # this is the new reward function
         # reward = min(2, 1/((min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #           self.current_power_setpoints[self.current_step-1])**2 + 0.000001))
+        #           self.current_power_usage[self.current_step-1])**2 + 0.000001))
 
         # new_*10*charging
-        # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
+        # if self.power_setpoints[self.current_step-1] < self.current_power_usage[self.current_step-1]:
         #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #             self.current_power_setpoints[self.current_step-1])
+        #             self.current_power_usage[self.current_step-1])
         # else:
         #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #             self.current_power_setpoints[self.current_step-1])*10
+        #             self.current_power_usage[self.current_step-1])*10
 
         # new_1_equal
-        # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
+        # if self.power_setpoints[self.current_step-1] < self.current_power_usage[self.current_step-1]:
         #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #             self.current_power_setpoints[self.current_step-1])
+        #             self.current_power_usage[self.current_step-1])
         # else:
         #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #             self.current_power_setpoints[self.current_step-1])
+        #             self.current_power_usage[self.current_step-1])
 
         # new_0.1
-        # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
+        # if self.power_setpoints[self.current_step-1] < self.current_power_usage[self.current_step-1]:
         #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #             self.current_power_setpoints[self.current_step-1])**2
+        #             self.current_power_usage[self.current_step-1])**2
         # else:
         #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #             self.current_power_setpoints[self.current_step-1])*0.1
+        #             self.current_power_usage[self.current_step-1])*0.1
 
         # new_reward squared
-        # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
+        # if self.power_setpoints[self.current_step-1] < self.current_power_usage[self.current_step-1]:
         #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #           self.current_power_setpoints[self.current_step-1])**2
+        #           self.current_power_usage[self.current_step-1])**2
         # else:
         #     reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #           self.current_power_setpoints[self.current_step-1])
+        #           self.current_power_usage[self.current_step-1])
 
         # for score in user_satisfaction_list:
         #     reward -= 100 * (1 - score)
@@ -114,14 +114,14 @@ def profit_maximization(env, total_costs,*args):
         #######################################################################################################
         # squared tracking error
         # reward -= (min(self.power_setpoints[self.current_step-1], self.charge_power_potential[self.current_step-1]) -
-        #            self.current_power_setpoints[self.current_step-1])**2
+        #            self.current_power_usage[self.current_step-1])**2
 
         # best reward so far
         ############################################################################################################
-        # if self.power_setpoints[self.current_step-1] < self.current_power_setpoints[self.current_step-1]:
-        #     reward -= (self.current_power_setpoints[self.current_step-1]-self.power_setpoints[self.current_step-1])
+        # if self.power_setpoints[self.current_step-1] < self.current_power_usage[self.current_step-1]:
+        #     reward -= (self.current_power_usage[self.current_step-1]-self.power_setpoints[self.current_step-1])
 
-        # reward += self.current_power_setpoints[self.current_step-1]/75
+        # reward += self.current_power_usage[self.current_step-1]/75
         ############################################################################################################
         # normalize reward to -1 1
         # reward = reward/1000
@@ -131,6 +131,6 @@ def profit_maximization(env, total_costs,*args):
         # reward -= 2 * (invalid_action_punishment/self.number_of_ports)
         # reward /= 100
         # reward = (100 +reward) / 1000
-        # print(f'current_power_setpoints: {self.current_power_setpoints[self.current_step-1]}')
+        # print(f'current_power_usage: {self.current_power_usage[self.current_step-1]}')
 
         # return reward

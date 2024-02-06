@@ -26,9 +26,9 @@ def get_statistics(env):
     power_tracker_violation = 0
     for t in range(env.simulation_length):
         tracking_error += (min(env.power_setpoints[t], env.charge_power_potential[t]) -
-                           env.current_power_setpoints[t])**2
-        if env.current_power_setpoints[t] > env.power_setpoints[t]:
-            power_tracker_violation += env.current_power_setpoints[t] - \
+                           env.current_power_usage[t])**2
+        if env.current_power_usage[t] > env.power_setpoints[t]:
+            power_tracker_violation += env.current_power_usage[t] - \
                 env.power_setpoints[t]
 
     # ev_percentage_charged = []
@@ -93,9 +93,9 @@ def print_statistics(env):
     power_tracker_violation = 0
     for t in range(env.simulation_length):
         tracking_error += (min(env.power_setpoints[t], env.charge_power_potential[t]) -
-                           env.current_power_setpoints[t])**2
-        if env.current_power_setpoints[t] > env.power_setpoints[t]:
-            power_tracker_violation += env.current_power_setpoints[t] - \
+                           env.current_power_usage[t])**2
+        if env.current_power_usage[t] > env.power_setpoints[t]:
+            power_tracker_violation += env.current_power_usage[t] - \
                 env.power_setpoints[t]
 
     # find the final battery capacity of evs

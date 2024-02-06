@@ -126,7 +126,7 @@ class Renderer():
         self.cpo_power_ax = nx.draw_networkx_labels(self.G,
                                                     pos=pos__down_attrs,
                                                     labels={"cpo": str(
-                                                    round(self.env.current_power_setpoints[self.env.current_step], 1)) + "kW"},
+                                                    round(self.env.current_power_usage[self.env.current_step], 1)) + "kW"},
                                                     ax=ax,
                                                     verticalalignment='bottom',
                                                     font_size=12,
@@ -247,7 +247,7 @@ class Renderer():
 
         self.text_box.set_text(text)
         self.cpo_power_ax["cpo"].set_text(str(
-            round(self.env.current_power_setpoints[self.env.current_step-1], 1)) + "kW")
+            round(self.env.current_power_usage[self.env.current_step-1], 1)) + "kW")
 
         counter = 0
         for i in range(0, self.env.cs):

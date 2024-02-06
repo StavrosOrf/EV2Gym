@@ -35,7 +35,7 @@ class EvCityReplay():
         self.power_setpoints = env.power_setpoints
         self.scenario = env.scenario
         self.heterogeneous_specs = env.heterogeneous_specs
-        self.ev_load_potential = env.current_power_setpoints
+        self.ev_load_potential = env.current_power_usage
 
         self.transformers = env.transformers
         self.charging_stations = env.charging_stations
