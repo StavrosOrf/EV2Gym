@@ -300,9 +300,6 @@ class EVsSimulator(gym.Env):
         self.tr_inflexible_loads = np.zeros(
             [self.number_of_transformers, self.simulation_length])
         
-        self.tr_inflexible_loads_current = np.zeros(
-            [self.number_of_transformers, self.simulation_length])
-        
         # self.port_power = np.zeros([self.number_of_ports,
         #                             self.cs,
         #                             self.simulation_length],
