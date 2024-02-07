@@ -24,10 +24,7 @@ def eval():
 
     verbose = False
     save_plots = True
-
-    replay_path = './replay/replay_sim_25_2024-01-25_15-18-34-238404.pkl'
-    # replay_path = './replay/replay_sim_25_2024-01-29_11-46-18-998193.pkl'
-    replay_path = './replay/replay_sim_25_2024-01-30_21-54-45-786820.pkl'
+        
     replay_path = None
 
     config_file = "/example_config_files/BusinessPST_config.yaml"

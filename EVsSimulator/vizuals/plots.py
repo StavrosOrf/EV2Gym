@@ -34,9 +34,9 @@ def visualize_step(env):
             print(tr)
 
         # print current current power setpoint
-        print(f'  - Power setpoint: {env.current_power_usage[env.current_step - 1]:.1f} Actual/' +
+        print(f' Power setpoints (prev-step): {env.current_power_usage[env.current_step - 1]:.1f} Actual/' +
               f' {env.power_setpoints[env.current_step - 1]:.1f} Setpoint/'
-              f' {env.charge_power_potential[env.current_step - 1]:.1f} Potential in kWh')
+              f' {env.charge_power_potential[env.current_step - 1]:.1f} Potential in kW')
 
 
 def ev_city_plot(env):

@@ -394,11 +394,11 @@ class EV():
         d_cal = alpha * 0.75 * T_sim / (T_acc)**0.25
 
         # beta(v_avg, soc_avg)
-        print(f'avg_soc: {avg_soc}')        
-        print(f'historic_soc: {self.historic_soc}')
+        # print(f'avg_soc: {avg_soc}')        
+        # print(f'historic_soc: {self.historic_soc}')
         
         delta_DoD = 2 * abs(avg_soc.repeat(len(self.historic_soc)) - self.historic_soc).mean()
-        print(f'delta_DoD: {delta_DoD}')
+        # print(f'delta_DoD: {delta_DoD}')
         v_half_soc = v_min + k * 0.5
         beta = z0 * (v_half_soc / math.sqrt(2) - z1)**2 + z2 + z3 * delta_DoD        
 
@@ -406,7 +406,7 @@ class EV():
 
         # accumulated throughput
         Q_acc = 2 * (b_age * (d_dist / 365) * G * b_cap_ah) / b_cap_kwh
-        print(f'Q_acc: {Q_acc}')
+        # print(f'Q_acc: {Q_acc}')
 
         d_cyc = beta * 0.5 * Q_sim / (Q_acc)**0.5
 

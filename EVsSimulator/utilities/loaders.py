@@ -170,7 +170,14 @@ def load_transformers(env) -> list[Transformer]:
                                       max_power_or_current_mode=transformer_mode,
                                       )
 
+                
             if env.config['transformer_include_inflexible_loads']:
+                            # get random float between 0.8-1
+                mult = np.random.uniform(0.7, 1)
+                # scale up the data to match the max_power of the transformers
+                transformer.inflexible_transformer_loading = transformer.inflexible_transformer_loading * \
+                    mult * (transformer.max_power /
+                            transformer.inflexible_transformer_loading.max()+0.00001)
                 # for each step
                 for j in range(env.simulation_length):
                     if transformer.inflexible_transformer_loading[j] > transformer.max_power:
@@ -194,15 +201,14 @@ def load_transformers(env) -> list[Transformer]:
                                       max_power_or_current_mode=transformer_mode,
                                       )
 
-            # get random float between 0.8-1
-            mult = np.random.uniform(0.7, 1)
-            # scale up the data to match the max_power of the transformers
-            transformer.inflexible_transformer_loading = transformer.inflexible_transformer_loading * \
-                mult * (transformer.max_power /
-                        transformer.inflexible_transformer_loading.max())
-
             # check that infelxible_loads are lower than the max_power, if not, set them to the max_power
             if env.config['transformer_include_inflexible_loads']:
+                # get random float between 0.8-1
+                mult = np.random.uniform(0.7, 1)
+                # scale up the data to match the max_power of the transformers
+                transformer.inflexible_transformer_loading = transformer.inflexible_transformer_loading * \
+                    mult * (transformer.max_power /
+                            transformer.inflexible_transformer_loading.max()+0.00001)
                 # for each step
                 for j in range(env.simulation_length):
                     if transformer.inflexible_transformer_loading[j] > transformer.max_power:
