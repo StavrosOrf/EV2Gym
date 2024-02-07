@@ -274,7 +274,7 @@ class Renderer():
                                     ].set_text(str(round(self.env.charging_stations[i].current_total_amps, 1)) + "A")
 
             self.charger_labels_ax["charger_" + str(i)].set_text(
-                str(round(self.env.charging_stations[i].current_power_output*60/self.env.timescale, 1)) + "kW")
+                str(round(self.env.charging_stations[i].current_power_output, 1)) + "kW")
 
         for i in range(0, self.env.number_of_transformers):
             # append transformer current to node labels

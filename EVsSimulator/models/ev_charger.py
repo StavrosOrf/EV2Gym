@@ -47,7 +47,7 @@ class EV_Charger:
                  connected_transformer,
                  geo_location=None,
                  min_charge_current=8,  # Amperes
-                 max_charge_current=55,  # Amperes
+                 max_charge_current=56,  # Amperes
                  min_discharge_current=0,  # -8,  # Amperes
                  max_discharge_current=0,  # -55,  # Amperes
                  voltage=230,  # Volts
@@ -145,23 +145,23 @@ class EV_Charger:
             amps = 0
             if action == 0 and self.evs_connected[i] is not None:
                 
-                actual_power, actual_amps = self.evs_connected[i].step(
+                actual_energy, actual_amps = self.evs_connected[i].step(
                     amps, self.voltage)                
-                # actual_power, actual_amps = 0, 0
 
             elif action > 0:
                 amps = action * self.max_charge_current
                 if amps < self.min_charge_current-0.01:
                     amps = 0
 
-                actual_power, actual_amps = self.evs_connected[i].step(
+                actual_energy, actual_amps = self.evs_connected[i].step(
                     amps,
                     self.voltage,
                     phases=self.phases,
-                    type=self.charger_type)
-                profit += abs(actual_power) * charge_price
-                self.total_energy_charged += abs(actual_power)
-                self.current_power_output += actual_power
+                    type=self.charger_type)                                
+                
+                profit += abs(actual_energy) * charge_price
+                self.total_energy_charged += abs(actual_energy)
+                self.current_power_output += actual_energy * 60/self.timescale 
                 self.current_total_amps += actual_amps
 
             elif action < 0:
@@ -170,14 +170,15 @@ class EV_Charger:
                 if amps > self.min_discharge_current-0.01:
                     amps = self.min_discharge_current
 
-                actual_power, actual_amps = self.evs_connected[i].step(
+                actual_energy, actual_amps = self.evs_connected[i].step(
                     amps,
                     self.voltage,
                     phases=self.phases,
-                    type=self.charger_type)
-                profit += abs(actual_power) * discharge_price
-                self.total_energy_discharged += abs(actual_power)
-                self.current_power_output += actual_power
+                    type=self.charger_type)                                
+                
+                profit += abs(actual_energy) * discharge_price
+                self.total_energy_discharged += abs(actual_energy)
+                self.current_power_output += actual_energy * 60/self.timescale 
                 self.current_total_amps += actual_amps
 
             self.current_signal.append(amps)
@@ -186,20 +187,12 @@ class EV_Charger:
                 raise Exception(
                     f'sum of amps {self.current_total_amps} is higher than max charge current {self.max_charge_current}')
 
-            # if self.verbose and self.evs_connected[i] is not None:
-            #     print(f'Actual energy: {actual_power:.2f} kWh' +
-            #           f' | Actual amps: {actual_amps:.2f} A' +
-            #           f' | Action: {action}'
-            #           )
 
         self.total_profits += profit
 
         # Check if EVs are departing
         for i, ev in enumerate(self.evs_connected):
             if ev is not None:
-                # print(f'EV {ev.id} check departure step {self.current_step}' +\
-                #       f' earlier time of departure {ev.time_of_departure}' +\
-                #       f', Is departing: {ev.is_departing(self.current_step)}')
                 if ev.is_departing(self.current_step) is not None:
                     self.evs_connected[i] = None
                     self.n_evs_connected -= 1
@@ -207,6 +200,7 @@ class EV_Charger:
                     ev_user_satisfaction = ev.get_user_satisfaction()
                     self.total_user_satisfaction += ev_user_satisfaction
                     user_satisfaction.append(ev_user_satisfaction)
+                    
                     if self.verbose:
                         print(f'- EV {ev.id} is departing from CS {self.id}' +
                               f' port {i}'

@@ -186,7 +186,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step):
                       time_of_stay + step + 3),
                   ev_phases=np.random.choice([1, 2, 3], p=[0.2, 0.1, 0.7]),
                   timescale=env.timescale,
-                  simulation_length=env.simulation_length,)
+                  )
     else:
         return EV(id=port,
                   location=cs_id,
@@ -198,7 +198,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step):
                   ev_phases=3,
                   transition_soc=0.9999,
                   timescale=env.timescale,
-                  simulation_length=env.simulation_length,)
+                  )
 
 
 def EV_spawner(env):

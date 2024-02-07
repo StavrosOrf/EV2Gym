@@ -5,7 +5,6 @@ This file contains the loaders for the EV City environment.
 import numpy as np
 import pandas as pd
 import datetime
-import math
 import pkg_resources
 
 from EVsSimulator.models.ev_charger import EV_Charger
@@ -217,7 +216,7 @@ def load_transformers(env) -> list[Transformer]:
     return transformers
 
 
-def load_ev_charger_profiles(env) -> list[EV_Charger]:
+def load_ev_charger_profiles(env ) -> list[EV_Charger]:
     '''Loads the EV charger profiles of the simulation
     If load_from_replay_path is None, then the EV charger profiles are created randomly
 
@@ -227,9 +226,9 @@ def load_ev_charger_profiles(env) -> list[EV_Charger]:
     charging_stations = []
     if env.load_from_replay_path is not None:
         return env.replay.charging_stations
-    
+
     v2g_enabled = env.config['v2g_enabled']
-    
+
     if env.charging_network_topology:
         # parse the topology file and create the charging stations
         cs_counter = 0
@@ -267,7 +266,7 @@ def load_ev_charger_profiles(env) -> list[EV_Charger]:
         else:
             max_discharge_current = 0
             min_discharge_current = 0
-            
+
         for i in range(env.cs):
             ev_charger = EV_Charger(id=i,
                                     connected_bus=0,  # env.cs_buses[i],

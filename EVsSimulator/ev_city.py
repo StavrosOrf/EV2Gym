@@ -121,8 +121,8 @@ class EVsSimulator(gym.Env):
                                               self.config['hour'],
                                               self.config['minute'])
             self.replay = None
-            self.sim_name = f'sim_{self.simulation_length}_' + \
-                f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")}'
+            self.sim_name = f'sim_' + \
+                f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
 
             self.scenario = self.config['scenario']
             self.heterogeneous_specs = self.config['heterogeneous_ev_specs']
@@ -368,14 +368,12 @@ class EVsSimulator(gym.Env):
 
             for u in user_satisfaction:
                 user_satisfaction_list.append(u)
-
-            power = cs.current_power_output * \
-                60/self.timescale  # transform from energy to power
-            self.current_power_usage[self.current_step] += power
+            
+            self.current_power_usage[self.current_step] += cs.current_power_output
 
             # Update transformer variables for this timestep
             self.transformers[cs.connected_transformer].step(
-                cs.current_total_amps, power)
+                cs.current_total_amps, cs.current_power_output)
 
             total_costs += costs
             total_invalid_action_punishment += invalid_action_punishment
@@ -512,7 +510,7 @@ class EVsSimulator(gym.Env):
                 ev = cs.evs_connected[port]
                 if ev is not None and not self.lightweight_plots:
                     # self.port_power[port, cs.id,
-                    #                 self.current_step] = ev.current_power
+                    #                 self.current_step] = ev.current_energy
                     self.port_current[port, cs.id,
                                       self.current_step] = ev.actual_current
                     self.port_current_signal[port, cs.id,

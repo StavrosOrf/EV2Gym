@@ -344,7 +344,7 @@ def ev_city_plot(env):
         if env.config['transformer_include_inflexible_loads']:
             df['inflexible'] = env.tr_inflexible_loads[tr.id, :]
         for cs in tr.cs_ids:
-            df[cs] = env.cs_power[cs, :]*60/env.timescale
+            df[cs] = env.cs_power[cs, :]
         
         # create 2 dfs, one for positive power and one for negative
         df_pos = df.copy()

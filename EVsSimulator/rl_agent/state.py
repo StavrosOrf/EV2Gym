@@ -98,7 +98,7 @@ def BusinessPSTwithMoreKnowledge(env, *args):
                                         (EV.time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed
                                       EV.time_of_departure / env.simulation_length,  # time of departure
                                       EV.get_soc(),  # soc
-                                      EV.required_power / EV.battery_capacity,  # required energy
+                                      EV.required_energy / EV.battery_capacity,  # required energy
                                       EV.time_of_arrival / env.simulation_length,  # time of arrival
                                       ])
                     else:
@@ -144,7 +144,7 @@ def RewardMaximizationState(env, *args):
                                         (EV.time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed
                                       EV.time_of_departure / env.simulation_length,  # time of departure
                                       EV.get_soc(),  # soc
-                                      EV.required_power / EV.battery_capacity,  # required energy
+                                      EV.required_energy / EV.battery_capacity,  # required energy
                                       EV.time_of_arrival / env.simulation_length,  # time of arrival
                                       ])
                     else:

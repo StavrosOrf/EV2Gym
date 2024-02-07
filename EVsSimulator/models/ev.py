@@ -33,7 +33,7 @@ class EV():
 
     Status variables:
         - current_capacity: the current battery capacity of the EV in kWh
-        - current_power: the current power input of the EV in kW (positive for charging, negative for discharging)
+        - current_energy: the current power input of the EV in kW (positive for charging, negative for discharging)
         - charging_cycles: the number of charging/discharging cycles of the EV (useful for determining battery life parameters)
         - previous_power: the power input of the EV in the previous timestep in kW (positive for charging, negative for discharging)
 
@@ -53,11 +53,11 @@ class EV():
                  use_probabilistic_time_of_departure=False,
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
-                 max_ac_charge_power=22,  # kWh
-                 min_ac_charge_power=2,  # kWh
-                 max_dc_charge_power=11,  # kWh
-                 max_discharge_power=-5,  # kWh
-                 min_discharge_power=-2,  # kWh
+                 max_ac_charge_power=22,  # kW
+                 min_ac_charge_power=2,  # kW
+                 max_dc_charge_power=11,  # kW
+                 max_discharge_power=-5,  # kW
+                 min_discharge_power=-2,  # kW
                  ev_phases=3,
                  noise_level=0,
                  transition_soc=0.8,
@@ -65,12 +65,11 @@ class EV():
                  discharge_efficiency=1,
                  v2g_enabled=True,
                  timescale=5,
-                 simulation_length=150,):
+                 ):
 
         self.id = id
         self.location = location
-        self.timescale = timescale
-        self.simulation_length = simulation_length
+        self.timescale = timescale        
 
         # EV simulation characteristics
         self.time_of_arrival = time_of_arrival
@@ -97,26 +96,27 @@ class EV():
         # EV status
         self.current_capacity = battery_capacity_at_arrival  # kWh
         self.prev_capacity = self.current_capacity
-        self.current_power = 0  # kWh
+        self.current_energy = 0  # kW
         self.actual_current = 0  # A
         self.charging_cycles = 0
         self.previous_power = 0
-        self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
+        self.required_energy = self.battery_capacity - self.battery_capacity_at_arrival
         self.total_energy_exchanged = 0
 
-        # Baterry degradation
-        self.c_lost = 0
+        # Baterry degradation        
+        self.abs_total_energy_exchanged = 0
+        self.historic_soc = []
 
     def reset(self):
         '''
         The reset method is used to reset the EV's status to the initial state.
         '''
         self.current_capacity = self.battery_capacity_at_arrival
-        self.current_power = 0
+        self.current_energy = 0
         self.actual_current = 0
         self.charging_cycles = 0
         self.previous_power = 0
-        self.required_power = self.battery_capacity - self.battery_capacity_at_arrival
+        self.required_energy = self.battery_capacity - self.battery_capacity_at_arrival
         self.c_lost = 0
 
     def step(self, amps, voltage, phases=1, type='AC') -> (float, float):
@@ -125,7 +125,7 @@ class EV():
         Inputs:
             - action: the power input in kW (positive for charging, negative for discharging)
         Outputs:
-            - self.current_power: the current power input of the EV in kW (positive for charging, negative for discharging)
+            - self.current_energy: the current power input of the EV in kW (positive for charging, negative for discharging)
             - self.actual_curent: the actual current input of the EV in A (positive for charging, negative for discharging)
         '''
 
@@ -136,9 +136,11 @@ class EV():
             amps = 0
         elif amps < 0 and amps > self.max_discharge_power*1000/(voltage*math.sqrt(phases)):
             amps = 0
-
+            
+        self.historic_soc.append(self.get_soc())
+        
         if amps == 0:
-            self.current_power = 0
+            self.current_energy = 0
             self.actual_current = 0
             return 0, 0
 
@@ -153,11 +155,12 @@ class EV():
         elif amps < 0:
             self.actual_current = self._discharge(amps, voltage, phases)
 
-        self.previous_power = self.current_power
+        self.previous_power = self.current_energy
 
-        self.total_energy_exchanged += self.current_power * self.timescale / 60
+        self.total_energy_exchanged += self.current_energy * self.timescale / 60
+        self.abs_total_energy_exchanged += abs(self.current_energy) * self.timescale / 60
 
-        return self.current_power, self.actual_current
+        return self.current_energy, self.actual_current
 
     def is_departing(self, timestep) -> float or None:
         '''
@@ -201,7 +204,7 @@ class EV():
         return (self.current_capacity/self.battery_capacity)
 
     def __str__(self):
-        return f' {self.current_power*60/self.timescale :5.1f} kWh |' + \
+        return f' {self.current_energy*60/self.timescale :5.1f} kWh |' + \
             f' {(self.current_capacity/self.battery_capacity)*100:5.1f} % |' + \
             f't_stay: {self.time_of_arrival}-' + \
             f'{self.time_of_departure} |' + \
@@ -216,10 +219,10 @@ class EV():
         #     self.charge_efficiency * self.timescale / 60  # KW
 
         # if self.current_capacity + given_power > self.battery_capacity:
-        #     self.current_power = self.battery_capacity - self.current_capacity
+        #     self.current_energy = self.battery_capacity - self.current_capacity
         #     self.current_capacity = self.battery_capacity
         # else:
-        #     self.current_power = given_power
+        #     self.current_energy = given_power
         #     self.current_capacity += given_power
 
         """ Method to "charge" the battery based on a two-stage linear
@@ -306,9 +309,9 @@ class EV():
 
         # For charging power and charging rate (current), we use the
         # the average over this time period.
-        self.current_power = dsoc * self.battery_capacity  # / (period / 60)
-        self.required_power = self.required_power - self.current_power  # * period / 60
-        return self.current_power / (period / 60) * 1000 / voltage
+        self.current_energy = dsoc * self.battery_capacity  # / (period / 60)
+        self.required_energy = self.required_energy - self.current_energy  # * period / 60
+        return self.current_energy / (period / 60) * 1000 / voltage
 
     def _discharge(self, amps, voltage, phases):
         '''
@@ -329,19 +332,19 @@ class EV():
         given_energy = given_power * self.discharge_efficiency * self.timescale / 60
 
         if self.current_capacity + given_energy < 0:
-            self.current_power = -self.current_capacity  # * 60 / self.timescale
+            self.current_energy = -self.current_capacity  # * 60 / self.timescale
             self.prev_capacity = self.current_capacity
             self.current_capacity = 0
         else:
-            self.current_power = given_energy  # * 60 / self.timescale
+            self.current_energy = given_energy  # * 60 / self.timescale
             self.prev_capacity = self.current_capacity
             self.current_capacity += given_energy
 
-        self.required_power = self.required_power + self.current_power
+        self.required_energy = self.required_energy + self.current_energy
 
         return given_energy*60/self.timescale * 1000 / voltage
 
-    def get_battery_degradation(self):
+    def get_battery_degradation(self) -> (float, float):
         '''
         A function that returns the capacity loss of the EV.
 
@@ -368,38 +371,43 @@ class EV():
         b_cap_ah = 2.05  # ah
         b_cap_kwh = 78  # kwh
 
-        d_dist = 3650  # km
-        b_age = 1095  # days
+        d_dist = 11120  # km
+        b_age = 365  # days
         G = 0.186  # kwh/km
 
         # Age of the battery in days
         T_acc = b_age
 
         # Simulation time in days
-        T_sim = 1  # Assume the simulation time is 1 day
+        T_sim = (self.time_of_departure - self.time_of_arrival + 1)*self.timescale/ (60*24) # days
 
         theta = 298.15  # Kelvin
         k = 0.8263  # Volts
 
-        v_min = 2.5  # Volts
-        soc_avg = ((self.current_capacity + self.prev_capacity)/2) / \
-            self.battery_capacity
-        v_avg = v_min + k * self.get_soc()
+        v_min = 3.15  # Volts
+        self.historic_soc.append(self.get_soc()) # Add the final soc to the historic soc
+        avg_soc = np.mean(self.historic_soc) 
+        v_avg = v_min + k * avg_soc
 
         # alpha(v_avg)
         alpha = (e0 * v_avg - e1) * math.exp(-e2 / theta)
         d_cal = alpha * 0.75 * T_sim / (T_acc)**0.25
 
         # beta(v_avg, soc_avg)
-        delta_DoD = 5  # cahnge this!!!!!!!!
+        print(f'avg_soc: {avg_soc}')        
+        print(f'historic_soc: {self.historic_soc}')
+        
+        delta_DoD = 2 * abs(avg_soc.repeat(len(self.historic_soc)) - self.historic_soc).mean()
+        print(f'delta_DoD: {delta_DoD}')
         v_half_soc = v_min + k * 0.5
-        beta = z0 * (v_half_soc / math.sqrt(2) - z1)**2 + z2 + z3 * delta_DoD
+        beta = z0 * (v_half_soc / math.sqrt(2) - z1)**2 + z2 + z3 * delta_DoD        
 
-        Q_sim = (self.total_energy_exchanged / b_cap_kwh) * b_cap_ah
+        Q_sim = (self.abs_total_energy_exchanged / b_cap_kwh) * b_cap_ah
 
         # accumulated throughput
         Q_acc = 2 * (b_age * (d_dist / 365) * G * b_cap_ah) / b_cap_kwh
+        print(f'Q_acc: {Q_acc}')
 
         d_cyc = beta * 0.5 * Q_sim / (Q_acc)**0.5
 
-        return d_cal + d_cyc
+        return d_cal, d_cyc

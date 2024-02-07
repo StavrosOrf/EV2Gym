@@ -57,7 +57,7 @@ def eval():
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
         # actions = mpc.get_actions(t=i)
-        actions = np.random.rand(env.number_of_ports) * -2 + 1
+        # actions = np.random.rand(env.number_of_ports) * -2 + 1
         if verbose:
             print(f'Actions: {actions}')
 
