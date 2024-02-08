@@ -26,7 +26,7 @@ def battery_degradation_test():
 
     calendar_degradation = np.zeros(
         (len(amps_list), len(required_energy_list)))
-    cycling_degradation = np.zeros((len(amps_list), len(required_energy_list)))
+    cyclic_degradation = np.zeros((len(amps_list), len(required_energy_list)))
 
     for i, amps in enumerate(amps_list):
 
@@ -70,11 +70,23 @@ def battery_degradation_test():
             # print(f'degradation due to calendar aging: {d_cal} \n' +
             #     f'degradation due to cycling: {d_cyc}')
             calendar_degradation[i, j] = d_cal
-            cycling_degradation[i, j] = d_cyc
+            cyclic_degradation[i, j] = d_cyc
 
     # normalize the degradation
     # calendar_degradation = calendar_degradation / np.max(calendar_degradation)
-    # cycling_degradation = cycling_degradation / np.max(cycling_degradation)
+    # cyclic_degradation = cyclic_degradation / np.max(cyclic_degradation)
+    
+    #use the same scale for both calendar and cycling degradation
+    
+    # calendar_degradation = calendar_degradation / np.max(cyclic_degradation)
+    # cyclic_degradation = cyclic_degradation / np.max(cyclic_degradation)
+    
+    # calendar_degradation *= 1000
+    # cyclic_degradation *= 1000
+    # calendar_degradation[0,0] = np.max(cyclic_degradation)
+    print(np.max(calendar_degradation))
+    print(np.max(cyclic_degradation))
+    
 
     # plot a 3d graph of the battery degradation as a function of the charging power and the required energy per day
     import matplotlib.pyplot as plt
@@ -83,28 +95,59 @@ def battery_degradation_test():
     # ax = fig.add_subplot(111, projection='3d')
     # X, Y = np.meshgrid(amps_list, required_energy_list)
     # ax.plot_surface(X, Y, calendar_degradation.T, label='calendar degradation')
-    # ax.plot_surface(X, Y, cycling_degradation.T, label='cycling degradation')
+    # ax.plot_surface(X, Y, cyclic_degradation.T, label='cycling degradation')
     # ax.set_xlabel('Charging power [A]')
     # ax.set_ylabel('Required energy per day [kWh]')
     # ax.set_zlabel('Battery degradation')
     # plt.show()
 
     # plto a cmap of the battery degradation as a function of the charging power and the required energy per day
-    fig, ax = plt.subplots()
-    c = ax.pcolormesh(amps_list, required_energy_list,
-                      calendar_degradation.T, cmap='viridis')
-    ax.set_xlabel('Charging power [A]')
-    ax.set_ylabel('Required energy per day [kWh]')
-    fig.colorbar(c, ax=ax, label='Calendar degradation')
-    plt.show()
+    # use common scale for both calendar and cycling degradation
+    # do subplots for calendar and cycling degradation
+    fig, ax = plt.subplots(1, 2, figsize=(15,6))
+    # c = ax[0].pcolormesh(amps_list, required_energy_list,
+    #                     calendar_degradation.T, cmap='viridis')
+    cmap = plt.cm.viridis
+    # norm = plt.Normalize(vmin=0, vmax=np.max(cyclic_degradation))
+    ax[0].pcolormesh(amps_list, required_energy_list,
+                         calendar_degradation.T, cmap=cmap)    
+    ax[0].set_xlabel('Charging power [A]')
+    ax[0].set_ylabel('Required energy per day [kWh]')
+    ax[0].set_title('Calendar degradation')
+    
+    # fig.colorbar(c, ax=ax[0], label='Calendar degradation')
+    
+    
+    #cmap take values from 0 to max value (calendar_degradation) and map them to colors (viridis cmap)
+    
 
-    fig, ax = plt.subplots()
-    c = ax.pcolormesh(amps_list, required_energy_list,
-                      cycling_degradation.T, cmap='viridis')
-    ax.set_xlabel('Charging power [A]')
-    ax.set_ylabel('Required energy per day [kWh]')
-    fig.colorbar(c, ax=ax, label='Cycling degradation')
+    
+    c = ax[1].pcolormesh(amps_list, required_energy_list,
+                        cyclic_degradation.T, cmap='viridis')
+    
+    ax[1].set_xlabel('Charging power [A]')
+    ax[1].set_ylabel('Required energy per day [kWh]')
+    ax[1].set_title('Cycling degradation')
+    fig.colorbar(c, ax=ax, label='Capacity Loss(mAh)')
+        
     plt.show()
+    
+    # fig, ax = plt.subplots()
+    # c = ax.pcolormesh(amps_list, required_energy_list,
+    #                   calendar_degradation.T, cmap='viridis')
+    # ax.set_xlabel('Charging power [A]')
+    # ax.set_ylabel('Required energy per day [kWh]')
+    # fig.colorbar(c, ax=ax, label='Calendar degradation')
+    # plt.show()
+
+    # fig, ax = plt.subplots()
+    # c = ax.pcolormesh(amps_list, required_energy_list,
+    #                   cyclic_degradation.T, cmap='viridis')
+    
+    # ax.set_xlabel('Charging power [A]')
+    # ax.set_ylabel('Required energy per day [kWh]')
+    # fig.colorbar(c, ax=ax, label='Cycling degradation')
+    # plt.show()
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ number_of_ports_per_cs: 1
 # else write None for a randomized one with the above parameters
 charging_network_topology: None #./config_files/charging_topology_10.json
 # Whether to have the transformer limits in power or current
-transformer_max_power_or_current_mode: current # power or current
+transformer_max_power_or_current_mode: power # power or current
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 transformer_include_inflexible_loads: False # True or False
 
@@ -42,6 +42,6 @@ heterogeneous_ev_specs: False #if False, each EV has its own specifications
 
 # EV Spawn Behavior
 scenario: workplace # public, private, or workplace
-spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn
+spawn_multiplier: 1 # 1 is default, the higher the number the more EVs spawn
 score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
 

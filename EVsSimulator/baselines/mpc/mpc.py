@@ -8,6 +8,7 @@ import numpy as np
 import cvxpy as cp
 import matplotlib.pyplot as plt
 
+
 class MPC():
 
     def __init__(self, env, control_horizon=10, verbose=False):
@@ -45,6 +46,7 @@ class MPC():
         assert env.charging_stations[0].n_ports == 1, "MPC baseline only works with one port per charger."
         # Maximum power per EVSE
         Pmax = env.charging_stations[0].get_max_power()
+        Pmin = env.charging_stations[0].get_min_power()
 
         # Assume all EVs have the same power intake characteristics, and can receive Pmax !!!
         Cx0 = np.zeros(self.EV_number)  # Initial SoC conditions [kWh] for EVs
@@ -85,15 +87,14 @@ class MPC():
                 departure_times[index] = EV.time_of_departure
 
             ev_location = EV.location
-            self.u[ev_location, arrival_times[index]                   : departure_times[index]] = 1
-            self.x_init[ev_location, arrival_times[index]
-                : departure_times[index]] = Cx0[index]
-            self.x_final[ev_location, arrival_times[index]
-                : departure_times[index]] = Cxf[index]
-            self.p_max_MT[ev_location, arrival_times[index]
-                : departure_times[index]] = Pmax
-            self.p_min_MT[ev_location, arrival_times[index]
-                : departure_times[index]] = EV.min_ac_charge_power
+            self.u[ev_location, arrival_times[index]
+                : departure_times[index]] = 1
+            self.x_init[ev_location, arrival_times[index]: departure_times[index]] = Cx0[index]
+            self.x_final[ev_location, arrival_times[index]: departure_times[index]] = Cxf[index]
+            ev_pmax = min(Pmax, EV.max_ac_charge_power)
+            self.p_max_MT[ev_location, arrival_times[index]: departure_times[index]] = ev_pmax
+            ev_pmin = max(Pmin, EV.min_ac_charge_power)
+            self.p_min_MT[ev_location, arrival_times[index]: departure_times[index]] = 0 #ev_pmin
 
         if self.verbose:
             print(f'Initial SoC: {Cx0}')
@@ -201,7 +202,7 @@ class MPC():
                         nb: (j+1) * nb] = np.dot(Abar, Bbar)  # H
 
                 Bbar = Bmono[:, :, j]
-                
+
         if self.verbose:
             print(f'Gu:{Gu.shape} \n {Gu}')
 
@@ -213,7 +214,7 @@ class MPC():
                 m += 1
                 if self.u[i, j] == 0 and self.u[i, j - 1] == 1:
                     XF[m - self.n_ports - 1] = self.x_final[i, j - 1]
-                #if we want to limit SoC for v2G
+                # if we want to limit SoC for v2G
                 # else:
                     # XF[m - self.n_ports - 1] = minimum capacity of EVs
 
@@ -239,9 +240,9 @@ class MPC():
         f = []
         for i in range(self.control_horizon):
             for j in range(self.n_ports):
-                f.append(self.T * self.prices[t + i]) #[t+i+1]
+                f.append(self.T * self.prices[t + i])  # [t+i+1]
         f = np.array(f).reshape(-1, 1)
-
+    
         # Binary variable
         BinEV = np.array([self.u[:, t + p]
                           for p in range(self.control_horizon)]).flatten()
@@ -250,12 +251,14 @@ class MPC():
             print(f'f: {f.shape}, BinEV: {BinEV.shape}')
             print(f'f: \n {f}')
             print(f'BinEV: \n {BinEV}')
+            print(f'u: {self.u.shape} \n {self.u}')
+            
 
         # Boundaries of the power
-        # LB = np.array([self.p_min_MT[j, i + t]
-        #                for i in range(self.control_horizon)
-        #                for j in range(self.n_ports)])
-        LB = np.zeros(self.n_ports * self.control_horizon)
+        LB = np.array([self.p_min_MT[j, i + t]
+                       for i in range(self.control_horizon)
+                       for j in range(self.n_ports)])
+        # LB = np.zeros(self.n_ports * self.control_horizon)
         UB = np.array([self.p_max_MT[j, i + t]
                        for i in range(self.control_horizon)
                        for j in range(self.n_ports)])
@@ -267,16 +270,16 @@ class MPC():
         # Optimization with CVXPY
         u1 = cp.Variable(self.n_ports * self.control_horizon, name='u1')
         CapF1 = cp.Variable(
-            self.n_ports * self.control_horizon, name='CapF1') # not needed for profit maxmization
+            self.n_ports * self.control_horizon, name='CapF1')  # not needed for profit maxmization
 
         # Constraints
         constr = [AU @ u1 <= bU,
-                  CapF1 <= u1, # remove for v2g
-                  u1 <= np.diag(BinEV) @ (UB - CapF1), # remove
-                  LB @ u1 <= CapF1, # LB cannot be positive when u1 is zero
-                  CapF1 <= UB # remove for v2g
-                #   u1 <= UB # new
-                # LB <= u1 # new
+                  CapF1 <= u1,  # remove for v2g
+                  u1 <= np.diag(BinEV) @ (UB - CapF1),  # remove
+                  LB @ u1 <= CapF1,  # LB cannot be positive when u1 is zero
+                  CapF1 <= UB  # remove for v2g
+                  #   u1 <= UB # new
+                  # LB <= u1 # new
                   ]
 
         # Cost function
@@ -286,13 +289,13 @@ class MPC():
 
         print("--------------------------------------------")
         if prob.status != cp.OPTIMAL:
-            print(f'Objective value: {prob.status}')
+            print(f'Objective value: {prob.status}')            
             print("Optimal solution not found !!!!!")
             exit()
 
         u = u1.value  # Optimal power
         CapF = CapF1.value  # Optimal power
-        
+
         if self.verbose:
             print(f'u: {u.shape} \n {u}')
             print(f'CapF: {CapF.shape} \n {CapF}')
@@ -308,7 +311,7 @@ class MPC():
 
         if self.verbose:
             print(f'actions: {actions.shape} \n {actions}')
-            
+
         X2 = Amono[:, :, 0] @ self.x_next + Bmono[:, :, 0] @ uc
         # print(X2)
 
@@ -331,15 +334,15 @@ class MPC():
         '''
         This function plots the results of the MPC baseline in the plot folder of the run.        
         '''
-        
+
         # Colors
         rojo = [0.6350, 0.0780, 0.1840]
         azul = [0, 0.4470, 0.7410]
 
         # Plot price
-        x_v = np.arange(0,self.N+1,step=1)
+        x_v = np.arange(0, self.N+1, step=1)
         plt.figure()
-        plt.stairs(self.prices[:self.N],x_v, color=azul, linewidth=1)
+        plt.stairs(self.prices[:self.N], x_v, color=azul, linewidth=1)
         plt.xlabel('Steps', fontsize=12)
         plt.ylabel('Price [€/kWh]', fontsize=12)
         # plt.legend(['Prices'], loc='best', fontsize=12)
@@ -352,20 +355,21 @@ class MPC():
         print(f'x_v: {x_v}')
         print(f'prices: {self.prices.shape}')
         print(f'prices: {self.prices}')
-        
+
         print(f'x_hist2: {self.x_hist2.shape}')
         print(f'u_hist2: {self.u_hist2.shape}')
         print(f'x_hist2: {self.x_hist2}')
         print(f'u_hist2: {self.u_hist2}')
-        
+
         # Charger responses
         for i in range(self.n_ports):
-            x_v = np.arange(0,self.N+1,step=1)
+            x_v = np.arange(0, self.N+1, step=1)
             plt.figure()
 
             # plt.stairs(x_v, self.Uhist1[i, :self.N], color=rojo, linewidth=1)
-            plt.stairs(self.u_hist2[i, :self.N],x_v, linestyle='--', color=azul, linewidth=1)
-            
+            plt.stairs(self.u_hist2[i, :self.N], x_v,
+                       linestyle='--', color=azul, linewidth=1)
+
             plt.xlabel('Time [h]', fontsize=12)
             plt.ylabel('Power [kW]', fontsize=12)
             plt.legend(['MT', 'OCCF'], loc='best', fontsize=12)
@@ -375,8 +379,9 @@ class MPC():
 
             plt.figure()
             # plt.stairs(x_v, self.Xhist1[i, :self.N], color=rojo, linewidth=1)
-            plt.stairs(self.x_hist2[i, :self.N],x_v, linestyle='-.', color=azul, linewidth=1)
-            
+            plt.stairs(self.x_hist2[i, :self.N], x_v,
+                       linestyle='-.', color=azul, linewidth=1)
+
             plt.xlabel('Time [h]', fontsize=12)
             plt.ylabel('Energy [kWh]', fontsize=12)
             plt.legend(['MT', 'OCCF'], loc='best', fontsize=12)

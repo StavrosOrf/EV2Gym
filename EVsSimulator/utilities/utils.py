@@ -122,7 +122,7 @@ def print_statistics(env):
         print(cs)
     print(
         f'  - Total EVs spawned: {env.total_evs_spawned} |  served: {total_ev_served}')
-    print(f'  - Total profits: {total_profits*100:.2f} €')
+    print(f'  - Total profits: {total_profits:.2f} €')
     print(
         f'  - Average user satisfaction: {average_user_satisfaction*100:.2f} %')
 
@@ -136,7 +136,10 @@ def print_statistics(env):
     print("==============================================================\n\n")
 
 
-def spawn_single_EV(env, scenario, cs_id, port, hour, step):
+def spawn_single_EV(env, scenario, cs_id, port, hour, step, min_time_of_stay_steps) -> EV:
+    '''
+    This function spawns a single EV and returns it
+    '''
 
     required_energy = env.df_energy_demand[scenario].iloc[np.random.randint(
         0, 100, size=1)].values[0]  # kWh
@@ -161,10 +164,15 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step):
     # Alternative method for time of stay
     time_of_stay = env.df_connection_time[scenario].iloc[np.random.randint(
         0, 100, size=1)].values[0] * 60 / env.timescale + 1
+    
+    if time_of_stay < min_time_of_stay_steps:
+        time_of_stay = min_time_of_stay_steps
 
     if env.empty_ports_at_end_of_simulation:
         if time_of_stay + step + 3 > env.simulation_length:
             time_of_stay = env.simulation_length - step - 4
+            
+        assert time_of_stay >= min_time_of_stay_steps, "Time of stay is less than min_time_of_stay_steps"
 
     # "empty_ports_at_end_of_simulation"
 
@@ -201,7 +209,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step):
                   )
 
 
-def EV_spawner(env):
+def EV_spawner(env) -> list[EV]:
     '''
     This function spawns all the EVs of the current simulation and returns the list of EVs
 
@@ -219,8 +227,12 @@ def EV_spawner(env):
     scenario = env.scenario
     user_spawn_multiplier = env.config["spawn_multiplier"]
     time = env.sim_date
+    
+    #Define minimum time of stay duration so that an EV can fully charge
+    min_time_of_stay = 120 #minutes
+    min_time_of_stay_steps = min_time_of_stay // env.timescale
 
-    for t in range(env.simulation_length-1):
+    for t in range(env.simulation_length-min_time_of_stay_steps-1):
         day = time.weekday()
         hour = time.hour
         minute = time.minute
@@ -244,11 +256,18 @@ def EV_spawner(env):
         counter = 0
         for cs in env.charging_stations:
             for port in range(cs.n_ports):
-                # if port is empty and there is an EV arriving
+                # if port is empty 
                 if occupancy_list[counter, t] == 0:
+                    # and there is an EV arriving
                     if arrival_probabilities[counter, t]*100 < tau * multiplier * (env.timescale/60) * user_spawn_multiplier:
                         ev = spawn_single_EV(
-                            env, scenario, cs.id, port, hour, t)
+                            env,
+                            scenario,
+                            cs.id,
+                            port,
+                            hour,
+                            t,
+                            min_time_of_stay_steps=min_time_of_stay_steps)
 
                         ev_list.append(ev)
                         occupancy_list[counter, t +
@@ -261,7 +280,7 @@ def EV_spawner(env):
     return ev_list
 
 
-def create_power_setpoint_one_step(env):
+def create_power_setpoint_one_step(env) -> float:
     '''
     This function creates the power setpoint for the current time step
     '''

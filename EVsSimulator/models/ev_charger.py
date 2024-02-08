@@ -226,10 +226,13 @@ class EV_Charger:
             f' in {self.current_step: 4d} steps' + \
             f' |{self.total_profits: 7.1f} € |' + \
             f' +{self.total_energy_charged: 5.1f} /' + \
-            f' -{self.total_energy_discharged: 5.1f} kW'
+            f' -{self.total_energy_discharged: 5.1f} kWh'
             
     def get_max_power(self):
         return self.max_charge_current * self.voltage * math.sqrt(self.phases) / 1000
+    
+    def get_min_power(self):
+        return self.min_charge_current * self.voltage * math.sqrt(self.phases) / 1000
 
     def get_avg_user_satisfaction(self):
         if self.total_evs_served == 0:

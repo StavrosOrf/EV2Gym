@@ -36,7 +36,7 @@ class EVsSimulator(gym.Env):
                  config_file=None,
                  load_from_replay_path=None,  # path of replay file to load
                  replay_save_path='./replay/',  # where to save the replay file
-                 generate_rnd_game=False,  # generate a random game without terminating conditions
+                 generate_rnd_game=True,  # generate a random game without terminating conditions
                  seed=None,
                  save_replay=False,
                  save_plots=False,

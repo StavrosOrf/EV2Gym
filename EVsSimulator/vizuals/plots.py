@@ -18,8 +18,8 @@ def visualize_step(env):
         for cs in env.charging_stations:
             print(f'  - Charging station {cs.id}:')
             print(f'\t Power: {cs.current_power_output:4.1f} kW |' +
-                  f' \u2197 {env.charge_prices[cs.id, env.current_step -1 ]:4.2f} €/kW ' +
-                  f' \u2198 {env.discharge_prices[cs.id, env.current_step - 1]:4.2f} €/kW |' +
+                  f' \u2197 {env.charge_prices[cs.id, env.current_step -1 ]:4.2f} €/kWh ' +
+                  f' \u2198 {env.discharge_prices[cs.id, env.current_step - 1]:4.2f} €/kWh |' +
                   f' EVs served: {cs.total_evs_served:3d} ' +
                   f' {cs.total_profits:4.2f} €')
 
