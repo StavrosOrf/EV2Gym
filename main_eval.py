@@ -26,7 +26,7 @@ def eval():
     save_plots = True
 
     replay_path = "./replay/replay_sim_2024_02_08_152213.pkl"
-    # replay_path = None
+    replay_path = None
     
     config_file = "/example_config_files/BusinessPST_config.yaml"
     config_file = "/example_config_files/simple_config.yaml"
@@ -45,14 +45,16 @@ def eval():
 
     state, _ = env.reset()
     
-    mpc = MPC(env, control_horizon=5, verbose=True)
+    mpc = MPC(env, control_horizon=15, verbose=True)
 
     rewards = []
 
-    for i in range(env.simulation_length):
+    for t in range(env.simulation_length):
         # all ports are charging instantly
         # actions = np.ones(env.number_of_ports)
-        actions = mpc.get_actions(t=i)
+        # actions = mpc.get_actions_OCCF(t=t)
+        # actions = mpc.get_actions_economicV2G(t=t)
+        actions = mpc.get_actions_OCCF_with_Loads(t=t)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
         if verbose:
             print(f'Actions: {actions}')
@@ -92,11 +94,11 @@ def eval():
     state, _ = env.reset()
     rewards_opt = []
 
-    for i in range(env.simulation_length):
+    for t in range(env.simulation_length):
         # all ports are charging instantly
-        # print(f'Optimal actions: {opt_actions[:,:,i]}')
-        # print(f'Optimal actions: {opt_actions[:,:,i].T.reshape(-1)}')
-        actions = opt_actions[:, :, i].T.reshape(-1)
+        # print(f'Optimal actions: {opt_actions[:,:,t]}')
+        # print(f'Optimal actions: {opt_actions[:,:,t].T.reshape(-1)}')
+        actions = opt_actions[:, :, t].T.reshape(-1)
         if verbose:
             print(f' OptimalActions: {actions}')
 

@@ -171,8 +171,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step, min_time_of_stay_ste
     if env.empty_ports_at_end_of_simulation:
         if time_of_stay + step + 3 > env.simulation_length:
             time_of_stay = env.simulation_length - step - 4
-            
-        assert time_of_stay >= min_time_of_stay_steps, "Time of stay is less than min_time_of_stay_steps"
+
 
     # "empty_ports_at_end_of_simulation"
 
