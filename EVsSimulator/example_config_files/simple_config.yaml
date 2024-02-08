@@ -22,8 +22,8 @@ minute: 0 # Simulation starting minute (0-59)
 ##############################################################################
 # Charging Topology 
 #############################################################################
-v2g_enabled: False # True or False
-number_of_charging_stations: 5
+v2g_enabled: True # True or False
+number_of_charging_stations: 20
 number_of_transformers: 2
 number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology,
