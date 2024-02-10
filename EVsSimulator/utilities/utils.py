@@ -240,7 +240,7 @@ def EV_spawner(env) -> list[EV]:
 
         if day < 5:
             tau = env.df_arrival_week[scenario].iloc[i]
-            multiplier = 10
+            multiplier = 1#10
         else:
             if scenario == "workplace":
                 multiplier = 0
@@ -248,9 +248,9 @@ def EV_spawner(env) -> list[EV]:
             else:
                 tau = env.df_arrival_weekend[scenario].iloc[i]
             if day == 5:
-                multiplier = 8
+                multiplier = 1#8
             else:
-                multiplier = 6
+                multiplier = 1#6
 
         counter = 0
         for cs in env.charging_stations:

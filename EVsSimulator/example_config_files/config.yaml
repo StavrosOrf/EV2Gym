@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 96 # in steps per simulation
+simulation_length: 2688 #96*14 # in steps per simulation
 
 ##############################################################################
 # Date:
@@ -23,9 +23,9 @@ minute: 0 # Simulation starting minute (0-59)
 # Charging Topology 
 ##############################################################################
 v2g_enabled: False # True or False
-number_of_charging_stations: 20
+number_of_charging_stations: 10000
 number_of_transformers: 1
-number_of_ports_per_cs: 1
+number_of_ports_per_cs: 2
 # Provide path if you want to load a specific charging topology,
 # else write None for a randomized one with the above parameters
 charging_network_topology: None #./config_files/charging_topology_10.json
@@ -42,6 +42,6 @@ heterogeneous_ev_specs: False #if False, each EV has its own specifications
 
 # EV Spawn Behavior
 scenario: public # public, private, or workplace
-spawn_multiplier: 1 # 1 is default, the higher the number the more EVs spawn
+spawn_multiplier: 2.5 # 1 is default, the higher the number the more EVs spawn
 score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
 

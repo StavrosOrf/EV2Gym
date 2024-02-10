@@ -7,6 +7,7 @@ Author: Stavros Orfanoudakis 2023
 import numpy as np
 import warnings
 import math
+from typing import Tuple, Union
 
 
 class EV():
@@ -119,7 +120,7 @@ class EV():
         self.required_energy = self.battery_capacity - self.battery_capacity_at_arrival
         self.c_lost = 0
 
-    def step(self, amps, voltage, phases=1, type='AC') -> (float, float):
+    def step(self, amps, voltage, phases=1, type='AC') -> Tuple[float, float]:
         '''
         The step method is used to update the EV's status according to the actions taken by the EV charger.
         Inputs:
@@ -157,12 +158,12 @@ class EV():
 
         self.previous_power = self.current_energy
 
-        self.total_energy_exchanged += self.current_energy * self.timescale / 60
-        self.abs_total_energy_exchanged += abs(self.current_energy) * self.timescale / 60
+        self.total_energy_exchanged += self.current_energy #* self.timescale / 60
+        self.abs_total_energy_exchanged += abs(self.current_energy) #* self.timescale / 60
 
         return self.current_energy, self.actual_current
 
-    def is_departing(self, timestep) -> float or None:
+    def is_departing(self, timestep) -> Union[float, None]:
         '''
         The is_departing method is used to determine whether the EV is departing or not.
         Inputs:
@@ -212,7 +213,7 @@ class EV():
             f'{self.max_discharge_power} kWh|' + \
             f' {self.battery_capacity} kW |'
 
-    def _charge(self, amps, voltage, phases=1):
+    def _charge(self, amps, voltage, phases=1) -> float:
 
         assert (amps > 0)
         # given_power = (amps * voltage / 1000) * \
@@ -313,7 +314,7 @@ class EV():
         self.required_energy = self.required_energy - self.current_energy  # * period / 60
         return self.current_energy / (period / 60) * 1000 / voltage
 
-    def _discharge(self, amps, voltage, phases):
+    def _discharge(self, amps, voltage, phases) -> float:
         '''
         The _discharge method is used to discharge the EV's battery.
         Inputs:
@@ -344,7 +345,7 @@ class EV():
 
         return given_energy*60/self.timescale * 1000 / voltage
 
-    def get_battery_degradation(self) -> (float, float):
+    def get_battery_degradation(self) -> Tuple[float, float]:
         '''
         A function that returns the capacity loss of the EV.
 

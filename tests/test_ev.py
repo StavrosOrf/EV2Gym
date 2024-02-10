@@ -5,7 +5,7 @@ This file is used to assess the battery drgradation model.
 import os
 import sys
 sys.path.append(os.path.realpath('../'))
-from EVsSimulator.EVsSimulator.models.ev import EV
+from EVsSimulator.models.ev import EV
 
 import numpy as np
 
@@ -22,7 +22,7 @@ def battery_degradation_test():
     # initialzing an EV
 
     amps_list = np.arange(8, 56, 1)
-    required_energy_list = np.arange(5, 50, 1)
+    required_energy_list = np.arange(5, 50, 0.5)
 
     calendar_degradation = np.zeros(
         (len(amps_list), len(required_energy_list)))
@@ -47,6 +47,8 @@ def battery_degradation_test():
                                                          voltage=230,
                                                          phases=3,
                                                          type='AC')
+                if ev.get_soc() >= 1:                    
+                    break    
 
             # for t in range(simulation_length//3):
             #     current_energy, actual_current = ev.step(amps=-amps,
@@ -90,16 +92,17 @@ def battery_degradation_test():
 
     # plot a 3d graph of the battery degradation as a function of the charging power and the required energy per day
     import matplotlib.pyplot as plt
-    # from mpl_toolkits.mplot3d import Axes3D
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection='3d')
-    # X, Y = np.meshgrid(amps_list, required_energy_list)
-    # ax.plot_surface(X, Y, calendar_degradation.T, label='calendar degradation')
-    # ax.plot_surface(X, Y, cyclic_degradation.T, label='cycling degradation')
-    # ax.set_xlabel('Charging power [A]')
-    # ax.set_ylabel('Required energy per day [kWh]')
-    # ax.set_zlabel('Battery degradation')
-    # plt.show()
+    from mpl_toolkits.mplot3d import Axes3D
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    X, Y = np.meshgrid(amps_list, required_energy_list)
+    ax.plot_surface(X, Y, calendar_degradation.T, label='calendar degradation')
+    ax.plot_surface(X, Y, cyclic_degradation.T, label='cycling degradation')
+    ax.set_xlabel('Charging power [A]')
+    ax.set_ylabel('Required energy per day [kWh]')
+    ax.set_zlabel('Battery degradation')
+    ax.legend()
+    plt.show()
 
     # plto a cmap of the battery degradation as a function of the charging power and the required energy per day
     # use common scale for both calendar and cycling degradation
