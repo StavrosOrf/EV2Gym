@@ -41,7 +41,7 @@ heterogeneous_ev_specs: False #if False, each EV has its own specifications
 # such as battery capacity, charging rate, etc.
 
 # EV Spawn Behavior
-scenario: public # public, private, or workplace
+scenario: private # public, private, or workplace
 spawn_multiplier: 2.5 # 1 is default, the higher the number the more EVs spawn
 score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
 

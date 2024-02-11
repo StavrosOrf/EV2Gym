@@ -1,31 +1,33 @@
 '''
 This script is used to load the EVs of the simulation and plot the behavior of the EVs.
 '''
-
 import os
 import sys
-import datetime
 sys.path.append(os.path.realpath('../'))
 
+import datetime
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.models.ev import EV
 import pandas as pd
-
 import tqdm as tqdm
 
+
+
 def plot_soc_vs_hour():
-    
+
     df_private = pd.read_csv('./results/evs_data_private.csv')
     df_public = pd.read_csv('./results/evs_data_public.csv')
     df_workplace = pd.read_csv('./results/evs_data_workplace.csv')
 
+    names = ['Public', 'Work','Residential']
+
     num_bins = 7*96
     font_size = 25
 
-    # plt.figure(figsize=(20, 10))
     # plt.style.use('seaborn-darkgrid')
     plt.grid(True, which='minor', axis='both')
     plt.rcParams.update({'font.size': font_size})
@@ -35,8 +37,11 @@ def plot_soc_vs_hour():
 
     #################### #################### #################### ####################
     fig, ax = plt.subplots()
+    plt.figure(figsize=(10, 5))
     # sort data by arrival hour
-    data = data.sort_values(by='arrival_hour')
+    df_private = df_private.sort_values(by='arrival_hour')
+    df_public = df_public.sort_values(by='arrival_hour')
+    df_workplace = df_workplace.sort_values(by='arrival_hour')
 
     # plot 2d cmap of the arrival soc vs the arrival hour where the color is the probability
 
@@ -47,87 +52,232 @@ def plot_soc_vs_hour():
     soc = np.arange(0, 1, 0.01)
 
     cmap = plt.cm.viridis
-    ax.pcolormesh(arrival_hour,
-                  soc,
-                  np.histogram2d(data['arrival_hour'],
-                                 data['arrival_soc'],
-                                 bins=(len(arrival_hour), len(soc)))[0].T / len(data),
-                  norm='linear',
-                  cmap=cmap,
-                  shading='auto')
 
-    # add colorbar
-    cbar = plt.colorbar(ax.pcolormesh(arrival_hour,
-                                      soc,
-                                      np.histogram2d(data['arrival_hour'],
-                                                     data['arrival_soc'],
-                                                     bins=(len(arrival_hour), len(soc)))[0].T / len(data),
-                                      cmap=cmap,
-                                      norm='linear',
-                                      shading='auto'))
+    for i, df in enumerate([df_public, df_workplace, df_private]):
+        # subplot
+        ax = plt.subplot(1, 3, i+1)
+        ax.pcolormesh(arrival_hour,
+                      soc,
+                      np.histogram2d(df['arrival_hour'],
+                                     df['arrival_soc'],
+                                     bins=(len(arrival_hour), len(soc)))[0].T / len(df),
+                      norm='linear',
+                      cmap=cmap,
+                      shading='auto')
 
-    ax.set_ylabel('Arrival SOC', fontsize=font_size)
-    ax.set_xlabel('Arrival Time', fontsize=font_size)
+        if i == 0:
+            ax.set_ylabel('Arrival SOC', fontsize=font_size)
+            ax.set_yticks([i for i in np.arange(0, 1.1, 0.2)],
+                          [f'{i:.1f}' for i in np.arange(0, 1.1, 0.2)],
+                          fontsize=font_size-4)
+        else:
+            ax.set_yticks([])
 
-    plt.show()
-    #################### #################### #################### ####################
+            ax.set_ylabel('')
 
-    # bin = data['arrival_hour'].hist(bins=24,
-    #                                 density=True,
-    #                                 label='Public',
-    #                                 ax=ax,
-    #                                 weights=data['arrival_soc'],
-    #                                 color='blue',
-    #                                 histtype='step')
+        ax.set_xticks([i for i in range(0, 24, 4)],
+                      [str(i) for i in range(0, 24, 4)],
+                      fontsize=font_size-4)
+        ax.set_xlabel(f'Arrival Time (h) \n {names[i]}', fontsize=font_size)
+        # ax.set_title(f'{["Public", "Workplace", "Private"][i]}')
 
-    # ax.set_ylabel('Probability', fontsize=font_size)
-    # ax.set_xlabel('Time (h)', fontsize=font_size)
+        ax.set_xlim(0, 23)
+        ax.set_ylim(0, 1)
 
-    # ax.legend()
+        if i == 2:
+            # add colorbar on the right side of the plot
+            # left, bottom, width, height
+            axins = plt.axes([0.88, 0.1, 0.02, 0.8])
+            cbar = plt.colorbar(ax.pcolormesh(arrival_hour,
+                                              soc,
+                                              np.histogram2d(df['arrival_hour'],
+                                                             df['arrival_soc'],
+                                                             bins=(len(arrival_hour),
+                                                                   len(soc)))[0].T / len(df),
+                                              cmap=cmap,
+                                              norm='linear',
+                                              shading='auto'),
+                                cax=axins,
+                                label='Probability',
+                                orientation='vertical',
+                                location='right')
+
+            # roate the colorbar ticks
+            cbar.ax.tick_params(labelsize=font_size-4)
+            # cbar.ax.set_yticklabels([f'{i:.3f}' for i in np.arange(0, 0.002, 0.0001)])
+            cbar.ax.yaxis.label.set_size(font_size)
+            cbar.ax.yaxis.set_tick_params(rotation=45)
+
     # plt.show()
 
+
+def plot_time_of_stay_vs_hour():
+
+    df_private = pd.read_csv('./results/evs_data_private.csv')
+    df_public = pd.read_csv('./results/evs_data_public.csv')
+    df_workplace = pd.read_csv('./results/evs_data_workplace.csv')
+
+    names = ['Public', 'Work','Residential']
+    print(df_private.head())
+    num_bins = 7*96
+    font_size = 25
+
+    # plot the time of stay vs the arrival hour
+
+    plt.close()
+    fig, ax = plt.subplots()
+    plt.figure(figsize=(10, 5))
+    # sort data by arrival hour
+    df_private = df_private.sort_values(by='arrival_hour')
+    df_public = df_public.sort_values(by='arrival_hour')
+    df_workplace = df_workplace.sort_values(by='arrival_hour')
+
+    cmap = plt.cm.viridis
+
+    for i, df in enumerate([df_public, df_workplace, df_private]):
+        # subplot
+        ax = plt.subplot(1, 3, i+1)
+        ax.pcolormesh(np.arange(0, 24, 1),
+                      np.arange(0, 24, 0.1),
+                      np.histogram2d(df['arrival_hour'],
+                                     df['time_of_stay'],
+                                     bins=(24, 240))[0].T / len(df),
+                      norm='linear',
+                      cmap=cmap,
+                      shading='auto')
+
+        if i == 0:
+            ax.set_ylabel('Time of stay (h)', fontsize=font_size)
+            ax.set_yticks([i for i in range(0, 25, 4)],
+                          [f'{i}' for i in range(0, 25, 4)],
+                          fontsize=font_size-4)
+        else:
+            ax.set_yticks([])
+            ax.set_ylabel('')
+
+        ax.set_xticks([i for i in range(0, 24, 4)],
+                      [str(i) for i in range(0, 24, 4)],
+                      fontsize=font_size-4)
+        ax.set_xlabel(f'Arrival Time (h) \n {names[i]}', fontsize=font_size)
+        # ax.set_title(f'{["Public", "Workplace", "Private"][i]}')
+
+        ax.set_xlim(0, 23)
+        ax.set_ylim(0, 24)
+
+        if i == 2:
+            # add colorbar on the right side of the plot
+            axins = plt.axes([0.88, 0.1, 0.02, 0.8])
+            cbar = plt.colorbar(ax.pcolormesh(np.arange(0, 24, 1),
+                                              np.arange(0, 24, 0.1),
+                                              np.histogram2d(df['arrival_hour'],
+                                                             df['time_of_stay'],
+                                                             bins=(24, 240))[0].T / len(df),
+                                              cmap=cmap,
+                                              norm='linear',
+                                              shading='auto'),
+                                cax=axins,
+                                label='Probability',
+                                orientation='vertical',
+                                location='right')
+
+            # roate the colorbar ticks
+            cbar.ax.tick_params(labelsize=font_size-4)
+            cbar.ax.yaxis.label.set_size(font_size)
+            cbar.ax.yaxis.set_tick_params(rotation=45)
+
+    plt.show()
+
+
+def plot_arrival_and_departure_time(num_bins=7*96, timescale=15):
+    df_private = pd.read_csv('./results/evs_data_private.csv')
+    df_public = pd.read_csv('./results/evs_data_public.csv')
+    df_workplace = pd.read_csv('./results/evs_data_workplace.csv')
+
+    names = ['Public', 'Work','Residential']
+    print(df_private.head())
+    num_bins = 7*96
+    font_size = 25
+    
+    # plt.grid(True, which='minor', axis='both')
+    plt.rcParams.update({'font.size': font_size})
+    plt.rcParams['font.family'] = ['serif']
+
+    data = df_private
+    # fig, ax = plt.subplots()
+    plt.figure(figsize=(10, 5))
     #################### #################### #################### ####################
     # plot histogram of the normalized arrival time and departure time in the same plot
     # sort data by arrival time
-    data = data.sort_values(by='arrival')
+    for i, data in enumerate([df_public, df_workplace, df_private]):
+        ax = plt.subplot(3,1, i+1)
+        
+        data = data.sort_values(by='arrival')
 
-    bin = data['arrival'].hist(bins=num_bins, density=True, label='Arrival Time', ax=ax,
-                               color='blue',
-                               histtype='step')
-    # #print bin edges
+        bin = data['arrival'].hist(bins=num_bins,
+                                   density=True,
+                                   label=f'Arrival Time:',
+                                   ax=ax,                                   
+                                #    color='blue',
+                                   histtype='stepfilled'
+                                   )
+        # #print bin edges
 
-    data = data.sort_values(by='departure')
-    # bin = data['departure'].hist(bins=num_bins,density=True,label='Departure Time',ax=ax)
-    # plot only a line for the departure time
-    bin = data['departure'].hist(bins=num_bins, density=True, ax=ax,
-                                 label='Departure Time',
-                                 color='red',
-                                 histtype='step')
+        data = data.sort_values(by='departure')
+        # bin = data['departure'].hist(bins=num_bins,density=True,label='Departure Time',ax=ax)
+        # plot only a line for the departure time
+        bin = data['departure'].hist(bins=num_bins,
+                                     density=True,
+                                     ax=ax,
+                                     label=f'Departure Time',
+                                     color='red',
+                                     histtype='stepfilled',
+                                    alpha=0.5
+                                     )
+        plt.title(f'{names[i]}',fontsize=font_size)
+        
+        plt.xlim(0, num_bins)
+        
+        
+        # xtixks mention the full name of the day
 
-    # xtixks mention the full name of the day
+        ticks = []
+        counter = 2
+        for j in range(0, 7*96, 32):
+            arrival = datetime.datetime(
+                2024, 2, 12, 5, 0) + datetime.timedelta(minutes=timescale) * j
+            if counter == 3:
+                ticks.append(arrival.strftime('%a %H:%M'))
+                counter = 0
+            else:
+                ticks.append(arrival.strftime('%a %H:%M'))
+            counter += 1
 
-    ticks = []
-    counter = 2
-    for i in range(0, 7*96, 32):
-        arrival = datetime.datetime(
-            2024, 2, 12, 5, 0) + datetime.timedelta(minutes=replay.timescale) * i
-        if counter == 3:
-            ticks.append(arrival.strftime('%a %H:%M'))
-            counter = 0
+        if i == 2:
+            ax.set_xticks([k for k in range(0, 7*96, 32)],
+                        ticks, rotation=45,
+                        fontsize=font_size-8)
         else:
-            ticks.append(arrival.strftime('%H:%M'))
-        counter += 1
+            ax.set_xticks([k for k in range(0, 7*96, 32)],
+                          ["" for k in range(0, 7*96, 32)],)
+        
+        # ax.set_yticks(rotation=45)
+        ax.yaxis.set_tick_params(rotation=45)
+        
+        # set font size of the ticks
+        ax.tick_params(axis='both', which='major', labelsize=font_size-8)
+        
+        # ax.set_ylim(0.001, 0.02)
 
-    ax.set_xticks([i for i in range(0, 7*96, 32)],
-                  ticks, rotation=45,
-                  fontsize=font_size-8)
-
-    # plt.xticks(rotation=45)
-    ax.set_ylabel('Probability', fontsize=font_size)
-    ax.set_xlabel('Time', fontsize=font_size)
-
-    ax.legend()
-    plt.tight_layout()
+        # plt.xticks(rotation=45)
+        ax.set_ylabel('Probability', fontsize=font_size)
+        
+        # ax.set_xlabel('Time', fontsize=font_size)
+        if i == 1:
+            ax.legend()
+        else:
+            ax.legend().remove()
+        
+    # plt.tight_layout()
     plt.show()
 
 #################### #################### #################### ####################
@@ -152,7 +302,7 @@ def create_ev_replay_files(num_bins=7*96):
     print(sim_date)
 
     # use tqdm to show the progress of the loop
-    for i, ev in enumerate(tqdm.tqdm(evs)):    
+    for i, ev in enumerate(tqdm.tqdm(evs)):
         required_energy = ev.battery_capacity - ev.battery_capacity_at_arrival
         # turn time into minutes using the timescale and the sim_date
         arrival = sim_date + \
@@ -211,22 +361,24 @@ def create_ev_replay_files(num_bins=7*96):
         else:
             departure = str(departure.weekday()) + departure.strftime('%H:%M')
 
-        new_row = pd.DataFrame({'id': [i],'arrival': [arrival],
+        new_row = pd.DataFrame({'id': [i], 'arrival': [arrival],
                                 'departure': [departure],
                                 'required_energy': [0],
                                 'arrival_hour': [hour],
                                 'time_of_stay': [0],
                                 'arrival_soc': [0.8]})
-        
+
         data = data._append(new_row, ignore_index=True)
-    
-    data.reset_index(drop=True, inplace=True)    
+
+    data.reset_index(drop=True, inplace=True)
     print(f' data lenght: {len(data)}')
     # save the data to a csv file
     data.to_csv(f'./results/evs_data_{name}.csv', index=False)
 
 
 if __name__ == "__main__":
-    # parse_files()
-    # create_ev_replay_files(num_bins=7*96)
-    pass
+
+    # create_ev_replay_files()
+    # plot_time_of_stay_vs_hour()
+    plot_arrival_and_departure_time()
+    # plot_soc_vs_hour()
