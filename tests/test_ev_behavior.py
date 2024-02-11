@@ -28,16 +28,12 @@ def plot_soc_vs_hour():
     num_bins = 7*96
     font_size = 25
 
-    # plt.style.use('seaborn-darkgrid')
-    plt.grid(True, which='minor', axis='both')
     plt.rcParams.update({'font.size': font_size})
     plt.rcParams['font.family'] = ['serif']
 
-    plt.close()
-
     #################### #################### #################### ####################
-    fig, ax = plt.subplots()
-    plt.figure(figsize=(10, 5))
+
+    plt.figure(figsize=(12, 4))
     # sort data by arrival hour
     df_private = df_private.sort_values(by='arrival_hour')
     df_public = df_public.sort_values(by='arrival_hour')
@@ -71,23 +67,26 @@ def plot_soc_vs_hour():
                           [f'{i:.1f}' for i in np.arange(0, 1.1, 0.2)],
                           fontsize=font_size-4)
         else:
-            ax.set_yticks([])
+            ax.set_yticks([i for i in np.arange(0, 1.1, 0.2)],
+                          ["" for i in np.arange(0, 1.1, 0.2)])
 
             ax.set_ylabel('')
 
         ax.set_xticks([i for i in range(0, 24, 4)],
                       [str(i) for i in range(0, 24, 4)],
                       fontsize=font_size-4)
-        ax.set_xlabel(f'Arrival Time (h) \n {names[i]}', fontsize=font_size)
+        
+        if i == 1:
+            ax.set_xlabel(f'Arrival Time (h)', fontsize=font_size)
         # ax.set_title(f'{["Public", "Workplace", "Private"][i]}')
 
         ax.set_xlim(0, 23)
         ax.set_ylim(0, 1)
-
+        plt.title(f'{names[i]}',fontsize=font_size)
         if i == 2:
             # add colorbar on the right side of the plot
             # left, bottom, width, height
-            axins = plt.axes([0.88, 0.1, 0.02, 0.8])
+            axins = plt.axes([0.88, 0.2, 0.02, 0.7])
             cbar = plt.colorbar(ax.pcolormesh(arrival_hour,
                                               soc,
                                               np.histogram2d(df['arrival_hour'],
@@ -103,12 +102,12 @@ def plot_soc_vs_hour():
                                 location='right')
 
             # roate the colorbar ticks
-            cbar.ax.tick_params(labelsize=font_size-4)
+            cbar.ax.tick_params(labelsize=font_size-8)
             # cbar.ax.set_yticklabels([f'{i:.3f}' for i in np.arange(0, 0.002, 0.0001)])
             cbar.ax.yaxis.label.set_size(font_size)
-            cbar.ax.yaxis.set_tick_params(rotation=45)
+            cbar.ax.yaxis.set_tick_params(rotation=35)
 
-    # plt.show()
+    plt.show()
 
 
 def plot_time_of_stay_vs_hour():
@@ -121,18 +120,22 @@ def plot_time_of_stay_vs_hour():
     print(df_private.head())
     num_bins = 7*96
     font_size = 25
+    
+    plt.rcParams.update({'font.size': font_size})
+    plt.rcParams['font.family'] = ['serif']
 
     # plot the time of stay vs the arrival hour
-
-    plt.close()
-    fig, ax = plt.subplots()
-    plt.figure(figsize=(10, 5))
+    
+    plt.figure(figsize=(12, 4))
     # sort data by arrival hour
     df_private = df_private.sort_values(by='arrival_hour')
     df_public = df_public.sort_values(by='arrival_hour')
     df_workplace = df_workplace.sort_values(by='arrival_hour')
 
     cmap = plt.cm.viridis
+    # cmap = plt.cm.cividis
+    # cmap = plt.cm.gist_yarg
+    # cmap = plt.cm.Greys
 
     for i, df in enumerate([df_public, df_workplace, df_private]):
         # subplot
@@ -152,21 +155,26 @@ def plot_time_of_stay_vs_hour():
                           [f'{i}' for i in range(0, 25, 4)],
                           fontsize=font_size-4)
         else:
-            ax.set_yticks([])
+            ax.set_yticks([i for i in range(0, 25, 4)],
+                          ["" for i in range(0, 25, 4)])
             ax.set_ylabel('')
 
         ax.set_xticks([i for i in range(0, 24, 4)],
                       [str(i) for i in range(0, 24, 4)],
                       fontsize=font_size-4)
-        ax.set_xlabel(f'Arrival Time (h) \n {names[i]}', fontsize=font_size)
+        
+        if i == 1:
+            ax.set_xlabel(f'Arrival Time (h)', fontsize=font_size)
+            
         # ax.set_title(f'{["Public", "Workplace", "Private"][i]}')
 
         ax.set_xlim(0, 23)
         ax.set_ylim(0, 24)
+        plt.title(f'{names[i]}',fontsize=font_size)
 
         if i == 2:
             # add colorbar on the right side of the plot
-            axins = plt.axes([0.88, 0.1, 0.02, 0.8])
+            axins = plt.axes([0.88, 0.2, 0.02, 0.7]) # left, bottom, width, height
             cbar = plt.colorbar(ax.pcolormesh(np.arange(0, 24, 1),
                                               np.arange(0, 24, 0.1),
                                               np.histogram2d(df['arrival_hour'],
@@ -176,14 +184,15 @@ def plot_time_of_stay_vs_hour():
                                               norm='linear',
                                               shading='auto'),
                                 cax=axins,
+                                
                                 label='Probability',
                                 orientation='vertical',
                                 location='right')
 
             # roate the colorbar ticks
-            cbar.ax.tick_params(labelsize=font_size-4)
+            cbar.ax.tick_params(labelsize=font_size-8)
             cbar.ax.yaxis.label.set_size(font_size)
-            cbar.ax.yaxis.set_tick_params(rotation=45)
+            cbar.ax.yaxis.set_tick_params(rotation=35)
 
     plt.show()
 
@@ -217,10 +226,10 @@ def plot_arrival_and_departure_time(num_bins=7*96, timescale=15):
                                    density=True,
                                    label=f'Arrival Time:',
                                    ax=ax,                                   
-                                #    color='blue',
-                                   histtype='stepfilled'
+                                   color='#00429d',
+                                    # alpha=0.7,
+                                   histtype='barstacked'
                                    )
-        # #print bin edges
 
         data = data.sort_values(by='departure')
         # bin = data['departure'].hist(bins=num_bins,density=True,label='Departure Time',ax=ax)
@@ -229,14 +238,13 @@ def plot_arrival_and_departure_time(num_bins=7*96, timescale=15):
                                      density=True,
                                      ax=ax,
                                      label=f'Departure Time',
-                                     color='red',
-                                     histtype='stepfilled',
-                                    alpha=0.5
+                                     color='#93003a',
+                                     histtype='barstacked',
+                                    alpha=0.9
                                      )
         plt.title(f'{names[i]}',fontsize=font_size)
         
         plt.xlim(0, num_bins)
-        
         
         # xtixks mention the full name of the day
 
@@ -254,7 +262,7 @@ def plot_arrival_and_departure_time(num_bins=7*96, timescale=15):
 
         if i == 2:
             ax.set_xticks([k for k in range(0, 7*96, 32)],
-                        ticks, rotation=45,
+                        ticks, rotation=35,
                         fontsize=font_size-8)
         else:
             ax.set_xticks([k for k in range(0, 7*96, 32)],
