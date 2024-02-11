@@ -6,6 +6,35 @@ import matplotlib.pyplot as plt
 import os
 import datetime
 
+
+path =  "mean-session-length-per.csv"
+df_time_of_stay_vs_arrival = pd.read_csv(path)
+#replace Nan with 0
+df_time_of_stay_vs_arrival = df_time_of_stay_vs_arrival.fillna(0)
+print(df_time_of_stay_vs_arrival)
+minute = 0
+hour = 15
+arrival_time = f'{hour:02d}:{minute:02d}'
+print(arrival_time)
+# print the mean energy demand for arrival time = hour:minute
+print(df_time_of_stay_vs_arrival.loc[(df_time_of_stay_vs_arrival['Arrival Time'] == arrival_time)]['work'].values[0])
+
+exit()
+
+path =  "mean-demand-per-arrival.csv"
+df_energy_demand = pd.read_csv(path)
+#replace Nan with 0
+df_energy_demand = df_energy_demand.fillna(0)
+print(df_energy_demand)
+minute = 0
+hour = 15
+arrival_time = f'{hour:02d}:{minute:02d}'
+print(arrival_time)
+# print the mean energy demand for arrival time = hour:minute
+print(df_energy_demand.loc[(df_energy_demand['Arrival Time'] == arrival_time)]['work'].values[0])
+
+exit()
+
 # #print all file in directory
 # for dirname, _, filenames in os.walk('.\data'):
 #     for filename in filenames:

@@ -27,6 +27,11 @@ def load_ev_spawn_scenarios(env) -> None:
         'EVsSimulator', 'data/distribution-of-energy-demand.csv')
     time_of_connection_vs_hour_file = pkg_resources.resource_filename(
         'EVsSimulator', 'data/time_of_connection_vs_hour.npy')
+    
+    df_req_energy_file = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/mean-demand-per-arrival.csv')
+    df_time_of_stay_vs_arrival_file = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/mean-session-length-per.csv')
 
     env.df_arrival_week = pd.read_csv(df_arrival_week_file)  # weekdays
     env.df_arrival_weekend = pd.read_csv(df_arrival_weekend_file)  # weekends
@@ -35,6 +40,19 @@ def load_ev_spawn_scenarios(env) -> None:
     env.df_energy_demand = pd.read_csv(df_energy_demand_file)  # energy demand
     env.time_of_connection_vs_hour = np.load(
         time_of_connection_vs_hour_file)  # time of connection vs hour
+    
+    env.df_req_energy = pd.read_csv(df_req_energy_file)  # energy demand per arrival
+    #replace column work with workplace
+    env.df_req_energy = env.df_req_energy.rename(columns={'work': 'workplace',
+                                                          'home': 'private'})
+    env.df_req_energy = env.df_req_energy.fillna(0)
+    
+    env.df_time_of_stay_vs_arrival = pd.read_csv(
+        df_time_of_stay_vs_arrival_file)  # time of stay vs arrival
+    env.df_time_of_stay_vs_arrival = env.df_time_of_stay_vs_arrival.fillna(0)
+    env.df_time_of_stay_vs_arrival = env.df_time_of_stay_vs_arrival.rename(columns={'work': 'workplace',
+                                                                                  'home': 'private'})
+    
 
 
 def load_power_setpoints(env, randomly) -> np.ndarray:

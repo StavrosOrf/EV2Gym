@@ -30,7 +30,7 @@ def eval():
     
     config_file = "/example_config_files/BusinessPST_config.yaml"
     config_file = "/example_config_files/simple_config.yaml"
-    config_file = "/example_config_files/config.yaml"
+    # config_file = "/example_config_files/config.yaml"
     # config_file = "/example_config_files/v2g_config.yaml"
 
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)

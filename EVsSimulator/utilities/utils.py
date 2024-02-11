@@ -136,16 +136,34 @@ def print_statistics(env):
     print("==============================================================\n\n")
 
 
-def spawn_single_EV(env, scenario, cs_id, port, hour, step, min_time_of_stay_steps) -> EV:
+def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_stay_steps) -> EV:
     '''
     This function spawns a single EV and returns it
     '''
 
-    required_energy = env.df_energy_demand[scenario].iloc[np.random.randint(
-        0, 100, size=1)].values[0]  # kWh
+    # required energy independent of time of arrival
+    # required_energy = env.df_energy_demand[scenario].iloc[np.random.randint(
+    #     0, 100, size=1)].values[0]  # kWh
 
-    if required_energy < 10:
-        required_energy = np.random.randint(10, 15)
+    # roound minute to 30 or 0
+    if minute < 30:
+        minute = 0
+    else:
+        minute = 30
+
+    # required energy dependent on time of arrival
+    arrival_time = f'{hour:02d}:{minute:02d}'
+
+    # print the mean energy demand for arrival time = hour:minute
+    required_energy_mean = env.df_req_energy[
+        (env.df_req_energy['Arrival Time'] == arrival_time)
+    ][scenario].values[0]
+
+    required_energy = np.random.normal(
+        required_energy_mean, 0.5*required_energy_mean) # kWh
+
+    if required_energy < 5:
+        required_energy = np.random.randint(5, 10)
 
     if env.heterogeneous_specs:
         battery_capacity = np.random.randint(40, 80)  # kWh
@@ -157,23 +175,33 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step, min_time_of_stay_ste
     else:
         initial_battery_capacity = battery_capacity - required_energy
 
+    #### time of stay dependent on time of arrival
+    time_of_stay_mean = env.df_time_of_stay_vs_arrival[(
+        env.df_time_of_stay_vs_arrival['Arrival Time'] == arrival_time)
+    ][scenario].values[0]
+    
+    time_of_stay = np.random.normal(
+        time_of_stay_mean, 0.2*time_of_stay_mean)  # hours       
+    
+    # turn from hours to steps
+    time_of_stay = time_of_stay * 60 / env.timescale + 1
+    
+    ##### Alternative method for time of stay based on 10.000 charging sessions
     # time_of_stay = np.random.choice(
     #     np.arange(0, 48, 1), 1, p=env.time_of_connection_vs_hour[hour, :])/2
     # time_of_stay = time_of_stay[0] * 60 / env.timescale + 1
 
-    # Alternative method for time of stay
-    time_of_stay = env.df_connection_time[scenario].iloc[np.random.randint(
-        0, 100, size=1)].values[0] * 60 / env.timescale + 1
-    
+    ##### Alternative method for time of stay without taking into account the hour
+    # time_of_stay = env.df_connection_time[scenario].iloc[np.random.randint(
+    #     0, 100, size=1)].values[0] * 60 / env.timescale + 1
+
     if time_of_stay < min_time_of_stay_steps:
         time_of_stay = min_time_of_stay_steps
 
     if env.empty_ports_at_end_of_simulation:
         if time_of_stay + step + 3 > env.simulation_length:
             time_of_stay = env.simulation_length - step - 4
-
-
-    # "empty_ports_at_end_of_simulation"
+   
 
     if env.heterogeneous_specs:
         return EV(id=port,
@@ -226,9 +254,9 @@ def EV_spawner(env) -> list[EV]:
     scenario = env.scenario
     user_spawn_multiplier = env.config["spawn_multiplier"]
     time = env.sim_date
-    
-    #Define minimum time of stay duration so that an EV can fully charge
-    min_time_of_stay = 120 #minutes
+
+    # Define minimum time of stay duration so that an EV can fully charge
+    min_time_of_stay = 120  # minutes
     min_time_of_stay_steps = min_time_of_stay // env.timescale
 
     for t in range(env.simulation_length-min_time_of_stay_steps-1):
@@ -239,8 +267,12 @@ def EV_spawner(env) -> list[EV]:
         i = hour*4 + minute//15
 
         if day < 5:
-            tau = env.df_arrival_week[scenario].iloc[i]
-            multiplier = 1#10
+            if scenario == "workplace" and (hour < 6 or hour > 18):
+                multiplier = 0
+                tau = 1
+            else:
+                tau = env.df_arrival_week[scenario].iloc[i]
+                multiplier = 1  # 10
         else:
             if scenario == "workplace":
                 multiplier = 0
@@ -248,14 +280,14 @@ def EV_spawner(env) -> list[EV]:
             else:
                 tau = env.df_arrival_weekend[scenario].iloc[i]
             if day == 5:
-                multiplier = 1#8
+                multiplier = 1  # 8
             else:
-                multiplier = 1#6
+                multiplier = 1  # 6
 
         counter = 0
         for cs in env.charging_stations:
             for port in range(cs.n_ports):
-                # if port is empty 
+                # if port is empty
                 if occupancy_list[counter, t] == 0:
                     # and there is an EV arriving
                     if arrival_probabilities[counter, t]*100 < tau * multiplier * (env.timescale/60) * user_spawn_multiplier:
@@ -265,6 +297,7 @@ def EV_spawner(env) -> list[EV]:
                             cs.id,
                             port,
                             hour,
+                            minute,
                             t,
                             min_time_of_stay_steps=min_time_of_stay_steps)
 
