@@ -7,6 +7,9 @@ import sys
 sys.path.append(os.path.realpath('../'))
 from EVsSimulator.models.ev import EV
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 import numpy as np
 import math
 
@@ -23,7 +26,7 @@ def battery_degradation_test():
 
     amps_list = np.arange(8, 56, 1)
     amps_list = [56]
-    required_energy_list = np.arange(5, 50, 1)
+    required_energy_list = np.arange(0, 50, 0.5)
 
     calendar_degradation = np.zeros(
         (len(amps_list), len(required_energy_list)))
@@ -83,7 +86,7 @@ def battery_degradation_test():
     # The units of degradation are Fraction of lost battery pack capacity for BM
     # d_cal = Calendar aging factor in BM
     
-    def calendar_degradation(avg_soc):
+    def calendar_degradation_calc(avg_soc):
         e0 = 7.543e6
         e1 = 23.75e6
         e2 = 6976
@@ -107,8 +110,64 @@ def battery_degradation_test():
         d_cal = alpha * 0.75 * T_sim / (T_acc)**0.25
         return d_cal
     
+    avg_soc = np.arange(0, 1, 0.01)
+    calendar_degradation = np.zeros((len(avg_soc)))
+    
+    for i, soc in enumerate(avg_soc):
+        calendar_degradation[i] = calendar_degradation_calc(soc) * 1e4
+    cyclic_degradation = cyclic_degradation * 1e4
+    
+    font_size = 25
+
+    plt.rcParams.update({'font.size': font_size})
+    plt.rcParams['font.family'] = ['serif']
+    fig, ax1 = plt.subplots()
+    
+    plt.plot(avg_soc, calendar_degradation,color='#93003a')
+    ax1.set_xlabel('Average SOC in a day',color='#93003a')
+    ax1.set_xticks(np.arange(0, 1.1, 0.2),
+                     [f'{i:.1f}' for i in np.arange(0, 1.1, 0.2)],
+                     color='#93003a')
+    ax1.set_ylabel('Capacity Loss Fraction ($10^{-4}$)',fontsize=font_size-4)
+    # ax1.ticklabel_format(axis='y', style='sci',
+    #                      scilimits=(0,0),
+    #                      useMathText=True,
+    #                      useOffset=True)
+    
+    # move scilimits to the left
+    # ax1.yaxis.major.formatter._useMathText = True
+    ax1.set_ylim(0,8)
     
     
+    ax1.legend(["Calendar deg."],loc='upper left',bbox_to_anchor=(0, 0.7),)
+    # 2nd plot: cyclic degradation as a function of the amount of energy exchanged in a day (cyclic depth, x-axis)
+    # use a separate x-axis for the cyclic depth at the top of the plot
+    
+    ax2 = ax1.twiny()    
+    ax2.plot(required_energy_list, cyclic_degradation[0],color='#00429d')
+    ax2.set_xlabel('Energy Exchanged in a day (kWh)',color='#00429d')
+    ax2.set_xticks(np.arange(0, 51, 10),
+                   np.arange(0, 51, 10),
+                   color='#00429d')
+    # ax2.ylabel('Capacity Loss Fraction',color='b')        
+
+    ax2.legend(["Cyclic deg."],loc='upper left',)
+    #set legend color
+    for text in ax1.get_legend().get_texts():
+        text.set_color("#93003a")
+        
+    for text in ax2.get_legend().get_texts():
+        text.set_color("#00429d")
+        
+    ax1.set_xlim(0,1)
+    ax2.set_xlim(0,50)
+    #grid lines
+    ax1.grid()
+    ax2.grid()
+    plt.show(   )
+    
+    
+    exit()
     # normalize the degradation
     # calendar_degradation = calendar_degradation / np.max(calendar_degradation)
     # cyclic_degradation = cyclic_degradation / np.max(cyclic_degradation)
@@ -126,8 +185,7 @@ def battery_degradation_test():
     
 
     # plot a 3d graph of the battery degradation as a function of the charging power and the required energy per day
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
+
     # fig = plt.figure()
     # ax = fig.add_subplot(111, projection='3d')
     # X, Y = np.meshgrid(amps_list, required_energy_list)

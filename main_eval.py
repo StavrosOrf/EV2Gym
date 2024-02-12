@@ -29,8 +29,8 @@ def eval():
     replay_path = None
     
     config_file = "/example_config_files/BusinessPST_config.yaml"
-    config_file = "/example_config_files/simple_config.yaml"
-    # config_file = "/example_config_files/config.yaml"
+    # config_file = "/example_config_files/simple_config.yaml"
+    config_file = "/example_config_files/config.yaml"
     # config_file = "/example_config_files/v2g_config.yaml"
 
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
@@ -41,6 +41,7 @@ def eval():
                        save_replay=True,
                        empty_ports_at_end_of_simulation = False,
                        save_plots=save_plots,
+                    #    render_mode = True,
                        )
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"

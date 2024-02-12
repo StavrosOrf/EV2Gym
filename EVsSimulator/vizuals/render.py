@@ -207,7 +207,7 @@ class Renderer():
         image_path = pkg_resources.resource_filename(
             'EVsSimulator', "vizuals/icons/logo.png")
         icon = PIL.Image.open(image_path)
-        icon = icon.resize((100, 50), PIL.Image.ANTIALIAS)
+        icon = icon.resize((100, 50), PIL.Image.LANCZOS)
         self.fig.figimage(icon, 20, 20, alpha=1, zorder=1)
 
         # add text to a box in the bottom right corner
