@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import pkg_resources
+from typing import List, Tuple
 
 from EVsSimulator.models.ev_charger import EV_Charger
 from EVsSimulator.models.ev import EV
@@ -144,7 +145,7 @@ def generate_residential_inflexible_loads(env) -> np.ndarray:
     return new_data.to_numpy().T
 
 
-def load_transformers(env) -> list[Transformer]:
+def load_transformers(env) -> List[Transformer]:
     '''Loads the transformers of the simulation
     If load_from_replay_path is None, then the transformers are created randomly
 
@@ -240,7 +241,7 @@ def load_transformers(env) -> list[Transformer]:
     return transformers
 
 
-def load_ev_charger_profiles(env ) -> list[EV_Charger]:
+def load_ev_charger_profiles(env ) -> List[EV_Charger]:
     '''Loads the EV charger profiles of the simulation
     If load_from_replay_path is None, then the EV charger profiles are created randomly
 
@@ -305,7 +306,7 @@ def load_ev_charger_profiles(env ) -> list[EV_Charger]:
         return charging_stations
 
 
-def load_ev_profiles(env) -> list[EV]:
+def load_ev_profiles(env) -> List[EV]:
     '''Loads the EV profiles of the simulation
     If load_from_replay_path is None, then the EV profiles are created randomly
 
@@ -318,7 +319,7 @@ def load_ev_profiles(env) -> list[EV]:
         return env.replay.EVs
 
 
-def load_electricity_prices(env) -> tuple[np.ndarray, np.ndarray]:
+def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
     '''Loads the electricity prices of the simulation
     If load_from_replay_path is None, then the electricity prices are created randomly
 

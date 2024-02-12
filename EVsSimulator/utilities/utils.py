@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import datetime
+from typing import List
 
 from EVsSimulator.models.ev import EV
 
@@ -236,7 +237,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_
                   )
 
 
-def EV_spawner(env) -> list[EV]:
+def EV_spawner(env) -> List[EV]:
     '''
     This function spawns all the EVs of the current simulation and returns the list of EVs
 
