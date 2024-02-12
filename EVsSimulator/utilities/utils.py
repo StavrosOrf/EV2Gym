@@ -4,12 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import datetime
-from typing import List
+from typing import List, Dict
 
 from EVsSimulator.models.ev import EV
 
 
-def get_statistics(env):
+def get_statistics(env) -> Dict:
     total_ev_served = np.array(
         [cs.total_evs_served for cs in env.charging_stations]).sum()
     total_profits = np.array(

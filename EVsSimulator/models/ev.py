@@ -107,6 +107,7 @@ class EV():
         # Baterry degradation        
         self.abs_total_energy_exchanged = 0
         self.historic_soc = []
+        self.active_steps = []
 
     def reset(self):
         '''
@@ -139,10 +140,13 @@ class EV():
             amps = 0
             
         self.historic_soc.append(self.get_soc())
+
         
         if amps == 0:
             self.current_energy = 0
             self.actual_current = 0
+            
+            self.active_steps.append(0)
             return 0, 0
 
         # If the action is different than the previous action, then increase the charging cycles
@@ -161,6 +165,7 @@ class EV():
         self.total_energy_exchanged += self.current_energy #* self.timescale / 60
         self.abs_total_energy_exchanged += abs(self.current_energy) #* self.timescale / 60
 
+        self.active_steps.append(1 if self.actual_current != 0 else 0)
         return self.current_energy, self.actual_current
 
     def is_departing(self, timestep) -> Union[float, None]:
@@ -396,9 +401,14 @@ class EV():
 
         # beta(v_avg, soc_avg)
         # print(f'avg_soc: {avg_soc}')        
-        # print(f'historic_soc: {self.historic_soc}')
+        self.active_steps.append(1)
         
-        delta_DoD = 2 * abs(avg_soc.repeat(len(self.historic_soc)) - self.historic_soc).mean()
+        # get historic soc that self.active_steps == 1
+        filtered_historic_soc = [soc for i, soc in enumerate(self.historic_soc) if self.active_steps[i] == 1]
+        # print(f'filtered soc {filtered_historic_soc}')
+        avg_filtered_soc = np.mean(filtered_historic_soc) 
+        
+        delta_DoD = 2 * abs(avg_filtered_soc.repeat(len( filtered_historic_soc)) - filtered_historic_soc).mean()
         # print(f'delta_DoD: {delta_DoD}')
         v_half_soc = v_min + k * 0.5
         beta = z0 * (v_half_soc / math.sqrt(2) - z1)**2 + z2 + z3 * delta_DoD        
