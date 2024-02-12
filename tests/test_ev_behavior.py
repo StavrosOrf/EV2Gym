@@ -6,6 +6,7 @@ import sys
 sys.path.append(os.path.realpath('../'))
 
 import datetime
+import matplotlib.colors as mcolors
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -49,7 +50,7 @@ def plot_soc_vs_hour():
 
     cmap = plt.cm.viridis
     
-    prob = np.zeros((len(arrival_hour), len(soc)-1, 3))
+    prob = np.zeros((len(soc)-1, len(arrival_hour), 3))
 
     for i, df in enumerate([df_public, df_workplace, df_private]):
         # subplot
@@ -58,8 +59,8 @@ def plot_soc_vs_hour():
         for j in range(len(arrival_hour)):
             hist, bins = np.histogram(df[df.arrival_hour == j]['arrival_soc'],
                                       bins=soc,
-                                      density=False)
-            prob[j,:, i] = hist/np.sum(hist)
+                                      density=True)
+            prob[:,j, i] = hist/np.sum(hist)
 
 
         # ax.pcolormesh(arrival_hour,
@@ -74,9 +75,9 @@ def plot_soc_vs_hour():
         #               cmap=cmap,
         #               shading='auto')
         
-        plt.imshow(prob[:,:,i].T, cmap=cmap,
+        plt.imshow(prob[:,:,i], cmap=cmap,
                   aspect='auto',
-                #   origin='lower',
+                  origin='lower',
                   interpolation='nearest',
                 #   norm='linear',
                   extent=[0, 24, 0, 1])
@@ -123,11 +124,11 @@ def plot_soc_vs_hour():
             #                     orientation='vertical',
             #                     location='right')  
             
-            cbar = plt.colorbar( plt.imshow(prob[:,:,i].T, cmap=cmap,
+            cbar = plt.colorbar( plt.imshow(prob[:,:,i], cmap=cmap,
                   aspect='auto',
-                #   origin='lower',
+                  origin='lower',
                   interpolation='nearest',
-                #   norm='linear',
+                  norm='linear',
                   extent=[0, 24, 0, 1]),
                      cax=axins,
                                 label='Probability',
@@ -168,20 +169,40 @@ def plot_time_of_stay_vs_hour():
     cmap = plt.cm.viridis
     # cmap = plt.cm.cividis
     # cmap = plt.cm.gist_yarg
+    # cmap = plt.cm.PuBuGn
     # cmap = plt.cm.Greys
+    arrival_hour = np.arange(0, 24, 1)
+    y_axis = np.arange(0, 20, 0.25)
+    
+    prob = np.zeros((len(y_axis)-1, len(arrival_hour), 3))
 
     for i, df in enumerate([df_public, df_workplace, df_private]):
         # subplot
         ax = plt.subplot(1, 3, i+1)
-        ax.pcolormesh(np.arange(0, 24, 1),
-                      np.arange(0, 24, 0.1),
-                      np.histogram2d(df['arrival_hour'],
-                                     df['time_of_stay'],
-                                     bins=(24, 240))[0].T / len(df),
-                      norm='linear',
-                      cmap=cmap,
-                      shading='auto')
-
+        
+        for j in range(len(arrival_hour)):
+            hist, bins = np.histogram(df[df.arrival_hour == j]['time_of_stay'],
+                                      bins=y_axis,
+                                      density=False)
+            prob[:,j, i] = hist/np.sum(hist)            
+            
+        ax = plt.subplot(1, 3, i+1)
+        # ax.pcolormesh(np.arange(0, 24, 1),
+        #              y_axis,
+        #               np.histogram2d(df['arrival_hour'],
+        #                              df['time_of_stay'],
+        #                              bins=(24, len(y_axis)))[0].T / len(df),
+        #               norm='linear',
+        #               cmap=cmap,
+        #               shading='auto')
+        
+        plt.imshow(prob[:,:,i], cmap=cmap,
+                  aspect='auto',
+                  origin='lower',
+                  interpolation='nearest',
+                #   norm='linear',
+                   norm=mcolors.PowerNorm(0.6),
+                  extent=[0, 24, 0, 24])
         if i == 0:
             ax.set_ylabel('Time of stay (h)', fontsize=font_size)
             ax.set_yticks([i for i in range(0, 25, 4)],
@@ -201,34 +222,43 @@ def plot_time_of_stay_vs_hour():
             
         # ax.set_title(f'{["Public", "Workplace", "Private"][i]}')
 
-        ax.set_xlim(0, 23)
-        ax.set_ylim(0, 24)
+        # ax.set_xlim(0, 23)
+        # ax.set_ylim(0, 24)
         plt.title(f'{names[i]}',fontsize=font_size)
 
         if i == 2:
             # add colorbar on the right side of the plot
             axins = plt.axes([0.88, 0.2, 0.02, 0.7]) # left, bottom, width, height
-            cbar = plt.colorbar(ax.pcolormesh(np.arange(0, 24, 1),
-                                              np.arange(0, 24, 0.1),
-                                              np.histogram2d(df['arrival_hour'],
-                                                             df['time_of_stay'],
-                                                             bins=(24, 240))[0].T / len(df),
-                                              cmap=cmap,
-                                              norm='linear',
-                                              shading='auto'),
-                                cax=axins,
+            # cbar = plt.colorbar(ax.pcolormesh(np.arange(0, 24, 1),
+            #                                   y_axis,
+            #                                   np.histogram2d(df['arrival_hour'],
+            #                                                  df['time_of_stay'],
+            #                                                  bins=(24, len(y_axis)))[0].T / len(df),
+            #                                   cmap=cmap,
+            #                                   norm='linear',
+            #                                   shading='auto'),
+            #                     cax=axins,
                                 
+            #                     label='Probability',
+            #                     orientation='vertical',
+            #                     location='right')
+            cbar = plt.colorbar( plt.imshow(prob[:,:,i], cmap=cmap,
+                  aspect='auto',
+                  origin='lower',
+                  interpolation='nearest',
+                #   norm='linear',
+                norm=mcolors.PowerNorm(0.6),
+                  extent=[0, 24, 0, 24]),
+                     cax=axins,
                                 label='Probability',
                                 orientation='vertical',
-                                location='right')
-
-            # roate the colorbar ticks
+                                location='right'          )   
+            # # roate the colorbar ticks
             cbar.ax.tick_params(labelsize=font_size-8)
             cbar.ax.yaxis.label.set_size(font_size)
             cbar.ax.yaxis.set_tick_params(rotation=35)
 
     plt.show()
-
 
 def plot_arrival_and_departure_time(num_bins=7*96, timescale=15):
     df_private = pd.read_csv('./results/evs_data_private.csv')
@@ -407,7 +437,9 @@ def create_ev_replay_files(num_bins=7*96):
                                 'required_energy': [0],
                                 'arrival_hour': [hour],
                                 'time_of_stay': [0],
-                                'arrival_soc': [0.8]})
+                                # 'time_of_stay': [data[data.arrival_hour == hour]['time_of_stay'].mean()+0.01
+                                #                  if data[data.arrival_hour == hour]['time_of_stay'].mean() is not None else 0.1],
+                                'arrival_soc': [0]})
 
         data = data._append(new_row, ignore_index=True)
 
@@ -419,7 +451,7 @@ def create_ev_replay_files(num_bins=7*96):
 
 if __name__ == "__main__":
 
-    # create_ev_replay_files()
+    create_ev_replay_files()
     # plot_time_of_stay_vs_hour()
     # plot_arrival_and_departure_time()
-    plot_soc_vs_hour()
+    # plot_soc_vs_hour()

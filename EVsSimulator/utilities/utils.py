@@ -162,8 +162,8 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_
     required_energy = np.random.normal(
         required_energy_mean, 0.5*required_energy_mean) # kWh
 
-    if required_energy < 5:
-        required_energy = np.random.randint(5, 10)
+    if required_energy < 0:
+        required_energy = np.random.randint(0, 10)
 
     if env.heterogeneous_specs:
         battery_capacity = np.random.randint(40, 80)  # kWh
@@ -171,7 +171,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_
         battery_capacity = 50
 
     if battery_capacity < required_energy:
-        initial_battery_capacity = 0.05 * battery_capacity
+        initial_battery_capacity = np.random.randint(1, battery_capacity)
     else:
         initial_battery_capacity = battery_capacity - required_energy
 
@@ -256,7 +256,7 @@ def EV_spawner(env) -> list[EV]:
     time = env.sim_date
 
     # Define minimum time of stay duration so that an EV can fully charge
-    min_time_of_stay = 120  # minutes
+    min_time_of_stay = env.min_time_of_stay  # minutes
     min_time_of_stay_steps = min_time_of_stay // env.timescale
 
     for t in range(env.simulation_length-min_time_of_stay_steps-1):
@@ -267,18 +267,19 @@ def EV_spawner(env) -> list[EV]:
         i = hour*4 + minute//15
 
         if day < 5:
-            if scenario == "workplace" and (hour < 6 or hour > 18):
-                multiplier = 0
-                tau = 1
+            if scenario == "workplace" and (hour < 6 or hour > 18):                
+                time = time + datetime.timedelta(minutes=env.timescale)
+                continue
             else:
                 tau = env.df_arrival_week[scenario].iloc[i]
                 multiplier = 1  # 10
         else:
-            if scenario == "workplace":
-                multiplier = 0
-                tau = 1
+            if scenario == "workplace":                
+                time = time + datetime.timedelta(minutes=env.timescale)
+                continue
             else:
                 tau = env.df_arrival_weekend[scenario].iloc[i]
+                
             if day == 5:
                 multiplier = 1  # 8
             else:
