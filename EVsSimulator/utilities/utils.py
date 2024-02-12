@@ -43,7 +43,7 @@ def get_statistics(env) -> Dict:
         if env.replay.unstirred_EVs is None:
             energy_user_satisfaction = -10000000
         else:
-            energy_user_satisfaction = 0
+            energy_user_satisfaction = np.zeros((len(env.EVs)))
             for i, ev in enumerate(env.EVs):
                 e_actual = ev.current_capacity
                 e_max = env.replay.unstirred_EVs[i].current_capacity
@@ -76,7 +76,7 @@ def get_statistics(env) -> Dict:
     return stats
 
 
-def print_statistics(env):
+def print_statistics(env) -> None:
     '''Prints the statistics of the simulation'''
     total_ev_served = np.array(
         [cs.total_evs_served for cs in env.charging_stations]).sum()
