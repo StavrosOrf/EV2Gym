@@ -45,21 +45,41 @@ def plot_soc_vs_hour():
     # 2d histogram
 
     arrival_hour = np.arange(0, 24, 1)
-    soc = np.arange(0, 1, 0.01)
+    soc = np.arange(0, 1.001, 0.025)
 
     cmap = plt.cm.viridis
+    
+    prob = np.zeros((len(arrival_hour), len(soc)-1, 3))
 
     for i, df in enumerate([df_public, df_workplace, df_private]):
         # subplot
         ax = plt.subplot(1, 3, i+1)
-        ax.pcolormesh(arrival_hour,
-                      soc,
-                      np.histogram2d(df['arrival_hour'],
-                                     df['arrival_soc'],
-                                     bins=(len(arrival_hour), len(soc)))[0].T / len(df),
-                      norm='linear',
-                      cmap=cmap,
-                      shading='auto')
+        
+        for j in range(len(arrival_hour)):
+            hist, bins = np.histogram(df[df.arrival_hour == j]['arrival_soc'],
+                                      bins=soc,
+                                      density=False)
+            prob[j,:, i] = hist/np.sum(hist)
+
+
+        # ax.pcolormesh(arrival_hour,
+        #               soc,
+        #               np.histogram2d(df['arrival_hour'],
+        #                              df['arrival_soc'],
+        #                              density=True,
+        #                              bins=(len(arrival_hour),
+        #                                    len(soc)))[0].T / len(df),
+        #               norm='linear',                         
+        #               snap=True,                   
+        #               cmap=cmap,
+        #               shading='auto')
+        
+        plt.imshow(prob[:,:,i].T, cmap=cmap,
+                  aspect='auto',
+                #   origin='lower',
+                  interpolation='nearest',
+                #   norm='linear',
+                  extent=[0, 24, 0, 1])
 
         if i == 0:
             ax.set_ylabel('Arrival SOC', fontsize=font_size)
@@ -87,19 +107,32 @@ def plot_soc_vs_hour():
             # add colorbar on the right side of the plot
             # left, bottom, width, height
             axins = plt.axes([0.88, 0.2, 0.02, 0.7])
-            cbar = plt.colorbar(ax.pcolormesh(arrival_hour,
-                                              soc,
-                                              np.histogram2d(df['arrival_hour'],
-                                                             df['arrival_soc'],
-                                                             bins=(len(arrival_hour),
-                                                                   len(soc)))[0].T / len(df),
-                                              cmap=cmap,
-                                              norm='linear',
-                                              shading='auto'),
-                                cax=axins,
+            # cbar = plt.colorbar(ax.pcolormesh(arrival_hour,
+            #                                   soc,
+            #                                 #   np.histogram2d(df['arrival_hour'],
+            #                                 #                  df['arrival_soc'],
+            #                                 #                  bins=(len(arrival_hour),
+            #                                 #                        len(soc)))[0].T / len(df),                                                
+            #                                   cmap=cmap,
+            #                                   norm='linear',
+            #                                 #   shading='auto'
+            #                                   ),
+            
+            #                     cax=axins,
+            #                     label='Probability',
+            #                     orientation='vertical',
+            #                     location='right')  
+            
+            cbar = plt.colorbar( plt.imshow(prob[:,:,i].T, cmap=cmap,
+                  aspect='auto',
+                #   origin='lower',
+                  interpolation='nearest',
+                #   norm='linear',
+                  extent=[0, 24, 0, 1]),
+                     cax=axins,
                                 label='Probability',
                                 orientation='vertical',
-                                location='right')
+                                location='right'          )                      
 
             # roate the colorbar ticks
             cbar.ax.tick_params(labelsize=font_size-8)
@@ -388,5 +421,5 @@ if __name__ == "__main__":
 
     # create_ev_replay_files()
     # plot_time_of_stay_vs_hour()
-    plot_arrival_and_departure_time()
-    # plot_soc_vs_hour()
+    # plot_arrival_and_departure_time()
+    plot_soc_vs_hour()
