@@ -79,7 +79,7 @@ def plot_soc_vs_hour():
                   aspect='auto',
                   origin='lower',
                   interpolation='nearest',
-                #   norm='linear',
+                  norm=mcolors.PowerNorm(0.6),
                   extent=[0, 24, 0, 1])
 
         if i == 0:
@@ -128,7 +128,7 @@ def plot_soc_vs_hour():
                   aspect='auto',
                   origin='lower',
                   interpolation='nearest',
-                  norm='linear',
+                  norm=mcolors.PowerNorm(0.6),
                   extent=[0, 24, 0, 1]),
                      cax=axins,
                                 label='Probability',
@@ -451,7 +451,7 @@ def create_ev_replay_files(num_bins=7*96):
 
 if __name__ == "__main__":
 
-    create_ev_replay_files()
+    # create_ev_replay_files()
     # plot_time_of_stay_vs_hour()
     # plot_arrival_and_departure_time()
-    # plot_soc_vs_hour()
+    plot_soc_vs_hour()

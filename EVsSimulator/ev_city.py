@@ -245,6 +245,7 @@ class EVsSimulator(gym.Env):
             self.sim_date = self.sim_starting_date
         else:
             # select random date in range
+            
             self.sim_date = datetime.datetime(2022,
                                               1,
                                               1,
@@ -252,6 +253,11 @@ class EVsSimulator(gym.Env):
                                               self.config['minute'],
                                               ) + datetime.timedelta(days=random.randint(0, int(1.5*365)))
 
+            if self.scenario == 'workplace':
+                #dont simulate weekends
+                while self.sim_date.weekday() > 4:
+                    self.sim_date += datetime.timedelta(days=1)
+            
             self.sim_starting_date = self.sim_date
             self.EVs_profiles = load_ev_profiles(self)
             self.EVs = []
