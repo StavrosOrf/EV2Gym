@@ -32,10 +32,6 @@ def get_statistics(env) -> Dict:
             power_tracker_violation += env.current_power_usage[t] - \
                 env.power_setpoints[t]
 
-    # ev_percentage_charged = []
-    # for i, ev in enumerate(env.EVs):
-    #     ev_percentage_charged.append((ev.battery_capacity-ev.current_capacity)/(ev.battery_capacity-ev.battery_capacity_at_arrival))
-
     # find the final battery capacity of evs
     if env.eval_mode != "unstirred" and len(env.EVs) > 0 \
             and env.replay is not None:
@@ -48,9 +44,9 @@ def get_statistics(env) -> Dict:
                 e_actual = ev.current_capacity
                 e_max = env.replay.unstirred_EVs[i].current_capacity
                 # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
-                energy_user_satisfaction += e_actual / e_max * 100
-
-            energy_user_satisfaction /= len(env.EVs)
+                energy_user_satisfaction[i] = e_actual / e_max * 100
+        
+        energy_user_satisfaction = energy_user_satisfaction.mean()
     else:
         energy_user_satisfaction = 100
 
@@ -61,9 +57,8 @@ def get_statistics(env) -> Dict:
              'average_user_satisfaction': average_user_satisfaction,
              'power_tracker_violation': power_tracker_violation,
              'tracking_error': tracking_error,
-             'energy_user_satisfaction': energy_user_satisfaction,
-             'total_transformer_overload': total_transformer_overload,
-             #  'ev_percentage_charged': ev_percentage_charged,
+             'energy_user_satisfaction': energy_user_satisfaction,             
+             'total_transformer_overload': total_transformer_overload,             
              }
     if env.eval_mode != "optimal" and env.replay is not None:
         if env.replay.optimal_stats is not None:
