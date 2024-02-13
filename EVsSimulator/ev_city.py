@@ -60,7 +60,7 @@ class EVsSimulator(gym.Env):
         assert config_file is not None, "Please provide a config file!!!"
         self.config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
 
-        self.min_time_of_stay = 30
+        self.min_time_of_stay = 120  # minimum time of stay in minutes
         self.generate_rnd_game = generate_rnd_game
         self.load_from_replay_path = load_from_replay_path
         self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation

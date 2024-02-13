@@ -22,16 +22,16 @@ def eval():
 
     """
 
-    verbose = False
+    verbose = True
     save_plots = True
 
     replay_path = "./replay/replay_sim_2024_02_08_152213.pkl"
     replay_path = None
     
-    config_file = "/example_config_files/BusinessPST_config.yaml"
-    # config_file = "/example_config_files/simple_config.yaml"
-    config_file = "/example_config_files/config.yaml"
-    # config_file = "/example_config_files/v2g_config.yaml"
+    # config_file = "/example_config_files/BusinessPST_config.yaml"
+    # # config_file = "/example_config_files/simple_config.yaml"
+    # config_file = "/example_config_files/config.yaml"
+    config_file = "/example_config_files/v2g_config.yaml"
 
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
 
@@ -48,7 +48,7 @@ def eval():
 
     state, _ = env.reset()
     
-    # mpc = MPC(env, control_horizon=15, verbose=True)
+    mpc = MPC(env, control_horizon=25, verbose=True)
 
     rewards = []
 
@@ -56,7 +56,7 @@ def eval():
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
         # actions = mpc.get_actions_OCCF(t=t)
-        # actions = mpc.get_actions_economicV2G(t=t)
+        actions = mpc.get_actions_economicV2G(t=t)
         # actions = mpc.get_actions_OCCF_with_Loads(t=t)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
         if verbose:

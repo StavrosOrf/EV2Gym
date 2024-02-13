@@ -28,8 +28,7 @@ class EV():
         - min_desired_capacity: the minimum desired capacity of the EV in kWh to maximize battery life
         - max_desired_capacity: the maximum desired capacity of the EV in kWh to maximize battery life
         - charge_efficiency: the efficiency of the EV when charging
-        - discharge_efficiency: the efficiency of the EV when discharging
-        - v2g_enabled: whether the EV can provide power to the grid or not
+        - discharge_efficiency: the efficiency of the EV when discharging        
         - timescale: the timescale of the simulation (useful for determining the charging speed)
 
     Status variables:
@@ -56,15 +55,14 @@ class EV():
                  battery_capacity=50,  # kWh
                  max_ac_charge_power=22,  # kW
                  min_ac_charge_power=2,  # kW
-                 max_dc_charge_power=11,  # kW
-                 max_discharge_power=-5,  # kW
+                 max_dc_charge_power=50,  # kW
+                 max_discharge_power=-22,  # kW
                  min_discharge_power=-2,  # kW
                  ev_phases=3,
                  noise_level=0,
                  transition_soc=0.8,
                  charge_efficiency=1,
-                 discharge_efficiency=1,
-                 v2g_enabled=True,
+                 discharge_efficiency=1,                 
                  timescale=5,
                  ):
 
@@ -91,8 +89,7 @@ class EV():
         self.ev_phases = ev_phases
 
         self.charge_efficiency = charge_efficiency
-        self.discharge_efficiency = discharge_efficiency
-        self.v2g_enabled = v2g_enabled
+        self.discharge_efficiency = discharge_efficiency        
 
         # EV status
         self.current_capacity = battery_capacity_at_arrival  # kWh
@@ -136,7 +133,7 @@ class EV():
 
         if amps > 0 and amps < self.min_ac_charge_power*1000/(voltage*math.sqrt(phases)):
             amps = 0
-        elif amps < 0 and amps > self.max_discharge_power*1000/(voltage*math.sqrt(phases)):
+        elif amps < 0 and amps > self.min_discharge_power*1000/(voltage*math.sqrt(phases)):
             amps = 0
             
         self.historic_soc.append(self.get_soc())

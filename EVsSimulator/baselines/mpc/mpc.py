@@ -94,7 +94,7 @@ class MPC():
             self.p_max_MT[ev_location, arrival_times[index]                          : departure_times[index]] = ev_pmax
             ev_pmin = max(Pmin, EV.min_ac_charge_power)
             ev_pmin = 0  # formulation does not support p_min different than 0
-            # ev_pmin = Pmin
+            ev_pmin = Pmin
             self.p_min_MT[ev_location, arrival_times[index]                          : departure_times[index]] = ev_pmin
 
         if self.verbose:
@@ -607,8 +607,7 @@ class MPC():
 
         # Complete model calculation Gxx0, this is the big A in the paper
         Gxx0 = self.x_next
-
-        #!!!!! Do we want to include the step now?? Yes
+        
         if t == 0:
             for i in range(0, self.control_horizon-1):
                 Gxx0 = np.concatenate((Gxx0, self.x_init[:, i]))
@@ -732,6 +731,10 @@ class MPC():
 
         if self.verbose:
             print(f'u: {u.shape} \n {u}')
+            # if any u is negative, then we are discharging
+            # if np.any(u < 0):
+            #     print("Discharging")
+            #     input("Press Enter to continue...")
 
         # Selecting the first self.n_ports power levels
         uc = u[:self.n_ports]
@@ -740,7 +743,10 @@ class MPC():
         actions = np.zeros(self.n_ports)
         for i in range(self.n_ports):
             if uc[i] > 0:
-                actions[i] = uc[i]/self.p_max_MT[i, t]
+                actions[i] = uc[i]/(self.p_max_MT[i, t])
+            elif uc[i] < 0:
+                actions[i] = uc[i]/abs(self.p_min_MT[i, t])
+                
 
         if self.verbose:
             print(f'actions: {actions.shape} \n {actions}')

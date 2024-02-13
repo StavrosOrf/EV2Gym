@@ -149,8 +149,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_
 
     # required energy dependent on time of arrival
     arrival_time = f'{hour:02d}:{minute:02d}'
-
-    # print the mean energy demand for arrival time = hour:minute
+    
     required_energy_mean = env.df_req_energy[
         (env.df_req_energy['Arrival Time'] == arrival_time)
     ][scenario].values[0]

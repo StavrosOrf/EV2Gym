@@ -165,7 +165,7 @@ class EV_Charger:
                 self.current_total_amps += actual_amps
 
             elif action < 0:
-
+                print(f'amps: {action} * {self.max_discharge_current} = {action * self.max_discharge_current}')
                 amps = action * abs(self.max_discharge_current)
                 if amps > self.min_discharge_current-0.01:
                     amps = self.min_discharge_current
