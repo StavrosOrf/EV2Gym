@@ -6,6 +6,27 @@ import matplotlib.pyplot as plt
 import os
 import datetime
 
+#read ev_specs json file
+import json
+with open('ev_specs.json') as f:
+    data = json.load(f)
+    
+print(data.keys())
+
+registrations = np.zeros(len(data.keys()))
+for i, ev_name in enumerate(data.keys()):
+    # sum the total number of registrations
+    ev = data[ev_name]
+    print(ev_name)
+    registrations[i] = data[ev_name]['number_of_registrations_2023_nl']
+print(registrations.sum())
+
+normalized_registrations = registrations/registrations.sum()
+#sample from the normalized registrations
+sampled_ev = np.random.choice(list(data.keys()), p=normalized_registrations)
+print(sampled_ev)
+    
+exit()
 
 path =  "mean-session-length-per.csv"
 df_time_of_stay_vs_arrival = pd.read_csv(path)
@@ -19,7 +40,7 @@ print(arrival_time)
 # print the mean energy demand for arrival time = hour:minute
 print(df_time_of_stay_vs_arrival.loc[(df_time_of_stay_vs_arrival['Arrival Time'] == arrival_time)]['work'].values[0])
 
-exit()
+
 
 path =  "mean-demand-per-arrival.csv"
 df_energy_demand = pd.read_csv(path)

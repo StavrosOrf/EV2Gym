@@ -32,12 +32,19 @@ def get_statistics(env) -> Dict:
             power_tracker_violation += env.current_power_usage[t] - \
                 env.power_setpoints[t]
 
+    # calculate total batery degradation
+    battery_degradation = np.array(
+        [np.array(ev.get_battery_degradation()) for ev in env.EVs])
+    battery_degradation_calendar = battery_degradation[:, 0].sum()
+    battery_degradation_cycling = battery_degradation[:, 1].sum()
+    battery_degradation = battery_degradation.sum()
+
     # find the final battery capacity of evs
     if env.eval_mode != "unstirred" and len(env.EVs) > 0 \
             and env.replay is not None:
 
         if env.replay.unstirred_EVs is None:
-            energy_user_satisfaction = -10000000
+            energy_user_satisfaction = np.array(-10000000)
         else:
             energy_user_satisfaction = np.zeros((len(env.EVs)))
             for i, ev in enumerate(env.EVs):
@@ -45,7 +52,7 @@ def get_statistics(env) -> Dict:
                 e_max = env.replay.unstirred_EVs[i].current_capacity
                 # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
                 energy_user_satisfaction[i] = e_actual / e_max * 100
-        
+
         energy_user_satisfaction = energy_user_satisfaction.mean()
     else:
         energy_user_satisfaction = 100
@@ -57,8 +64,11 @@ def get_statistics(env) -> Dict:
              'average_user_satisfaction': average_user_satisfaction,
              'power_tracker_violation': power_tracker_violation,
              'tracking_error': tracking_error,
-             'energy_user_satisfaction': energy_user_satisfaction,             
-             'total_transformer_overload': total_transformer_overload,             
+             'energy_user_satisfaction': energy_user_satisfaction,
+             'total_transformer_overload': total_transformer_overload,
+             'battery_degradation': battery_degradation,
+             'battery_degradation_calendar': battery_degradation_calendar,
+             'battery_degradation_cycling': battery_degradation_cycling,
              }
     if env.eval_mode != "optimal" and env.replay is not None:
         if env.replay.optimal_stats is not None:
@@ -72,45 +82,22 @@ def get_statistics(env) -> Dict:
 
 
 def print_statistics(env) -> None:
-    '''Prints the statistics of the simulation'''
-    total_ev_served = np.array(
-        [cs.total_evs_served for cs in env.charging_stations]).sum()
-    total_profits = np.array(
-        [cs.total_profits for cs in env.charging_stations]).sum()
-    toal_energy_charged = np.array(
-        [cs.total_energy_charged for cs in env.charging_stations]).sum()
-    total_energy_discharged = np.array(
-        [cs.total_energy_discharged for cs in env.charging_stations]).sum()
-    average_user_satisfaction = np.average(np.array(
-        [cs.get_avg_user_satisfaction() for cs in env.charging_stations]))
-    total_transformer_overload = np.array(env.tr_overload).sum()
 
-    tracking_error = 0
-    power_tracker_violation = 0
-    for t in range(env.simulation_length):
-        tracking_error += (min(env.power_setpoints[t], env.charge_power_potential[t]) -
-                           env.current_power_usage[t])**2
-        if env.current_power_usage[t] > env.power_setpoints[t]:
-            power_tracker_violation += env.current_power_usage[t] - \
-                env.power_setpoints[t]
+    stats = get_statistics(env)
 
-    # find the final battery capacity of evs
-    if env.eval_mode != "unstirred" and len(env.EVs) > 0 \
-            and env.replay is not None:
-
-        if env.replay.unstirred_EVs is None:
-            energy_user_satisfaction = -10000000
-        else:
-            energy_user_satisfaction = 0
-            for i, ev in enumerate(env.EVs):
-                e_actual = ev.current_capacity
-                e_max = env.replay.unstirred_EVs[i].current_capacity
-                # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
-                energy_user_satisfaction += e_actual / e_max * 100
-
-            energy_user_satisfaction /= len(env.EVs)
-    else:
-        energy_user_satisfaction = 100
+    total_ev_served = stats['total_ev_served']
+    total_profits = stats['total_profits']
+    total_energy_charged = stats['total_energy_charged']
+    total_energy_discharged = stats['total_energy_discharged']
+    average_user_satisfaction = stats['average_user_satisfaction']
+    total_transformer_overload = stats['total_transformer_overload']
+    tracking_error = stats['tracking_error']
+    power_tracker_violation = stats['power_tracker_violation']
+    energy_user_satisfaction = stats['energy_user_satisfaction']
+    total_transformer_overload = stats['total_transformer_overload']
+    battery_degradation = stats['battery_degradation']
+    battery_degradation_calendar = stats['battery_degradation_calendar']
+    battery_degradation_cycling = stats['battery_degradation_cycling']
 
     print("\n\n==============================================================")
     print("Simulation statistics:")
@@ -123,16 +110,31 @@ def print_statistics(env) -> None:
         f'  - Average user satisfaction: {average_user_satisfaction*100:.2f} %')
 
     print(
-        f'  - Total energy charged: {toal_energy_charged:.1f} | discharged: {total_energy_discharged:.1f} kWh')
+        f'  - Total energy charged: {total_energy_charged:.1f} | discharged: {total_energy_discharged:.1f} kWh')
     print(
         f'  - Power Tracking squared error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW')
     print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %')
     print(
-        f'  - Total transformer overload: {total_transformer_overload:.2f} Amperes / DT \n')
+        f'  - Battery degradation: {battery_degradation:.5f}% | Calendar: {battery_degradation_calendar:.5f}%, Cycling: {battery_degradation_cycling:.5f}%')
+
+    if env.config['transformer_max_power_or_current_mode'] == 'power':
+        print(
+            f'  - Total transformer overload: {total_transformer_overload:.2f} kWh \n')
+    else:
+        print(
+            f'  - Total transformer overload: {total_transformer_overload:.2f} Amperes / DT \n')
     print("==============================================================\n\n")
 
 
-def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_stay_steps) -> EV:
+def spawn_single_EV(env,
+                    scenario,
+                    cs_id,
+                    port,
+                    hour,
+                    minute,
+                    step,
+                    min_time_of_stay_steps
+                    ) -> EV:
     '''
     This function spawns a single EV and returns it
     '''
@@ -149,19 +151,20 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_
 
     # required energy dependent on time of arrival
     arrival_time = f'{hour:02d}:{minute:02d}'
-    
+
     required_energy_mean = env.df_req_energy[
         (env.df_req_energy['Arrival Time'] == arrival_time)
     ][scenario].values[0]
 
     required_energy = np.random.normal(
-        required_energy_mean, 0.5*required_energy_mean) # kWh
+        required_energy_mean, 0.5*required_energy_mean)  # kWh
 
     if required_energy < 0:
         required_energy = np.random.randint(0, 10)
 
     if env.heterogeneous_specs:
-        battery_capacity = np.random.randint(40, 80)  # kWh
+        sampled_ev = np.random.choice(list(env.ev_specs.keys()), p=env.normalized_ev_registrations)
+        battery_capacity = env.ev_specs[sampled_ev]["battery_capacity"]
     else:
         battery_capacity = 50
 
@@ -170,23 +173,23 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_
     else:
         initial_battery_capacity = battery_capacity - required_energy
 
-    #### time of stay dependent on time of arrival
+    # time of stay dependent on time of arrival
     time_of_stay_mean = env.df_time_of_stay_vs_arrival[(
         env.df_time_of_stay_vs_arrival['Arrival Time'] == arrival_time)
     ][scenario].values[0]
-    
+
     time_of_stay = np.random.normal(
-        time_of_stay_mean, 0.2*time_of_stay_mean)  # hours       
-    
+        time_of_stay_mean, 0.2*time_of_stay_mean)  # hours
+
     # turn from hours to steps
     time_of_stay = time_of_stay * 60 / env.timescale + 1
-    
-    ##### Alternative method for time of stay based on 10.000 charging sessions
+
+    # Alternative method for time of stay based on 10.000 charging sessions
     # time_of_stay = np.random.choice(
     #     np.arange(0, 48, 1), 1, p=env.time_of_connection_vs_hour[hour, :])/2
     # time_of_stay = time_of_stay[0] * 60 / env.timescale + 1
 
-    ##### Alternative method for time of stay without taking into account the hour
+    # Alternative method for time of stay without taking into account the hour
     # time_of_stay = env.df_connection_time[scenario].iloc[np.random.randint(
     #     0, 100, size=1)].values[0] * 60 / env.timescale + 1
 
@@ -194,18 +197,16 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_
         time_of_stay = min_time_of_stay_steps
 
     if env.empty_ports_at_end_of_simulation:
-        if time_of_stay + step + 3 > env.simulation_length:
+        if time_of_stay + step + 4 >= env.simulation_length:
             time_of_stay = env.simulation_length - step - 4
-   
 
     if env.heterogeneous_specs:
         return EV(id=port,
                   location=cs_id,
                   battery_capacity_at_arrival=initial_battery_capacity,
-                  max_ac_charge_power=np.random.rand.choice(
-                      [11, 22], [0.2, 0.8]),
-                  max_dc_charge_power=np.random.randint(50, 150),
-                  max_discharge_power=-np.random.randint(3, 15),
+                  max_ac_charge_power=env.ev_specs[sampled_ev]["max_ac_charge_power"],
+                  max_dc_charge_power=env.ev_specs[sampled_ev]["max_dc_charge_power"],
+                  max_discharge_power=env.ev_specs[sampled_ev]["max_dc_discarge_power"],
                   discharge_efficiency=np.round(1 -
                                                 (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
                   transition_soc=np.round(0.9 - \
@@ -214,7 +215,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_
                   time_of_arrival=step+1,
                   time_of_departure=int(
                       time_of_stay + step + 3),
-                  ev_phases=np.random.choice([1, 2, 3], p=[0.2, 0.1, 0.7]),
+                  ev_phases=3,
                   timescale=env.timescale,
                   )
     else:
@@ -262,19 +263,19 @@ def EV_spawner(env) -> List[EV]:
         i = hour*4 + minute//15
 
         if day < 5:
-            if scenario == "workplace" and (hour < 6 or hour > 18):                
+            if scenario == "workplace" and (hour < 6 or hour > 18):
                 time = time + datetime.timedelta(minutes=env.timescale)
                 continue
             else:
                 tau = env.df_arrival_week[scenario].iloc[i]
                 multiplier = 1  # 10
         else:
-            if scenario == "workplace":                
+            if scenario == "workplace":
                 time = time + datetime.timedelta(minutes=env.timescale)
                 continue
             else:
                 tau = env.df_arrival_weekend[scenario].iloc[i]
-                
+
             if day == 5:
                 multiplier = 1  # 8
             else:
@@ -288,13 +289,13 @@ def EV_spawner(env) -> List[EV]:
                     # and there is an EV arriving
                     if arrival_probabilities[counter, t]*100 < tau * multiplier * (env.timescale/60) * user_spawn_multiplier:
                         ev = spawn_single_EV(
-                            env,
-                            scenario,
-                            cs.id,
-                            port,
-                            hour,
-                            minute,
-                            t,
+                            env=env,
+                            scenario=scenario,
+                            cs_id=cs.id,
+                            port=port,
+                            hour=hour,
+                            minute=minute,
+                            step=t,
                             min_time_of_stay_steps=min_time_of_stay_steps)
 
                         ev_list.append(ev)

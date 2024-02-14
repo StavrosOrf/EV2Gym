@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import pkg_resources
+import json
 from typing import List, Tuple
 
 from EVsSimulator.models.ev_charger import EV_Charger
@@ -33,6 +34,9 @@ def load_ev_spawn_scenarios(env) -> None:
         'EVsSimulator', 'data/mean-demand-per-arrival.csv')
     df_time_of_stay_vs_arrival_file = pkg_resources.resource_filename(
         'EVsSimulator', 'data/mean-session-length-per.csv')
+    
+    ev_specs_file = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/ev_specs.json')
 
     env.df_arrival_week = pd.read_csv(df_arrival_week_file)  # weekdays
     env.df_arrival_weekend = pd.read_csv(df_arrival_weekend_file)  # weekends
@@ -52,9 +56,19 @@ def load_ev_spawn_scenarios(env) -> None:
         df_time_of_stay_vs_arrival_file)  # time of stay vs arrival
     env.df_time_of_stay_vs_arrival = env.df_time_of_stay_vs_arrival.fillna(0)
     env.df_time_of_stay_vs_arrival = env.df_time_of_stay_vs_arrival.rename(columns={'work': 'workplace',
-                                                                                  'home': 'private'})
+                                                                                  'home': 'private'})    
     
+    # Load the EV specs
+    if env.config['heterogeneous_ev_specs']:
+        with open(ev_specs_file) as f:
+            env.ev_specs = json.load(f)
+            
+        registrations = np.zeros(len(env.ev_specs.keys()))
+        for i, ev_name in enumerate(env.ev_specs.keys()):
+            # sum the total number of registrations             
+            registrations[i] = env.ev_specs[ev_name]['number_of_registrations_2023_nl']
 
+        env.normalized_ev_registrations = registrations/registrations.sum()
 
 def load_power_setpoints(env, randomly) -> np.ndarray:
     '''
@@ -171,6 +185,13 @@ def load_transformers(env) -> List[Transformer]:
 
     else:
         inflexible_loads = np.zeros((env.number_of_transformers,
+                                    env.simulation_length))
+        
+    if env.config['demand_response']:
+        demand_response = np.zeros((env.number_of_transformers,
+                                    env.simulation_length))
+    else:
+        demand_response = np.zeros((env.number_of_transformers,
                                     env.simulation_length))
 
     if env.charging_network_topology:

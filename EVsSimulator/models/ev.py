@@ -105,6 +105,9 @@ class EV():
         self.abs_total_energy_exchanged = 0
         self.historic_soc = []
         self.active_steps = []
+        
+        self.calendar_loss = 0
+        self.cyclic_loss = 0
 
     def reset(self):
         '''
@@ -418,4 +421,7 @@ class EV():
 
         d_cyc = beta * 0.5 * Q_sim / (Q_acc)**0.5
 
+        self.calendar_loss = d_cal
+        self.cyclic_loss = d_cyc
+        
         return d_cal, d_cyc

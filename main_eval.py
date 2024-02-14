@@ -25,8 +25,8 @@ def eval():
     verbose = True
     save_plots = True
 
-    replay_path = "./replay/replay_sim_2024_02_08_152213.pkl"
-    replay_path = None
+    replay_path = "./replay/replay_sim_2024_02_13_498910.pkl"
+    # replay_path = None
     
     # config_file = "/example_config_files/BusinessPST_config.yaml"
     # # config_file = "/example_config_files/simple_config.yaml"
@@ -39,7 +39,7 @@ def eval():
                        load_from_replay_path=replay_path,                                             
                        verbose=verbose,
                        save_replay=True,
-                       empty_ports_at_end_of_simulation = False,
+                       empty_ports_at_end_of_simulation = True,
                        save_plots=save_plots,
                     #    render_mode = True,
                        )

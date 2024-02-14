@@ -20,6 +20,7 @@ class Transformer():
                  max_power_or_current_mode='current',  # 'current' or 'power'
                  cs_ids=[],  # the charging stations connected to the transformer
                  inflexible_transformer_loading=None,
+                 demand_response=None,
                  ): 
         """
         Initialize the transformer
@@ -44,6 +45,7 @@ class Transformer():
         self.min_power = -max_power
         self.max_power_or_current_mode = max_power_or_current_mode
         self.inflexible_transformer_loading = inflexible_transformer_loading
+        self.demand_response = demand_response
         self.cs_ids = cs_ids
 
         self.current_amps = 0
@@ -105,7 +107,7 @@ class Transformer():
         else:
             return 0
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:        
         if self.max_power_or_current_mode == 'power':
             return f'  - Transformer {self.id}:  {self.min_power:.1f} / ' +\
                 f'{self.current_power:5.1f} /{self.max_power:5.1f} kW' +\

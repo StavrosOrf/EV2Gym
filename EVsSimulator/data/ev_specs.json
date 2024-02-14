@@ -7,8 +7,8 @@
         "max_ac_charge_power": 11,
         "max_dc_charge_power": 170,
         "avg_dc_charge_power": 100,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Kia Niro": {
         "number_of_registrations_2023_nl": 23105,
@@ -18,8 +18,8 @@
         "max_ac_charge_power": 11,
         "max_dc_charge_power": 80,
         "avg_dc_charge_power": 70,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Volkswagen ID.3": {
         "number_of_registrations_2023_nl": 19950,
@@ -29,8 +29,8 @@
         "max_ac_charge_power": 11,
         "max_dc_charge_power": 120,
         "avg_dc_charge_power": 80,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Hyundai Kona": {
         "number_of_registrations_2023_nl": 17752,
@@ -40,8 +40,8 @@
         "max_ac_charge_power": 11,
         "max_dc_charge_power": 77,
         "avg_dc_charge_power": 64,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Tesla Model Y": {
         "number_of_registrations_2023_nl": 16186,
@@ -51,8 +51,8 @@
         "max_ac_charge_power": 11,
         "max_dc_charge_power": 170,
         "avg_dc_charge_power": 100,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Skoda Enyaq": {
         "number_of_registrations_2023_nl": 16165,
@@ -62,8 +62,8 @@
         "max_ac_charge_power": 11,
         "max_dc_charge_power": 124,
         "avg_dc_charge_power": 82,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Peugeot 208": {
         "number_of_registrations_2023_nl": 14017,
@@ -73,8 +73,8 @@
         "max_ac_charge_power": 7.4,
         "max_dc_charge_power": 101,
         "avg_dc_charge_power": 78,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Renault Zoe": {
         "number_of_registrations_2023_nl": 14008,
@@ -84,8 +84,8 @@
         "max_ac_charge_power": 22,
         "max_dc_charge_power": 46,
         "avg_dc_charge_power": 41,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Volkswagen ID.4": {
         "number_of_registrations_2023_nl": 13283,
@@ -95,8 +95,8 @@
         "max_ac_charge_power": 11,
         "max_dc_charge_power": 135,
         "avg_dc_charge_power": 120,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 10
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 10
     },
     "Volvo XC40": {
         "number_of_registrations_2023_nl": 12520,
@@ -106,8 +106,8 @@
         "max_ac_charge_power": 11,
         "max_dc_charge_power": 135,
         "avg_dc_charge_power": 85,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Nissan Leaf": {
         "number_of_registrations_2023_nl": 11977,
@@ -117,8 +117,8 @@
         "max_ac_charge_power": 3.6,
         "max_dc_charge_power": 46,
         "avg_dc_charge_power": 40,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 7
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 7
     },
     "Tesla Model S": {
         "number_of_registrations_2023_nl": 10899,
@@ -128,8 +128,8 @@
         "max_ac_charge_power": 11,
         "max_dc_charge_power": 250,
         "avg_dc_charge_power": 124,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     },
     "Volkswagen Golf": {
         "number_of_registrations_2023_nl": 10019,
@@ -139,7 +139,7 @@
         "max_ac_charge_power": 7.2,
         "max_dc_charge_power": 40,
         "avg_dc_charge_power": 39,
-        "max_ac_discarging_power": 0,
-        "max_dc_discarging_power": 0
+        "max_ac_discarge_power": 0,
+        "max_dc_discarge_power": 0
     }
 }

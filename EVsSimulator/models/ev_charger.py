@@ -194,6 +194,8 @@ class EV_Charger:
         for i, ev in enumerate(self.evs_connected):
             if ev is not None:
                 if ev.is_departing(self.current_step) is not None:
+                    #calculate battery degradation
+                    # _,_ = ev.get_battery_degradation()
                     self.evs_connected[i] = None
                     self.n_evs_connected -= 1
                     self.total_evs_served += 1
