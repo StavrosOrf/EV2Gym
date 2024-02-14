@@ -18,8 +18,8 @@ def get_statistics(env) -> Dict:
         [cs.total_energy_charged for cs in env.charging_stations]).sum()
     total_energy_discharged = np.array(
         [cs.total_energy_discharged for cs in env.charging_stations]).sum()
-    average_user_satisfaction = np.average(np.array(
-        [cs.get_avg_user_satisfaction() for cs in env.charging_stations]))
+    average_user_satisfaction = np.array(
+        [cs.get_avg_user_satisfaction() for cs in env.charging_stations]).mean()
     # get transformer overload from env.tr_overload
     total_transformer_overload = np.array(env.tr_overload).sum()
 
@@ -117,7 +117,7 @@ def print_statistics(env) -> None:
         f'  - Power Tracking squared error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW')
     print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %')
     print(
-        f'  - Battery degradation: {battery_degradation:.5f}% | Calendar: {battery_degradation_calendar:.5f}%, Cycling: {battery_degradation_cycling:.5f}%')
+        f'  - Total Battery degradation: {battery_degradation:.5f}% | Calendar: {battery_degradation_calendar:.5f}%, Cycling: {battery_degradation_cycling:.5f}%')
 
     if env.config['transformer_max_power_or_current_mode'] == 'power':
         print(
