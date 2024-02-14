@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 96 # in steps per simulation
+simulation_length: 32 # in steps per simulation
 
 ##############################################################################
 # Date:
@@ -23,7 +23,7 @@ minute: 0 # Simulation starting minute (0-59)
 # Charging Topology 
 ##############################################################################
 v2g_enabled: True # True or False
-number_of_charging_stations: 4
+number_of_charging_stations: 20
 number_of_transformers: 1
 number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology,
@@ -36,7 +36,7 @@ transformer_max_power_or_current_mode: power # power or current
 # Inflexible Loads and Demand Response
 ##############################################################################
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
-transformer_include_inflexible_loads: True # True or False
+transformer_include_inflexible_loads: False # True or False
 # Whether to include demand response in the transformer power limit
 demand_response: True # True or False
 

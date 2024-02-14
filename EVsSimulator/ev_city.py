@@ -187,7 +187,7 @@ class EVsSimulator(gym.Env):
             self)
 
         # Load power setpoint of simulation
-        self.power_setpoints = load_power_setpoints(self, randomly=True)
+        self.power_setpoints = load_power_setpoints(self)
         self.current_power_usage = np.zeros(self.simulation_length)
         self.charge_power_potential = np.zeros(self.simulation_length)
 
@@ -245,7 +245,7 @@ class EVsSimulator(gym.Env):
             self.sim_date = self.sim_starting_date
         else:
             # select random date in range
-            
+
             self.sim_date = datetime.datetime(2022,
                                               1,
                                               1,
@@ -254,12 +254,13 @@ class EVsSimulator(gym.Env):
                                               ) + datetime.timedelta(days=random.randint(0, int(1.5*365)))
 
             if self.scenario == 'workplace':
-                #dont simulate weekends
+                # dont simulate weekends
                 while self.sim_date.weekday() > 4:
                     self.sim_date += datetime.timedelta(days=1)
-            
+
             self.sim_starting_date = self.sim_date
             self.EVs_profiles = load_ev_profiles(self)
+            self.power_setpoints = load_power_setpoints(self)
             self.EVs = []
 
         # print(f'Simulation starting date: {self.sim_date}')
@@ -306,7 +307,7 @@ class EVsSimulator(gym.Env):
 
         self.tr_inflexible_loads = np.zeros(
             [self.number_of_transformers, self.simulation_length])
-        
+
         # self.port_power = np.zeros([self.number_of_ports,
         #                             self.cs,
         #                             self.simulation_length],
@@ -375,7 +376,7 @@ class EVsSimulator(gym.Env):
 
             for u in user_satisfaction:
                 user_satisfaction_list.append(u)
-            
+
             self.current_power_usage[self.current_step] += cs.current_power_output
 
             # Update transformer variables for this timestep
@@ -416,9 +417,9 @@ class EVsSimulator(gym.Env):
         if self.current_step < self.simulation_length:
             self.charge_power_potential[self.current_step] = calculate_charge_power_potential(
                 self)
-            if self.replay is None:
-                self.power_setpoints[self.current_step] = create_power_setpoint_one_step(
-                    self)
+            # if self.replay is None:
+                # self.power_setpoints[self.current_step] = create_power_setpoint_one_step(
+                #     self)
 
         self.current_evs_parked += self.current_ev_arrived - self.current_ev_departed
 
@@ -446,7 +447,7 @@ class EVsSimulator(gym.Env):
         # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
                 any(score < self.score_threshold for score in user_satisfaction_list) or \
-            (any(tr.is_overloaded() for tr in self.transformers)
+        (any(tr.is_overloaded() for tr in self.transformers)
                     and not self.generate_rnd_game):
             """Terminate if:
                 - The simulation length is reached

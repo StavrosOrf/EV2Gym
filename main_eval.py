@@ -10,7 +10,7 @@ if __name__ == "__main__":
 from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model, ev_city_profit_maximization
 from EVsSimulator.baselines.mpc.mpc import MPC
-from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible
+from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,7 +25,7 @@ def eval():
     verbose = False
     save_plots = True
 
-    replay_path = "./replay/replay_sim_2024_02_14_596128.pkl"
+    replay_path = "./replay/replay_sim_2024_02_14_272496.pkl"
     replay_path = None
 
     # config_file = "/example_config_files/BusinessPST_config.yaml"
@@ -48,21 +48,21 @@ def eval():
 
     state, _ = env.reset()
 
-    mpc = MPC(env, control_horizon=25, verbose=True)
+    # mpc = MPC(env, control_horizon=25, verbose=True)
     round_robin = RoundRobin(env, verbose=True)
-    charge_as_late_as_possible = ChargeAsLateAsPossible(env, verbose=True)
+    charge_as_late_as_possible = ChargeAsLateAsPossible(verbose=True)
+    charge_as_fast_as_possible = ChargeAsFastAsPossible()
     rewards = []
 
     for t in range(env.simulation_length):
-        # all ports are charging instantly
-        actions = np.ones(env.number_of_ports)
-        
+        # all ports are charging instantly        
+        actions = charge_as_fast_as_possible.get_action(env)
         # actions = round_robin.get_action(env)
         # actions = charge_as_late_as_possible.get_action(env)
         # input("Press Enter to continue...")
         # MPC
         # actions = mpc.get_actions_OCCF(t=t)
-        actions = mpc.get_actions_economicV2G(t=t)
+        # actions = mpc.get_actions_economicV2G(t=t)
         # actions = mpc.get_actions_OCCF_with_Loads(t=t)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
         
@@ -82,7 +82,7 @@ def eval():
             print(f'End of simulation at step {env.current_step}')
             break
 
-    exit()
+    # exit()
     # Solve optimally
     # Power tracker optimizer
     math_model = ev_city_power_tracker_model.EV_City_Math_Model(

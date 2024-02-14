@@ -1,6 +1,7 @@
 # this class contains heurisyic algorithms for the power setpoint tracking problem
 import math
 import numpy as np
+from typing import List
 
 
 class RoundRobin():
@@ -95,16 +96,15 @@ class ChargeAsLateAsPossible():
     This is a class that contains the Charge As Late As Possible heuristic algorithm.
     '''
 
-    def __init__(self, env, verbose=False):
+    def __init__(self, verbose=False):
 
         self.verbose = verbose
-        self.ev_buffer = []
 
-    def update_ev_buffer(self, env) -> None:
+    def update_ev_buffer(self, env) -> List[int]:
         '''
         This function updates the EV buffer list with the EVs that are currently parked by adding or removing them.
         '''
-
+        ev_buffer = []  
         counter = 0
         # iterate over all ports
         for cs in env.charging_stations:
@@ -112,35 +112,48 @@ class ChargeAsLateAsPossible():
                 if cs.evs_connected[port] is not None:
 
                     cs_max_power = cs.max_charge_current * \
-                        cs.voltage * math.sqrt(cs.phases)
+                        cs.voltage * math.sqrt(cs.phases) /1000
                     # find minimum steps required to charge the EV
                     min_steps = math.ceil((1 - cs.evs_connected[port].get_soc())
-                                          / (cs_max_power * env.timescale/60))
+                                          / (cs_max_power * env.timescale/60 / cs.evs_connected[port].battery_capacity))
 
                     start_of_charging_step = cs.evs_connected[port].time_of_departure - min_steps
-
-                    if cs.evs_connected[port].get_soc() < 1 and start_of_charging_step > env.current_step:
-
-                        if counter not in self.ev_buffer:
-                            self.ev_buffer.insert(0, counter)
-
-                    else:
-                        if counter in self.ev_buffer:
-                            self.ev_buffer.remove(counter)
-                else:
-                    if counter in self.ev_buffer:
-                        self.ev_buffer.remove(counter)
+                    print(f"EV {counter} will start charging at step {start_of_charging_step}")
+                    print(f'current step: {env.current_step}')
+                    if cs.evs_connected[port].get_soc() < 1 and start_of_charging_step <= env.current_step:
+                        ev_buffer.append(counter)
+                        
                 counter += 1
+        
+        return ev_buffer
 
     def get_action(self, env) -> np.ndarray:
 
         # this function returns the action list based on the round robin algorithm
 
-        self.update_ev_buffer(env)
-
+  
+        ev_buffer = self.update_ev_buffer(env)
+        if self.verbose:            
+            print(f'EV buffer: {ev_buffer}')
+          
         # create action list
         action_list = np.zeros(env.number_of_ports)
 
         # set the action for the EVs to charge
-        for i, ev in enumerate(self.ev_buffer):
+        for i, ev in enumerate(ev_buffer):
             action_list[ev] = 1
+
+        return action_list
+    
+class ChargeAsFastAsPossible():
+    '''
+    This class contains the Charge As Fast As Possible heuristic algorithm.
+    '''
+    
+    def get_action(self, env) -> np.ndarray:
+        '''
+        This function returns the action list based on the charge as fast as possible algorithm.
+        '''
+        action_list = np.ones(env.number_of_ports)
+        return action_list    
+        

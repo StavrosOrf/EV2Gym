@@ -39,7 +39,7 @@ def PublicPST(env, *args):
                     if EV is not None:
                         state.append([
                             1 if EV.get_soc() == 1 else 0,  # we know if the EV is full
-                            EV.total_energy_exchanged/100,
+                            EV.total_energy_exchanged,
                             # EV.max_ac_charge_power*1000 /
                             # (cs.voltage*math.sqrt(cs.phases))/100,
                             # EV.min_ac_charge_power*1000 /

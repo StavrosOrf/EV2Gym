@@ -4,6 +4,7 @@ This file contains the loaders for the EV City environment.
 
 import numpy as np
 import pandas as pd
+import math
 import datetime
 import pkg_resources
 import json
@@ -13,7 +14,7 @@ from EVsSimulator.models.ev_charger import EV_Charger
 from EVsSimulator.models.ev import EV
 from EVsSimulator.models.transformer import Transformer
 
-from EVsSimulator.utilities.utils import EV_spawner
+from EVsSimulator.utilities.utils import EV_spawner, generate_power_setpoints
 
 
 def load_ev_spawn_scenarios(env) -> None:
@@ -70,37 +71,17 @@ def load_ev_spawn_scenarios(env) -> None:
 
         env.normalized_ev_registrations = registrations/registrations.sum()
 
-def load_power_setpoints(env, randomly) -> np.ndarray:
+def load_power_setpoints(env) -> np.ndarray:
     '''
-    Loads the power setpoints of the simulation based on the day-ahead prices'''
+    Loads the power setpoints of the simulation based on the day-ahead prices
+    '''
 
-    # It is necessary to run the simulation first in order to get the ev_load_potential
-    if not randomly and env.load_from_replay_path is None:
-        raise ValueError(
-            'Cannot load power setpoints from day-ahead prices if load_from_replay_path is None')
-
-    # power_setpoints = np.ones(env.simulation_length)
+    
 
     if env.load_from_replay_path:
         return env.replay.power_setpoints
     else:
-        return np.zeros(env.simulation_length)
-
-    # if randomly:
-    #     inverse_prices = 1/abs(env.charge_prices[0, :]+0.001)
-
-    #     if env.cs == 1:
-    #         cs = env.charging_stations[0]
-    #         power_setpoints = power_setpoints * cs.max_charge_current * \
-    #             cs.voltage * math.sqrt(cs.phases)/1000
-    #         power_setpoints = power_setpoints * \
-    #             np.random.randint(2, size=env.simulation_length)
-    #         return power_setpoints
-
-    #     return power_setpoints*(inverse_prices*env.cs)*np.random.uniform(0.08, 0.09, 1)
-    # else:
-    #     raise NotImplementedError(
-    #         'Loading power setpoints from is not implemented yet')
+        return generate_power_setpoints(env)
 
 
 def generate_residential_inflexible_loads(env) -> np.ndarray:

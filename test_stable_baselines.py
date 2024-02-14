@@ -3,7 +3,7 @@
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.rl_agent.reward import MinimizeTrackerSurplusWithChargeRewards
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward
 
 import gymnasium as gym
 
@@ -23,14 +23,14 @@ if __name__ == "__main__":
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
     
-    config_file = "EVsSimulator/example_config_files/config.yaml"
+    config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
 
     gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
                       kwargs={'config_file': config_file,
                               'verbose': False,
                               'save_plots': False,
                               'generate_rnd_game': True, 
-                              'reward_function': MinimizeTrackerSurplusWithChargeRewards,
+                              'reward_function': SquaredTrackingErrorReward,
                               })
 
     env = gym.make('evs-v0')

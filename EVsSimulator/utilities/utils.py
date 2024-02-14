@@ -161,8 +161,8 @@ def spawn_single_EV(env,
     required_energy = np.random.normal(
         required_energy_mean, 0.5*required_energy_mean)  # kWh
 
-    if required_energy < 0:
-        required_energy = np.random.randint(0, 10)
+    if required_energy < 5:
+        required_energy = np.random.randint(5, 10)
 
     if env.heterogeneous_specs:
         sampled_ev = np.random.choice(list(env.ev_specs.keys()), p=env.normalized_ev_registrations)
@@ -309,6 +309,60 @@ def EV_spawner(env) -> List[EV]:
         time = time + datetime.timedelta(minutes=env.timescale)
 
     return ev_list
+
+def generate_power_setpoints(env) -> np.ndarray:
+    '''
+    This function generates the power setpoints for the entire simulation using
+    the list of EVs and the charging stations from the environment.
+    
+    It considers the ev SoC and teh steps required to fully charge the EVs.
+    
+    Returns:
+        power_setpoints: np.ndarray
+    
+    '''
+    
+    power_setpoints = np.zeros(env.simulation_length)
+    # get normalized prices
+    prices = abs(env.charge_prices[0])
+    prices = prices / np.max(prices)
+    
+    total_evs_spawned = 0
+    for t in range(env.simulation_length):
+        counter = total_evs_spawned
+        for i, ev in enumerate(env.EVs_profiles[counter:]):
+            if ev.time_of_arrival == t + 1:                
+                total_evs_spawned += 1
+                
+                cs = env.charging_stations[ev.location]
+                # cs_max_power = cs.max_charge_current * \
+                #         cs.voltage * math.sqrt(cs.phases) /1000
+                # ev_max_power = ev.max_ac_charge_power   
+                
+                required_energy = ev.battery_capacity - ev.battery_capacity_at_arrival
+                
+                # Spread randomly the required energy over the time of stay using the prices as weights
+                
+                shifted_load = np.random.normal(loc= 1 - prices[t:ev.time_of_departure],
+                                                scale= 1 - prices[t:ev.time_of_departure],
+                                                size=ev.time_of_departure - t)    
+                # make shifted load positive
+                shifted_load = np.abs(shifted_load)            
+                shifted_load = shifted_load / np.sum(shifted_load)
+                
+                print(f"EV {total_evs_spawned} will start charging at step {t} and leave at step {ev.time_of_departure}\
+                      with required energy {required_energy} kWh\
+                          shifted load: {shifted_load}")
+                print(f' sum of shifted load: {np.sum(shifted_load * required_energy * 60 / env.timescale)}')
+                power_setpoints[t:ev.time_of_departure] += shifted_load * required_energy * 60 / env.timescale
+                
+                # max_power = min(cs_max_power, ev_max_power)                        
+                # min_steps = math.ceil((1 - ev.get_soc())
+                #                           / (cs_max_power * env.timescale/60 / ev.battery_capacity))
+            elif ev.time_of_arrival > t + 1:
+                break
+            
+    return power_setpoints
 
 
 def create_power_setpoint_one_step(env) -> float:
