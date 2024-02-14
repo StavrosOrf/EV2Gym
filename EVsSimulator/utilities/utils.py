@@ -35,6 +35,8 @@ def get_statistics(env) -> Dict:
     # calculate total batery degradation
     battery_degradation = np.array(
         [np.array(ev.get_battery_degradation()) for ev in env.EVs])
+    if len(battery_degradation) == 0:
+        battery_degradation = np.zeros((1, 2))
     battery_degradation_calendar = battery_degradation[:, 0].sum()
     battery_degradation_cycling = battery_degradation[:, 1].sum()
     battery_degradation = battery_degradation.sum()

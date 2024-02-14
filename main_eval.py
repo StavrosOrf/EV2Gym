@@ -10,6 +10,7 @@ if __name__ == "__main__":
 from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model, ev_city_profit_maximization
 from EVsSimulator.baselines.mpc.mpc import MPC
+from EVsSimulator.baselines.heuristics import RoundRobin
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,12 +23,12 @@ def eval():
 
     """
 
-    verbose = True
+    verbose = False
     save_plots = True
 
-    replay_path = "./replay/replay_sim_2024_02_13_498910.pkl"
+    replay_path = "./replay/replay_sim_2024_02_14_596128.pkl"
     # replay_path = None
-    
+
     # config_file = "/example_config_files/BusinessPST_config.yaml"
     # # config_file = "/example_config_files/simple_config.yaml"
     # config_file = "/example_config_files/config.yaml"
@@ -36,29 +37,35 @@ def eval():
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
 
     env = EVsSimulator(config_file=config_file,
-                       load_from_replay_path=replay_path,                                             
-                       verbose=verbose,
+                       load_from_replay_path=replay_path,
+                       verbose=True,
                        save_replay=True,
-                       empty_ports_at_end_of_simulation = True,
+                       empty_ports_at_end_of_simulation=True,
                        save_plots=save_plots,
-                    #    render_mode = True,
+                       #    render_mode = True,
                        )
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
 
     state, _ = env.reset()
-    
-    mpc = MPC(env, control_horizon=25, verbose=True)
+
+    # mpc = MPC(env, control_horizon=25, verbose=True)
+    round_robin = RoundRobin(env, verbose=True)
 
     rewards = []
 
     for t in range(env.simulation_length):
         # all ports are charging instantly
         actions = np.ones(env.number_of_ports)
+        
+        actions = round_robin.get_action(env)
+        input("Press Enter to continue...")
+        # MPC
         # actions = mpc.get_actions_OCCF(t=t)
-        actions = mpc.get_actions_economicV2G(t=t)
+        # actions = mpc.get_actions_economicV2G(t=t)
         # actions = mpc.get_actions_OCCF_with_Loads(t=t)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
+        
         if verbose:
             print(f'Actions: {actions}')
 

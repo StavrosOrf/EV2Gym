@@ -33,8 +33,10 @@ charging_network_topology: None #./config_files/charging_topology_10.json
 transformer_max_power_or_current_mode: power # power or current
 
 ##############################################################################
+# Inflexible Loads and Demand Response
+##############################################################################
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
-transformer_include_inflexible_loads: True # True or False
+transformer_include_inflexible_loads: False # True or False
 # Whether to include demand response in the transformer power limit
 demand_response: True # True or False
 
@@ -46,7 +48,7 @@ heterogeneous_ev_specs: False #if False, each EV has its own specifications
 # such as battery capacity, charging rate, etc.
 
 # EV Spawn Behavior
-scenario: workplace # public, private, or workplace
-spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn
+scenario: private # public, private, or workplace
+spawn_multiplier: 100 # 1 is default, the higher the number the more EVs spawn
 score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
 
