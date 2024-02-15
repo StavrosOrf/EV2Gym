@@ -7,29 +7,36 @@ from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 from tqdm import tqdm
 from EVsSimulator.ev_city import EVsSimulator
 import gymnasium as gym
-from EVsSimulator.rl_agent.reward import MinimizeTrackerSurplusWithChargeRewards
+import os
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward
 
 import pickle
 
 algorithms = ['ddpg', 'td3', 'sac', 'a2c', 'ppo', 'tqc', 'trpo', 'ars', 'rppo']
-# algorithms = ['ddpg']
+algorithms = ['tqc']
+# algorithms = ['rr']
 device = "cuda"
 
-config_file = "EVsSimulator/example_config_files/config.yaml"
+config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
 
 gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
                   kwargs={'config_file': config_file,
                           'verbose': False,
-                        #   'save_plots': True,
+                            'save_plots': True,
                           'generate_rnd_game': True,
-                        #   'reward_function': MinimizeTrackerSurplusWithChargeRewards,
+                          #   'reward_function': MinimizeTrackerSurplusWithChargeRewards,
                           })
 
 env = gym.make('evs-v0')
 
-for algorithm in algorithms:    
+
+if not os.path.exists("./results"):
+    os.makedirs("./results")
+
+for algorithm in algorithms:
     # load_path = "./saved_models/" + algorithm + "_20cs_1_port_best_reward.zip"
-    load_path = "./saved_models/" + algorithm + "_20cs_1_port_SquaredTrackingErrorRewardWithPenalty.zip"
+    load_path = "./saved_models/" + algorithm + \
+        "_15cs_1_port_SquaredTrackingErrorReward.zip"
     # load_path = "./saved_models/" + algorithm + "_20cs_1_port.zip"
 
     if algorithm == "ddpg":
@@ -50,6 +57,8 @@ for algorithm in algorithms:
         model = ARS.load(load_path, env=env, device=device)
     elif algorithm == "rppo":
         model = RecurrentPPO.load(load_path, env=env, device=device)
+    elif algorithm == "rr":
+        model = RoundRobin(env)
     else:
         raise ValueError("Algorithm not supported")
 
@@ -57,19 +66,22 @@ for algorithm in algorithms:
     obs = env.reset()
 
     stats = []
-    for i in tqdm(range(96*1000)):
+    for i in tqdm(range(96*1)):               
 
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = env.step(action)
 
         if done:
             stats.append(info)
-            # obs = env.reset()
+            obs = env.reset()
 
-    #save stats to file   
-    pickle.dump(stats, open("./results/"+algorithm+"_20cs_1_port_SquaredTrackingErrorRewardWithPenalty.pkl", "wb"))
-    
-    # print average stats
+    # make directory if it does not exist
+
+    # save stats to file
+    pickle.dump(stats, open("./results/"+algorithm +
+                "_15cs_1_port_SquaredTrackingErrorRewardWithPenalty.pkl", "wb"))
+
+    # print average stats for
     print("=====================================================")
     print(f' Average stats for {algorithm} algorithm, {len(stats)} episodes')
     print("total_ev_served: ", sum(

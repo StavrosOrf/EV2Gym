@@ -19,7 +19,8 @@ def get_statistics(env) -> Dict:
     total_energy_discharged = np.array(
         [cs.total_energy_discharged for cs in env.charging_stations]).sum()
     average_user_satisfaction = np.array(
-        [cs.get_avg_user_satisfaction() for cs in env.charging_stations]).mean()
+        [cs.get_avg_user_satisfaction() for cs in env.charging_stations
+         if cs.total_evs_served > 0]).mean()
     # get transformer overload from env.tr_overload
     total_transformer_overload = np.array(env.tr_overload).sum()
 
@@ -333,32 +334,19 @@ def generate_power_setpoints(env) -> np.ndarray:
         for i, ev in enumerate(env.EVs_profiles[counter:]):
             if ev.time_of_arrival == t + 1:                
                 total_evs_spawned += 1
-                
-                cs = env.charging_stations[ev.location]
-                # cs_max_power = cs.max_charge_current * \
-                #         cs.voltage * math.sqrt(cs.phases) /1000
-                # ev_max_power = ev.max_ac_charge_power   
-                
+
                 required_energy = ev.battery_capacity - ev.battery_capacity_at_arrival
                 
-                # Spread randomly the required energy over the time of stay using the prices as weights
-                
+                # Spread randomly the required energy over the time of stay using the prices as weights                
                 shifted_load = np.random.normal(loc= 1 - prices[t:ev.time_of_departure],
                                                 scale= 1 - prices[t:ev.time_of_departure],
                                                 size=ev.time_of_departure - t)    
                 # make shifted load positive
                 shifted_load = np.abs(shifted_load)            
                 shifted_load = shifted_load / np.sum(shifted_load)
-                
-                print(f"EV {total_evs_spawned} will start charging at step {t} and leave at step {ev.time_of_departure}\
-                      with required energy {required_energy} kWh\
-                          shifted load: {shifted_load}")
-                print(f' sum of shifted load: {np.sum(shifted_load * required_energy * 60 / env.timescale)}')
+                                
                 power_setpoints[t:ev.time_of_departure] += shifted_load * required_energy * 60 / env.timescale
-                
-                # max_power = min(cs_max_power, ev_max_power)                        
-                # min_steps = math.ceil((1 - ev.get_soc())
-                #                           / (cs_max_power * env.timescale/60 / ev.battery_capacity))
+
             elif ev.time_of_arrival > t + 1:
                 break
             

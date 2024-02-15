@@ -8,7 +8,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.realpath('../'))
 
 from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model, ev_city_profit_maximization
+# from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model, ev_city_profit_maximization
 from EVsSimulator.baselines.mpc.mpc import MPC
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
 
@@ -31,7 +31,8 @@ def eval():
     # config_file = "/example_config_files/BusinessPST_config.yaml"
     # # config_file = "/example_config_files/simple_config.yaml"
     # config_file = "/example_config_files/config.yaml"
-    config_file = "/example_config_files/v2g_config.yaml"
+    # config_file = "/example_config_files/v2g_config.yaml"
+    config_file = "/example_config_files/PublicPST.yaml"
 
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
 
@@ -56,8 +57,8 @@ def eval():
 
     for t in range(env.simulation_length):
         # all ports are charging instantly        
-        actions = charge_as_fast_as_possible.get_action(env)
-        # actions = round_robin.get_action(env)
+        # actions = charge_as_fast_as_possible.get_action(env)
+        actions = round_robin.get_action(env)
         # actions = charge_as_late_as_possible.get_action(env)
         # input("Press Enter to continue...")
         # MPC
@@ -82,7 +83,7 @@ def eval():
             print(f'End of simulation at step {env.current_step}')
             break
 
-    # exit()
+    exit()
     # Solve optimally
     # Power tracker optimizer
     math_model = ev_city_power_tracker_model.EV_City_Math_Model(

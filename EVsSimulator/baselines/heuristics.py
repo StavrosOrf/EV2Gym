@@ -14,7 +14,7 @@ class RoundRobin():
     def __init__(self, env, verbose=False):
 
         self.verbose = verbose
-
+        self.env = env
         # find average charging power of the simulation
         self.average_power = 0
         for cs in env.charging_stations:
@@ -26,6 +26,9 @@ class RoundRobin():
         # list with the ids of EVs that were already served in this round
         self.ev_buffer = []
 
+    def get_env(self):
+        return self.env
+    
     def update_ev_buffer(self, env) -> None:
         '''
         This function updates the EV buffer list with the EVs that are currently parked by adding or removing them.

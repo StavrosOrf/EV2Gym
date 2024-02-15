@@ -6,30 +6,25 @@ from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward
 
 import gymnasium as gym
-
-# config_file = "/example_config_files/simple_config.yaml"
-# config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
-# config_file = "EVsSimulator/example_config_files/simple_config.yaml"
-
 import argparse
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str,default="ppo")
+    parser.add_argument('--algorithm', type=str, default="ppo")
     parser.add_argument('--device', type=str, default="cuda:0")
-    
+
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
-    
+
     config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
 
     gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
                       kwargs={'config_file': config_file,
                               'verbose': False,
                               'save_plots': False,
-                              'generate_rnd_game': True, 
+                              'generate_rnd_game': True,
                               'reward_function': SquaredTrackingErrorReward,
                               })
 
@@ -55,19 +50,20 @@ if __name__ == "__main__":
                     device=device, tensorboard_log="./logs/")
     elif algorithm == "trpo":
         model = TRPO("MlpPolicy", env, verbose=1,
-                    device=device, tensorboard_log="./logs/")
+                     device=device, tensorboard_log="./logs/")
     elif algorithm == "ars":
         model = ARS("MlpPolicy", env, verbose=1,
                     device=device, tensorboard_log="./logs/")
     elif algorithm == "rppo":
         model = RecurrentPPO("MlpLstmPolicy", env, verbose=1,
-                    device=device, tensorboard_log="./logs/")
+                             device=device, tensorboard_log="./logs/")
     else:
-        raise ValueError("Unknown algorithm")    
-       
-    model.learn(total_timesteps=1_000, progress_bar=True,)
+        raise ValueError("Unknown algorithm")
 
-    model.save("./saved_models/"+algorithm+"_20cs_1_port_SquaredTrackingErrorRewardWithPenalty")
+    model.learn(total_timesteps=1_000_000, progress_bar=True,)
+
+    model.save("./saved_models/"+algorithm +
+               "_15cs_1_port_SquaredTrackingErrorReward")
     # exit()
     # del model  # delete trained model to demonstrate loading
 
