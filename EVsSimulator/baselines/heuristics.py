@@ -121,8 +121,6 @@ class ChargeAsLateAsPossible():
                                           / (cs_max_power * env.timescale/60 / cs.evs_connected[port].battery_capacity))
 
                     start_of_charging_step = cs.evs_connected[port].time_of_departure - min_steps
-                    print(f"EV {counter} will start charging at step {start_of_charging_step}")
-                    print(f'current step: {env.current_step}')
                     if cs.evs_connected[port].get_soc() < 1 and start_of_charging_step <= env.current_step:
                         ev_buffer.append(counter)
                         

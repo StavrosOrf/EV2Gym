@@ -46,7 +46,7 @@ class EV_Charger:
                  connected_bus,
                  connected_transformer,
                  geo_location=None,
-                 min_charge_current=0,  # Amperes
+                 min_charge_current=8,  # Amperes
                  max_charge_current=56,  # Amperes
                  min_discharge_current=-8, # Amperes
                  max_discharge_current=-56, # Amperes
@@ -232,6 +232,9 @@ class EV_Charger:
             
     def get_max_power(self):
         return self.max_charge_current * self.voltage * math.sqrt(self.phases) / 1000
+    
+    def get_min_charge_power(self):
+        return self.min_charge_current * self.voltage * math.sqrt(self.phases) / 1000
     
     def get_min_power(self):
         return self.max_discharge_current * self.voltage * math.sqrt(self.phases) / 1000

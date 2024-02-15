@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import datetime
+from scipy.signal import savgol_filter
 from typing import List, Dict
 
 from EVsSimulator.models.ev import EV
@@ -166,7 +167,8 @@ def spawn_single_EV(env,
         required_energy = np.random.randint(5, 10)
 
     if env.heterogeneous_specs:
-        sampled_ev = np.random.choice(list(env.ev_specs.keys()), p=env.normalized_ev_registrations)
+        sampled_ev = np.random.choice(
+            list(env.ev_specs.keys()), p=env.normalized_ev_registrations)
         battery_capacity = env.ev_specs[sampled_ev]["battery_capacity"]
     else:
         battery_capacity = 50
@@ -311,46 +313,115 @@ def EV_spawner(env) -> List[EV]:
 
     return ev_list
 
+def smooth_vector(v) -> np.ndarray:
+    n = len(v)
+    smoothed_v = [0] * n
+
+    # Calculate the sum of the original vector
+    total_sum = sum(v)
+
+    for i in range(n):
+        # Calculate the range for averaging
+        start = max(0, i - 1)
+        end = min(n, i + 2)
+
+        # Calculate the average of neighboring elements
+        smoothed_v[i] = sum(v[start:end]) / (end - start)
+
+    # Adjust the smoothed vector to maintain the original sum
+    smoothed_sum = sum(smoothed_v)
+    sum_ratio = total_sum / smoothed_sum
+
+    # Apply the ratio to each element of the smoothed vector
+    smoothed_v = [value * sum_ratio for value in smoothed_v]
+
+    return smoothed_v
+
+def median_smoothing(v, window_size) -> np.ndarray:
+    smoothed_v = np.zeros_like(v)
+    half_window = window_size // 2
+    
+    for i in range(len(v)):
+        start = max(0, i - half_window)
+        end = min(len(v), i + half_window + 1)
+        smoothed_v[i] = np.median(v[start:end])
+    
+    return smoothed_v
+
 def generate_power_setpoints(env) -> np.ndarray:
     '''
     This function generates the power setpoints for the entire simulation using
     the list of EVs and the charging stations from the environment.
-    
+
     It considers the ev SoC and teh steps required to fully charge the EVs.
-    
+
     Returns:
         power_setpoints: np.ndarray
-    
+
     '''
-    
+
     power_setpoints = np.zeros(env.simulation_length)
     # get normalized prices
     prices = abs(env.charge_prices[0])
     prices = prices / np.max(prices)
-    
+
+    min_cs_power = env.charging_stations[0].get_min_charge_power()
+    max_cs_power = env.charging_stations[0].get_max_power()
+
     total_evs_spawned = 0
     for t in range(env.simulation_length):
         counter = total_evs_spawned
-        for i, ev in enumerate(env.EVs_profiles[counter:]):
-            if ev.time_of_arrival == t + 1:                
+        for _, ev in enumerate(env.EVs_profiles[counter:]):
+            if ev.time_of_arrival == t + 1:
                 total_evs_spawned += 1
 
                 required_energy = ev.battery_capacity - ev.battery_capacity_at_arrival
-                
-                # Spread randomly the required energy over the time of stay using the prices as weights                
-                shifted_load = np.random.normal(loc= 1 - prices[t:ev.time_of_departure],
-                                                scale= 1 - prices[t:ev.time_of_departure],
-                                                size=ev.time_of_departure - t)    
+                required_energy *= 1.2  # add 20% for losses
+                min_power_limit = max(ev.min_ac_charge_power, min_cs_power)
+                max_power_limit = min(ev.max_ac_charge_power, max_cs_power)
+
+                # Spread randomly the required energy over the time of stay using the prices as weights
+                shifted_load = np.random.normal(loc=1 - prices[t+2:ev.time_of_departure],
+                                                scale= min(prices[t+2:ev.time_of_departure]),
+                                                size=ev.time_of_departure - t - 2)
                 # make shifted load positive
-                shifted_load = np.abs(shifted_load)            
+                shifted_load = np.abs(shifted_load)
                 shifted_load = shifted_load / np.sum(shifted_load)
-                                
-                power_setpoints[t:ev.time_of_departure] += shifted_load * required_energy * 60 / env.timescale
+                shifted_load = shifted_load * required_energy * 60 / env.timescale
+
+                # find power lower than min_power_limit and higher than max_power_limit
+
+                while np.min(shifted_load[shifted_load != 0]) < min_power_limit or \
+                        np.max(shifted_load) > max_power_limit:
+                    for i in range(len(shifted_load)):
+                        if shifted_load[i] < min_power_limit and shifted_load[i] > 0:
+                            load_to_shift = shifted_load[i]
+                            shifted_load[i] = 0
+
+                            if i == len(shifted_load) - 1:
+                                shifted_load[0] += load_to_shift
+                            else:
+                                shifted_load[i+1] += load_to_shift
+
+                        elif shifted_load[i] > max_power_limit:
+                            load_to_shift = shifted_load[i] - max_power_limit
+                            shifted_load[i] = max_power_limit
+
+                            if i == len(shifted_load) - 1:
+                                shifted_load[0] += load_to_shift
+                            else:
+                                shifted_load[i+1] += load_to_shift
+
+                power_setpoints[t+2:ev.time_of_departure] += shifted_load
 
             elif ev.time_of_arrival > t + 1:
                 break
-            
-    return power_setpoints
+
+    # return smooth_vector(power_setpoints)
+ 
+    return median_smoothing(power_setpoints, 5)
+    
+    # return savgol_filter(power_setpoints, window_length=5, polyorder=2)
 
 
 def create_power_setpoint_one_step(env) -> float:

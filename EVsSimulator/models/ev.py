@@ -276,12 +276,6 @@ class EV():
             pilot_dsoc - max_dsoc
         ) / max_dsoc * (self.transition_soc - 1)
 
-        if pilot < 0:
-            warnings.warn(
-                f"Negative pilot signal input. Battery models"
-                f"may not be accurate for pilot {pilot} A."
-            )
-
         # The charging equation depends on whether the current SoC of
         # the battery is above or below the new transition SoC.
         if self.get_soc() < pilot_transition_soc:
