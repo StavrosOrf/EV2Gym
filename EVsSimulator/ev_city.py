@@ -316,6 +316,9 @@ class EVsSimulator(gym.Env):
 
         self.tr_inflexible_loads = np.zeros(
             [self.number_of_transformers, self.simulation_length])
+        
+        self.tr_solar_power = np.zeros(
+            [self.number_of_transformers, self.simulation_length])
 
         # self.port_power = np.zeros([self.number_of_ports,
         #                             self.cs,
@@ -514,6 +517,8 @@ class EVsSimulator(gym.Env):
                              self.current_step] = tr.get_how_overloaded()
             self.tr_inflexible_loads[tr.id,
                                      self.current_step] = tr.inflexible_load[self.current_step]
+            self.tr_solar_power[tr.id,
+                                 self.current_step] = tr.solar_power[self.current_step]
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output

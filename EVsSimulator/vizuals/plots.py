@@ -341,8 +341,14 @@ def ev_city_plot(env):
         df = pd.DataFrame([],
                           index=date_range)
 
+        if env.config['solar_power']['include']:
+            df['solar'] = env.tr_solar_power[tr.id, :]
+            
         if env.config['inflexible_loads']['include']:
             df['inflexible'] = env.tr_inflexible_loads[tr.id, :]
+        
+
+            
         for cs in tr.cs_ids:
             df[cs] = env.cs_power[cs, :]
 
@@ -392,16 +398,19 @@ def ev_city_plot(env):
         plt.xticks(ticks=date_range_print,
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
 
+        legend_list = [f'CS {i}' for i in tr.cs_ids] + \
+                           ['Total Power (kW)'] + \
+                           ['Power limit (kW)']
+                           
         if len(tr.cs_ids) < 4:
             if env.config['inflexible_loads']['include']:
-                plt.legend(['Inflexible Loads'] +
-                           [f'CS {i}' for i in tr.cs_ids] +
-                           ['Total Power (kW)'] +
-                           ['Power limit (kW)'])
-            else:
-                plt.legend([f'CS {i}' for i in tr.cs_ids] +
-                           ['Total Power (kW)'] +
-                           ['Power limit (kW)'])
+                legend_list = ['Inflexible Loads'] + legend_list
+            
+            if env.config['solar_power']['include']:    
+                legend_list = ['Solar Power'] + legend_list
+            
+                
+        plt.legend(legend_list)
         plt.grid(True, which='minor', axis='both')
         counter += 1
 

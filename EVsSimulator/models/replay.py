@@ -79,6 +79,7 @@ class EvCityReplay():
 
         for i, tra in enumerate(env.transformers):
             current_from_inflexible = tra.inflexible_load*1000/400
+            # current_from_solar = tra.solar_power*1000/400
             
             self.tra_max_amps[i] = tra.max_current-current_from_inflexible
             self.tra_min_amps[i] = tra.min_current

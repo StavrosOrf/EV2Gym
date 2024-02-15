@@ -140,6 +140,70 @@ def generate_residential_inflexible_loads(env) -> np.ndarray:
     return new_data.to_numpy().T
 
 
+def generate_pv_generation(env) -> np.ndarray:
+    '''
+    This function loads the PV generation of each transformer by loading the data from a file
+    and then adding minor variations to the data
+    '''
+
+    # Load the data
+    data_path = pkg_resources.resource_filename(
+        'EVsSimulator', 'data/pv_netherlands.csv')
+    data = pd.read_csv(data_path, sep=',', header=0)
+    data.drop(['time', 'local_time'], inplace=True, axis=1)
+
+    desired_timescale = env.timescale
+    simulation_length = env.simulation_length
+    simulation_date = env.sim_starting_date.strftime('%Y-%m-%d %H:%M:%S')
+    number_of_transformers = env.number_of_transformers
+
+    dataset_timescale = 60
+    dataset_starting_date = '2019-01-01 00:00:00'
+
+    if desired_timescale > dataset_timescale:
+        data = data.groupby(
+            data.index // (desired_timescale/dataset_timescale)).max()
+    elif desired_timescale < dataset_timescale:
+        # extend the dataset to data.shape[0] * (dataset_timescale/desired_timescale)
+        # by repeating the data every (dataset_timescale/desired_timescale) rows
+        data = data.loc[data.index.repeat(
+            dataset_timescale/desired_timescale)].reset_index(drop=True)
+        # data = data/ (dataset_timescale/desired_timescale)
+
+    # smooth data by taking the mean of every 5 rows
+    data['electricity'] = data['electricity'].rolling(
+        window=60//desired_timescale, min_periods=1).mean()
+    # use other type of smoothing
+    data['electricity'] = data['electricity'].ewm(
+        span=60//desired_timescale, adjust=True).mean()
+
+    # duplicate the data to have two years of data
+    data = pd.concat([data, data], ignore_index=True)
+
+    # add a date column to the dataframe
+    data['date'] = pd.date_range(
+        start=dataset_starting_date, periods=data.shape[0], freq=f'{desired_timescale}T')
+
+    # find year of the data
+    year = int(dataset_starting_date.split('-')[0])
+    # replace the year of the simulation date with the year of the data
+    simulation_date = f'{year}-{simulation_date.split("-")[1]}-{simulation_date.split("-")[2]}'
+
+    simulation_index = data[data['date'] == simulation_date].index[0]
+
+    # select the data for the simulation date
+    data = data[simulation_index:simulation_index+simulation_length]
+
+    # drop the date column
+    data = data.drop(columns=['date'])
+    new_data = pd.DataFrame()
+
+    for i in range(number_of_transformers):
+        new_data['tr_'+str(i)] = data * np.random.uniform(0.9, 1.1)
+
+    return new_data.to_numpy().T
+
+
 def load_transformers(env) -> List[Transformer]:
     '''Loads the transformers of the simulation
     If load_from_replay_path is None, then the transformers are created randomly
@@ -168,6 +232,12 @@ def load_transformers(env) -> List[Transformer]:
         inflexible_loads = np.zeros((env.number_of_transformers,
                                     env.simulation_length))
 
+    if env.config['solar_power']['include']:
+        solar_power = generate_pv_generation(env)
+    else:
+        solar_power = np.zeros((env.number_of_transformers,
+                                  env.simulation_length))
+
     if env.charging_network_topology:
         # parse the topology file and create the transformers
         cs_counter = 0
@@ -177,17 +247,16 @@ def load_transformers(env) -> List[Transformer]:
                 cs_ids.append(cs_counter)
                 cs_counter += 1
             transformer = Transformer(id=i,
+                                      env=env,
                                       cs_ids=cs_ids,
                                       max_power=env.charging_network_topology[tr]['max_power'],
                                       max_current=env.charging_network_topology[tr]['max_current'],
                                       inflexible_load=inflexible_loads[i, :],
+                                      solar_power=solar_power[i, :],
                                       max_power_or_current_mode=transformer_mode,
                                       simulation_length=env.simulation_length
                                       )
-            
-            transformer.normalize_inflexible_loads(env)
-            if env.config['demand_response']['include']:
-                transformer.generate_demand_response_events(env)
+
             transformers.append(transformer)
 
     else:
@@ -197,17 +266,15 @@ def load_transformers(env) -> List[Transformer]:
         for i in range(env.number_of_transformers):
             # get indexes where the transformer is connected
             transformer = Transformer(id=i,
+                                      env=env,
                                       cs_ids=np.where(
                                           np.array(env.cs_transformers) == i)[0],
                                       inflexible_load=inflexible_loads[i, :],
+                                      solar_power=solar_power[i, :],
                                       max_power_or_current_mode=transformer_mode,
                                       simulation_length=env.simulation_length
                                       )
-            
-            transformer.normalize_inflexible_loads(env)
-            if env.config['demand_response']['include']:
-                transformer.generate_demand_response_events(env)
-                
+
             transformers.append(transformer)
     env.n_transformers = len(transformers)
     return transformers
