@@ -29,7 +29,6 @@ class EvCityReplay():
         self.n_cs = env.cs
         self.n_transformers = env.number_of_transformers
         self.timescale = env.timescale
-        self.score_threshold = env.score_threshold
         self.sim_date = env.sim_starting_date
         # self.cs_transformers = env.cs_transformers
         self.power_setpoints = env.power_setpoints
@@ -75,11 +74,13 @@ class EvCityReplay():
         self.charge_prices = env.charge_prices
         self.discharge_prices = env.discharge_prices
 
-        self.tra_max_amps = np.ones([self.n_transformers])
-        self.tra_min_amps = np.ones([self.n_transformers])
+        self.tra_max_amps = np.ones([self.n_transformers, self.sim_length])
+        self.tra_min_amps = np.ones([self.n_transformers, self.sim_length])
 
         for i, tra in enumerate(env.transformers):
-            self.tra_max_amps[i] = tra.max_current
+            current_from_inflexible = tra.inflexible_load*1000/400
+            
+            self.tra_max_amps[i] = tra.max_current-current_from_inflexible
             self.tra_min_amps[i] = tra.min_current
 
         self.port_max_charge_current = np.ones([self.n_cs])

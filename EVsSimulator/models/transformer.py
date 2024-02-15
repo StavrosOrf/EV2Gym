@@ -19,9 +19,9 @@ class Transformer():
                  max_power=100,  # The maximum power of the transformer in kW
                  max_power_or_current_mode='current',  # 'current' or 'power'
                  cs_ids=[],  # the charging stations connected to the transformer
-                 inflexible_transformer_loading=None,
-                 demand_response=None,
-                 ): 
+                 inflexible_load=np.zeros(96),
+                 simulation_length=96
+                 ):
         """
         Initialize the transformer
 
@@ -39,29 +39,126 @@ class Transformer():
         """
 
         self.id = id
-        self.max_current = max_current
-        self.min_current = -max_current
-        self.max_power = max_power
-        self.min_power = -max_power
+        self.max_current = np.ones(simulation_length)*max_current
+        self.min_current = np.ones(simulation_length) * -max_current
+        self.max_power = np.ones(simulation_length)*max_power
+        self.min_power = np.ones(simulation_length) * -max_power
+
         self.max_power_or_current_mode = max_power_or_current_mode
-        self.inflexible_transformer_loading = inflexible_transformer_loading
-        self.demand_response = demand_response
+        self.inflexible_load = inflexible_load        
+        
+        self.infelxible_load_forecast = inflexible_load
+
         self.cs_ids = cs_ids
+        self.simulation_length = simulation_length
 
         self.current_amps = 0
         self.current_power = 0
+
+        self.current_step = 0
+
+    def generate_demand_response_events(self, env) -> None:
+        '''
+        This function is used to generate demand response events using the configuration file
+        and by updating the transformer loading
+        '''
+        events_per_day = env.config['demand_response']['events_per_day']
+
+        event_length_minutes_min = env.config['demand_response']['event_length_minutes_min']
+        event_length_minutes_max = env.config['demand_response']['event_length_minutes_max']
+
+        event_start_hour_mean = env.config['demand_response']['event_start_hour_mean']
+        event_start_hour_std = env.config['demand_response']['event_start_hour_std']
+        event_capacity_percentage_mean = env.config['demand_response']['event_capacity_percentage_mean']
+        event_capacity_percentage_std = env.config['demand_response']['event_capacity_percentage_std']
+
+        for i in range(events_per_day):
+
+            event_length_minutes = np.random.randint(
+                event_length_minutes_min, event_length_minutes_max)
+
+            event_start_hour = np.random.normal(
+                event_start_hour_mean*60, event_start_hour_std*60)
+
+            event_start_hour = np.clip(event_start_hour, 0, 23*60)
+            event_start_step = event_start_hour // env.timescale
+
+            sim_start_step = (env.sim_date.hour * 60 +
+                              env.sim_date.minute) // env.timescale
+            event_start_step = int(event_start_step - sim_start_step)
+
+            event_end_step = int(event_start_step +
+                                 event_length_minutes // env.timescale)
+
+            capacity_percentage = np.random.normal(
+                event_capacity_percentage_mean, event_capacity_percentage_std)
+            capacity_percentage = np.clip(capacity_percentage, 0, 100)
+
+            self.max_power[event_start_step:event_end_step] = self.max_power[event_start_step:event_end_step] - \
+                (self.max_power[event_start_step:event_end_step] *
+                    capacity_percentage/100)
+
+            self.max_current[event_start_step:event_end_step] = self.max_current[event_start_step:event_end_step] - \
+                (self.max_current[event_start_step:event_end_step] *
+                    capacity_percentage/100)
+
+            if any(self.inflexible_load[event_start_step:event_end_step] >
+                   self.max_power[event_start_step:event_end_step]):
+                self.max_power[event_start_step:event_end_step] = self.inflexible_load[event_start_step:event_end_step].max(
+                )
+
+    def normalize_inflexible_loads(self, env) -> None:
+        '''
+        Check that infelxible_loads are lower than the max_power, if not, set them to the max_power
+        '''
+
+        if env.config['inflexible_loads']['include']:
+            # get random float between 0.8-1
+            mult = env.config['inflexible_loads']['inflexible_loads_capacity_multiplier_mean']
+            mult = np.random.normal(mult, 0.1)
+
+            # scale up the data to match the max_power of the transformers
+            self.inflexible_load = self.inflexible_load * \
+                mult * (max(self.max_power) /
+                        self.inflexible_load.max()+0.00001)
+            # for each step
+            for j in range(env.simulation_length):
+                if self.inflexible_load[j] > self.max_power[j]:
+                    self.inflexible_load[j] = self.max_power[j]
+
+                elif self.inflexible_load[j] < self.min_power[j]:
+                    self.inflexible_load[j] = self.min_power[j]                
+
+        self.generate_inflexible_loads_forecast(env)
+        
+    def generate_inflexible_loads_forecast(self, env) -> None:
+        '''
+        This function is used to generate inflexible loads forecast using the configuration file
+        '''
+        forecast_uncertainty_mean = env.config['inflexible_loads']['forecast_mean'] / 100 * \
+            self.inflexible_load
+
+        forecast_uncertainty_std = env.config['inflexible_loads']['forecast_std'] / 100 * \
+            self.inflexible_load
+
+        self.infelxible_load_forecast = np.random.normal(
+            forecast_uncertainty_mean,
+            forecast_uncertainty_std,
+            len(self.inflexible_load))
+        
+        print(f'Inflexible load forecast: {self.infelxible_load_forecast}'
+              f'\nInflexible load: {self.inflexible_load}')
+        
+        input("Press Enter to continue...")
 
     def reset(self, step) -> None:
         '''
         Reset the current power of the transformer
         '''
+        self.current_step = step
 
-        if self.inflexible_transformer_loading is not None:
-            self.current_power = self.inflexible_transformer_loading[step]
-            self.current_amps = (self.current_power * 1000) / 400
-        else:
-            self.current_amps = 0
-            self.current_power = 0
+        self.current_power = self.inflexible_load[step]
+        self.current_amps = (self.current_power * 1000) / 400
 
     def step(self, amps, power) -> None:
         '''
@@ -81,17 +178,17 @@ class Transformer():
         e = 0.0001
 
         if self.max_power_or_current_mode == 'power':
-            if self.current_power > self.max_power + e \
-                    or self.current_power < self.min_power - e:
+            if self.current_power > self.max_power[self.current_step] + e \
+                    or self.current_power < self.min_power[self.current_step] - e:
                 return True
         else:
-            if self.current_amps > self.max_current + e \
-                    or self.current_amps < self.min_current - e:
+            if self.current_amps > self.max_current[self.current_step] + e \
+                    or self.current_amps < self.min_current[self.current_step] - e:
 
                 return True
 
         return False
-    
+
     def get_how_overloaded(self) -> float:
         '''
         Check how overloaded the transformer is
@@ -101,18 +198,18 @@ class Transformer():
         '''
         if self.is_overloaded():
             if self.max_power_or_current_mode == 'power':
-                return np.abs(self.current_power - self.max_power)
+                return np.abs(self.current_power - self.max_power[self.current_step])
             else:
-                return np.abs(self.current_amps - self.max_current)
+                return np.abs(self.current_amps - self.max_current[self.current_step])
         else:
             return 0
 
-    def __str__(self) -> str:        
+    def __str__(self) -> str:
         if self.max_power_or_current_mode == 'power':
-            return f'  - Transformer {self.id}:  {self.min_power:.1f} / ' +\
-                f'{self.current_power:5.1f} /{self.max_power:5.1f} kW' +\
+            return f'  - Transformer {self.id}:  {self.min_power[self.current_step]:.1f} / ' +\
+                f'{self.current_power:5.1f} /{self.max_power[self.current_step]:5.1f} kW' +\
                 f'\tCSs: {self.cs_ids}'
         else:
-            return f'  - Transformer {self.id}:  {self.min_current:.1f} / ' +\
-                f'{self.current_amps:5.1f} /{self.max_current:5.1f} A' +\
+            return f'  - Transformer {self.id}:  {self.min_current[self.current_step]:.1f} / ' +\
+                f'{self.current_amps:5.1f} /{self.max_current[self.current_step]:5.1f} A' +\
                 f'\tCSs: {self.cs_ids}'

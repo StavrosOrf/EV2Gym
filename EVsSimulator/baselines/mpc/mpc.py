@@ -111,7 +111,7 @@ class MPC():
         self.max_tr_loads = np.zeros((self.number_of_transformers, 1))
 
         for i, tr in enumerate(self.env.transformers):
-            self.tr_loads[i, :] = tr.inflexible_transformer_loading
+            self.tr_loads[i, :] = tr.inflexible_load
             self.max_tr_loads[i] = tr.max_power
             
         #extend tr_loads for the control horizon with the max value

@@ -19,8 +19,7 @@ hour: 6 # Simulation starting hour (24 hour format)
 minute: 0 # Simulation starting minute (0-59)
 # Hour and minute do not change after the environment has been reset
 
-# Simulate weekdays, weekends, or both
-simulation_days: weekdays # weekdays, weekends, or both
+
 
 ##############################################################################
 # Charging Topology 
@@ -57,5 +56,5 @@ heterogeneous_ev_specs: False #if False, each EV has its own specifications
 # EV Spawn Behavior
 scenario: public # public, private, or workplace
 spawn_multiplier: 2.5 # 1 is default, the higher the number the more EVs spawn
-score_threshold: 0 # user satsifcation threshold for the game to end (0 -> never ends)
+
 

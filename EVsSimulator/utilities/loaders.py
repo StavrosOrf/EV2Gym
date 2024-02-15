@@ -30,12 +30,12 @@ def load_ev_spawn_scenarios(env) -> None:
         'EVsSimulator', 'data/distribution-of-energy-demand.csv')
     time_of_connection_vs_hour_file = pkg_resources.resource_filename(
         'EVsSimulator', 'data/time_of_connection_vs_hour.npy')
-    
+
     df_req_energy_file = pkg_resources.resource_filename(
         'EVsSimulator', 'data/mean-demand-per-arrival.csv')
     df_time_of_stay_vs_arrival_file = pkg_resources.resource_filename(
         'EVsSimulator', 'data/mean-session-length-per.csv')
-    
+
     ev_specs_file = pkg_resources.resource_filename(
         'EVsSimulator', 'data/ev_specs.json')
 
@@ -46,37 +46,37 @@ def load_ev_spawn_scenarios(env) -> None:
     env.df_energy_demand = pd.read_csv(df_energy_demand_file)  # energy demand
     env.time_of_connection_vs_hour = np.load(
         time_of_connection_vs_hour_file)  # time of connection vs hour
-    
-    env.df_req_energy = pd.read_csv(df_req_energy_file)  # energy demand per arrival
-    #replace column work with workplace
+
+    env.df_req_energy = pd.read_csv(
+        df_req_energy_file)  # energy demand per arrival
+    # replace column work with workplace
     env.df_req_energy = env.df_req_energy.rename(columns={'work': 'workplace',
                                                           'home': 'private'})
     env.df_req_energy = env.df_req_energy.fillna(0)
-    
+
     env.df_time_of_stay_vs_arrival = pd.read_csv(
         df_time_of_stay_vs_arrival_file)  # time of stay vs arrival
     env.df_time_of_stay_vs_arrival = env.df_time_of_stay_vs_arrival.fillna(0)
     env.df_time_of_stay_vs_arrival = env.df_time_of_stay_vs_arrival.rename(columns={'work': 'workplace',
-                                                                                  'home': 'private'})    
-    
+                                                                                    'home': 'private'})
+
     # Load the EV specs
     if env.config['heterogeneous_ev_specs']:
         with open(ev_specs_file) as f:
             env.ev_specs = json.load(f)
-            
+
         registrations = np.zeros(len(env.ev_specs.keys()))
         for i, ev_name in enumerate(env.ev_specs.keys()):
-            # sum the total number of registrations             
+            # sum the total number of registrations
             registrations[i] = env.ev_specs[ev_name]['number_of_registrations_2023_nl']
 
         env.normalized_ev_registrations = registrations/registrations.sum()
+
 
 def load_power_setpoints(env) -> np.ndarray:
     '''
     Loads the power setpoints of the simulation based on the day-ahead prices
     '''
-
-    
 
     if env.load_from_replay_path:
         return env.replay.power_setpoints
@@ -155,7 +155,7 @@ def load_transformers(env) -> List[Transformer]:
     transformer_mode = env.config['transformer_max_power_or_current_mode']
     assert transformer_mode in ['current', 'power']  # 'current' or 'power'
 
-    if env.config['transformer_include_inflexible_loads']:
+    if env.config['inflexible_loads']['include']:
 
         if env.scenario == 'private':
             inflexible_loads = generate_residential_inflexible_loads(env)
@@ -166,13 +166,6 @@ def load_transformers(env) -> List[Transformer]:
 
     else:
         inflexible_loads = np.zeros((env.number_of_transformers,
-                                    env.simulation_length))
-        
-    if env.config['demand_response']:
-        demand_response = np.zeros((env.number_of_transformers,
-                                    env.simulation_length))
-    else:
-        demand_response = np.zeros((env.number_of_transformers,
                                     env.simulation_length))
 
     if env.charging_network_topology:
@@ -187,26 +180,14 @@ def load_transformers(env) -> List[Transformer]:
                                       cs_ids=cs_ids,
                                       max_power=env.charging_network_topology[tr]['max_power'],
                                       max_current=env.charging_network_topology[tr]['max_current'],
-                                      inflexible_transformer_loading=inflexible_loads[i, :],
+                                      inflexible_load=inflexible_loads[i, :],
                                       max_power_or_current_mode=transformer_mode,
+                                      simulation_length=env.simulation_length
                                       )
-
-                
-            if env.config['transformer_include_inflexible_loads']:
-                            # get random float between 0.8-1
-                mult = np.random.uniform(0.7, 1)
-                # scale up the data to match the max_power of the transformers
-                transformer.inflexible_transformer_loading = transformer.inflexible_transformer_loading * \
-                    mult * (transformer.max_power /
-                            transformer.inflexible_transformer_loading.max()+0.00001)
-                # for each step
-                for j in range(env.simulation_length):
-                    if transformer.inflexible_transformer_loading[j] > transformer.max_power:
-                        transformer.inflexible_transformer_loading[j] = transformer.max_power
-
-                    elif transformer.inflexible_transformer_loading[j] < transformer.min_power:
-                        transformer.inflexible_transformer_loading[j] = transformer.min_power
-
+            
+            transformer.normalize_inflexible_loads(env)
+            if env.config['demand_response']['include']:
+                transformer.generate_demand_response_events(env)
             transformers.append(transformer)
 
     else:
@@ -218,32 +199,21 @@ def load_transformers(env) -> List[Transformer]:
             transformer = Transformer(id=i,
                                       cs_ids=np.where(
                                           np.array(env.cs_transformers) == i)[0],
-                                      inflexible_transformer_loading=inflexible_loads[i, :],
+                                      inflexible_load=inflexible_loads[i, :],
                                       max_power_or_current_mode=transformer_mode,
+                                      simulation_length=env.simulation_length
                                       )
-
-            # check that infelxible_loads are lower than the max_power, if not, set them to the max_power
-            if env.config['transformer_include_inflexible_loads']:
-                # get random float between 0.8-1
-                mult = np.random.uniform(0.7, 1)
-                # scale up the data to match the max_power of the transformers
-                transformer.inflexible_transformer_loading = transformer.inflexible_transformer_loading * \
-                    mult * (transformer.max_power /
-                            transformer.inflexible_transformer_loading.max()+0.00001)
-                # for each step
-                for j in range(env.simulation_length):
-                    if transformer.inflexible_transformer_loading[j] > transformer.max_power:
-                        transformer.inflexible_transformer_loading[j] = transformer.max_power
-
-                    elif transformer.inflexible_transformer_loading[j] < transformer.min_power:
-                        transformer.inflexible_transformer_loading[j] = transformer.min_power
-
+            
+            transformer.normalize_inflexible_loads(env)
+            if env.config['demand_response']['include']:
+                transformer.generate_demand_response_events(env)
+                
             transformers.append(transformer)
     env.n_transformers = len(transformers)
     return transformers
 
 
-def load_ev_charger_profiles(env ) -> List[EV_Charger]:
+def load_ev_charger_profiles(env) -> List[EV_Charger]:
     '''Loads the EV charger profiles of the simulation
     If load_from_replay_path is None, then the EV charger profiles are created randomly
 
