@@ -364,6 +364,8 @@ def generate_power_setpoints(env) -> np.ndarray:
     # get normalized prices
     prices = abs(env.charge_prices[0])
     prices = prices / np.max(prices)
+    
+    required_energy_multiplier = 100 + env.config["power_setpoints_uncertainty"]
 
     min_cs_power = env.charging_stations[0].get_min_charge_power()
     max_cs_power = env.charging_stations[0].get_max_power()
@@ -376,7 +378,7 @@ def generate_power_setpoints(env) -> np.ndarray:
                 total_evs_spawned += 1
 
                 required_energy = ev.battery_capacity - ev.battery_capacity_at_arrival
-                required_energy *= 1.2  # add 20% for losses
+                required_energy *= required_energy_multiplier / 100 
                 min_power_limit = max(ev.min_ac_charge_power, min_cs_power)
                 max_power_limit = min(ev.max_ac_charge_power, max_cs_power)
 
@@ -422,47 +424,6 @@ def generate_power_setpoints(env) -> np.ndarray:
     return median_smoothing(power_setpoints, 5)
     
     # return savgol_filter(power_setpoints, window_length=5, polyorder=2)
-
-
-def create_power_setpoint_one_step(env) -> float:
-    '''
-    This function creates the power setpoint for the current time step
-    '''
-
-    # get prices
-    prices = env.discharge_prices[0]
-
-    power_potential = 0
-    for cs in env.charging_stations:
-        cs_power_potential = 0
-        for port in range(cs.n_ports):
-            ev = cs.evs_connected[port]
-            if ev is not None:
-                if ev.get_soc() < 1 and ev.time_of_departure > env.current_step:
-                    phases = min(cs.phases, ev.ev_phases)
-                    ev_current = ev.max_ac_charge_power * \
-                        1000/(math.sqrt(phases)*cs.voltage)
-                    current = min(cs.max_charge_current, ev_current)
-                    cs_power_potential += math.sqrt(phases) * \
-                        cs.voltage*current/1000
-
-        max_cs_power = math.sqrt(cs.phases) * \
-            cs.voltage*cs.max_charge_current/1000
-        min_cs_power = math.sqrt(cs.phases) * \
-            cs.voltage*cs.min_charge_current/1000
-
-        if cs_power_potential > max_cs_power:
-            power_potential += max_cs_power
-        elif cs_power_potential < min_cs_power:
-            power_potential += 0
-        else:
-            power_potential += cs_power_potential
-
-    # normalize prices
-    prices = (prices / np.max(prices))/2
-
-    return power_potential * (1 - prices[env.current_step])
-
 
 def calculate_charge_power_potential(env) -> float:
     '''

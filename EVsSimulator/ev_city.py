@@ -22,7 +22,7 @@ import json
 # from .grid import Grid
 from EVsSimulator.models.replay import EvCityReplay
 from EVsSimulator.vizuals.plots import ev_city_plot, visualize_step
-from EVsSimulator.utilities.utils import get_statistics, print_statistics, calculate_charge_power_potential, create_power_setpoint_one_step
+from EVsSimulator.utilities.utils import get_statistics, print_statistics, calculate_charge_power_potential
 from EVsSimulator.utilities.loaders import load_ev_spawn_scenarios, load_power_setpoints, load_transformers, load_ev_charger_profiles, load_ev_profiles, load_electricity_prices
 from EVsSimulator.vizuals.render import Renderer
 
@@ -258,6 +258,16 @@ class EVsSimulator(gym.Env):
                 while self.sim_date.weekday() > 4:
                     self.sim_date += datetime.timedelta(days=1)
 
+            if self.config['simulation_days'] == "weekdays":
+                # dont simulate weekends
+                while self.sim_date.weekday() > 4:
+                    self.sim_date += datetime.timedelta(days=1)
+            elif self.config['simulation_days'] == "weekends" and self.scenario != 'workplace':
+                # simulate only weekends
+                while self.sim_date.weekday() < 5:
+                    self.sim_date += datetime.timedelta(days=1)
+
+            
             self.sim_starting_date = self.sim_date
             self.EVs_profiles = load_ev_profiles(self)
             self.power_setpoints = load_power_setpoints(self)

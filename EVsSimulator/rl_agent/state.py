@@ -9,22 +9,23 @@ def PublicPST(env, *args):
     # The state is a vector
 
     state = [
-        (env.current_step) / env.simulation_length,
-        env.sim_date.weekday() / 7,
+        (env.current_step/env.simulation_length),
+        # env.sim_date.weekday() / 7,
         # turn hour and minutes in sin and cos
-        # math.sin(env.sim_date.hour/24*2*math.pi),
-        # math.cos(env.sim_date.hour/24*2*math.pi),
+        math.sin(env.sim_date.hour/24*2*math.pi),
+        math.cos(env.sim_date.hour/24*2*math.pi),
     ]
 
     # the final state of each simulation
     if env.current_step < env.simulation_length:
-        state.append(env.power_setpoints[env.current_step]/100)
-        state.append(env.charge_power_potential[env.current_step]/100)
+        
+        setpoint = min(env.power_setpoints[env.current_step], env.charge_power_potential[env.current_step])
+        
     else:
-        state.append(env.power_setpoints[env.current_step-1]/100)
-        state.append(env.charge_power_potential[env.current_step-1]/100)
+        setpoint = 0
 
-    state.append(env.current_power_usage[env.current_step-1]/100)
+    state.append(setpoint)
+    state.append(env.current_power_usage[env.current_step-1])
 
     # For every transformer
     for tr in env.transformers:
@@ -38,17 +39,18 @@ def PublicPST(env, *args):
                     # If there is an EV connected
                     if EV is not None:
                         state.append([
-                            1 if EV.get_soc() == 1 else 0,  # we know if the EV is full
-                            EV.total_energy_exchanged,
+                            1 if EV.get_soc() == 1 else 0.5,  # we know if the EV is full
+                            ## EV.total_energy_exchanged,
                             # EV.max_ac_charge_power*1000 /
                             # (cs.voltage*math.sqrt(cs.phases))/100,
                             # EV.min_ac_charge_power*1000 /
                             # (cs.voltage*math.sqrt(cs.phases))/100,
-                            (env.current_step-EV.time_of_arrival) / env.simulation_length])
+                            ## (env.current_step-EV.time_of_arrival)
+                            ])
 
                     # else if there is no EV connected put zeros
                     else:
-                        state.append(np.zeros(3))
+                        state.append(np.zeros(1))
 
     state = np.array(np.hstack(state))
 
