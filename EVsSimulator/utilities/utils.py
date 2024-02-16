@@ -313,6 +313,7 @@ def EV_spawner(env) -> List[EV]:
 
     return ev_list
 
+
 def smooth_vector(v) -> np.ndarray:
     n = len(v)
     smoothed_v = [0] * n
@@ -337,16 +338,18 @@ def smooth_vector(v) -> np.ndarray:
 
     return smoothed_v
 
+
 def median_smoothing(v, window_size) -> np.ndarray:
     smoothed_v = np.zeros_like(v)
     half_window = window_size // 2
-    
+
     for i in range(len(v)):
         start = max(0, i - half_window)
         end = min(len(v), i + half_window + 1)
         smoothed_v[i] = np.median(v[start:end])
-    
+
     return smoothed_v
+
 
 def generate_power_setpoints(env) -> np.ndarray:
     '''
@@ -364,8 +367,9 @@ def generate_power_setpoints(env) -> np.ndarray:
     # get normalized prices
     prices = abs(env.charge_prices[0])
     prices = prices / np.max(prices)
-    
-    required_energy_multiplier = 100 + env.config["power_setpoints_uncertainty"]
+
+    required_energy_multiplier = 100 + \
+        env.config["power_setpoints_uncertainty"]
 
     min_cs_power = env.charging_stations[0].get_min_charge_power()
     max_cs_power = env.charging_stations[0].get_max_power()
@@ -378,13 +382,14 @@ def generate_power_setpoints(env) -> np.ndarray:
                 total_evs_spawned += 1
 
                 required_energy = ev.battery_capacity - ev.battery_capacity_at_arrival
-                required_energy *= required_energy_multiplier / 100 
+                required_energy *= required_energy_multiplier / 100
                 min_power_limit = max(ev.min_ac_charge_power, min_cs_power)
                 max_power_limit = min(ev.max_ac_charge_power, max_cs_power)
 
                 # Spread randomly the required energy over the time of stay using the prices as weights
                 shifted_load = np.random.normal(loc=1 - prices[t+2:ev.time_of_departure],
-                                                scale= min(prices[t+2:ev.time_of_departure]),
+                                                scale=min(
+                                                    prices[t+2:ev.time_of_departure]),
                                                 size=ev.time_of_departure - t - 2)
                 # make shifted load positive
                 shifted_load = np.abs(shifted_load)
@@ -392,9 +397,13 @@ def generate_power_setpoints(env) -> np.ndarray:
                 shifted_load = shifted_load * required_energy * 60 / env.timescale
 
                 # find power lower than min_power_limit and higher than max_power_limit
-
+                step = 0
                 while np.min(shifted_load[shifted_load != 0]) < min_power_limit or \
                         np.max(shifted_load) > max_power_limit:
+                    if step > 10:
+                        break
+
+                    # print(f"Shifted load: {shifted_load}")
                     for i in range(len(shifted_load)):
                         if shifted_load[i] < min_power_limit and shifted_load[i] > 0:
                             load_to_shift = shifted_load[i]
@@ -413,6 +422,7 @@ def generate_power_setpoints(env) -> np.ndarray:
                                 shifted_load[0] += load_to_shift
                             else:
                                 shifted_load[i+1] += load_to_shift
+                    step += 1
 
                 power_setpoints[t+2:ev.time_of_departure] += shifted_load
 
@@ -420,10 +430,11 @@ def generate_power_setpoints(env) -> np.ndarray:
                 break
 
     # return smooth_vector(power_setpoints)
- 
+
     return median_smoothing(power_setpoints, 5)
-    
+
     # return savgol_filter(power_setpoints, window_length=5, polyorder=2)
+
 
 def calculate_charge_power_potential(env) -> float:
     '''
