@@ -75,8 +75,7 @@ class EVsSimulator(gym.Env):
         self.simulation_length = self.config['simulation_length']
 
         self.replay_path = replay_save_path
-
-        self.score_threshold = self.config['score_threshold']
+        
         cs = self.config['number_of_charging_stations']
 
         self.reward_function = reward_function
@@ -317,6 +316,9 @@ class EVsSimulator(gym.Env):
 
         self.tr_inflexible_loads = np.zeros(
             [self.number_of_transformers, self.simulation_length])
+        
+        self.tr_solar_power = np.zeros(
+            [self.number_of_transformers, self.simulation_length])
 
         # self.port_power = np.zeros([self.number_of_ports,
         #                             self.cs,
@@ -456,7 +458,6 @@ class EVsSimulator(gym.Env):
         truncated = False
         # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
-                any(score < self.score_threshold for score in user_satisfaction_list) or \
         (any(tr.is_overloaded() for tr in self.transformers)
                     and not self.generate_rnd_game):
             """Terminate if:
@@ -471,10 +472,7 @@ class EVsSimulator(gym.Env):
             if self.verbose:
                 print_statistics(self)
 
-                if any(score < self.score_threshold for score in user_satisfaction_list):
-                    print(
-                        f"User satisfaction score below threshold of {self.score_threshold}, {self.current_step} timesteps\n")
-                elif any(tr.is_overloaded() for tr in self.transformers):
+                if any(tr.is_overloaded() for tr in self.transformers):
                     print(
                         f"Transformer overloaded, {self.current_step} timesteps\n")
                 else:
@@ -518,7 +516,9 @@ class EVsSimulator(gym.Env):
             self.tr_overload[tr.id,
                              self.current_step] = tr.get_how_overloaded()
             self.tr_inflexible_loads[tr.id,
-                                     self.current_step] = tr.inflexible_transformer_loading[self.current_step]
+                                     self.current_step] = tr.inflexible_load[self.current_step]
+            self.tr_solar_power[tr.id,
+                                 self.current_step] = tr.solar_power[self.current_step]
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output
