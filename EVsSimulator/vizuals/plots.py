@@ -310,7 +310,7 @@ def ev_city_plot(env):
             plt.xlim([env.sim_starting_date, env.sim_date])
             plt.xticks(ticks=date_range_print,
                        labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
-                       fontsize=22)
+                       fontsize=24)
             # place the legend under each plot
 
             if dim_x < 5:
@@ -328,6 +328,7 @@ def ev_city_plot(env):
         fig_name = f'plots/{env.sim_name}/CS_Current_signals.png'
         plt.savefig(fig_name, format='png', dpi=60, bbox_inches='tight')
 
+    plt.close('all')
     # Plot the total power for each CS group
     df_total_power = pd.DataFrame([], index=date_range)
     plt.figure(figsize=(20, 17))
@@ -341,14 +342,23 @@ def ev_city_plot(env):
         df = pd.DataFrame([],
                           index=date_range)
 
+        colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)))        
         extra_col = 0
-        if env.config['solar_power']['include']:
-            df['solar'] = env.tr_solar_power[tr.id, :]
-            extra_col += 1
-            
+
         if env.config['inflexible_loads']['include']:
             df['inflexible'] = env.tr_inflexible_loads[tr.id, :]
             extra_col += 1
+
+        if env.config['solar_power']['include']:
+            df['solar'] = env.tr_solar_power[tr.id, :]
+            gold = np.array([1, 0.843, 0, 1])
+            colors = np.insert(colors, 0, gold, axis=0)
+            extra_col += 1
+
+        if env.config['inflexible_loads']['include']:
+            # grey = np.array([0.5, 0.5, 0.5, 1])
+            light_blue = np.array([0.529, 0.808, 0.922, 1])
+            colors = np.insert(colors, 0, light_blue, axis=0)
 
         for cs in tr.cs_ids:
             df[cs] = env.cs_power[cs, :]
@@ -358,8 +368,6 @@ def ev_city_plot(env):
         df_pos[df_pos < 0] = 0
         df_neg = df.copy()
         df_neg[df_neg > 0] = 0
-        
-        colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+extra_col))
 
         # Add another row with one datetime step to make the plot look better
         df_pos.loc[df_pos.index[-1] +
@@ -377,12 +385,32 @@ def ev_city_plot(env):
 
         df['total'] = df.sum(axis=1)
         df_total_power[tr.id] = df['total']
-
-        plt.step(df.index, df['total'], 'darkgreen',
-                 where='post', linestyle='--', linewidth=2)
         
+        if env.config['demand_response']['include']:
+            plt.fill_between(df.index,
+                             np.array([tr.max_power.max()] * len(df.index)),
+                             tr.max_power,
+                             step='post',
+                             alpha=0.7,
+                             color='r',
+                             linestyle='--',
+                             linewidth=2)
+
+
+        plt.step(df.index, df['total'],
+                 'darkgreen',
+                 where='post',
+                #  linestyle='-',
+                 linewidth=3)
+
         plt.step(df.index,
-                 tr.max_power, where='post', color='r', linestyle='--')
+                 #  tr.max_power
+                 [tr.max_power.max()] * len(df.index),
+                 where='post',
+                 color='r',
+                 linestyle='--',
+                 linewidth=2)
+
         plt.stackplot(df_neg.index, df_neg.values.T,
                       interpolate=True,
                       step='post',
@@ -393,26 +421,42 @@ def ev_city_plot(env):
 
         # for cs in tr.cs_ids:
         #     plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
+
         plt.title(f'Transformer {tr.id}')
-        plt.xlabel(f'Time')
-        plt.ylabel(f'Power (kW)')
+        plt.xlabel(f'Time', fontsize=28)
+        plt.ylabel(f'Power (kW)', fontsize=28)
         plt.xlim([env.sim_starting_date, env.sim_date])
         plt.xticks(ticks=date_range_print,
-                   labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+                   labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                   rotation=45,
+                   fontsize=28)
+        plt.yticks(fontsize=28)
 
-        legend_list = [f'CS {i}' for i in tr.cs_ids] + \
-                           ['Total Power (kW)'] + \
-                           ['Power limit (kW)']
-                           
+        legend_list = [f'CS {i+1}' for i in tr.cs_ids] + \
+            ['Total Power (kW)'] + \
+            ['Power limit (kW)']
+            
+        if env.config['demand_response']['include']:
+            legend_list = legend_list[:-2] + ['Demand Response (kW)'] + legend_list[-2:]
+
         if len(tr.cs_ids) < 4:
+
+            if env.config['solar_power']['include']:
+                legend_list = ['Solar Power'] + legend_list
+
             if env.config['inflexible_loads']['include']:
                 legend_list = ['Inflexible Loads'] + legend_list
-            
-            if env.config['solar_power']['include']:    
+
+            plt.legend(legend_list)
+        else:
+            if env.config['solar_power']['include']:
                 legend_list = ['Solar Power'] + legend_list
-            
-                
-        plt.legend(legend_list)
+
+            if env.config['inflexible_loads']['include']:
+                legend_list = ['Inflexible Loads'] + legend_list
+
+            plt.legend(loc='lower right', fontsize=24, labels=legend_list)
+
         plt.grid(True, which='minor', axis='both')
         counter += 1
 
@@ -425,6 +469,7 @@ def ev_city_plot(env):
         # clear plt canvas
         plt.close('all')
 
+    plt.show()
     # Plot the total power of the CPO
     plt.figure(figsize=(20, 17))
 
@@ -446,7 +491,7 @@ def ev_city_plot(env):
     df_neg.loc[df_neg.index[-1] +
                datetime.timedelta(minutes=env.timescale)] = df_neg.iloc[-1]
 
-    df_total_power['total'] = df_total_power.sum(axis=1)    
+    df_total_power['total'] = df_total_power.sum(axis=1)
 
     plt.step(df_total_power.index, df_total_power['total'], 'darkgreen',
              where='post', linestyle='--')

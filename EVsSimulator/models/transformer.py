@@ -47,8 +47,8 @@ class Transformer():
         self.min_power = np.ones(simulation_length) * -max_power
 
         self.max_power_or_current_mode = max_power_or_current_mode
-        self.inflexible_load = inflexible_load        
-        self.solar_power = solar_power                
+        self.inflexible_load = inflexible_load
+        self.solar_power = solar_power
 
         self.cs_ids = cs_ids
         self.simulation_length = simulation_length
@@ -57,14 +57,18 @@ class Transformer():
         self.current_power = 0
 
         self.current_step = 0
-        
+
         if env.config['inflexible_loads']['include']:
             self.normalize_inflexible_loads(env)
-            self.generate_demand_response_events(env)
-        
+            self.generate_inflexible_loads_forecast(env)
+            
+
         if env.config['solar_power']['include']:
-            self.normalize_pv_generation(env)    
-            self.generate_pv_generation_forecast(env)                            
+            self.normalize_pv_generation(env)
+            self.generate_pv_generation_forecast(env)
+            
+        if env.config['demand_response']['include']:
+            self.generate_demand_response_events(env)
 
     def generate_demand_response_events(self, env) -> None:
         '''
@@ -81,10 +85,10 @@ class Transformer():
         event_capacity_percentage_mean = env.config['demand_response']['event_capacity_percentage_mean']
         event_capacity_percentage_std = env.config['demand_response']['event_capacity_percentage_std']
 
-        for i in range(events_per_day):
+        for _ in range(events_per_day):
 
             event_length_minutes = np.random.randint(
-                event_length_minutes_min, event_length_minutes_max)
+                event_length_minutes_min, event_length_minutes_max+1)
 
             event_start_hour = np.random.normal(
                 event_start_hour_mean*60, event_start_hour_std*60)
@@ -120,12 +124,12 @@ class Transformer():
         '''
         Normalize the solar_power using the configuration file and teh max_power of the transformer
         '''
-        if env.config['solar_power']['include']:            
-            mult = env.config['solar_power']['solar_power_capacity_multiplier_mean'] 
+        if env.config['solar_power']['include']:
+            mult = env.config['solar_power']['solar_power_capacity_multiplier_mean']
             mult = np.random.normal(mult, 0.1)
             self.solar_power = -self.solar_power * \
-                mult * max(self.max_power) 
-    
+                mult * max(self.max_power)
+
     def generate_pv_generation_forecast(self, env) -> None:
         '''
         This function is used to generate pv generation forecast using the configuration file
@@ -139,14 +143,14 @@ class Transformer():
         self.pv_generation_forecast = np.random.normal(
             forecast_uncertainty_mean,
             abs(forecast_uncertainty_std),
-            len(self.solar_power))                                               
-    
+            len(self.solar_power))
+
     def normalize_inflexible_loads(self, env) -> None:
         '''
         Check that infelxible_loads are lower than the max_power, if not, set them to the max_power
         '''
 
-        if env.config['inflexible_loads']['include']:            
+        if env.config['inflexible_loads']['include']:
             mult = env.config['inflexible_loads']['inflexible_loads_capacity_multiplier_mean']
             mult = np.random.normal(mult, 0.1)
 
@@ -160,10 +164,10 @@ class Transformer():
                     self.inflexible_load[j] = self.max_power[j]
 
                 elif self.inflexible_load[j] < self.min_power[j]:
-                    self.inflexible_load[j] = self.min_power[j]                
+                    self.inflexible_load[j] = self.min_power[j]
 
         self.generate_inflexible_loads_forecast(env)
-        
+
     def generate_inflexible_loads_forecast(self, env) -> None:
         '''
         This function is used to generate inflexible loads forecast using the configuration file
@@ -177,7 +181,7 @@ class Transformer():
         self.infelxible_load_forecast = np.random.normal(
             forecast_uncertainty_mean,
             forecast_uncertainty_std,
-            len(self.inflexible_load))              
+            len(self.inflexible_load))
 
     def reset(self, step) -> None:
         '''

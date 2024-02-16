@@ -24,9 +24,9 @@ def eval():
 
     verbose = False
     save_plots = True
-
-    replay_path = "./replay/replay_sim_2024_02_14_272496.pkl"
-    replay_path = None
+    
+    replay_path = "./replay/replay_sim_2024_02_16_688071.pkl"
+    # replay_path = None
 
     # config_file = "/example_config_files/BusinessPST_config.yaml"
     # # config_file = "/example_config_files/simple_config.yaml"
@@ -38,7 +38,7 @@ def eval():
 
     env = EVsSimulator(config_file=config_file,
                        load_from_replay_path=replay_path,
-                       verbose=True,
+                       verbose=False,
                        save_replay=True,
                        empty_ports_at_end_of_simulation=True,
                        save_plots=save_plots,
@@ -50,7 +50,7 @@ def eval():
     state, _ = env.reset()
 
     # mpc = MPC(env, control_horizon=25, verbose=True)
-    round_robin = RoundRobin(env, verbose=True)
+    round_robin = RoundRobin(env, verbose=False)
     charge_as_late_as_possible = ChargeAsLateAsPossible(verbose=True)
     charge_as_fast_as_possible = ChargeAsFastAsPossible()
     rewards = []
@@ -71,7 +71,7 @@ def eval():
             print(f'Actions: {actions}')
 
         new_state, reward, done, truncated, _ = env.step(
-            actions, visualize=True)  # takes action
+            actions, visualize=False)  # takes action
         rewards.append(reward)
 
         # input("Press Enter to continue...")
