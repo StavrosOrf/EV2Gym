@@ -78,11 +78,11 @@ class EvCityReplay():
         self.tra_min_amps = np.ones([self.n_transformers, self.sim_length])
 
         for i, tra in enumerate(env.transformers):
-            current_from_inflexible = tra.inflexible_load*1000/400
-            # current_from_solar = tra.solar_power*1000/400
+            current_from_inflexible = env.tr_inflexible_loads * 1000 / 400
+            current_from_solar = env.tr_solar_power * 1000 / 400
             
-            self.tra_max_amps[i] = tra.max_current-current_from_inflexible
-            self.tra_min_amps[i] = tra.min_current
+            self.tra_max_amps[i] = tra.max_current - abs(current_from_inflexible) + abs(current_from_solar)
+            self.tra_min_amps[i] = tra.min_current + abs(current_from_inflexible) - abs(current_from_solar)
 
         self.port_max_charge_current = np.ones([self.n_cs])
         self.port_min_charge_current = np.ones([self.n_cs])

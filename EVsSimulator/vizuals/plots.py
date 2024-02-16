@@ -341,14 +341,15 @@ def ev_city_plot(env):
         df = pd.DataFrame([],
                           index=date_range)
 
+        extra_col = 0
         if env.config['solar_power']['include']:
             df['solar'] = env.tr_solar_power[tr.id, :]
+            extra_col += 1
             
         if env.config['inflexible_loads']['include']:
             df['inflexible'] = env.tr_inflexible_loads[tr.id, :]
-        
+            extra_col += 1
 
-            
         for cs in tr.cs_ids:
             df[cs] = env.cs_power[cs, :]
 
@@ -357,7 +358,8 @@ def ev_city_plot(env):
         df_pos[df_pos < 0] = 0
         df_neg = df.copy()
         df_neg[df_neg > 0] = 0
-        colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+1))
+        
+        colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+extra_col))
 
         # Add another row with one datetime step to make the plot look better
         df_pos.loc[df_pos.index[-1] +
@@ -444,8 +446,7 @@ def ev_city_plot(env):
     df_neg.loc[df_neg.index[-1] +
                datetime.timedelta(minutes=env.timescale)] = df_neg.iloc[-1]
 
-    df_total_power['total'] = df_total_power.sum(axis=1)
-    # print(df_total_power)
+    df_total_power['total'] = df_total_power.sum(axis=1)    
 
     plt.step(df_total_power.index, df_total_power['total'], 'darkgreen',
              where='post', linestyle='--')
@@ -476,8 +477,8 @@ def ev_city_plot(env):
 
     plt.plot([env.sim_starting_date, env.sim_date], [0, 0], 'black')
 
-    for cs in tr.cs_ids:
-        plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
+    # for cs in tr.cs_ids:
+    #     plt.step(df.index, df[cs], 'white', where='post', linestyle='--')
     # plt.title(f'Aggreagated Power vs Power Setpoint', fontsize=44)
     plt.xlabel(f'Time', fontsize=38)
     plt.ylabel(f'Power (kW)', fontsize=38)

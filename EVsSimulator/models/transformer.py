@@ -60,13 +60,11 @@ class Transformer():
         
         if env.config['inflexible_loads']['include']:
             self.normalize_inflexible_loads(env)
+            self.generate_demand_response_events(env)
         
         if env.config['solar_power']['include']:
             self.normalize_pv_generation(env)    
-            self.generate_pv_generation_forecast(env)
-        
-        if env.config['demand_response']['include']:
-            self.generate_demand_response_events(env)
+            self.generate_pv_generation_forecast(env)                            
 
     def generate_demand_response_events(self, env) -> None:
         '''

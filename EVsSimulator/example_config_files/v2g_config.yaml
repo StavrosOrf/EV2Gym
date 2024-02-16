@@ -54,21 +54,21 @@ inflexible_loads:
 
 solar_power:
   include: True # True or False
-  solar_power_capacity_multiplier_mean: 10 # 1 is default, the higher the number the more solar power
+  solar_power_capacity_multiplier_mean: 1 # 1 is default, the higher the number the more solar power
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 5 # in percentage of load at time t%
 
 # Whether to include demand response in the transformer power limit
 demand_response:
   include: True # True or False
-  events_per_day: 5
+  events_per_day: 1
   #How much of the transformer power limit can be used for demand response
   event_capacity_percentage_mean: 25 # (in percentage +/- %)
   event_capacity_percentage_std: 5 # (in percentage +/- %)
   event_length_minutes_min: 15
   event_length_minutes_max: 60
   event_start_hour_mean: 17
-  event_start_hour_std: 3
+  event_start_hour_std: 2
   # How many minutes ahead we know the event is going to happen
   notification_of_event_minutes: 15
 

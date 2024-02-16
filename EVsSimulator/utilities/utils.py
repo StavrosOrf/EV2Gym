@@ -400,6 +400,7 @@ def generate_power_setpoints(env) -> np.ndarray:
                 step = 0
                 while np.min(shifted_load[shifted_load != 0]) < min_power_limit or \
                         np.max(shifted_load) > max_power_limit:
+
                     if step > 10:
                         break
 
