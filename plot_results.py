@@ -13,7 +13,7 @@ results_table = np.zeros((len(algorithms), 10))
 for index, algorithm in enumerate(algorithms):
     try:
         # with open("./results/" + algorithm + "_20cs_1_port.pkl", "rb") as f:
-        with open("./results/" + algorithm + "_15cs_1_port_SquaredTrackingErrorRewardWithPenalty.pkl", "rb") as f:
+        with open("./results/" + algorithm + "_15cs_1_port_SquaredTrackingErrorReward.pkl", "rb") as f:
             results = pickle.load(f)
     except FileNotFoundError:
         print("No results for ", algorithm)

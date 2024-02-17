@@ -14,7 +14,6 @@ import pickle
 
 algorithms = ['ddpg', 'td3', 'sac', 'a2c', 'ppo', 'tqc', 'trpo', 'ars', 'rppo']
 algorithms = ['tqc']
-# algorithms = ['rr']
 device = "cuda"
 
 config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
@@ -57,8 +56,6 @@ for algorithm in algorithms:
         model = ARS.load(load_path, env=env, device=device)
     elif algorithm == "rppo":
         model = RecurrentPPO.load(load_path, env=env, device=device)
-    elif algorithm == "rr":
-        model = RoundRobin(env)
     else:
         raise ValueError("Algorithm not supported")
 
@@ -66,7 +63,7 @@ for algorithm in algorithms:
     obs = env.reset()
 
     stats = []
-    for i in tqdm(range(96*1)):               
+    for i in tqdm(range(96*100)):               
 
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = env.step(action)
@@ -79,7 +76,7 @@ for algorithm in algorithms:
 
     # save stats to file
     pickle.dump(stats, open("./results/"+algorithm +
-                "_15cs_1_port_SquaredTrackingErrorRewardWithPenalty.pkl", "wb"))
+                "_15cs_1_port_SquaredTrackingErrorReward.pkl", "wb"))
 
     # print average stats for
     print("=====================================================")

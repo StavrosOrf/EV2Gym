@@ -7,7 +7,7 @@ import time
 
 counter = 0
 for algorithm in ['ddpg', 'td3', 'sac', 'a2c', 'ppo', 'tqc', 'trpo', 'ars', 'rppo']:
-    command = 'tmux new-session -d \; send-keys "python3 test_stable_baselines.py' + \
+    command = 'tmux new-session -d \; send-keys "python3 train_stable_baselines.py' + \
         ' --algorithm ' + algorithm + \
         ' --device cuda:' + str(counter % 2) + \
         '" Enter'

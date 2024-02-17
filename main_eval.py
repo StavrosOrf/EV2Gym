@@ -8,7 +8,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.realpath('../'))
 
 from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model, ev_city_profit_maximization
+# from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model, ev_city_profit_maximization
 from EVsSimulator.baselines.mpc.mpc import MPC
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
 
@@ -26,19 +26,19 @@ def eval():
     save_plots = True
     
     replay_path = "./replay/replay_sim_2024_02_16_688071.pkl"
-    # replay_path = None
+    replay_path = None
 
     # config_file = "/example_config_files/BusinessPST_config.yaml"
     # # config_file = "/example_config_files/simple_config.yaml"
     # config_file = "/example_config_files/config.yaml"
     config_file = "/example_config_files/v2g_config.yaml"
-    # config_file = "/example_config_files/PublicPST.yaml"
+    config_file = "/example_config_files/PublicPST.yaml"
 
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
 
     env = EVsSimulator(config_file=config_file,
                        load_from_replay_path=replay_path,
-                       verbose=False,
+                       verbose=True,
                        save_replay=True,
                        empty_ports_at_end_of_simulation=True,
                        save_plots=save_plots,
@@ -83,7 +83,7 @@ def eval():
             print(f'End of simulation at step {env.current_step}')
             break
 
-    # exit()
+    exit()
     # Solve optimally
     # Power tracker optimizer
     math_model = ev_city_power_tracker_model.EV_City_Math_Model(

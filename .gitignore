@@ -172,4 +172,6 @@ runs/
 saved_models/
 trajectories/
 logs/
+eval_logs/
 results/
+models/

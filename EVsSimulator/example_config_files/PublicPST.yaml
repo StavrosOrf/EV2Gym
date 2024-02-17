@@ -4,28 +4,32 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 85 #96*14 # in steps per simulation
+simulation_length: 85 # in steps per simulation
 
 ##############################################################################
 # Date:
 ##############################################################################
-# Year, month, and day change after the envrionment has been reset
+# Year, month, 
 year: 2022 # 2015-2023
 month: 1 # 1-12
 day: 17 # 1-31
+# Whether to get a random date every time the environment is reset
+random_day: True # True or False
+
 
 # Simulation Starting Time
-hour: 6 # Simulation starting hour (24 hour format)
-minute: 0 # Simulation starting minute (0-59)
 # Hour and minute do not change after the environment has been reset
+hour: 5 # Simulation starting hour (24 hour format)
+minute: 0 # Simulation starting minute (0-59)
 
-
+# Simulate weekdays, weekends, or both
+simulation_days: weekdays # weekdays, weekends, or both
 
 ##############################################################################
-# Charging Topology 
+# Charging Topology
 ##############################################################################
 v2g_enabled: False # True or False
-number_of_charging_stations: 15
+number_of_charging_stations: 30
 number_of_transformers: 1
 number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology,
@@ -33,19 +37,43 @@ number_of_ports_per_cs: 1
 charging_network_topology: None #./config_files/charging_topology_10.json
 
 ##############################################################################
+# Power Setpoints Settings
+##############################################################################
 # Whether to have the transformer limits in power or current
 transformer_max_power_or_current_mode: current # power or current
 # How much the power setpoints can vary in percentage compared to the nominal power
 # The higher the number the easier it is to meet the power setpoints, the opposite for negative numbers
-power_setpoints_uncertainty: +20 # (in percentage +/- %)
+power_setpoints_uncertainty: 20 # (in percentage +/- %)
 
 ##############################################################################
-# Inflexible Loads and Demand Response
+# Inflexible Loads, Solar Generation, and Demand Response
 ##############################################################################
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
-transformer_include_inflexible_loads: False # True or False
+inflexible_loads:
+  include: False # True or False
+  inflexible_loads_capacity_multiplier_mean: 1.3 # 1 is default, the higher the number the more inflexible loads
+  forecast_mean: 100 # in percentage of load at time t%
+  forecast_std: 5 # in percentage of load at time t%
+
+solar_power:
+  include: False # True or False
+  solar_power_capacity_multiplier_mean: 4 # 1 is default, the higher the number the more solar power
+  forecast_mean: 100 # in percentage of load at time t%
+  forecast_std: 5 # in percentage of load at time t%
+
 # Whether to include demand response in the transformer power limit
-demand_response: False # True or False
+demand_response:
+  include: False # True or False
+  events_per_day: 1
+  #How much of the transformer power limit can be used for demand response
+  event_capacity_percentage_mean: 25 # (in percentage +/- %)
+  event_capacity_percentage_std: 5 # (in percentage +/- %)
+  event_length_minutes_min: 60
+  event_length_minutes_max: 60
+  event_start_hour_mean: 18
+  event_start_hour_std: 2
+  # How many minutes ahead we know the event is going to happen
+  notification_of_event_minutes: 15
 
 ##############################################################################
 # EV Specifications
@@ -55,6 +83,4 @@ heterogeneous_ev_specs: False #if False, each EV has its own specifications
 
 # EV Spawn Behavior
 scenario: public # public, private, or workplace
-spawn_multiplier: 2.5 # 1 is default, the higher the number the more EVs spawn
-
-
+spawn_multiplier: 3 # 1 is default, the higher the number the more EVs spawn
