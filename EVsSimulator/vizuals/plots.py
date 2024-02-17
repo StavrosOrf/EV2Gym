@@ -376,12 +376,17 @@ def ev_city_plot(env):
                    datetime.timedelta(minutes=env.timescale)] = df_neg.iloc[-1]
 
         # plot the positive power
-        plt.stackplot(df_pos.index, df_pos.values.T,
+        stacks = plt.stackplot(df_pos.index, df_pos.values.T,
                       interpolate=True,
                       step='post',
                       alpha=0.7,
                       colors=colors,
+                      hatch=['//', '\\'] +['']*len(tr.cs_ids),
                       linestyle='--')
+        
+        # for index, stack in enumerate(stacks):
+        #     if env.config['inflexible_loads']['include']:
+                # stack.set_hatch(['//')
 
         df['total'] = df.sum(axis=1)
         df_total_power[tr.id] = df['total']
@@ -393,6 +398,7 @@ def ev_city_plot(env):
                              step='post',
                              alpha=0.7,
                              color='r',
+                             hatch='xx',
                              linestyle='--',
                              linewidth=2)
 
@@ -416,6 +422,7 @@ def ev_city_plot(env):
                       step='post',
                       colors=colors,
                       alpha=0.7,
+                      hatch='-\ ',
                       linestyle='--')
         plt.plot([env.sim_starting_date, env.sim_date], [0, 0], 'black')
 
