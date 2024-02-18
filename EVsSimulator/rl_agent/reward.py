@@ -1,14 +1,7 @@
 # This file contains the reward function for the RL agent
 # Users can create their own reward function here or in their own file using the same structure as below
 
-def SquaredTrackingErrorReward(env,*args):
-    # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
-    # The reward is negative
-    
-    reward = - (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) -
-        env.current_power_usage[env.current_step-1])**2
-    
-    return reward
+import math
 
 def SquaredTrackingErrorReward(env,*args):
     # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
@@ -16,7 +9,25 @@ def SquaredTrackingErrorReward(env,*args):
     
     reward = - (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) -
         env.current_power_usage[env.current_step-1])**2
+        
+    return reward
+
+def SqTrError_TrPenalty_UserIncentives(env, _, user_satisfaction_list, *args):
+    # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
+    # It penalizes transofrmers that are overloaded    
+    # The reward is negative
     
+    tr_max_limit = env.transformers[0].max_power[env.current_step-1]
+    
+    reward = - (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1],tr_max_limit) -
+        env.current_power_usage[env.current_step-1])**2
+            
+    for tr in env.transformers:
+        reward -= 100 * tr.get_how_overloaded()
+        
+    for score in user_satisfaction_list:
+        reward -= 1000 * (1 - score)
+                    
     return reward
 
 def SquaredTrackingErrorRewardWithPenalty(env,*args):
@@ -51,10 +62,14 @@ def MinimizeTrackerSurplusWithChargeRewards(env,*args):
     
     return reward
 
-def profit_maximization(env, total_costs,*args):
+def profit_maximization(env, total_costs, user_satisfaction_list, *args):
     # This reward function is the profit maximization reward function
     
-    reward = env.total_costs
+    reward = total_costs
+    
+    for score in user_satisfaction_list:
+        # reward -= 100 * (1 - score)
+        reward -= 100 * math.exp(-6*score)
     
     return reward
 

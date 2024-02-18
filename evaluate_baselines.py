@@ -8,35 +8,39 @@ from tqdm import tqdm
 from EVsSimulator.ev_city import EVsSimulator
 import gymnasium as gym
 import os
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
+from EVsSimulator.rl_agent.reward import profit_maximization
 
+from EVsSimulator.rl_agent.state import V2G_profit_max
 import pickle
 
 algorithms = ['ddpg', 'td3', 'sac', 'a2c', 'ppo', 'tqc', 'trpo', 'ars', 'rppo']
-algorithms = ['tqc']
+algorithms = ['ars']
 device = "cuda"
 
 config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
 
+config_file = "EVsSimulator/example_config_files/V2GProfitMax.yaml"
+
 gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
                   kwargs={'config_file': config_file,
                           'verbose': False,
-                            'save_plots': True,
+                          'save_plots': True,
                           'generate_rnd_game': True,
+                          'state_function': V2G_profit_max,
+                          'reward_function': profit_maximization,
                           #   'reward_function': MinimizeTrackerSurplusWithChargeRewards,
                           })
 
 env = gym.make('evs-v0')
 
-
 if not os.path.exists("./results"):
     os.makedirs("./results")
 
-for algorithm in algorithms:
-    # load_path = "./saved_models/" + algorithm + "_20cs_1_port_best_reward.zip"
-    load_path = "./saved_models/" + algorithm + \
-        "_15cs_1_port_SquaredTrackingErrorReward.zip"
-    # load_path = "./saved_models/" + algorithm + "_20cs_1_port.zip"
+for algorithm in algorithms:    
+    load_path = "./saved_models/" + algorithm 
+    # + "_50cs_1_port_SqTrError_TrPenalty_UserIncentives.zip"    
+    load_path += "_40cs_1_port_V2G_profit_max.zip"    
 
     if algorithm == "ddpg":
         model = DDPG.load(load_path, env=env, device=device)
@@ -63,7 +67,7 @@ for algorithm in algorithms:
     obs = env.reset()
 
     stats = []
-    for i in tqdm(range(96*100)):               
+    for i in tqdm(range(85*1000)):
 
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = env.step(action)
@@ -72,11 +76,9 @@ for algorithm in algorithms:
             stats.append(info)
             obs = env.reset()
 
-    # make directory if it does not exist
-
     # save stats to file
     pickle.dump(stats, open("./results/"+algorithm +
-                "_15cs_1_port_SquaredTrackingErrorReward.pkl", "wb"))
+                "_50cs_1_port_SqTrError_TrPenalty_UserIncentives.pkl", "wb"))
 
     # print average stats for
     print("=====================================================")

@@ -8,12 +8,12 @@ import pickle
 algorithms = ['ddpg', 'td3', 'sac', 'a2c', 'ppo', 'tqc', 'trpo', 'ars', 'rppo']
 # algorithms = ['td3','ddpg', 'sac']
 
-results_table = np.zeros((len(algorithms), 10))
+results_table = np.zeros((len(algorithms), 14))
 
 for index, algorithm in enumerate(algorithms):
     try:
         # with open("./results/" + algorithm + "_20cs_1_port.pkl", "rb") as f:
-        with open("./results/" + algorithm + "_15cs_1_port_SquaredTrackingErrorReward.pkl", "rb") as f:
+        with open("./results/" + algorithm + "_50cs_1_port_SqTrError_TrPenalty_UserIncentives.pkl", "rb") as f:
             results = pickle.load(f)
     except FileNotFoundError:
         print("No results for ", algorithm)
@@ -44,13 +44,24 @@ for index, algorithm in enumerate(algorithms):
         [i[0]['episode']['r'] for i in results]).mean()
     results_table[index, 9] = np.array(
         [i[0]['episode']['r'] for i in results]).std()
+    
+    results_table[index, 10] = np.array(
+        [i[0]['total_transformer_overload'] for i in results]).mean()
+    results_table[index, 11] = np.array(
+        [i[0]['total_transformer_overload'] for i in results]).std()
+    
+    results_table[index, 12] = np.array(
+        [i[0]['average_user_satisfaction'] for i in results]).mean()
+    results_table[index, 13] = np.array(
+        [i[0]['average_user_satisfaction'] for i in results]).std()
 
 
 # print results in a table format using | as separator and 2 decimal precision
 
 
 column_keys = ['algorithm', 'EVs served', 'Energy charged',
-               'Tracking error', 'Power Surplass', 'Reward']
+               'Tracking error', 'Power Surplass', 'Reward',
+               'Tr. Overload', 'User Sat.%']
 
 
 for key in column_keys:

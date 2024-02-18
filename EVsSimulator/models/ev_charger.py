@@ -38,7 +38,6 @@ class EV_Charger:
         - step: updates the EV charger status according to the actions taken by the EVs
         - reset: resets the EV charger status to the initial state      
         
-            
 '''
 
     def __init__(self,
@@ -46,7 +45,7 @@ class EV_Charger:
                  connected_bus,
                  connected_transformer,
                  geo_location=None,
-                 min_charge_current=8,  # Amperes
+                 min_charge_current=0,  # Amperes
                  max_charge_current=56,  # Amperes
                  min_discharge_current=-8, # Amperes
                  max_discharge_current=-56, # Amperes
@@ -164,8 +163,7 @@ class EV_Charger:
                 self.current_power_output += actual_energy * 60/self.timescale 
                 self.current_total_amps += actual_amps
 
-            elif action < 0:
-                print(f'amps: {action} * {self.max_discharge_current} = {action * self.max_discharge_current}')
+            elif action < 0:                
                 amps = action * abs(self.max_discharge_current)
                 if amps > self.min_discharge_current-0.01:
                     amps = self.min_discharge_current

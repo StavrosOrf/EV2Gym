@@ -210,8 +210,11 @@ class EVsSimulator(gym.Env):
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         high = np.ones([self.number_of_ports])
-        lows = np.zeros([self.number_of_ports])
-        self.action_space = spaces.Box(low=-lows, high=high, dtype=np.float64)
+        if self.config['v2g_enabled']:
+            lows = -1 * np.ones([self.number_of_ports])
+        else:
+            lows = np.zeros([self.number_of_ports])
+        self.action_space = spaces.Box(low=lows, high=high, dtype=np.float64)
 
         # Observation space: is a matrix of size ("Sum of all ports of all charging stations",n_features)
         obs_dim = len(self._get_observation())
@@ -483,9 +486,6 @@ class EVsSimulator(gym.Env):
                 ev_city_plot(self)
 
             self.done = True
-
-            # create an objext with statistics about the simulation for vizualization
-
             return self._get_observation(), reward, True, truncated, get_statistics(self)
         else:
             return self._get_observation(), reward, False, truncated, {'None': None}

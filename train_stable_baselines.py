@@ -6,7 +6,10 @@ from stable_baselines3.common.callbacks import EvalCallback
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 
 from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
+from EVsSimulator.rl_agent.reward import profit_maximization
+
+from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
 
 import gymnasium as gym
 import argparse
@@ -43,19 +46,34 @@ if __name__ == "__main__":
     parser.add_argument('--device', type=str, default="cuda:0")
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
-                        default="EVsSimulator/example_config_files/PublicPST.yaml")
+                        default="EVsSimulator/example_config_files/V2GProfitMax.yaml")
+                        # default="EVsSimulator/example_config_files/PublicPST.yaml")
 
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
     run_name = parser.parse_args().run_name
     config_file = parser.parse_args().config_file
-
+    
     config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
+    
+    if config_file == "EVsSimulator/example_config_files/V2GProfitMax.yaml":
+        reward_function = profit_maximization
+        state_function = V2G_profit_max
+        group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitMax'
+        
+    elif config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
+        reward_function = SquaredTrackingErrorReward
+        state_function = PublicPST
+        group_name = f'{config["number_of_charging_stations"]}cs_PublicPST'
+    
+    run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
+
+    
 
     run = wandb.init(project='EVsSimulator',
                      sync_tensorboard=True,
-                     group=f'30cs_PST',
-                     name=f'{algorithm}_{run_name}',
+                     group=group_name,
+                     name=run_name,
                      save_code=True,
                      )
 
@@ -64,13 +82,15 @@ if __name__ == "__main__":
                               'verbose': False,
                               'save_plots': False,
                               'generate_rnd_game': True,
-                              'reward_function': SquaredTrackingErrorReward,
+                              'reward_function': reward_function,
+                              'state_function': state_function,
                               })
 
     env = gym.make('evs-v0')
 
     eval_log_dir = "./eval_logs/"
     os.makedirs(eval_log_dir, exist_ok=True)
+    os.makedirs(f"./saved_models/{group_name}", exist_ok=True)
 
     eval_callback = EvalCallback(env, best_model_save_path=eval_log_dir,
                                  log_path=eval_log_dir,
@@ -117,14 +137,13 @@ if __name__ == "__main__":
                         verbose=2),
                     eval_callback])
 
-    model.save("./saved_models/"+algorithm +
-               "_30cs_1_port_SquaredTrackingErrorReward")
+    model.save(f"./saved_models/{group_name}/{run_name}" )
 
     env = model.get_env()
     obs = env.reset()
 
     stats = []
-    for i in range(96*2):
+    for i in range(96*1000):
 
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = env.step(action)
@@ -157,8 +176,6 @@ if __name__ == "__main__":
     print("total_transformer_overload: ", sum(
         [i[0]['total_transformer_overload'] for i in stats])/len(stats))
     print("reward: ", sum([i[0]['episode']['r'] for i in stats])/len(stats))
-
-    # print last stats
 
     run.log({
         "test/total_ev_served": sum([i[0]['total_ev_served'] for i in stats])/len(stats),
