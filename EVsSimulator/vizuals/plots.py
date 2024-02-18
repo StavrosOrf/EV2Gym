@@ -50,11 +50,6 @@ def ev_city_plot(env):
     '''
     print("Plotting simulation data at ./plots/" + env.sim_name + "/")
 
-    # date_range = pd.date_range(start=env.sim_starting_date,
-    #                            end=env.sim_date -
-    #                            datetime.timedelta(
-    #                                minutes=env.timescale),
-    #                            freq=f'{env.timescale}min')
     date_range = pd.date_range(start=env.sim_starting_date,
                                end=env.sim_starting_date +
                                (env.simulation_length - 1) *
@@ -375,13 +370,14 @@ def ev_city_plot(env):
         df_neg.loc[df_neg.index[-1] +
                    datetime.timedelta(minutes=env.timescale)] = df_neg.iloc[-1]
 
-        # plot the positive power
+        # plot the positive power        
         stacks = plt.stackplot(df_pos.index, df_pos.values.T,
                       interpolate=True,
                       step='post',
                       alpha=0.7,
                       colors=colors,
-                      hatch=['//', '\\'] +['']*len(tr.cs_ids),
+                    #   hatch=['//'],#, '\\'],#  +[' ']*len(tr.cs_ids),
+                    # hatch=tuple(['\\'] +[' ']*len(tr.cs_ids)),
                       linestyle='--')
         
         # for index, stack in enumerate(stacks):
@@ -422,7 +418,7 @@ def ev_city_plot(env):
                       step='post',
                       colors=colors,
                       alpha=0.7,
-                      hatch='-\ ',
+                    #   hatch='-\ ',
                       linestyle='--')
         plt.plot([env.sim_starting_date, env.sim_date], [0, 0], 'black')
 

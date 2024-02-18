@@ -35,7 +35,7 @@ def arg_parser():
                         help="Enable logging to wandb (default: True)")
 
     # Environment specific arguments
-    parser.add_argument("--config_file", default="EVsSimulator/example_config_files/BusinessPST_config.yaml",
+    parser.add_argument("--config_file", default="EVsSimulator/example_config_files/PublicPST.yaml",
                         help="Path to the config file (default: config_files/config.yaml)")
 
     # Generate trajectories specific arguments
