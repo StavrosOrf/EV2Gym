@@ -8,6 +8,18 @@ import numpy as np
 from EVsSimulator import ev_city
 
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
+from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
+from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
+
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
+from EVsSimulator.rl_agent.reward import profit_maximization
+
+from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
+
+import gymnasium as gym
+import torch
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 args = arg_parser()
 config = yaml.load(open(args.config_file, 'r'), Loader=yaml.FullLoader)
@@ -19,8 +31,8 @@ timescale = config["timescale"]
 
 n_test_cycles = args.n_test_cycles
 
-eval_replay_path = "./replay/" + \
-    f'{number_of_charging_stations}cs_{n_transformers}tr/'
+scenario = args.config_file.split("/")[-1].split(".")[0]
+eval_replay_path = f'./replay/{number_of_charging_stations}cs_{n_transformers}tr_{scenario}/'
 
 eval_replay_files = [f for f in os.listdir(
     eval_replay_path) if os.path.isfile(os.path.join(eval_replay_path, f))]
@@ -32,6 +44,14 @@ if n_test_cycles > len(eval_replay_files):
     n_test_cycles = len(eval_replay_files)
 
 print(f'Number of test cycles: {n_test_cycles}')
+
+if args.config_file == "EVsSimulator/example_config_files/V2GProfitMax.yaml":
+    reward_function = profit_maximization
+    state_function = V2G_profit_max
+
+elif args.config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
+    reward_function = SquaredTrackingErrorReward
+    state_function = PublicPST
 
 # Load the replay files and aggregate the statistics
 opt_energy_charged = []
@@ -74,47 +94,72 @@ tracking_surpluses = []
 energy_user_satisfaction = []
 transformer_overloads = []
 
-for i in range(n_test_cycles):
-    replay_path = eval_replay_path + eval_replay_files[i]
+# Evaluate the performance of your algorithms
+# Algorithms to compare:
+algorithms = [RoundRobin, PPO, ChargeAsLateAsPossible, ChargeAsFastAsPossible]
 
-    env = ev_city.EVsSimulator(
-        config_file=args.config_file,
-        load_from_replay_path=replay_path,
-        generate_rnd_game=True,
-        save_plots=True,
-        save_replay=False,
-    )
+for algorithm in algorithms:
+    print('Evaluating', algorithm.__name__)
+    for i in range(n_test_cycles):
 
-    agent = RoundRobin(env)
-    state = env.reset()
+        replay_path = eval_replay_path + eval_replay_files[i]
+        if algorithm in [RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible]:
+            env = ev_city.EVsSimulator(
+                config_file=args.config_file,
+                load_from_replay_path=replay_path,
+                generate_rnd_game=True,
+            )
+            model = algorithm(env)
 
-    rewards = []
+        elif algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
+            gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
+                              kwargs={'config_file': args.config_file,
+                                      'generate_rnd_game': True,
+                                      'state_function': state_function,
+                                      'reward_function': reward_function,
+                                      'load_from_replay_path': replay_path,
+                                      })
+            env = gym.make('evs-v0')
 
-    for i in range(env.simulation_length):
+            load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
+                f"{algorithm.__name__}_SquaredTrackingErrorReward_PublicPST"
+            model = algorithm.load(load_path, env, device=device)
+            env = model.get_env()
+        else:
+            raise ValueError("Invalid algorithm")
 
-        ################# Your algorithm goes here #################
-        # actions is a vector of size number of ports and it takes values from -1 to 1
-        # 0 means no charging, 1 means charging at the maximum rate, -1 means discharging at the maximum rate
-        # discharging might not be supported by the charging station, so negative values might be clipped to 0
+        state = env.reset()
 
-        # actions = np.ones(env.number_of_ports)
-        # actions = np.zeros(env.number_of_ports)
-        actions = agent.get_action(env)
-        ################# Your algorithm goes here #################
+        rewards = []
 
-        new_state, reward, done, _, stats = env.step(
-            actions, visualize=False)  # takes action
-        rewards.append(reward)
+        for i in range(config['simulation_length']):
 
-        # input("Press Enter to continue...")
-        if done:
-            # print(f'End of simulation at step {env.current_step}')
-            break    
-    energy_charged.append(stats["total_energy_charged"])
-    tracking_errors.append(stats["tracking_error"])
-    tracking_surpluses.append(stats["power_tracker_violation"])
-    energy_user_satisfaction.append(stats["energy_user_satisfaction"])
-    transformer_overloads.append(stats["total_transformer_overload"])
+            ################# Your algorithm goes here #################
+            # actions is a vector of size number of ports and it takes values from -1 to 1
+            # 0 means no charging, 1 means charging at the maximum rate, -1 means discharging at the maximum rate
+            # discharging might not be supported by the charging station, so negative values might be clipped to 0
+
+            if algorithm in [RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible]:
+                actions = model.get_action(env)
+                new_state, reward, done, _, stats = env.step(actions)  # takes action
+                  
+            elif algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
+                  action, _ = model.predict(state, deterministic=True)
+                  obs, reward, done, info = env.step(action)
+            ############################################################
+
+            
+            rewards.append(reward)
+
+            # input("Press Enter to continue...")
+            if done:
+                # print(f'End of simulation at step {env.current_step}')
+                break
+        energy_charged.append(stats["total_energy_charged"])
+        tracking_errors.append(stats["tracking_error"])
+        tracking_surpluses.append(stats["power_tracker_violation"])
+        energy_user_satisfaction.append(stats["energy_user_satisfaction"])
+        transformer_overloads.append(stats["total_transformer_overload"])
 
 
 # Print the average and the standard deviation of the statistics

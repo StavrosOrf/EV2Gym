@@ -37,7 +37,7 @@ def evalreplay(config_file,
         if verbose:
             print(f'Actions: {actions}')
 
-        new_state, reward, done, _, _ = env.step(
+        new_state, reward, done, _ , _ = env.step(
             actions, visualize=False)  # takes action
         rewards.append(reward)
 
@@ -53,7 +53,8 @@ def evalreplay(config_file,
         sim_file_path=new_replay_path)
     opt_actions = math_model.get_actions()
 
-    group_name = f'{number_of_charging_stations}cs_{n_transformers}tr'
+    scenario = config_file.split("/")[-1].split(".")[0]
+    group_name = f'{number_of_charging_stations}cs_{n_transformers}tr_{scenario}'
 
     # Simulate in the gym environment and get the rewards
     # save replay in the replay folder for evaluating pther algorithms
