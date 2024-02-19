@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import datetime
+import math
 
 from EVsSimulator.utilities.arg_parser import arg_parser
 from EVsSimulator import ev_city
@@ -66,15 +68,18 @@ elif args.config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
 
 
 # Algorithms to compare:
-algorithms = [RoundRobin,
-              #   PPO,
-              #   PowerTrackingErrorrMin,
-              ChargeAsLateAsPossible,
-              ChargeAsFastAsPossible]
+algorithms = [ChargeAsLateAsPossible,
+              ChargeAsFastAsPossible,
+              RoundRobin,
+              PPO,
+              ARS,
+              DDPG,
+              TD3,
+              PowerTrackingErrorrMin,]
 
 counter = 0
 for algorithm in algorithms:
-    
+
     print(' +------- Evaluating', algorithm.__name__, " -------+")
     for k in range(n_test_cycles):
         counter += 1
@@ -148,8 +153,8 @@ for algorithm in algorithms:
                     results = pd.concat([results, results_i])
 
                 if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
-                    power_usage = env.get_attr('current_power_usage')[0]
-                    power_setpoints = env.get_attr('power_setpoints')[0]
+                    power_usage = env.get_attr('previous_power_usage')[0]
+                    power_setpoints = env.get_attr('power_setpoints')[0]                    
                 else:
                     power_usage = env.current_power_usage
                     power_setpoints = env.power_setpoints
@@ -184,41 +189,69 @@ results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
 # replace Nan with 0
 results_grouped = results_grouped.fillna(0)
 
+#print the main statistics in a latex table
+# print(results_grouped.to_latex())
+
+
 print(results_grouped)
 results_grouped.to_csv('results_grouped.csv')
 
 # plot the power usage and the power_setpoints vs time in vetical subplots for the last replay for every algorithm for one run
 
 fig, ax = plt.subplots(len(algorithms), 1, figsize=(10, 5))
-print(results_to_draw.head(15))
+plt.grid(True, which='major', axis='both')
+plt.rcParams['font.family'] = ['serif']
+# print(results_to_draw.head(15))
 fontsize = 28
 
 
+date_range_print = pd.date_range(start=env.sim_starting_date,
+                                 end=env.sim_date,
+                                 periods=8)
 
 run = 0
 for i, algorithm in enumerate(algorithms):
-    actual_power = results_to_draw[results_to_draw.Algorithm == algorithm.__name__]    
-    actual_power = actual_power[actual_power.run == run]    
-    actual_power = actual_power.drop(columns=['run', 'Algorithm']).values    
-    
+    actual_power = results_to_draw[results_to_draw.Algorithm ==
+                                   algorithm.__name__]
+    actual_power = actual_power[actual_power.run == run]
+    actual_power = actual_power.drop(columns=['run', 'Algorithm']).values
+
     setpoints = results_to_draw_setpoint[results_to_draw_setpoint.run == run]
     setpoints = setpoints.drop(columns=['run']).values
-    
+
     x = np.arange(0, simulation_length, 1)
-    ax[i].step(x,actual_power.T, alpha=0.5, color='blue')
-    ax[i].step(x,setpoints.T, alpha=0.5, color='red')
-    
-    #plot a black line at y=0
+    ax[i].step(x, actual_power.T, alpha=0.5, color='blue')
+    ax[i].step(x, setpoints.T, alpha=0.5, color='red')
+
+    # plot a black line at y=0
     ax[i].axhline(0, color='black', lw=2)
-                                               
-    ax[i].set_title(f'{algorithms[i].__name__}', fontsize=fontsize)
-    
+
+    ax[i].set_title(f'{algorithms[i].__name__}', fontsize=fontsize-2)
+
     if i == len(algorithms) - 1:
+
+        ax[i].set_xticks(ticks=[j for j in range(0, simulation_length,
+                                                 math.ceil(simulation_length / len(date_range_print)))],
+                         labels=[
+                             f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                         rotation=45,
+                         fontsize=22)
+
         ax[i].set_xlabel('Time', fontsize=fontsize-2)
-    
+    else:
+        ax[i].set_xticks([j for j in range(0, simulation_length,
+                                           math.ceil(simulation_length / len(date_range_print)))],
+                         labels=[' ' for d in date_range_print])
+
     ax[i].set_ylabel('Power (kW)', fontsize=fontsize-2)
     ax[i].legend(['Actual Power', 'Setpoint'], fontsize=fontsize-2)
-    ax[i].set_xlim([0, simulation_length])
+    ax[i].set_xlim([0, simulation_length-1])
+    ax[i].grid(True, which='major', axis='both')
+    ax[i].set_ylim([0, max(actual_power.max(), setpoints.max())+10])
+
+    # ax[i].set_yticks(ticks = ax[i].get_yticks,#get the yticks from the data)
+    #                     size=fontsize-2)
+
     # ax[i].set_grid(True)
 
 plt.show()

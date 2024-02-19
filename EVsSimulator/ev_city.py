@@ -306,8 +306,9 @@ class EVsSimulator(gym.Env):
         self.current_ev_arrived = 0
         self.current_evs_parked = 0
 
+        self.previous_power_usage = self.current_power_usage
         self.current_power_usage = np.zeros(self.simulation_length)
-
+        
         # self.transformer_amps = np.zeros([self.number_of_transformers,
         #                                   self.simulation_length])
 
