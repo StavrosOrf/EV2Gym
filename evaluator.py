@@ -3,6 +3,7 @@
 import yaml
 import os
 import pickle
+import pandas as pd
 from EVsSimulator.utilities.arg_parser import arg_parser
 import numpy as np
 from EVsSimulator import ev_city
@@ -45,6 +46,9 @@ assert len(
 print(f'Found {len(eval_replay_files)} replay files in {eval_replay_path}')
 if n_test_cycles > len(eval_replay_files):
     n_test_cycles = len(eval_replay_files)
+
+replay_to_print = 2
+replay_to_print = min(replay_to_print, len(eval_replay_files)-1)
 
 print(f'Number of test cycles: {n_test_cycles}')
 
@@ -90,26 +94,56 @@ for i in range(n_test_cycles):
     uns_transformer_overloads.append(
         replay.unstirred_stats["total_transformer_overload"])
 
-
 energy_charged = []
 tracking_errors = []
 tracking_surpluses = []
 energy_user_satisfaction = []
 transformer_overloads = []
 
-# Evaluate the performance of your algorithms
+# stats = {'total_ev_served': total_ev_served,
+#              'total_profits': total_profits,
+#              'total_energy_charged': total_energy_charged,
+#              'total_energy_discharged': total_energy_discharged,
+#              'average_user_satisfaction': average_user_satisfaction,
+#              'power_tracker_violation': power_tracker_violation,
+#              'tracking_error': tracking_error,
+#              'energy_user_satisfaction': energy_user_satisfaction,
+#              'total_transformer_overload': total_transformer_overload,
+#              'battery_degradation': battery_degradation,
+#              'battery_degradation_calendar': battery_degradation_calendar,
+#              'battery_degradation_cycling': battery_degradation_cycling,
+#              }
+
+results = pd.DataFrame(columns=[
+    'run',
+    'Algorithm',
+    'total_ev_served',
+    'total_profits',
+    'total_energy_charged',
+    'total_energy_discharged',
+    'average_user_satisfaction',
+    'power_tracker_violation',
+    'tracking_error',
+    'energy_user_satisfaction',
+    'total_transformer_overload',
+    'battery_degradation',
+    'battery_degradation_calendar',
+    'battery_degradation_cycling'])
+
+results_to_draw = []
+
 # Algorithms to compare:
-algorithms = [PowerTrackingErrorrMin]
-            #   RoundRobin, PPO,
-            #   ChargeAsLateAsPossible,
-            #   ChargeAsFastAsPossible]
+algorithms = [PowerTrackingErrorrMin,
+              RoundRobin, PPO,
+              ChargeAsLateAsPossible,
+              ChargeAsFastAsPossible]
 
 for algorithm in algorithms:
-    print(' +------- Evaluating', algorithm.__name__," -------+")
+    print(' +------- Evaluating', algorithm.__name__, " -------+")
     for i in range(n_test_cycles):
 
         replay_path = eval_replay_path + eval_replay_files[i]
-   
+
         if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
             gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
                               kwargs={'config_file': args.config_file,
@@ -130,8 +164,8 @@ for algorithm in algorithms:
                 load_from_replay_path=replay_path,
                 generate_rnd_game=True,
             )
-            
-            model = algorithm(env=env,replay_path=replay_path)
+
+            model = algorithm(env=env, replay_path=replay_path)
 
         state = env.reset()
 
@@ -143,20 +177,39 @@ for algorithm in algorithms:
             # actions is a vector of size number of ports and it takes values from -1 to 1
             # 0 means no charging, 1 means charging at the maximum rate, -1 means discharging at the maximum rate
             # discharging might not be supported by the charging station, so negative values might be clipped to 0
-      
+
             if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
-                  action, _ = model.predict(state, deterministic=True)
-                  obs, reward, done, info = env.step(action)
+                action, _ = model.predict(state, deterministic=True)
+                obs, reward, done, info = env.step(action)
             else:
                 actions = model.get_action(env)
-                new_state, reward, done, _, stats = env.step(actions)  # takes action
+                new_state, reward, done, _, stats = env.step(
+                    actions)  # takes action
             ############################################################
 
             rewards.append(reward)
 
-            if done:                
-                break
-          
+            if done:
+                  results = results._append({'run': i,
+                                          'Algorithm': algorithm.__name__,
+                                          'total_ev_served': stats['total_ev_served'],
+                                          'total_profits': stats['total_profits'],
+                                          'total_energy_charged': stats['total_energy_charged'],
+                                          'total_energy_discharged': stats['total_energy_discharged'],
+                                          'average_user_satisfaction': stats['average_user_satisfaction'],
+                                          'power_tracker_violation': stats['power_tracker_violation'],
+                                          'tracking_error': stats['tracking_error'],
+                                          'energy_user_satisfaction': stats['energy_user_satisfaction'],
+                                          'total_transformer_overload': stats['total_transformer_overload'],
+                                          'battery_degradation': stats['battery_degradation'],
+                                          'battery_degradation_calendar': stats['battery_degradation_calendar'],
+                                          'battery_degradation_cycling': stats['battery_degradation_cycling'],
+                                          }, ignore_index=True)
+                  
+                  if i == replay_to_print:
+                        results_to_draw.append(env.current_power_usage)
+                  break
+
         energy_charged.append(stats["total_energy_charged"])
         tracking_errors.append(stats["tracking_error"])
         tracking_surpluses.append(stats["power_tracker_violation"])

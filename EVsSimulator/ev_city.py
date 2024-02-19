@@ -1,5 +1,5 @@
-'''    
-This file contains the EVCity class, which is used to represent the environment of the city.    
+'''
+This file contains the EVCity class, which is used to represent the environment of the city.
 The environment is a gym environment and can be also used with the OpenAI gym standards and baselines.
 The environment an also be used for standalone simulations without the gym environment.
 
@@ -75,7 +75,7 @@ class EVsSimulator(gym.Env):
         self.simulation_length = self.config['simulation_length']
 
         self.replay_path = replay_save_path
-        
+
         cs = self.config['number_of_charging_stations']
 
         self.reward_function = reward_function
@@ -269,7 +269,7 @@ class EVsSimulator(gym.Env):
                 while self.sim_date.weekday() < 5:
                     self.sim_date += datetime.timedelta(days=1)
 
-            
+
             self.sim_starting_date = self.sim_date
             self.EVs_profiles = load_ev_profiles(self)
             self.power_setpoints = load_power_setpoints(self)
@@ -319,7 +319,7 @@ class EVsSimulator(gym.Env):
 
         self.tr_inflexible_loads = np.zeros(
             [self.number_of_transformers, self.simulation_length])
-        
+
         self.tr_solar_power = np.zeros(
             [self.number_of_transformers, self.simulation_length])
 
@@ -463,10 +463,10 @@ class EVsSimulator(gym.Env):
             """Terminate if:
                 - The simulation length is reached
                 - Any user satisfaction score is below the threshold
-                - Any charging station is overloaded 
+                - Any charging station is overloaded
                 Dont terminate when overloading if :
                 - generate_rnd_game is True
-                Carefull: if generate_rnd_game is True, 
+                Carefull: if generate_rnd_game is True,
                 the simulation might end up in infeasible problem
                 """
             if self.verbose:
