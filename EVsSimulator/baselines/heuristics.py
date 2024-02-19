@@ -11,7 +11,7 @@ class RoundRobin():
     And it assumes all chargers have the same number of ports
     '''
 
-    def __init__(self, env, verbose=False):
+    def __init__(self, env,verbose=False,  **kwargs):
 
         self.verbose = verbose
         self.env = env
@@ -99,7 +99,7 @@ class ChargeAsLateAsPossible():
     This is a class that contains the Charge As Late As Possible heuristic algorithm.
     '''
 
-    def __init__(self, verbose=False, *kwargs):
+    def __init__(self, verbose=False, **kwargs):
 
         self.verbose = verbose
 
@@ -147,7 +147,7 @@ class ChargeAsFastAsPossible():
     '''
     This class contains the Charge As Fast As Possible heuristic algorithm.
     '''
-    def __init__(self, verbose=False, *kwargs):
+    def __init__(self, verbose=False, **kwargs):
         self.verbose = verbose
     
     def get_action(self, env) -> np.ndarray:

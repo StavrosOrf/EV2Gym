@@ -4,8 +4,11 @@ import yaml
 import os
 import pickle
 import pandas as pd
-from EVsSimulator.utilities.arg_parser import arg_parser
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from EVsSimulator.utilities.arg_parser import arg_parser
 from EVsSimulator import ev_city
 
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
@@ -32,6 +35,7 @@ number_of_charging_stations = config["number_of_charging_stations"]
 n_transformers = config["number_of_transformers"]
 steps = config["simulation_length"]
 timescale = config["timescale"]
+simulation_length = config["simulation_length"]
 
 n_test_cycles = args.n_test_cycles
 
@@ -47,7 +51,7 @@ print(f'Found {len(eval_replay_files)} replay files in {eval_replay_path}')
 if n_test_cycles > len(eval_replay_files):
     n_test_cycles = len(eval_replay_files)
 
-replay_to_print = 2
+replay_to_print = 5
 replay_to_print = min(replay_to_print, len(eval_replay_files)-1)
 
 print(f'Number of test cycles: {n_test_cycles}')
@@ -60,89 +64,21 @@ elif args.config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
     reward_function = SquaredTrackingErrorReward
     state_function = PublicPST
 
-# Load the replay files and aggregate the statistics
-opt_energy_charged = []
-opt_tracking_errors = []
-opt_tracking_surpluses = []
-opt_energy_user_satisfaction = []
-opt_transformer_overloads = []
-
-unst_energy_charged = []
-unst_tracking_errors = []
-unst_tracking_surpluses = []
-unst_energy_user_satisfaction = []
-uns_transformer_overloads = []
-
-for i in range(n_test_cycles):
-    replay = pickle.load(open(eval_replay_path + eval_replay_files[i], 'rb'))
-
-    opt_energy_charged.append(replay.optimal_stats["total_energy_charged"])
-    opt_tracking_errors.append(replay.optimal_stats["tracking_error"])
-    opt_tracking_surpluses.append(
-        replay.optimal_stats["power_tracker_violation"])
-    opt_energy_user_satisfaction.append(
-        replay.optimal_stats["energy_user_satisfaction"])
-    opt_transformer_overloads.append(
-        replay.optimal_stats["total_transformer_overload"])
-
-    unst_energy_charged.append(replay.unstirred_stats["total_energy_charged"])
-    unst_tracking_errors.append(replay.unstirred_stats["tracking_error"])
-    unst_tracking_surpluses.append(
-        replay.unstirred_stats["power_tracker_violation"])
-    unst_energy_user_satisfaction.append(
-        replay.unstirred_stats["energy_user_satisfaction"])
-    uns_transformer_overloads.append(
-        replay.unstirred_stats["total_transformer_overload"])
-
-energy_charged = []
-tracking_errors = []
-tracking_surpluses = []
-energy_user_satisfaction = []
-transformer_overloads = []
-
-# stats = {'total_ev_served': total_ev_served,
-#              'total_profits': total_profits,
-#              'total_energy_charged': total_energy_charged,
-#              'total_energy_discharged': total_energy_discharged,
-#              'average_user_satisfaction': average_user_satisfaction,
-#              'power_tracker_violation': power_tracker_violation,
-#              'tracking_error': tracking_error,
-#              'energy_user_satisfaction': energy_user_satisfaction,
-#              'total_transformer_overload': total_transformer_overload,
-#              'battery_degradation': battery_degradation,
-#              'battery_degradation_calendar': battery_degradation_calendar,
-#              'battery_degradation_cycling': battery_degradation_cycling,
-#              }
-
-results = pd.DataFrame(columns=[
-    'run',
-    'Algorithm',
-    'total_ev_served',
-    'total_profits',
-    'total_energy_charged',
-    'total_energy_discharged',
-    'average_user_satisfaction',
-    'power_tracker_violation',
-    'tracking_error',
-    'energy_user_satisfaction',
-    'total_transformer_overload',
-    'battery_degradation',
-    'battery_degradation_calendar',
-    'battery_degradation_cycling'])
-
-results_to_draw = []
 
 # Algorithms to compare:
-algorithms = [PowerTrackingErrorrMin,
-              RoundRobin, PPO,
+algorithms = [RoundRobin,
+              #   PPO,
+              #   PowerTrackingErrorrMin,
               ChargeAsLateAsPossible,
               ChargeAsFastAsPossible]
 
+counter = 0
 for algorithm in algorithms:
+    counter += 1
     print(' +------- Evaluating', algorithm.__name__, " -------+")
-    for i in range(n_test_cycles):
+    for k in range(n_test_cycles):
 
-        replay_path = eval_replay_path + eval_replay_files[i]
+        replay_path = eval_replay_path + eval_replay_files[k]
 
         if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
             gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
@@ -171,7 +107,7 @@ for algorithm in algorithms:
 
         rewards = []
 
-        for i in range(config['simulation_length']):
+        for _ in range(simulation_length):
 
             ################# Your algorithm goes here #################
             # actions is a vector of size number of ports and it takes values from -1 to 1
@@ -190,7 +126,7 @@ for algorithm in algorithms:
             rewards.append(reward)
 
             if done:
-                  results = results._append({'run': i,
+                results_i = pd.DataFrame({'run': k,
                                           'Algorithm': algorithm.__name__,
                                           'total_ev_served': stats['total_ev_served'],
                                           'total_profits': stats['total_profits'],
@@ -204,53 +140,70 @@ for algorithm in algorithms:
                                           'battery_degradation': stats['battery_degradation'],
                                           'battery_degradation_calendar': stats['battery_degradation_calendar'],
                                           'battery_degradation_cycling': stats['battery_degradation_cycling'],
-                                          }, ignore_index=True)
-                  
-                  if i == replay_to_print:
-                        results_to_draw.append(env.current_power_usage)
-                  break
+                                          }, index=[counter])
 
-        energy_charged.append(stats["total_energy_charged"])
-        tracking_errors.append(stats["tracking_error"])
-        tracking_surpluses.append(stats["power_tracker_violation"])
-        energy_user_satisfaction.append(stats["energy_user_satisfaction"])
-        transformer_overloads.append(stats["total_transformer_overload"])
+                if counter == 1:
+                    results = results_i
+                else:
+                    results = pd.concat([results, results_i])
 
+                if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
+                    power_usage = env.get_attr('current_power_usage')[0]
+                    power_setpoints = env.get_attr('power_setpoints')[0]
+                else:
+                    power_usage = env.current_power_usage
+                    power_setpoints = env.power_setpoints
 
-# Print the average and the standard deviation of the statistics
-print(f'--------- Optimal -------------')
-print(f'Average energy charged: {sum(opt_energy_charged)/len(opt_energy_charged)}',
-      f'Standard deviation: {np.std(opt_energy_charged)}')
-print(f'Average tracking error: {sum(opt_tracking_errors)/len(opt_tracking_errors)}',
-      f'Standard deviation: {np.std(opt_tracking_errors)}')
-print(f'Average power tracker violation: {sum(opt_tracking_surpluses)/len(opt_tracking_surpluses)}',
-      f'Standard deviation: {np.std(opt_tracking_surpluses)}')
-print(f'Average energy user satisfaction: {sum(opt_energy_user_satisfaction)/len(opt_energy_user_satisfaction)}',
-      f'Standard deviation: {np.std(opt_energy_user_satisfaction)}')
-print(f'Average transformer overload: {sum(opt_transformer_overloads)/len(opt_transformer_overloads)}',
-      f'Standard deviation: {np.std(opt_transformer_overloads)}')
+                results_i = {f'Step_{j}': power_usage[j]
+                             for j in range(simulation_length)}
+                results_i['run'] = k
+                results_i['Algorithm'] = algorithm.__name__
+                results_i = pd.DataFrame(results_i, index=[counter])
 
-print(f'\n--------- Unstirred -------------')
-print(f'Average energy charged: {sum(unst_energy_charged)/len(unst_energy_charged)}',
-      f'Standard deviation: {np.std(unst_energy_charged)}')
-print(f'Average tracking error: {sum(unst_tracking_errors)/len(unst_tracking_errors)}',
-      f'Standard deviation: {np.std(unst_tracking_errors)}')
-print(f'Average power tracker violation: {sum(unst_tracking_surpluses)/len(unst_tracking_surpluses)}',
-      f'Standard deviation: {np.std(unst_tracking_surpluses)}')
-print(f'Average energy user satisfaction: {sum(unst_energy_user_satisfaction)/len(unst_energy_user_satisfaction)}',
-      f'Standard deviation: {np.std(unst_energy_user_satisfaction)}')
-print(f'Average transformer overload: {sum(uns_transformer_overloads)/len(uns_transformer_overloads)}',
-      f'Standard deviation: {np.std(uns_transformer_overloads)}')
+                if counter == 1:
+                    results_to_draw = results_i
+                else:
+                    results_to_draw = pd.concat([results_to_draw, results_i])
 
-# Print the average and the standard deviation of the statistics
-print(f'\n--------- Your Algorithm -------------')
-print(f'Avg. energy charged: {sum(energy_charged)/len(energy_charged)}',
-      f'Std: {np.std(energy_charged)}')
-print(f'Avg. tracking error: {sum(tracking_errors)/len(tracking_errors)}',
-      f'Std: {np.std(tracking_errors)}')
-print(f'Avg. power tracker violation: {sum(tracking_surpluses)/len(tracking_surpluses)}',
-      f'Std: {np.std(tracking_surpluses)}')
-print(f'Avg. energy user satisfaction: {sum(energy_user_satisfaction)/len(energy_user_satisfaction)}',
-      f'Std: {np.std(energy_user_satisfaction)}')
-print(f'Avg. transformer overload: {sum(transformer_overloads)/len(transformer_overloads)}',
-      f'Std: {np.std(transformer_overloads)}')
+                results_i = {
+                    f'Step_{j}': power_setpoints[j] for j in range(simulation_length)}
+                results_i['run'] = k
+
+                results_i = pd.DataFrame(results_i, index=[counter])
+
+                if counter == 1:
+                    results_to_draw_setpoint = results_i
+                else:
+                    results_to_draw_setpoint = pd.concat(
+                        [results_to_draw_setpoint, results_i])
+
+                break
+
+# Group the results by algorithm and print the average and the standard deviation of the statistics
+results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
+# replace Nan with 0
+results_grouped = results_grouped.fillna(0)
+
+print(results_grouped)
+results_grouped.to_csv('results_grouped.csv')
+
+# plot the power usage and the power_setpoints vs time in vetical subplots for the last replay for every algorithm for one run
+
+fig, ax = plt.subplots(len(algorithms), 1, figsize=(10, 5))
+print(results_to_draw.head())
+
+run = 1
+for i, algorithm in enumerate(algorithms):
+    actual_power = results_to_draw[results_to_draw.Algorithm == algorithm.__name__]
+    actual_power = actual_power[actual_power.run == run]
+    actual_power = actual_power.drop(columns=['run', 'Algorithm']).values    
+    
+    plt.plot(actual_power.T, alpha=0.5, color='blue')
+                                               
+    ax[i].set_title(f'Power usage for {algorithms[i].__name__}')
+    ax[i].set_xlabel('Time')
+    ax[i].set_ylabel('Power (kW)')
+    ax[i].legend(['Actual Power', 'Setpoint'])
+    # ax[i].grid()
+
+plt.show()
