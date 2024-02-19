@@ -1,5 +1,5 @@
 from EVsSimulator import ev_city
-from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model
+from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import PowerTrackingErrorrMin
 
 import numpy as np
 import os
@@ -49,8 +49,7 @@ def evalreplay(config_file,
             exit()
 
     # Solve optimally
-    math_model = ev_city_power_tracker_model.EV_City_Math_Model(
-        sim_file_path=new_replay_path)
+    math_model = PowerTrackingErrorrMin(replay_path=new_replay_path)
     opt_actions = math_model.get_actions()
 
     scenario = config_file.split("/")[-1].split(".")[0]

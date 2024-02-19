@@ -99,7 +99,7 @@ class ChargeAsLateAsPossible():
     This is a class that contains the Charge As Late As Possible heuristic algorithm.
     '''
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, *kwargs):
 
         self.verbose = verbose
 
@@ -133,10 +133,7 @@ class ChargeAsLateAsPossible():
         # this function returns the action list based on the round robin algorithm
 
   
-        ev_buffer = self.update_ev_buffer(env)
-        if self.verbose:            
-            print(f'EV buffer: {ev_buffer}')
-          
+        ev_buffer = self.update_ev_buffer(env)         
         # create action list
         action_list = np.zeros(env.number_of_ports)
 
@@ -150,6 +147,8 @@ class ChargeAsFastAsPossible():
     '''
     This class contains the Charge As Fast As Possible heuristic algorithm.
     '''
+    def __init__(self, verbose=False, *kwargs):
+        self.verbose = verbose
     
     def get_action(self, env) -> np.ndarray:
         '''

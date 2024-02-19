@@ -8,7 +8,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.realpath('../'))
 
 from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.baselines.gurobi_models import ev_city_power_tracker_model, ev_city_profit_maximization
+from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import PowerTrackingErrorrMin
 from EVsSimulator.baselines.mpc.mpc import MPC
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
 
@@ -86,8 +86,7 @@ def eval():
     # exit()
     # Solve optimally
     # Power tracker optimizer
-    math_model = ev_city_power_tracker_model.EV_City_Math_Model(
-        sim_file_path=new_replay_path)
+    math_model = PowerTrackingErrorrMin(sim_file_path=new_replay_path)
     # Profit maximization optimizer
     # math_model = ev_city_profit_maximization.EV_City_Math_Model(sim_file_path=new_replay_path)
     # Old optimizer (V2G), probably not compatible now

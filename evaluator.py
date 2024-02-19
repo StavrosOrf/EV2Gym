@@ -11,8 +11,11 @@ from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 
+from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import PowerTrackingErrorrMin
+
 from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
 from EVsSimulator.rl_agent.reward import profit_maximization
+
 
 from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
 
@@ -96,22 +99,18 @@ transformer_overloads = []
 
 # Evaluate the performance of your algorithms
 # Algorithms to compare:
-algorithms = [RoundRobin, PPO, ChargeAsLateAsPossible, ChargeAsFastAsPossible]
+algorithms = [PowerTrackingErrorrMin]
+            #   RoundRobin, PPO,
+            #   ChargeAsLateAsPossible,
+            #   ChargeAsFastAsPossible]
 
 for algorithm in algorithms:
-    print('Evaluating', algorithm.__name__)
+    print(' +------- Evaluating', algorithm.__name__," -------+")
     for i in range(n_test_cycles):
 
         replay_path = eval_replay_path + eval_replay_files[i]
-        if algorithm in [RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible]:
-            env = ev_city.EVsSimulator(
-                config_file=args.config_file,
-                load_from_replay_path=replay_path,
-                generate_rnd_game=True,
-            )
-            model = algorithm(env)
-
-        elif algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
+   
+        if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
             gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
                               kwargs={'config_file': args.config_file,
                                       'generate_rnd_game': True,
@@ -126,7 +125,13 @@ for algorithm in algorithms:
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
         else:
-            raise ValueError("Invalid algorithm")
+            env = ev_city.EVsSimulator(
+                config_file=args.config_file,
+                load_from_replay_path=replay_path,
+                generate_rnd_game=True,
+            )
+            
+            model = algorithm(env=env,replay_path=replay_path)
 
         state = env.reset()
 
@@ -138,23 +143,20 @@ for algorithm in algorithms:
             # actions is a vector of size number of ports and it takes values from -1 to 1
             # 0 means no charging, 1 means charging at the maximum rate, -1 means discharging at the maximum rate
             # discharging might not be supported by the charging station, so negative values might be clipped to 0
-
-            if algorithm in [RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible]:
-                actions = model.get_action(env)
-                new_state, reward, done, _, stats = env.step(actions)  # takes action
-                  
-            elif algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
+      
+            if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                   action, _ = model.predict(state, deterministic=True)
                   obs, reward, done, info = env.step(action)
+            else:
+                actions = model.get_action(env)
+                new_state, reward, done, _, stats = env.step(actions)  # takes action
             ############################################################
 
-            
             rewards.append(reward)
 
-            # input("Press Enter to continue...")
-            if done:
-                # print(f'End of simulation at step {env.current_step}')
+            if done:                
                 break
+          
         energy_charged.append(stats["total_energy_charged"])
         tracking_errors.append(stats["tracking_error"])
         tracking_surpluses.append(stats["power_tracker_violation"])
