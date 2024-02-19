@@ -74,10 +74,10 @@ algorithms = [RoundRobin,
 
 counter = 0
 for algorithm in algorithms:
-    counter += 1
+    
     print(' +------- Evaluating', algorithm.__name__, " -------+")
     for k in range(n_test_cycles):
-
+        counter += 1
         replay_path = eval_replay_path + eval_replay_files[k]
 
         if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
@@ -190,20 +190,35 @@ results_grouped.to_csv('results_grouped.csv')
 # plot the power usage and the power_setpoints vs time in vetical subplots for the last replay for every algorithm for one run
 
 fig, ax = plt.subplots(len(algorithms), 1, figsize=(10, 5))
-print(results_to_draw.head())
+print(results_to_draw.head(15))
+fontsize = 28
 
-run = 1
+
+
+run = 0
 for i, algorithm in enumerate(algorithms):
-    actual_power = results_to_draw[results_to_draw.Algorithm == algorithm.__name__]
-    actual_power = actual_power[actual_power.run == run]
+    actual_power = results_to_draw[results_to_draw.Algorithm == algorithm.__name__]    
+    actual_power = actual_power[actual_power.run == run]    
     actual_power = actual_power.drop(columns=['run', 'Algorithm']).values    
     
-    plt.plot(actual_power.T, alpha=0.5, color='blue')
+    setpoints = results_to_draw_setpoint[results_to_draw_setpoint.run == run]
+    setpoints = setpoints.drop(columns=['run']).values
+    
+    x = np.arange(0, simulation_length, 1)
+    ax[i].step(x,actual_power.T, alpha=0.5, color='blue')
+    ax[i].step(x,setpoints.T, alpha=0.5, color='red')
+    
+    #plot a black line at y=0
+    ax[i].axhline(0, color='black', lw=2)
                                                
-    ax[i].set_title(f'Power usage for {algorithms[i].__name__}')
-    ax[i].set_xlabel('Time')
-    ax[i].set_ylabel('Power (kW)')
-    ax[i].legend(['Actual Power', 'Setpoint'])
-    # ax[i].grid()
+    ax[i].set_title(f'{algorithms[i].__name__}', fontsize=fontsize)
+    
+    if i == len(algorithms) - 1:
+        ax[i].set_xlabel('Time', fontsize=fontsize-2)
+    
+    ax[i].set_ylabel('Power (kW)', fontsize=fontsize-2)
+    ax[i].legend(['Actual Power', 'Setpoint'], fontsize=fontsize-2)
+    ax[i].set_xlim([0, simulation_length])
+    # ax[i].set_grid(True)
 
 plt.show()
