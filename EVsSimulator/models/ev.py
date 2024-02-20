@@ -53,11 +53,12 @@ class EV():
                  use_probabilistic_time_of_departure=False,
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
+                 min_battery_capacity=10,  # kWh
                  max_ac_charge_power=22,  # kW
                  min_ac_charge_power=2,  # kW
                  max_dc_charge_power=50,  # kW
                  max_discharge_power=-22,  # kW
-                 min_discharge_power=-2,  # kW
+                 min_discharge_power=-2,  # kW                 
                  ev_phases=3,
                  noise_level=0,
                  transition_soc=0.8,
@@ -79,6 +80,7 @@ class EV():
 
         # EV technical characteristics
         self.battery_capacity = battery_capacity  # kWh
+        self.min_battery_capacity = min_battery_capacity  # kWh
         self.max_ac_charge_power = max_ac_charge_power  # kW
         self.min_ac_charge_power = min_ac_charge_power  # kW
         self.max_discharge_power = max_discharge_power  # kW
@@ -329,10 +331,11 @@ class EV():
 
         given_energy = given_power * self.discharge_efficiency * self.timescale / 60
 
-        if self.current_capacity + given_energy < 0:
-            self.current_energy = -self.current_capacity  # * 60 / self.timescale
+        if self.current_capacity + given_energy < self.min_battery_capacity:
+            self.current_energy = -(self.current_capacity - self.min_battery_capacity)
+            given_energy = self.current_energy
             self.prev_capacity = self.current_capacity
-            self.current_capacity = 0
+            self.current_capacity = self.min_battery_capacity
         else:
             self.current_energy = given_energy  # * 60 / self.timescale
             self.prev_capacity = self.current_capacity

@@ -3,8 +3,8 @@
 ##############################################################################
 # Simulation Parameters
 ##############################################################################
-timescale: 5 # in minutes per step
-simulation_length: 270 #90 # in steps per simulation
+timescale: 15 # in minutes per step
+simulation_length: 25 #90 # in steps per simulation
 
 ##############################################################################
 # Date:
@@ -28,9 +28,9 @@ simulation_days: weekdays # weekdays, weekends, or both
 ##############################################################################
 # Charging Topology
 ##############################################################################
-v2g_enabled: False # True or False
-number_of_charging_stations: 5
-number_of_transformers: 1
+v2g_enabled: True # True or False
+number_of_charging_stations: 3
+number_of_transformers: 2
 number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology,
 # else write None for a randomized one with the above parameters
@@ -51,13 +51,13 @@ power_setpoints_uncertainty: 20 # (in percentage +/- %)
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 inflexible_loads:
   include: True # True or False
-  inflexible_loads_capacity_multiplier_mean: 1.3 # 1 is default, the higher the number the more inflexible loads
+  inflexible_loads_capacity_multiplier_mean: 0.9 # 1 is default, the higher the number the more inflexible loads
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 5 # in percentage of load at time t%
 
 solar_power:
   include: True # True or False
-  solar_power_capacity_multiplier_mean: 4 # 1 is default, the higher the number the more solar power
+  solar_power_capacity_multiplier_mean: 2 # 1 is default, the higher the number the more solar power
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 5 # in percentage of load at time t%
 

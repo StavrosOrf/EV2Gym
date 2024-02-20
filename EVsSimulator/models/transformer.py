@@ -61,14 +61,17 @@ class Transformer():
         if env.config['inflexible_loads']['include']:
             self.normalize_inflexible_loads(env)
             self.generate_inflexible_loads_forecast(env)
-            
 
         if env.config['solar_power']['include']:
             self.normalize_pv_generation(env)
             self.generate_pv_generation_forecast(env)
-            
+
+        self.steps_ahead = env.config['demand_response']['notification_of_event_minutes'] // env.timescale
+
         if env.config['demand_response']['include']:
-            self.generate_demand_response_events(env)
+            self.dr_events = self.generate_demand_response_events(env)
+        else:
+            self.dr_events = []
 
     def generate_demand_response_events(self, env) -> None:
         '''
@@ -85,6 +88,7 @@ class Transformer():
         event_capacity_percentage_mean = env.config['demand_response']['event_capacity_percentage_mean']
         event_capacity_percentage_std = env.config['demand_response']['event_capacity_percentage_std']
 
+        events = []
         for _ in range(events_per_day):
 
             event_length_minutes = np.random.randint(
@@ -119,6 +123,45 @@ class Transformer():
                    self.max_power[event_start_step:event_end_step]):
                 self.max_power[event_start_step:event_end_step] = self.inflexible_load[event_start_step:event_end_step].max(
                 )
+                capacity_percentage = 100*(1 - max(self.inflexible_load[event_start_step:event_end_step]) /
+                                           max(self.max_power))
+
+            event = {'event_start_step': event_start_step,
+                     'event_end_step': event_end_step,
+                     'capacity_percentage': capacity_percentage}
+            events.append(event)
+
+        return events
+
+    def get_power_limits(self, step, horizon) -> np.array:
+        '''
+        Get the power limits of the transformer for the next horizon steps.
+
+        If an event is happening, the power limits are updated accordingly
+        The control algorithm is aware of the event x steps before it happens
+
+        '''
+        known_max_power = max(self.max_power) * np.ones(horizon)
+        power_limit = max(self.max_power)
+        # steps_ahead
+
+        for event in self.dr_events:
+            if step + self.steps_ahead > event['event_start_step']:
+                if event['event_start_step']-step < 0 or event['event_start_step']-step > horizon:
+                    continue
+                
+                known_max_power[event['event_start_step']-step:
+                                event['event_end_step']-step] = power_limit - \
+                    power_limit * \
+                    event['capacity_percentage'] / 100
+                break
+
+        # append the last value if the horizon is larger than the max_power
+        if len(known_max_power) < horizon:
+            known_max_power = np.append(known_max_power, np.ones(horizon-len(known_max_power))
+                                  * power_limit)
+
+        return self.max_power[step:step+horizon]
 
     def normalize_pv_generation(self, env) -> None:
         '''

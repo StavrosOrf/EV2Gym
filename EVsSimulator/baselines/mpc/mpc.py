@@ -72,9 +72,17 @@ class MPC():
         # Matrix with minimum powers
         self.p_min_MT = np.zeros(
             (self.n_ports, self.N + self.control_horizon + 1))
+        
+        
 
         # EVs Scheduling and specs based on the EVsSimulator environment
         for index, EV in enumerate(env.EVs_profiles):
+            
+            if index == 0:
+                # Assume all EVs have the same charging and discharging efficiency !!!
+                self.ch_eff = EV.charge_efficiency
+                self.disch_eff = EV.discharge_efficiency
+                self.min_SoC = EV.min_battery_capacity/EV.battery_capacity
 
             # Assume all EVs have the same characteristics !!!
             Cx0[index] = EV.battery_capacity_at_arrival
@@ -108,40 +116,37 @@ class MPC():
 
         self.number_of_transformers = env.number_of_transformers
         self.tr_loads = np.zeros((self.number_of_transformers, self.N))
-        self.max_tr_loads = np.zeros((self.number_of_transformers, 1))
+        self.max_tr_loads = np.zeros((self.number_of_transformers, 1))                
 
         for i, tr in enumerate(self.env.transformers):
             self.tr_loads[i, :] = tr.inflexible_load
-            self.max_tr_loads[i] = tr.max_power
+            self.max_tr_loads[i] = max(tr.max_power)            
             
         #extend tr_loads for the control horizon with the max value
         self.tr_loads = np.concatenate(
             (self.tr_loads, np.repeat(self.max_tr_loads, self.control_horizon, axis=1)), axis=1)
                 
-
-        self.avg_tr_loads = np.mean(self.tr_loads, axis=1)
         self.max_tr_loads = np.repeat(
             self.max_tr_loads, self.control_horizon, axis=1)
 
         self.tr_cs = np.zeros((self.number_of_transformers,
                                self.control_horizon,
                                self.control_horizon*self.n_ports))
-
-        print(env.cs_transformers)
+        
         for tr_index in range(self.number_of_transformers):
             # print(np.array(env.cs_transformers)==tr_index)
             for i in range(self.control_horizon):
                 self.tr_cs[tr_index, i,
                            i*self.n_ports:
                                (i+1)*self.n_ports] = np.array(env.cs_transformers) == tr_index
+                
+                
 
         if self.verbose:
             print(f'Transformer loads: {self.tr_loads.shape}')
             print(f'{self.tr_loads}')
             print(f'Max transformer loads: {self.max_tr_loads.shape}')
             print(f'{self.max_tr_loads}')
-            print(f'Average transformer loads: {self.avg_tr_loads.shape}')
-            print(f'{self.avg_tr_loads}')
             print(f'Transformer to CS: {self.tr_cs.shape}')
             print(f'{self.tr_cs}')        
         # Assume every charging station has the same energy prices
@@ -161,15 +166,8 @@ class MPC():
 
         if self.verbose:
             print(f'Prices: {self.prices}')
-
-    def min_time(self):
-        """
-        This function computes the minimum time to charge an EV to its desired SoC.
-        """
-
-        # Initialization
-        self.x_init = self.x_init
-
+        input("Press Enter to continue...")
+        
     def get_actions_OCCF_with_Loads(self, t):
         """
         This function computes the MPC actions for the OCCF problem.
@@ -577,6 +575,13 @@ class MPC():
         This function computes the MPC actions for the economic problem including V2G.
         """
 
+        
+        # update transformer limits if we have a demand response event starting soon
+        for i, tr in enumerate(self.env.transformers):
+                         
+            self.max_tr_loads[i,:] = tr.get_power_limits(t=t, horizon=self.control_horizon)           
+        
+        
         # reconstruct self.x_next using the environment
         counter = 0
         for charger in self.env.charging_stations:

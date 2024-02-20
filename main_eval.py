@@ -22,7 +22,7 @@ def eval():
     Runs an evaluation of the EVsSimulator environment.
     """
 
-    verbose = False
+    verbose = True
     save_plots = True
     
     replay_path = "./replay/replay_sim_2024_02_16_688071.pkl"
@@ -49,21 +49,21 @@ def eval():
 
     state, _ = env.reset()
 
-    # mpc = MPC(env, control_horizon=25, verbose=True)
-    round_robin = RoundRobin(env, verbose=False)
-    charge_as_late_as_possible = ChargeAsLateAsPossible(verbose=True)
-    charge_as_fast_as_possible = ChargeAsFastAsPossible()
+    mpc = MPC(env, control_horizon=25, verbose=True)
+    # round_robin = RoundRobin(env, verbose=False)
+    # charge_as_late_as_possible = ChargeAsLateAsPossible(verbose=False)
+    # charge_as_fast_as_possible = ChargeAsFastAsPossible()
     rewards = []
 
-    for t in range(env.simulation_length):
+    for t in range(env.simulation_length):        
         # all ports are charging instantly        
         # actions = charge_as_fast_as_possible.get_action(env)
-        actions = round_robin.get_action(env)
+        # actions = round_robin.get_action(env)
         # actions = charge_as_late_as_possible.get_action(env)
         # input("Press Enter to continue...")
         # MPC
         # actions = mpc.get_actions_OCCF(t=t)
-        # actions = mpc.get_actions_economicV2G(t=t)
+        actions = mpc.get_actions_economicV2G(t=t)
         # actions = mpc.get_actions_OCCF_with_Loads(t=t)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
         
@@ -86,11 +86,10 @@ def eval():
     # exit()
     # Solve optimally
     # Power tracker optimizer
-    math_model = PowerTrackingErrorrMin(sim_file_path=new_replay_path)
+    math_model = PowerTrackingErrorrMin(replay_path=new_replay_path)
     # Profit maximization optimizer
-    # math_model = ev_city_profit_maximization.EV_City_Math_Model(sim_file_path=new_replay_path)
-    # Old optimizer (V2G), probably not compatible now
-    # math_model = ev_city_model.EV_City_Math_Model(sim_file_path=f"replay/replay_ev_city_100_2023-07-26_14-19.pkl")
+    # math_model = ev_city_profit_maximization.EV_City_Math_Model(replay_path=new_replay_path)    
+    
     opt_actions = math_model.get_actions()
     print(f'Optimal actions: {opt_actions.shape}')
 
