@@ -331,10 +331,10 @@ if __name__ == "__main__":
                            'test/power_tracker_violation': stats['power_tracker_violation'],
                            'test/energy_user_satisfaction': stats['energy_user_satisfaction']/100,
                            'test/transformer_overload': stats['total_transformer_overload'],
-                           'test/unst_tracking_error': stats['unst_tracking_error'],
-                           'test/unst_power_tracker_violation': stats['unst_power_tracker_violation'],
-                           'test/unst_energy_user_satisfaction': stats['unst_energy_user_satisfaction']/100,
-                           'test/uns_transformer_overload': stats['uns_transformer_overload'],
+                           #'test/unst_tracking_error': stats['unst_tracking_error'],
+                           #'test/unst_power_tracker_violation': stats['unst_power_tracker_violation'],
+                           #'test/unst_energy_user_satisfaction': stats['unst_energy_user_satisfaction']/100,
+                           #'test/uns_transformer_overload': stats['uns_transformer_overload'],
                            #    'test/std_opt_ratio': np.std(opt_profits),
                            })
 
