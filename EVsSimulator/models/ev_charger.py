@@ -91,6 +91,7 @@ class EV_Charger:
         self.total_profits = 0
         self.total_evs_served = 0
         self.total_user_satisfaction = 0
+        self.normalized_actions = [0]*n_ports
 
         self.verbose = verbose
 
@@ -124,18 +125,18 @@ class EV_Charger:
 
         # normalize actions to sum to 1 for charging surplass or -1 for discharging surplass        
         if sum(actions) > 1:
-            normalized_actions = [action / sum(actions) for action in actions]
+            self.normalized_actions = [action / sum(actions) for action in actions]
         elif sum(actions) < -1:
-            normalized_actions = [- action /
+            self.normalized_actions = [- action /
                                   sum(actions) for action in actions]
         else:
-            normalized_actions = actions
+            self.normalized_actions = actions
 
         if self.verbose:
-            print(f'CS {self.id} normalized actions: {normalized_actions}')
+            print(f'CS {self.id} normalized actions: {self.normalized_actions}')
 
         # Update EVs connected to the EV charger and get profits/costs
-        for i, action in enumerate(normalized_actions):
+        for i, action in enumerate(self.normalized_actions):
             action = round(action, 5)
             assert (action >= -1 and action <= 1,
                     f'Action {action} is not in range [-1,1]')

@@ -7,7 +7,7 @@ from EVsSimulator.utilities.arg_parser import arg_parser
 import numpy as np
 from EVsSimulator import ev_city
 
-from baselines.heuristics import RoundRobin
+from EVsSimulator.baselines.heuristics import RoundRobin
 
 args = arg_parser()
 config = yaml.load(open(args.config_file, 'r'), Loader=yaml.FullLoader)
@@ -71,7 +71,7 @@ transformer_overloads = []
 for i in range(n_test_cycles):    
     replay_path = eval_replay_path + eval_replay_files[i]
 
-    env = ev_city.EVsSimulator(config_file = "config_files/config.yaml",    
+    env = ev_city.EVsSimulator(config_file = "EVsSimulator/example_config_files/BusinessPST_config.yaml",    
                          load_from_replay_path=replay_path,                                                            
                          generate_rnd_game=True,                         
                          save_plots=True,
@@ -83,7 +83,7 @@ for i in range(n_test_cycles):
 
     rewards = []    
 
-    for i in range(env.simulation_length):        
+    #for i in range(env.simulation_length):        
         
         ################# Your algorithm goes here #################
         # actions is a vector of size number of ports and it takes values from -1 to 1
@@ -92,24 +92,24 @@ for i in range(n_test_cycles):
                 
         # actions = np.ones(env.number_of_ports)
         # actions = np.zeros(env.number_of_ports)
-        actions = agent.get_action(env)
+    #    actions = agent.get_action(env)
         ################# Your algorithm goes here #################
         
-        new_state, reward, done, stats = env.step(
-            actions, visualize=False)  # takes action
-        rewards.append(reward)
+    #    new_state, reward, done, stats = env.step(
+    #        actions, visualize=False)  # takes action
+    #   rewards.append(reward)
 
 
         # input("Press Enter to continue...")        
-        if done:
+    #    if done:
             # print(f'End of simulation at step {env.current_step}')
-            break
-    exit()
-    energy_charged.append(stats["total_energy_charged"])
-    tracking_errors.append(stats["tracking_error"])
-    tracking_surpluses.append(stats["power_tracker_violation"])
-    energy_user_satisfaction.append(stats["energy_user_satisfaction"])
-    transformer_overloads.append(stats["total_transformer_overload"])
+    #        break
+    #exit()
+    #energy_charged.append(stats["total_energy_charged"])
+    #tracking_errors.append(stats["tracking_error"])
+    #tracking_surpluses.append(stats["power_tracker_violation"])
+    #energy_user_satisfaction.append(stats["energy_user_satisfaction"])
+    #transformer_overloads.append(stats["total_transformer_overload"])
     
 
 #Print the average and the standard deviation of the statistics
@@ -128,9 +128,9 @@ print(f'Average energy user satisfaction: {sum(unst_energy_user_satisfaction)/le
 print(f'Average transformer overload: {sum(uns_transformer_overloads)/len(uns_transformer_overloads)}',f'Standard deviation: {np.std(uns_transformer_overloads)}')
 
 #Print the average and the standard deviation of the statistics
-print(f'\n--------- Your Algorithm -------------')
-print(f'Avg. energy charged: {sum(energy_charged)/len(energy_charged)}',f'Std: {np.std(energy_charged)}')
-print(f'Avg. tracking error: {sum(tracking_errors)/len(tracking_errors)}',f'Std: {np.std(tracking_errors)}')
-print(f'Avg. power tracker violation: {sum(tracking_surpluses)/len(tracking_surpluses)}',f'Std: {np.std(tracking_surpluses)}')
-print(f'Avg. energy user satisfaction: {sum(energy_user_satisfaction)/len(energy_user_satisfaction)}',f'Std: {np.std(energy_user_satisfaction)}')
-print(f'Avg. transformer overload: {sum(transformer_overloads)/len(transformer_overloads)}',f'Std: {np.std(transformer_overloads)}')
+#print(f'\n--------- Your Algorithm -------------')
+#print(f'Avg. energy charged: {sum(energy_charged)/len(energy_charged)}',f'Std: {np.std(energy_charged)}')
+#print(f'Avg. tracking error: {sum(tracking_errors)/len(tracking_errors)}',f'Std: {np.std(tracking_errors)}')
+#print(f'Avg. power tracker violation: {sum(tracking_surpluses)/len(tracking_surpluses)}',f'Std: {np.std(tracking_surpluses)}')
+#print(f'Avg. energy user satisfaction: {sum(energy_user_satisfaction)/len(energy_user_satisfaction)}',f'Std: {np.std(energy_user_satisfaction)}')
+#print(f'Avg. transformer overload: {sum(transformer_overloads)/len(transformer_overloads)}',f'Std: {np.std(transformer_overloads)}')

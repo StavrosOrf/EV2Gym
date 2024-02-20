@@ -1,18 +1,33 @@
 # This file contains the reward function for the RL agent
 # Users can create their own reward function here or in their own file using the same structure as below
 
+def LinearPowerSetPointReward(env, *args):
+    # This reward function is for utilizing power setpoints
+    # The reward is negative
+    error = env.power_setpoints[env.current_step-1] - env.current_power_setpoints[env.current_step-1]
+    reward = - error
+    return reward
+
+def SquaredPowerSetPointReward(env, *args):
+    # This reward function is for utilizing power setpoints
+    # The reward is negative
+    error = env.power_setpoints[env.current_step-1] - env.current_power_setpoints[env.current_step-1]
+    reward = - error**2
+    return reward
+
+
 def Squared_efficiency_and_satisfaction_balance_reward(env, *args):
     # Penalty for deviation from power setpoints
     # Reward for charging near to charging power potential
     error = min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) - \
         env.current_power_setpoints[env.current_step-1]
-    
+    reward = 0
     charging_efficiency_reward = 0
-    if env.charge_power_potential[env.current_step-1] > 0:
+    if env.charge_power_potential[env.current_step-1] > env.current_power_setpoints[env.current_step-1]:
         efficiency_ratio = env.current_power_setpoints[env.current_step-1] / env.charge_power_potential[env.current_step-1]
         charging_efficiency_reward = min(efficiency_ratio, 1)
     
-    reward = - error**2 + charging_efficiency_reward * 100 
+    reward = - error**2 + charging_efficiency_reward * 100
     return reward
 
 def Linear_efficiency_and_satisfaction_balance_reward(env, *args):
@@ -41,11 +56,11 @@ def SquaredTrackingErrorRewardwithPSPpenalty(env,*args):
         env.current_power_setpoints[env.current_step-1]
     
     if env.power_setpoints[env.current_step-1] < env.current_power_setpoints[env.current_step-1]:
-        penalty_setpoint = (env.current_power_setpoints[env.current_step-1]-env.power_setpoints[env.current_step-1])
+        penalty_setpoint = ((env.current_power_setpoints[env.current_step-1]-env.power_setpoints[env.current_step-1]))*4
     else:
         penalty_setpoint = 0
 
-    if env.charge_power_potential[env.current_step-1] != 0 and env.current_power_setpoints[env.current_step-1] == 0: 
+    if env.charge_power_potential[env.current_step-1] > env.current_power_setpoints[env.current_step-1]: 
         penalty_charging = (env.charge_power_potential[env.current_step-1]-env.current_power_setpoints[env.current_step-1])
     else:
         penalty_charging = 0
@@ -58,24 +73,29 @@ def LinearTrackingErrorRewardwithPSPpenalty(env,*args):
     # The reward is negative, and there is a penalty when the power setpoints are lower than the current power setpoints
     # There is also a penalty for not charging when there is charge power potential
     reward = 0
-    penalty_charging = 0
+    penalty_charging_high = 0
+    penalty_charging_low = 0
     penalty_setpoint = 0
     error = abs(min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) - \
         env.current_power_setpoints[env.current_step-1])
     
     if env.power_setpoints[env.current_step-1] < env.current_power_setpoints[env.current_step-1]:
-        penalty_setpoint = - (env.current_power_setpoints[env.current_step-1]-env.power_setpoints[env.current_step-1])
+        penalty_setpoint = ((env.current_power_setpoints[env.current_step-1]-env.power_setpoints[env.current_step-1]))
     else:
         penalty_setpoint = 0
 
-    if env.charge_power_potential[env.current_step-1] != 0 and env.current_power_setpoints[env.current_step-1] == 0: 
-        penalty_charging = (env.charge_power_potential[env.current_step-1]-env.current_power_setpoints[env.current_step-1])
+    if env.charge_power_potential[env.current_step-1] > env.current_power_setpoints[env.current_step-1]: 
+        penalty_charging_low = (env.charge_power_potential[env.current_step-1]-env.current_power_setpoints[env.current_step-1])*0.25
     else:
-        penalty_charging = 0
+        penalty_charging_low = 0
+
+    if env.charge_power_potential[env.current_step-1] < env.current_power_setpoints[env.current_step-1]: 
+        penalty_charging_high = abs(env.charge_power_potential[env.current_step-1]-env.current_power_setpoints[env.current_step-1])
+    else:
+        penalty_charging_high = 0
     
-    reward = - error - penalty_charging - penalty_setpoint
+    reward = - error - penalty_charging_high - penalty_charging_low - penalty_setpoint
     return reward
-    
 
 def SquaredTrackingErrorwithEqualPenalty(env,*args):
     # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
@@ -120,21 +140,23 @@ def SquaredTrackingErrorwithPenaltyandPriorityChargingReward(env,*args):
         
     priority_charging_reward = 0
     for cs in env.charging_stations:
+        actions = cs.normalized_actions
         for EV in cs.evs_connected:
             if EV is not None: 
-                if EV.get_soc() < 0.5:  # If SoC is below 50%, prioritize charging
-                    priority_charging_reward += (0.5 - EV.get_soc())  # Increase reward for lower SoC
-                    priority_charging_reward *= 100  # scaling factor
+                if EV.get_soc()[env.current_step-1] < 0.5 and actions[env.current_step-1] > 0:  # If SoC is below 50%, prioritize charging
+                    priority_charging_reward = priority_charging_reward + \
+                                                ((0.5 - EV.get_soc())*(1-actions))  # Increase reward for lower SoC
                 else:
-                    priority_charging_reward = 0
+                    priority_charging_reward = priority_charging_reward + 0
             else:
-                priority_charging_reward = 0
+                priority_charging_reward = priority_charging_reward + 0
             
     if env.charge_power_potential[env.current_step-1] != 0 and env.current_power_setpoints[env.current_step-1] == 0: 
         penalty = env.charge_power_potential[env.current_step-1] - env.current_power_setpoints[env.current_step-1]
     else:
         penalty = 0
     
+    priority_charging_reward *= 100  # scaling factor    
     reward = - error**2 - penalty + priority_charging_reward
     return reward
 

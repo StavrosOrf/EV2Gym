@@ -69,11 +69,11 @@ def BusinessPSTwithMoreKnowledge(env, *args):
 
     # the final state of each simulation
     if env.current_step < env.simulation_length:
-        state.append(env.power_setpoints[env.current_step]/100)
-        state.append(env.charge_power_potential[env.current_step]/100)
+        state.append(env.power_setpoints[env.current_step]) #/100
+        state.append(env.charge_power_potential[env.current_step]) #/100
     else:
-        state.append(env.power_setpoints[env.current_step-1]/100)
-        state.append(env.charge_power_potential[env.current_step-1]/100)
+        state.append(env.power_setpoints[env.current_step-1]) #/100
+        state.append(env.charge_power_potential[env.current_step-1]) #/100   
 
     for tr in env.transformers:
         state.append(tr.max_current/100)
@@ -81,26 +81,30 @@ def BusinessPSTwithMoreKnowledge(env, *args):
             if cs.connected_transformer == tr.id:
                 for EV in cs.evs_connected:
                     if EV is not None:
-                        state.append([EV.total_energy_exchanged / EV.battery_capacity, #how much soc we charge
+                        state.append([EV.total_energy_exchanged / EV.battery_capacity,          #how much soc we charge
+                                      EV.time_of_arrival / env.simulation_length,               # time of arrival
+                                      (EV.earlier_time_of_departure - env.current_step) \
+                                        / env.simulation_length,                                # remaining time
+                                        (EV.earlier_time_of_departure - \
+                                       EV.time_of_arrival) / env.simulation_length,             # total staying time
+                                       EV.earlier_time_of_departure / env.simulation_length,    # time of departure
+                                      EV.get_soc(),                                             # soc
+                                      EV.required_power / EV.battery_capacity,                  # required energy (%)
+                                      '''
                                       #EV.max_ac_charge_power*1000 /            same EVs, no need right now
                                       #(cs.voltage*math.sqrt(cs.phases)),
                                       #EV.min_ac_charge_power*1000 /
                                       #(cs.voltage*math.sqrt(cs.phases)),
-                                      (env.current_step-EV.time_of_arrival) \
-                                        / env.simulation_length,  # time stayed
-                                      (EV.earlier_time_of_departure - \
-                                       EV.time_of_arrival) / env.simulation_length, # total time stayed
-                                      (((EV.battery_capacity - EV.battery_capacity_at_arrival) /
-                                        (EV.earlier_time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed
-                                      EV.earlier_time_of_departure / env.simulation_length,  # time of departure
-                                      EV.get_soc(),  # soc                            
-                                      #((EV.required_power / EV.battery_capacity) - EV.get_soc()) \
-                                      #  / ((EV.earlier_time_of_departure - env.current_step) / env.simulation_length),   #charging priority                                      
-                                      EV.required_power / EV.battery_capacity,  # required energy
-                                      EV.time_of_arrival / env.simulation_length,  # time of arrival
+                                      #(env.current_step-EV.time_of_arrival) \              
+                                      #  / env.simulation_length,                           # time stayed
+                                      #(((EV.battery_capacity - EV.battery_capacity_at_arrival) /
+                                      #  (EV.earlier_time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed                            
+                                      #(((EV.battery_capacity - EV.battery_capacity_at_arrival) / EV.battery_capacity))
+                                      #  / ((EV.earlier_time_of_departure - env.current_step + 1) / env.simulation_length),   #charging priority 
+                                      '''                                    
                                       ])
                     else:
-                        state.append(np.zeros(8))
+                        state.append(np.zeros(7))
 
     state = np.array(np.hstack(state))
 

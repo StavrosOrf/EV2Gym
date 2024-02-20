@@ -140,7 +140,7 @@ def spawn_single_EV(env, scenario, cs_id, port, hour, step):
 
     required_energy = env.df_energy_demand[scenario].iloc[np.random.randint(
         0, 100, size=1)].values[0]  # kWh
-
+    
     if required_energy < 10:
         required_energy = np.random.randint(10, 15)
 
