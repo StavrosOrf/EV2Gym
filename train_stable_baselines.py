@@ -18,27 +18,6 @@ from wandb.integration.sb3 import WandbCallback
 import os
 import yaml
 
-
-class ExtraLoggingCallback(BaseCallback):
-    """
-    Custom callback for plotting additional values in tensorboard.
-    """
-
-    def __init__(self, verbose=0):
-        super().__init__(verbose)
-
-    # use the _on_rollout_end method for logging end-of-epoch metrics, rather than _on_step
-    def _on_rollout_end(self) -> None:
-        net_change = self.training_env.envs[0].list_networth[-1] - \
-            self.training_env.envs[0].list_networth[0]
-        self.logger.record("net_change", net_change)
-
-        print(f'Net Change: {net_change}')
-
-    def _on_step(self) -> bool:
-        return True
-
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
@@ -47,28 +26,26 @@ if __name__ == "__main__":
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
                         default="EVsSimulator/example_config_files/V2GProfitMax.yaml")
-                        # default="EVsSimulator/example_config_files/PublicPST.yaml")
+    # default="EVsSimulator/example_config_files/PublicPST.yaml")
 
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
     run_name = parser.parse_args().run_name
     config_file = parser.parse_args().config_file
-    
+
     config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
-    
+
     if config_file == "EVsSimulator/example_config_files/V2GProfitMax.yaml":
         reward_function = profit_maximization
         state_function = V2G_profit_max
         group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitMax'
-        
+
     elif config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
         reward_function = SquaredTrackingErrorReward
         state_function = PublicPST
         group_name = f'{config["number_of_charging_stations"]}cs_PublicPST'
-    
-    run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
 
-    
+    run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
 
     run = wandb.init(project='EVsSimulator',
                      sync_tensorboard=True,
@@ -137,7 +114,7 @@ if __name__ == "__main__":
                         verbose=2),
                     eval_callback])
 
-    model.save(f"./saved_models/{group_name}/{run_name}" )
+    model.save(f"./saved_models/{group_name}/{run_name}")
 
     env = model.get_env()
     obs = env.reset()
