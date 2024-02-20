@@ -185,6 +185,11 @@ for algorithm in algorithms:
 
                 break
 
+#save the results to a csv file
+results.to_csv('results.csv')
+results_to_draw.to_csv('results_to_draw.csv')
+results_to_draw_setpoint.to_csv('results_to_draw_setpoint.csv')
+
 # Group the results by algorithm and print the average and the standard deviation of the statistics
 results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
 # replace Nan with 0
