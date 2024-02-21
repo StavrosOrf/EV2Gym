@@ -5,8 +5,12 @@ Authors: Cesar Diaz-Londono, Stavros Orfanoudakis
 """
 
 import numpy as np
-import cvxpy as cp
+# import cvxpy as cp
 import matplotlib.pyplot as plt
+
+import gurobipy as gp
+from gurobipy import GRB
+from gurobipy import *
 
 from abc import ABC, abstractmethod
 
@@ -100,19 +104,25 @@ class MPC(ABC):
                 departure_times[index] = EV.time_of_departure
 
             ev_location = EV.location
-            self.u[ev_location, arrival_times[index]: departure_times[index]] = 1
-            self.x_init[ev_location, arrival_times[index]                        : departure_times[index]] = Cx0[index]
-            self.x_final[ev_location, arrival_times[index]                         : departure_times[index]] = Cxf[index]
-            self.x_max_batt[ev_location, arrival_times[index]                         : departure_times[index]] = EV.battery_capacity
+            self.u[ev_location, arrival_times[index]                   : departure_times[index]] = 1
+            self.x_init[ev_location, arrival_times[index]
+                : departure_times[index]] = Cx0[index]
+            self.x_final[ev_location, arrival_times[index]
+                : departure_times[index]] = Cxf[index]
+            self.x_max_batt[ev_location, arrival_times[index]
+                : departure_times[index]] = EV.battery_capacity
             ev_pmax = min(Pmax, EV.max_ac_charge_power)
-            self.p_max_MT[ev_location, arrival_times[index]                          : departure_times[index]] = ev_pmax
+            self.p_max_MT[ev_location, arrival_times[index]
+                : departure_times[index]] = ev_pmax
             ev_dis_pmax = min(abs(Pmin), abs(EV.max_discharge_power))
-            self.p_max_MT_dis[ev_location, arrival_times[index]                          : departure_times[index]] = ev_dis_pmax
-            
+            self.p_max_MT_dis[ev_location, arrival_times[index]
+                : departure_times[index]] = ev_dis_pmax
+
             ev_pmin = max(Pmin, EV.min_ac_charge_power)
             ev_pmin = 0  # formulation does not support p_min different than 0
             ev_pmin = Pmin
-            self.p_min_MT[ev_location, arrival_times[index]                          : departure_times[index]] = ev_pmin
+            self.p_min_MT[ev_location, arrival_times[index]
+                : departure_times[index]] = ev_pmin
 
         if self.verbose:
             print(f'Initial SoC: {Cx0}')
@@ -175,12 +185,12 @@ class MPC(ABC):
     @abstractmethod
     def get_action(self, t):
         pass
-        
+
     def update_tr_power(self, t):
         '''
         This function updates the transformer power limits, loads and PV generation for the next control horizon based on forecasts.
         '''
-        
+
         for i, tr in enumerate(self.env.transformers):
             self.tr_power_limit[i, :] = tr.get_power_limits(
                 step=t, horizon=self.control_horizon)
@@ -203,7 +213,7 @@ class MPC(ABC):
                   f'\ntr_power_limit: {self.tr_power_limit[i, :]}'
                   f'\ntr_loads: {self.tr_loads[i, :]}')
 
-    def recosntruct_state(self,t):
+    def recosntruct_state(self, t):
         '''
         This function reconstructs the state of the environment using the historical data.
         '''
@@ -215,7 +225,7 @@ class MPC(ABC):
                 else:
                     self.x_next[counter] = ev.current_capacity
                 counter += 1
-                
+
         self.Gxx0 = self.x_next
 
         if t == 0:
@@ -228,7 +238,7 @@ class MPC(ABC):
                     if self.x_init[j, t] > 0 and self.x_init[j, t - 1] != 0:
                         Gx1[j] = self.x_next[j]
                 self.Gxx0 = np.concatenate((self.Gxx0, Gx1))
-                
+
         # Building final SoC self.XF vector
         self.XF = np.zeros(self.control_horizon * self.n_ports)
         m = self.n_ports
@@ -238,14 +248,15 @@ class MPC(ABC):
                 if self.u[i, j] == 0 and self.u[i, j - 1] == 1:
                     self.XF[m - self.n_ports-1] = self.x_final[i, j - 1]
                 else:
-                    self.XF[m - self.n_ports-1] = self.x_max_batt[i, j - 1] * self.min_SoC
-                    
+                    self.XF[m - self.n_ports -
+                            1] = self.x_max_batt[i, j - 1] * self.min_SoC
+
                 if self.u[i, j] == 1 and self.u[i, j - 1] == 1 and self.u[i, j - 2] == 0:
                     self.XF[m - self.n_ports-1] = 0
 
         # Maximum capacity of EVs
         self.XMAX = np.array([self.x_max_batt[:, t + i]
-                        for i in range(self.control_horizon)]).flatten()
+                              for i in range(self.control_horizon)]).flatten()
 
 
 class OCCF_V2G(MPC):
@@ -260,7 +271,7 @@ class OCCF_V2G(MPC):
             verbose: Whether to print debug information.
         """
         super().__init__(env, control_horizon, verbose)
-        
+
         self.na = self.n_ports
         self.nb = 2 * self.na
 
@@ -269,27 +280,25 @@ class OCCF_V2G(MPC):
         This function computes the MPC actions for the economic problem including V2G.
         """
 
-        # update transformer limits 
+        # update transformer limits
         self.update_tr_power(t)
-        
+
         # reconstruct self.x_next using the environment
         self.recosntruct_state(t)
 
         if self.verbose:
             print(f'x_next: {self.x_next}')
 
-        
-
         if self.verbose:
             print(f'-------------------------------------------- \n t: {t}')
-            
+
         # Station model
         Amono = np.dstack([np.diag(self.u[:, i])
                            for i in range(t, t + 1 + self.control_horizon)])
-        
+
         # Bmono = self.T * np.dstack([np.diag(self.u[:, i])
         #                             for i in range(t, t + 1 + self.control_horizon)])
-        
+
         Bmono = np.zeros((self.n_ports, self.nb, self.control_horizon+1))
         for j in range(t, t + self.control_horizon):
             Bmono2 = np.zeros((self.n_ports, self.nb))
@@ -298,7 +307,7 @@ class OCCF_V2G(MPC):
                 Bmono2[i, :self.n_ports] = self.ch_eff * bnew[:, i]
                 Bmono2[i, self.n_ports:] = -bnew[:, i] / self.disch_eff
             Bmono[:, :, j - t] = Bmono2
-        
+
         if self.verbose:
             print(f'Amono: {Amono.shape}')
             print(f'Bmono: {Bmono.shape}')
@@ -311,11 +320,9 @@ class OCCF_V2G(MPC):
             print(f'Gxx0: {self.Gxx0.shape}')
             print(f'Gxx0: \n {self.Gxx0}')
 
-        input("Press Enter to continue...")
-        
         # Complete model calculation Gu, this is the G in the paper
         self.Gu = np.zeros((self.control_horizon * self.na,
-                       self.control_horizon * self.nb))
+                            self.control_horizon * self.nb))
 
         for i in range(self.control_horizon):
             Bbar = Bmono[:, :, 0]
@@ -323,29 +330,30 @@ class OCCF_V2G(MPC):
                 Abar = np.eye(self.n_ports)
                 if i == j:
                     self.Gu[i * self.na: (i+1) * self.na, j * self.nb: (j+1)
-                       * self.nb] = Bmono[:, :, j]  # H
+                            * self.nb] = Bmono[:, :, j]  # H
                 else:
                     for m in range(j + 1, i + 1):
                         Abar = np.dot(Abar, Amono[:, :, m])
                     self.Gu[i * self.na: (i+1) * self.na, j *
-                        self.nb: (j+1) * self.nb] = np.dot(Abar, Bbar)  # H
+                            self.nb: (j+1) * self.nb] = np.dot(Abar, Bbar)  # H
 
                 Bbar = Bmono[:, :, j]
 
         if self.verbose:
             print(f'Gu:{self.Gu.shape} \n {self.Gu}')
-            
+
         if self.verbose:
             print(f'self.XF: {self.XF.shape} \n {self.XF}')
             print(f'self.XMAX: {self.XMAX.shape} \n {self.XMAX}')
 
         # Inequality constraint
         self.AU = np.vstack((self.Gu, -self.Gu))
-        self.bU = np.concatenate((np.abs(self.XMAX - self.Gxx0), -self.XF + self.Gxx0))
+        self.bU = np.concatenate(
+            (np.abs(self.XMAX - self.Gxx0), -self.XF + self.Gxx0))
 
         if self.verbose:
             print(f'AU: {self.AU.shape}, BU: {self.bU.shape}')
-            # print(f'AU: \n {AU}')
+            print(f'AU: \n {self.AU}')
             print(f'bU: \n {self.bU}')
 
         # Generate the min cost function
@@ -355,84 +363,108 @@ class OCCF_V2G(MPC):
             for j in range(self.n_ports):
                 f.append(self.T * self.ch_prices[t + i])
                 f.append(-self.T * self.disch_prices[t + i])
-                
+
                 f2.append(self.T * self.ch_prices[t + i])
                 f2.append(self.T * self.disch_prices[t + i]*2)
-                
+
         f = np.array(f).reshape(-1, 1)
         f2 = np.array(f2).reshape(-1, 1)
 
         if self.verbose:
             print(f'f: {f.shape}')
-            print(f'f: \n {f}')            
+            print(f'f: \n {f}')
             print(f'u: {self.u.shape} \n {self.u}')
 
         # Boundaries of the power
         # LB = np.array([self.p_min_MT[j, i + t]
         #                for i in range(self.control_horizon)
         #                for j in range(self.n_ports)])
-        
-        LB = np.zeros((self.control_horizon * self.nb, 1))
+
+        LB = np.zeros((self.control_horizon * self.nb, 1), dtype=float)
 
         UB = np.array([[self.p_max_MT[j, i + t], self.p_max_MT_dis[j, i + t]]
                        for i in range(self.control_horizon)
-                       for j in range(self.n_ports)])
-        
-        #flatten UB
-        
+                       for j in range(self.n_ports)], dtype=float)
+
+        # flatten UB
+
         LB = LB.flatten().reshape(-1)
         UB = UB.flatten().reshape(-1)
-        
-    
+
         if self.verbose:
             print(f'LB: {LB.shape}, \n {LB}')
             print(f'UB: {UB.shape}, \n {UB}')
 
-        # Optimization with CVXPY
-        u1 = cp.Variable(self.nb * self.control_horizon, name='u1')
-        CapF1 = cp.Variable(
-            self.nb * self.control_horizon, name='CapF1')  # not needed for profit maxmization        
-        Zbin = cp.Variable(self.n_ports * self.control_horizon, boolean=True, name='Zbin')
-        
-        # Constraints
-        constr = [self.AU @ u1 <= self.bU,
-                  CapF1 <= UB,
-                  LB <= CapF1,
-                  
-                #   u1[::2] <= UB[::2],
-                #   u1 >= 0,
-                #   u1[1::2] <= UB[1::2],
-                  ]        
-        
-        constr.append(CapF1[::2] <= u1[::2])
-        constr.append(u1[::2] <= cp.multiply((UB[::2] - CapF1[::2]), Zbin))
-        
-        constr.append(CapF1[1::2] <= u1[1::2])
-        constr.append(u1[1::2] <= cp.multiply((UB[1::2] - CapF1[1::2]), Zbin))
-        
-        # constr.append(CapF1[::2] <= u1[::2] - u1[1::2] + UB[::2] * Zbin)
-        # constr.append(CapF1[1::2] <= u1[1::2] - u1[::2] + UB[1::2] *
-        #               (np.ones((self.n_ports * self.control_horizon)) - Zbin))
-        
-        
-        # for tr_index in range(self.number_of_transformers):
-        #     constr.append(self.tr_cs[tr_index, :, :] @ (u1[::2] - u1[1::2])
-        #                   + self.tr_loads[tr_index,:].T
-        #                   - self.tr_pv[tr_index,:].T
-        #                   <= self.tr_power_limit[tr_index])
+        nb = self.nb
+        n = self.n_ports
+        h = self.control_horizon
 
-        # Cost function
-        objective = cp.Minimize(f.T @ u1 - f2.T @ CapF1)
-        prob = cp.Problem(objective, constr)
-        prob.solve(solver=cp.GUROBI, verbose=False)
+        model = gp.Model("optimization_model")
+        u = model.addVars(range(nb*h),                          
+                          vtype=GRB.CONTINUOUS,
+                          name="u")  # Power
+
+        CapF1 = model.addVars(range(nb*h),                              
+                              vtype=GRB.CONTINUOUS,
+                              name="CapF1")
+
+        # Binary for charging or discharging
+        Zbin = model.addVars(range(n*h),
+                             vtype=GRB.BINARY,
+                             name="Zbin")
+
+        print(f'nb: {nb}, n: {n}, h: {h}')
+
+        # Constraints
+        model.addConstrs((gp.quicksum(self.AU[i, j] * u[j]
+                              for j in range(nb*h))
+                  <= self.bU[i]
+                  for i in range(nb*h)), name="constr1") # Constraint with prediction model
+        
+        # Add the lower bound constraints
+        model.addConstrs(
+            (0 <= CapF1[i] for i in range(nb*h)), name="constr2a")
+
+        # Add the upper bound constraints
+        model.addConstrs(
+            (CapF1[i] <= UB[i] for i in range(nb*h)), name="constr2b")
+
+        # Constraints for charging P
+        model.addConstrs((CapF1[j] <= u[j]
+                          for j in range(0, n*h, 2)), name="constr3a")
+
+        model.addConstrs((u[j] <= (UB[j]-CapF1[j]) * Zbin[j]
+                          for j in range(0, n*h, 2)), name="constr3b")
+
+        # Constraints for discharging P
+        model.addConstrs((CapF1[j] <= u[j]
+                          for j in range(1, n*h, 2)),
+                         name="constr4a")
+
+        model.addConstrs((u[j] <= (UB[j]-CapF1[j])*(1-Zbin[j])
+                          for j in range(1, n*h, 2)),
+                         name="constr4b")
+
+        obj_expr = gp.LinExpr()
+        for i in range(nb*h):
+            obj_expr.addTerms(f[i], u[i])
+            obj_expr.addTerms(-f2[i], CapF1[i])
+
+        model.setObjective(obj_expr, GRB.MINIMIZE)
+        model.params.NonConvex = 2
+        
+        model.write("model.lp")
+
+        model.optimize()
 
         print("--------------------------------------------")
-        if prob.status != cp.OPTIMAL:
-            print(f'Objective value: {prob.status}')
+        if model.status != GRB.Status.OPTIMAL:
+            print(f'Objective value: {model.status}')
             print("Optimal solution not found !!!!!")
             exit()
-
-        u = u1.value  # Optimal power
+            
+        input("Press Enter to continue...")
+        # u = u.x  # Optimal power
 
         if self.verbose:
             print(f'u: {u.shape} \n {u}')

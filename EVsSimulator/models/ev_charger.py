@@ -45,7 +45,7 @@ class EV_Charger:
                  connected_bus,
                  connected_transformer,
                  geo_location=None,
-                 min_charge_current=8,  # Amperes
+                 min_charge_current=0,  # Amperes
                  max_charge_current=56,  # Amperes
                  min_discharge_current=-8, # Amperes
                  max_discharge_current=-56, # Amperes

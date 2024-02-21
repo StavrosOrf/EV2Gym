@@ -25,7 +25,7 @@ def eval():
     verbose = True
     save_plots = True
     
-    replay_path = "./replay/replay_sim_2024_02_16_688071.pkl"
+    replay_path = "./replay/replay_sim_2024_02_21_599446.pkl"
     replay_path = None
 
     # config_file = "/example_config_files/BusinessPST_config.yaml"
@@ -52,7 +52,7 @@ def eval():
     agent = OCCF_V2G(env, control_horizon=25, verbose=True)
     # round_robin = RoundRobin(env, verbose=False)
     # charge_as_late_as_possible = ChargeAsLateAsPossible(verbose=False)
-    # charge_as_fast_as_possible = ChargeAsFastAsPossible()
+    charge_as_fast_as_possible = ChargeAsFastAsPossible()
     rewards = []
 
     for t in range(env.simulation_length):        
@@ -83,7 +83,7 @@ def eval():
             print(f'End of simulation at step {env.current_step}')
             break
 
-    # exit()
+    exit()
     # Solve optimally
     # Power tracker optimizer
     math_model = PowerTrackingErrorrMin(replay_path=new_replay_path)
