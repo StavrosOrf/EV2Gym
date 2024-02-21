@@ -363,7 +363,7 @@ class OCCF_V2G(MPC):
         f2 = np.array(f2).reshape(-1, 1)
 
         if self.verbose:
-            print(f'f: {f.shape}, BinEV: {BinEV.shape}')
+            print(f'f: {f.shape}')
             print(f'f: \n {f}')            
             print(f'u: {self.u.shape} \n {self.u}')
 
@@ -397,16 +397,29 @@ class OCCF_V2G(MPC):
         # Constraints
         constr = [self.AU @ u1 <= self.bU,
                   CapF1 <= UB,
-                  LB <= CapF1
-                  ]
+                  LB <= CapF1,
+                  
+                #   u1[::2] <= UB[::2],
+                #   u1 >= 0,
+                #   u1[1::2] <= UB[1::2],
+                  ]        
+        
+        constr.append(CapF1[::2] <= u1[::2])
+        constr.append(u1[::2] <= cp.multiply((UB[::2] - CapF1[::2]), Zbin))
+        
+        constr.append(CapF1[1::2] <= u1[1::2])
+        constr.append(u1[1::2] <= cp.multiply((UB[1::2] - CapF1[1::2]), Zbin))
+        
+        # constr.append(CapF1[::2] <= u1[::2] - u1[1::2] + UB[::2] * Zbin)
+        # constr.append(CapF1[1::2] <= u1[1::2] - u1[::2] + UB[1::2] *
+        #               (np.ones((self.n_ports * self.control_horizon)) - Zbin))
         
         
-        
-        for tr_index in range(self.number_of_transformers):
-            constr.append(self.tr_cs[tr_index, :, :] @ (u1[::2] - u1[1::2])
-                          + self.tr_loads[tr_index,:].T
-                          - self.tr_pv[tr_index,:].T
-                          <= self.tr_power_limit[tr_index])
+        # for tr_index in range(self.number_of_transformers):
+        #     constr.append(self.tr_cs[tr_index, :, :] @ (u1[::2] - u1[1::2])
+        #                   + self.tr_loads[tr_index,:].T
+        #                   - self.tr_pv[tr_index,:].T
+        #                   <= self.tr_power_limit[tr_index])
 
         # Cost function
         objective = cp.Minimize(f.T @ u1 - f2.T @ CapF1)
@@ -423,6 +436,7 @@ class OCCF_V2G(MPC):
 
         if self.verbose:
             print(f'u: {u.shape} \n {u}')
+            print(f'CapF1: {CapF1.shape} \n {CapF1.value}')
             # if any u is negative, then we are discharging
             # if np.any(u < 0):
             #     print("Discharging")
