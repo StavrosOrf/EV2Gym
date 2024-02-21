@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
 from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import PowerTrackingErrorrMin
-from EVsSimulator.baselines.mpc.mpc import MPC
+from EVsSimulator.baselines.mpc.mpc import MPC, OCCF_V2G
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
 
 import numpy as np
@@ -49,7 +49,7 @@ def eval():
 
     state, _ = env.reset()
 
-    mpc = MPC(env, control_horizon=25, verbose=True)
+    agent = OCCF_V2G(env, control_horizon=25, verbose=True)
     # round_robin = RoundRobin(env, verbose=False)
     # charge_as_late_as_possible = ChargeAsLateAsPossible(verbose=False)
     # charge_as_fast_as_possible = ChargeAsFastAsPossible()
@@ -63,7 +63,7 @@ def eval():
         # input("Press Enter to continue...")
         # MPC
         # actions = mpc.get_actions_OCCF(t=t)
-        actions = mpc.get_actions_economicV2G(t=t)
+        actions = agent.get_action(t=t)
         # actions = mpc.get_actions_OCCF_with_Loads(t=t)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
         
@@ -71,7 +71,7 @@ def eval():
             print(f'Actions: {actions}')
 
         new_state, reward, done, truncated, _ = env.step(
-            actions, visualize=False)  # takes action
+            actions, visualize=True)  # takes action
         rewards.append(reward)
 
         # input("Press Enter to continue...")

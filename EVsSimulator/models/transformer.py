@@ -58,10 +58,12 @@ class Transformer():
 
         self.current_step = 0
 
+        self.infelxible_load_forecast = np.zeros(96)
         if env.config['inflexible_loads']['include']:
             self.normalize_inflexible_loads(env)
             self.generate_inflexible_loads_forecast(env)
 
+        self.pv_generation_forecast = np.zeros(96)
         if env.config['solar_power']['include']:
             self.normalize_pv_generation(env)
             self.generate_pv_generation_forecast(env)
@@ -149,19 +151,18 @@ class Transformer():
             if step + self.steps_ahead > event['event_start_step']:
                 if event['event_start_step']-step < 0 or event['event_start_step']-step > horizon:
                     continue
-                
+
                 known_max_power[event['event_start_step']-step:
                                 event['event_end_step']-step] = power_limit - \
-                    power_limit * \
-                    event['capacity_percentage'] / 100
+                    power_limit * event['capacity_percentage'] / 100
                 break
 
         # append the last value if the horizon is larger than the max_power
         if len(known_max_power) < horizon:
             known_max_power = np.append(known_max_power, np.ones(horizon-len(known_max_power))
-                                  * power_limit)
+                                        * power_limit)
 
-        return self.max_power[step:step+horizon]
+        return known_max_power
 
     def normalize_pv_generation(self, env) -> None:
         '''

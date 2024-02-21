@@ -282,21 +282,7 @@ class EVsSimulator(gym.Env):
 
         self.init_statistic_variables()
 
-        return self._get_observation(), {}
-
-    def _calculate_ev_load_curve(self):
-        '''This function calculates the load curve of the EVs in the simulation'''
-        for i in range(self.simulation_length):
-            # all ports are charging instantly
-            actions = np.ones(self.number_of_ports)
-
-            new_state, reward, done, _ = self.step(
-                actions, visualize=False)  # takes action
-
-            # input("Press Enter to continue...")
-
-            if done and i < self.simulation_length-1:
-                return
+        return self._get_observation(), {}    
 
     def init_statistic_variables(self):
         self.current_step = 0
