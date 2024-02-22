@@ -26,6 +26,11 @@ minute: 0 # Simulation starting minute (0-59)
 simulation_days: weekdays # weekdays, weekends, or both
 
 ##############################################################################
+# Prices
+##############################################################################
+discharge_price_factor: 1.2 # how many times more abs(expensive/cheaper) it is to discharge than to charge
+
+##############################################################################
 # Charging Topology
 ##############################################################################
 v2g_enabled: True # True or False

@@ -318,7 +318,7 @@ def ev_city_plot(env):
                        fontsize=24)
             # place the legend under each plot
 
-            if dim_x < 5:
+            if dim_x < 3:
                 plt.legend([f'Port {i}' for i in range(
                     cs.n_ports)] + ['Max. Current',
                                     'Actual Current',

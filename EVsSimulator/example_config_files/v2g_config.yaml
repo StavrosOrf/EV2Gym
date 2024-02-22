@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 96 #90 # in steps per simulation
+simulation_length: 30 #90 # in steps per simulation
 
 ##############################################################################
 # Date:
@@ -24,6 +24,11 @@ minute: 0 # Simulation starting minute (0-59)
 
 # Simulate weekdays, weekends, or both
 simulation_days: weekdays # weekdays, weekends, or both
+
+##############################################################################
+# Prices
+##############################################################################
+discharge_price_factor: 1.2 # how many times more abs(expensive/cheaper) it is to discharge than to charge
 
 ##############################################################################
 # Charging Topology
@@ -51,7 +56,7 @@ power_setpoints_uncertainty: 20 # (in percentage +/- %)
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 inflexible_loads:
   include: True # True or False
-  inflexible_loads_capacity_multiplier_mean: 1 # 1 is default, the higher the number the more inflexible loads
+  inflexible_loads_capacity_multiplier_mean: 0.9 # 1 is default, the higher the number the more inflexible loads
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 5 # in percentage of load at time t%
 

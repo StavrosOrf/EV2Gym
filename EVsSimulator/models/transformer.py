@@ -58,7 +58,7 @@ class Transformer():
 
         self.current_step = 0
 
-        self.infelxible_load_forecast = np.zeros(96)
+        self.inflexible_load_forecast = np.zeros(96)
         if env.config['inflexible_loads']['include']:
             self.normalize_inflexible_loads(env)
             self.generate_inflexible_loads_forecast(env)
@@ -123,8 +123,10 @@ class Transformer():
 
             if any(self.inflexible_load[event_start_step:event_end_step] >
                    self.max_power[event_start_step:event_end_step]):
-                self.max_power[event_start_step:event_end_step] = self.inflexible_load[event_start_step:event_end_step].max(
-                )
+
+                self.max_power[event_start_step:event_end_step] = self.inflexible_load[event_start_step:
+                    event_end_step].max()
+
                 capacity_percentage = 100*(1 - max(self.inflexible_load[event_start_step:event_end_step]) /
                                            max(self.max_power))
 
@@ -146,10 +148,7 @@ class Transformer():
         known_max_power = max(self.max_power) * np.ones(horizon)
         power_limit = max(self.max_power)
 
-        for event in self.dr_events:
-            print(f'event: {event}')
-            print(f'step: {step}')
-            print(f'step + self.steps_ahead: {step + self.steps_ahead}')
+        for event in self.dr_events:            
             if step + self.steps_ahead >= event['event_start_step'] and \
                     event['event_end_step'] >= step:
 
@@ -160,11 +159,6 @@ class Transformer():
                     known_max_power[abs(event['event_start_step'] - step):
                                     abs(event['event_end_step']-step)] = power_limit - \
                     power_limit * event['capacity_percentage'] / 100
-
-                print(f'known_max_power: {known_max_power}')
-                input(
-                    f'Event: {event["event_start_step"]-step} - {event["event_end_step"]-step}')
-
                 continue
 
         # append the last value if the horizon is larger than the max_power
@@ -232,10 +226,16 @@ class Transformer():
         forecast_uncertainty_std = env.config['inflexible_loads']['forecast_std'] / 100 * \
             self.inflexible_load
 
-        self.infelxible_load_forecast = np.random.normal(
+        self.inflexible_load_forecast = np.random.normal(
             forecast_uncertainty_mean,
             forecast_uncertainty_std,
             len(self.inflexible_load))
+        
+        # clip the forecast to the min and max power
+        self.inflexible_load_forecast = np.clip(self.inflexible_load_forecast,
+                                                self.min_power,
+                                                self.max_power)
+        
 
     def reset(self, step) -> None:
         '''

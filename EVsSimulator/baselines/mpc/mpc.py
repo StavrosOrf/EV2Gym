@@ -124,6 +124,7 @@ class MPC(ABC):
             print(f'Pmax: {self.p_max_MT}')
 
         self.number_of_transformers = env.number_of_transformers
+        self.cs_transformers = env.cs_transformers
         self.tr_loads = np.zeros(
             (self.number_of_transformers, self.control_horizon))
         self.tr_pv = np.zeros(
@@ -194,15 +195,21 @@ class MPC(ABC):
 
             self.tr_loads[i, :] = np.zeros(self.control_horizon)
             self.tr_loads[i, 0] = tr.inflexible_load[tr.current_step]
-            l = len(tr.infelxible_load_forecast[tr.current_step + 1:
+            l = len(tr.inflexible_load_forecast[tr.current_step + 1:
                                                 tr.current_step+self.control_horizon+1])
-            self.tr_loads[i, 1:l+1] = tr.infelxible_load_forecast[tr.current_step + 1:
+            self.tr_loads[i, 1:l+1] = tr.inflexible_load_forecast[tr.current_step + 1:
                                                                   tr.current_step+self.control_horizon]
 
             if self.verbose:
                 print(f'tr_pv: {self.tr_pv[i, :]}'
                     f'\ntr_power_limit: {self.tr_power_limit[i, :]}'
                     f'\ntr_loads: {self.tr_loads[i, :]}')
+                
+            #pritn the actual tr_loads
+            
+            print(f'tr_loads: {tr.inflexible_load[tr.current_step]}')
+            print(f'tr_pv: {tr.solar_power[tr.current_step]}')
+            
             # input("Press Enter to continue...")
 
     def recosntruct_state(self, t):

@@ -1,8 +1,9 @@
 '''
-This file contains the implementation of the OCCF_V2G and OCCF_G2V MPC
+This file contains the eMPC class, which is used to control the EVsSimulator environment using the eMPC algorithm.
 
 Authors: Cesar Diaz-Londono, Stavros Orfanoudakis
 '''
+
 
 import gurobipy as gp
 from gurobipy import GRB
@@ -12,7 +13,7 @@ import numpy as np
 from EVsSimulator.baselines.mpc.mpc import MPC
 
 
-class OCCF_V2G(MPC):
+class eMPC_V2G(MPC):
 
     def __init__(self, env, control_horizon=10, verbose=False):
         """
@@ -54,17 +55,13 @@ class OCCF_V2G(MPC):
 
         # Generate the min cost function
         f = []
-        f2 = []
+
         for i in range(self.control_horizon):
             for j in range(self.n_ports):
                 f.append(self.T * self.ch_prices[t + i])
                 f.append(-self.T * self.disch_prices[t + i])
 
-                f2.append(self.T * self.ch_prices[t + i])
-                f2.append(self.T * self.disch_prices[t + i]*2)
-
         f = np.array(f).reshape(-1, 1)
-        f2 = np.array(f2).reshape(-1, 1)
 
         nb = self.nb
         n = self.n_ports
@@ -74,11 +71,7 @@ class OCCF_V2G(MPC):
         u = model.addVars(range(nb*h),
                           vtype=GRB.CONTINUOUS,
                           name="u")  # Power
-
-        CapF1 = model.addVars(range(nb*h),
-                              vtype=GRB.CONTINUOUS,
-                              name="CapF1")
-
+        
         # Binary for charging or discharging
         Zbin = model.addVars(range(n*h),
                              vtype=GRB.BINARY,
@@ -90,27 +83,19 @@ class OCCF_V2G(MPC):
                           <= self.bU[i]
                           for i in range(nb*h)), name="constr1")  # Constraint with prediction model
 
-        # Add the lower bound constraints
-        model.addConstrs(
-            (0 <= CapF1[i] for i in range(nb*h)), name="constr2a")
-
-        # Add the upper bound constraints
-        model.addConstrs(
-            (CapF1[i] <= self.UB[i] for i in range(nb*h)), name="constr2b")
-
         # Constraints for charging P
-        model.addConstrs((CapF1[j] <= u[j]
+        model.addConstrs((self.LB[j] <= u[j]
                           for j in range(0, nb*h, 2)), name="constr3a")
 
-        model.addConstrs((u[j] <= (self.UB[j]-CapF1[j]) * Zbin[j//2]
+        model.addConstrs((u[j] <= self.UB[j] * Zbin[j//2]
                           for j in range(0, nb*h, 2)), name="constr3b")
 
         # Constraints for discharging P
-        model.addConstrs((CapF1[j] <= u[j]
+        model.addConstrs((self.LB[j] <= u[j]
                           for j in range(1, nb*h, 2)),
                          name="constr4a")
 
-        model.addConstrs((u[j] <= (self.UB[j]-CapF1[j])*(1-Zbin[j//2])
+        model.addConstrs((u[j] <= self.UB[j]*(1-Zbin[j//2])
                           for j in range(1, nb*h, 2)),
                          name="constr4b")
 
@@ -128,8 +113,7 @@ class OCCF_V2G(MPC):
 
         obj_expr = gp.LinExpr()
         for i in range(nb*h):
-            obj_expr.addTerms(f[i], u[i])
-            obj_expr.addTerms(-f2[i], CapF1[i])
+            obj_expr.addTerms(f[i], u[i])            
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
@@ -145,20 +129,13 @@ class OCCF_V2G(MPC):
             exit()
 
         a = np.zeros((nb*h, 1))
-        cap = np.zeros((nb*h, 1))
-        z_bin = np.zeros((n*h, 1))
+        # z_bin = np.zeros((n*h, 1))
 
         for i in range(nb*h):
             a[i] = u[i].x
-            cap[i] = CapF1[i].x
 
-        for i in range(n*h):
-            z_bin[i] = Zbin[i].x
-
-        # if self.verbose:
-        #     print(f'Actions:\n {a.reshape(-1,self.n_ports, 2)}')
-            # print(f'CapF1:\n {cap.reshape(-1,self.n_ports, 2)}')
-            # print(f'Zbin: {z_bin.reshape(-1,n)}')
+        # for i in range(n*h):
+        #     z_bin[i] = Zbin[i].x
 
         # build normalized actions
         actions = np.zeros(self.n_ports)
@@ -178,7 +155,7 @@ class OCCF_V2G(MPC):
         # input("Press Enter to continue...")
         return actions
 
-class OCCF_G2V(MPC):
+class eMPC_G2V(MPC):
     '''
     This class implements the MPC for the G2V OCCF.
     '''
@@ -239,10 +216,6 @@ class OCCF_G2V(MPC):
                           vtype=GRB.CONTINUOUS,
                           name="u")  # Power
 
-        CapF1 = model.addVars(range(nb*h),
-                              vtype=GRB.CONTINUOUS,
-                              name="CapF1")
-
 
         # Constraints
         model.addConstrs((gp.quicksum(self.AU[i, j] * u[j]
@@ -250,21 +223,13 @@ class OCCF_G2V(MPC):
                           <= self.bU[i]
                           for i in range(nb*h)), name="constr1")  # Constraint with prediction model
 
-        # Add the lower bound constraints
-        model.addConstrs(
-            (0 <= CapF1[i] for i in range(nb*h)), name="constr2a")
-
-        # Add the upper bound constraints
-        model.addConstrs(
-            (CapF1[i] <= self.UB[i] for i in range(nb*h)), name="constr2b")
-
         # Constraints for charging P
-        model.addConstrs((CapF1[j] <= u[j]
-                          for j in range(0, nb*h, 2)), name="constr3a")
+        model.addConstrs((self.LB[j] <= u[j]
+                          for j in range(nb*h)), name="constr3a")
         
         # Constraints for charging P
-        model.addConstrs((u[j] <= (self.UB[j]-CapF1[j])
-                          for j in range(0, nb*h, 2)), name="constr3b")
+        model.addConstrs((u[j] <= self.UB[j]
+                          for j in range(nb*h)), name="constr3b")
 
 
         # Add the transformer constraints        
@@ -298,8 +263,7 @@ class OCCF_G2V(MPC):
         cap = np.zeros((nb*h, 1))
 
         for i in range(nb*h):
-            a[i] = u[i].x
-            cap[i] = CapF1[i].x
+            a[i] = u[i].x            
 
         if self.verbose:
             print(f'Actions:\n {a.reshape(-1,self.n_ports, 2)}')
