@@ -132,7 +132,7 @@ class OCCF_V2G(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        model.params.MIPGap = 0.1
+        # model.params.MIPGap = 0.1
 
         model.optimize()
 

@@ -199,9 +199,10 @@ class MPC(ABC):
             self.tr_loads[i, 1:l+1] = tr.infelxible_load_forecast[tr.current_step + 1:
                                                                   tr.current_step+self.control_horizon+1]
 
-            print(f'tr_pv: {self.tr_pv[i, :]}'
-                  f'\ntr_power_limit: {self.tr_power_limit[i, :]}'
-                  f'\ntr_loads: {self.tr_loads[i, :]}')
+            # if self.verbose:
+                # print(f'tr_pv: {self.tr_pv[i, :]}'
+                #     f'\ntr_power_limit: {self.tr_power_limit[i, :]}'
+                #     f'\ntr_loads: {self.tr_loads[i, :]}')
 
     def recosntruct_state(self, t):
         '''
@@ -331,6 +332,6 @@ class MPC(ABC):
         print(f'self.XF: {self.XF.shape}')
         print(f'self.XMAX: {self.XMAX.shape}')
         print(f'AU: {self.AU.shape}, BU: {self.bU.shape}')
-        print(f'self.LB: {self.LB.shape}, \n {self.LB}')
-        print(f'self.UB: {self.UB.shape}, \n {self.UB.reshape(-1, 2)}')
+        print(f'self.LB: {self.LB.shape}')
+        print(f'self.UB: {self.UB.shape} ')
   

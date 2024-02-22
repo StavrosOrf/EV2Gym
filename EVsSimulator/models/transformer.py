@@ -233,7 +233,7 @@ class Transformer():
         '''
         self.current_step = step
 
-        self.current_power = self.inflexible_load[step]
+        self.current_power = self.inflexible_load[step] + self.solar_power[step]
         self.current_amps = (self.current_power * 1000) / 400
 
     def step(self, amps, power) -> None:

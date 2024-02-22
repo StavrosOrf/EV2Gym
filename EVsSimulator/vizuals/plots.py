@@ -158,9 +158,19 @@ def ev_city_plot(env):
             plt.subplot(dim_x, dim_y, counter)
             df = pd.DataFrame([],
                               index=date_range)
+            
+            colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+1))
 
             if env.config['inflexible_loads']['include']:
                 df['inflexible'] = env.tr_inflexible_loads[tr.id, :] * 1000 / 400
+                blue = np.array([0.529, 0.808, 0.922, 1])                
+                colors = np.insert(colors, 0, blue, axis=0)
+                
+            if env.config['solar_power']['include']:
+                df['solar'] = env.tr_solar_power[tr.id, :] * 1000 / 400
+                gold = np.array([1, 0.843, 0, 1])
+                colors = np.insert(colors, 0, gold, axis=0)
+                
 
             for cs in tr.cs_ids:
                 df[cs] = env.cs_current[cs, :]
@@ -170,7 +180,7 @@ def ev_city_plot(env):
             df_pos[df_pos <= 0] = 0
             df_neg = df.copy()
             df_neg[df_neg > 0] = 0
-            colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+1))
+            
 
             # Add another row with one datetime step to make the plot look better
             df_pos.loc[df_pos.index[-1] +
