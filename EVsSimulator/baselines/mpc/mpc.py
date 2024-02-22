@@ -188,21 +188,22 @@ class MPC(ABC):
             self.tr_pv[i, :] = np.zeros(self.control_horizon)
             self.tr_pv[i, 0] = tr.solar_power[tr.current_step]
             l = len(tr.pv_generation_forecast[tr.current_step + 1:
-                                              tr.current_step+self.control_horizon+1])
+                                              tr.current_step+self.control_horizon])            
             self.tr_pv[i, 1:l+1] = tr.pv_generation_forecast[tr.current_step + 1:
-                                                             tr.current_step+self.control_horizon+1]
+                                                             tr.current_step+self.control_horizon]
 
             self.tr_loads[i, :] = np.zeros(self.control_horizon)
             self.tr_loads[i, 0] = tr.inflexible_load[tr.current_step]
             l = len(tr.infelxible_load_forecast[tr.current_step + 1:
                                                 tr.current_step+self.control_horizon+1])
             self.tr_loads[i, 1:l+1] = tr.infelxible_load_forecast[tr.current_step + 1:
-                                                                  tr.current_step+self.control_horizon+1]
+                                                                  tr.current_step+self.control_horizon]
 
-            # if self.verbose:
-                # print(f'tr_pv: {self.tr_pv[i, :]}'
-                #     f'\ntr_power_limit: {self.tr_power_limit[i, :]}'
-                #     f'\ntr_loads: {self.tr_loads[i, :]}')
+            if self.verbose:
+                print(f'tr_pv: {self.tr_pv[i, :]}'
+                    f'\ntr_power_limit: {self.tr_power_limit[i, :]}'
+                    f'\ntr_loads: {self.tr_loads[i, :]}')
+            # input("Press Enter to continue...")
 
     def recosntruct_state(self, t):
         '''
@@ -258,9 +259,6 @@ class MPC(ABC):
         self.Amono = np.dstack([np.diag(self.u[:, i])
                            for i in range(t, t + 1 + self.control_horizon)])
 
-        # Bmono = self.T * np.dstack([np.diag(self.u[:, i])
-        #                             for i in range(t, t + 1 + self.control_horizon)])
-
         self.Bmono = np.zeros((self.n_ports, self.nb, self.control_horizon+1))
         for j in range(t, t + self.control_horizon+1):
             Bmono2 = []
@@ -270,6 +268,15 @@ class MPC(ABC):
                 Bmono2.append(-self.disch_eff * bnew[:, i])                
             Bmono2 = np.array(Bmono2).T
             self.Bmono[:, :, j - t] = Bmono2
+            
+    def g2v_station_models(self, t):
+        
+        self.Amono = np.dstack([np.diag(self.u[:, i])
+                            for i in range(t, t + 1 + self.control_horizon)])
+        
+        self.Bmono = self.T * np.dstack([np.diag(self.u[:, i])
+                            for i in range(t, t + 1 + self.control_horizon)])
+        
 
     def calculate_InequalityConstraints(self, t):
         '''
@@ -315,6 +322,19 @@ class MPC(ABC):
         self.UB = np.array([[self.p_max_MT[j, i + t], self.p_max_MT_dis[j, i + t]]
                        for i in range(self.control_horizon)
                        for j in range(self.n_ports)], dtype=float)
+
+        self.LB = self.LB.flatten().reshape(-1)
+        self.UB = self.UB.flatten().reshape(-1)
+        
+    def set_power_limits_G2V(self, t):
+        '''
+        This function sets the power limits for the G2V problem.
+        '''
+        self.LB = np.zeros((self.control_horizon * self.nb, 1), dtype=float)
+
+        self.UB = np.array([self.p_max_MT[j, i + t]
+                       for i in range(self.control_horizon)
+                       for j in range(self.n_ports)],dtype=float)
 
         self.LB = self.LB.flatten().reshape(-1)
         self.UB = self.UB.flatten().reshape(-1)

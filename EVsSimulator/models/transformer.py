@@ -145,17 +145,27 @@ class Transformer():
         '''
         known_max_power = max(self.max_power) * np.ones(horizon)
         power_limit = max(self.max_power)
-        # steps_ahead
 
         for event in self.dr_events:
-            if step + self.steps_ahead > event['event_start_step']:
-                if event['event_start_step']-step < 0 or event['event_start_step']-step > horizon:
-                    continue
+            print(f'event: {event}')
+            print(f'step: {step}')
+            print(f'step + self.steps_ahead: {step + self.steps_ahead}')
+            if step + self.steps_ahead >= event['event_start_step'] and \
+                    event['event_end_step'] >= step:
 
-                known_max_power[event['event_start_step']-step:
-                                event['event_end_step']-step] = power_limit - \
+                if step > event['event_start_step']:
+                    known_max_power[:event['event_end_step']-step] = power_limit - \
+                        power_limit * event['capacity_percentage'] / 100
+                else:                                        
+                    known_max_power[abs(event['event_start_step'] - step):
+                                    abs(event['event_end_step']-step)] = power_limit - \
                     power_limit * event['capacity_percentage'] / 100
-                break
+
+                print(f'known_max_power: {known_max_power}')
+                input(
+                    f'Event: {event["event_start_step"]-step} - {event["event_end_step"]-step}')
+
+                continue
 
         # append the last value if the horizon is larger than the max_power
         if len(known_max_power) < horizon:
@@ -233,7 +243,8 @@ class Transformer():
         '''
         self.current_step = step
 
-        self.current_power = self.inflexible_load[step] + self.solar_power[step]
+        self.current_power = self.inflexible_load[step] + \
+            self.solar_power[step]
         self.current_amps = (self.current_power * 1000) / 400
 
     def step(self, amps, power) -> None:
