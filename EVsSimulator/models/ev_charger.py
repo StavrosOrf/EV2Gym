@@ -48,7 +48,7 @@ class EV_Charger:
                  min_charge_current=0,  # Amperes
                  max_charge_current=56,  # Amperes
                  min_discharge_current=-8, # Amperes
-                 max_discharge_current=-56, # Amperes
+                 max_discharge_current=-57, # Amperes
                  voltage=230,  # Volts
                  n_ports=2,
                  charger_type="AC",  # AC or DC

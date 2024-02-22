@@ -29,8 +29,8 @@ simulation_days: weekdays # weekdays, weekends, or both
 # Charging Topology
 ##############################################################################
 v2g_enabled: True # True or False
-number_of_charging_stations: 1
-number_of_transformers: 1
+number_of_charging_stations: 10
+number_of_transformers: 3
 number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology,
 # else write None for a randomized one with the above parameters
@@ -82,6 +82,6 @@ heterogeneous_ev_specs: False #if False, each EV has its own specifications
 # such as battery capacity, charging rate, etc.
 
 # EV Spawn Behavior
-scenario: private # public, private, or workplace
+scenario: public # public, private, or workplace
 spawn_multiplier: 100 # 1 is default, the higher the number the more EVs spawn
 

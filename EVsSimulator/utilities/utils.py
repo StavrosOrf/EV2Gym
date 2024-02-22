@@ -218,6 +218,7 @@ def spawn_single_EV(env,
                   transition_soc=np.round(0.9 - \
                                           (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
                   battery_capacity=battery_capacity,
+                  desired_capacity=0.8*battery_capacity,
                   time_of_arrival=step+1,
                   time_of_departure=int(
                       time_of_stay + step + 3),
@@ -229,6 +230,7 @@ def spawn_single_EV(env,
                   location=cs_id,
                   battery_capacity_at_arrival=initial_battery_capacity,
                   battery_capacity=battery_capacity,
+                  desired_capacity=0.8*battery_capacity,
                   time_of_arrival=step+1,
                   time_of_departure=int(
                       time_of_stay + step + 3),

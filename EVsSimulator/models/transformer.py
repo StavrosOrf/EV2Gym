@@ -201,7 +201,7 @@ class Transformer():
             # scale up the data to match the max_power of the transformers
             self.inflexible_load = self.inflexible_load * \
                 mult * (max(self.max_power) /
-                        self.inflexible_load.max()+0.00001)
+                        self.inflexible_load.max()+0.0000001)
             # for each step
             for j in range(env.simulation_length):
                 if self.inflexible_load[j] > self.max_power[j]:
