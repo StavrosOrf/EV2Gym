@@ -81,6 +81,13 @@ class MPC(ABC):
         self.p_min_MT = np.zeros(
             (self.n_ports, self.simulation_length + self.control_horizon + 1))
         
+        self.max_ch_power = np.zeros(self.n_ports)
+        self.max_disch_power = np.zeros(self.n_ports)
+        
+        for i, cs in enumerate(env.charging_stations):
+            self.max_ch_power[i] = cs.get_max_power()
+            self.max_disch_power[i] = cs.get_min_power()
+        
         # EVs Scheduling and specs based on the EVsSimulator environment
         for index, EV in enumerate(env.EVs_profiles):
 

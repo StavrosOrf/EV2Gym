@@ -133,7 +133,7 @@ class OCCF_V2G(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        # model.params.MIPGap = 0.01
+        model.params.MIPGap = 0.01
 
         # save the model
         model.write('model.lp')
@@ -160,9 +160,9 @@ class OCCF_V2G(MPC):
                 raise ValueError(f'Charging and discharging at the same time\
                                     {i} {a[i]} {a[i+1]}')
             elif a[i] > e:
-                actions[i//2] = a[i]/(self.p_max_MT[i//2, t])
+                actions[i//2] = a[i]/self.max_ch_power[i//2]
             elif a[i + 1] > e:
-                actions[i//2] = -a[i+1]/abs(self.p_min_MT[i//2, t])
+                actions[i//2] = -a[i+1]/abs(self.max_disch_power[i//2])
 
         if self.verbose:
             print(f'actions: {actions.shape} \n {actions}')
@@ -298,8 +298,7 @@ class OCCF_G2V(MPC):
         # build normalized actions
         actions = np.zeros(self.n_ports)
         for i in range(self.n_ports):
-            actions[i] = a[i]/(self.p_max_MT[i, t])
-
+            actions[i] = a[i]/ self.max_ch_power[i//2]
         if self.verbose:
             print(f'actions: {actions.shape} \n {actions}')
 

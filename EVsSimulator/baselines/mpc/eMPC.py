@@ -118,9 +118,7 @@ class eMPC_V2G(MPC):
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
         model.params.MIPGap = 0.01
-        
-        #save the model
-        model.write('model.lp')
+                        
         model.optimize()
         
         if model.status != GRB.Status.OPTIMAL:
@@ -131,11 +129,8 @@ class eMPC_V2G(MPC):
         a = np.zeros((nb*h, 1))
         # z_bin = np.zeros((n*h, 1))
 
-        for i in range(nb*h):
+        for i in range(2*self.n_ports):
             a[i] = u[i].x
-
-        # for i in range(n*h):
-        #     z_bin[i] = Zbin[i].x
 
         # build normalized actions
         actions = np.zeros(self.n_ports)
@@ -146,9 +141,9 @@ class eMPC_V2G(MPC):
                 raise ValueError(f'Charging and discharging at the same time\
                                     {i} {a[i]} {a[i+1]}')
             elif a[i] > e:
-                actions[i//2] = a[i]/(self.p_max_MT[i//2, t])
+                actions[i//2] = a[i]/self.max_ch_power[i//2]
             elif a[i + 1] > e:
-                actions[i//2] = -a[i+1]/abs(self.p_min_MT[i//2, t])
+                actions[i//2] = -a[i+1]/abs(self.max_disch_power[i//2])
 
         if self.verbose:
             print(f'actions: {actions.shape} \n {actions}')
@@ -263,7 +258,7 @@ class eMPC_G2V(MPC):
         a = np.zeros((nb*h, 1))
         cap = np.zeros((nb*h, 1))
 
-        for i in range(nb*h):
+        for i in range(self.n_ports):
             a[i] = u[i].x            
 
         if self.verbose:
@@ -273,7 +268,7 @@ class eMPC_G2V(MPC):
         # build normalized actions
         actions = np.zeros(self.n_ports)        
         for i in range(self.n_ports):                        
-            actions[i] = a[i]/(self.p_max_MT[i, t])            
+            actions[i] = a[i]/self.max_ch_power[i//2]            
 
         if self.verbose:
             print(f'actions: {actions.shape} \n {actions}')

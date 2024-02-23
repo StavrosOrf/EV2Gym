@@ -33,7 +33,7 @@ discharge_price_factor: 1.2 # how many times more abs(expensive/cheaper) it is t
 ##############################################################################
 # Charging Topology
 ##############################################################################
-v2g_enabled: False # True or False
+v2g_enabled: True # True or False
 number_of_charging_stations: 5
 number_of_transformers: 1
 number_of_ports_per_cs: 1
@@ -83,7 +83,7 @@ demand_response:
 ##############################################################################
 # EV Specifications
 ##############################################################################
-heterogeneous_ev_specs: False #if False, each EV has its own specifications
+heterogeneous_ev_specs: False #if False, each EV has the same specifications
 # such as battery capacity, charging rate, etc.
 
 # EV Spawn Behavior
