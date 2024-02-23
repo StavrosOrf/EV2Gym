@@ -15,7 +15,7 @@ from EVsSimulator.baselines.mpc.mpc import MPC
 
 class eMPC_V2G(MPC):
 
-    def __init__(self, env, control_horizon=10, verbose=False):
+    def __init__(self, env, control_horizon=10, verbose=False, **kwargs):
         """
         Initialize the MPC baseline.
 
@@ -29,11 +29,11 @@ class eMPC_V2G(MPC):
         self.na = self.n_ports
         self.nb = 2 * self.na
 
-    def get_action(self, t):
+    def get_action(self, env):
         """
         This function computes the MPC actions for the economic problem including V2G.
         """
-
+        t = env.current_step
         # update transformer limits
         self.update_tr_power(t)
 
@@ -84,14 +84,14 @@ class eMPC_V2G(MPC):
                           for i in range(nb*h)), name="constr1")  # Constraint with prediction model
 
         # Constraints for charging P
-        model.addConstrs((self.LB[j] <= u[j]
+        model.addConstrs((0 <= u[j]
                           for j in range(0, nb*h, 2)), name="constr3a")
 
         model.addConstrs((u[j] <= self.UB[j] * Zbin[j//2]
                           for j in range(0, nb*h, 2)), name="constr3b")
 
         # Constraints for discharging P
-        model.addConstrs((self.LB[j] <= u[j]
+        model.addConstrs((0 <= u[j]
                           for j in range(1, nb*h, 2)),
                          name="constr4a")
 
@@ -117,7 +117,7 @@ class eMPC_V2G(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        # model.params.MIPGap = 0.01
+        model.params.MIPGap = 0.01
         
         #save the model
         model.write('model.lp')
@@ -139,6 +139,7 @@ class eMPC_V2G(MPC):
 
         # build normalized actions
         actions = np.zeros(self.n_ports)
+        print(f'Actions:\n {a.reshape(-1,self.n_ports, 2)}')
         e = 0.001
         for i in range(0, 2*self.n_ports, 2):
             if a[i] > e and a[i + 1] > e:
@@ -160,7 +161,7 @@ class eMPC_G2V(MPC):
     This class implements the MPC for the G2V OCCF.
     '''
     
-    def __init__(self, env, control_horizon=10, verbose=False):
+    def __init__(self, env, control_horizon=10, verbose=False, **kwargs):
         """
         Initialize the MPC baseline.
 
@@ -175,11 +176,11 @@ class eMPC_G2V(MPC):
         self.nb = self.na
         
         
-    def get_action(self, t):
+    def get_action(self, env):
         """
         This function computes the MPC actions for the economic problem including G2V.
         """
-
+        t = env.current_step
         # update transformer limits
         self.update_tr_power(t)
 
@@ -224,7 +225,7 @@ class eMPC_G2V(MPC):
                           for i in range(nb*h)), name="constr1")  # Constraint with prediction model
 
         # Constraints for charging P
-        model.addConstrs((self.LB[j] <= u[j]
+        model.addConstrs((0 <= u[j]
                           for j in range(nb*h)), name="constr3a")
         
         # Constraints for charging P
@@ -235,7 +236,7 @@ class eMPC_G2V(MPC):
         # Add the transformer constraints        
         for tr_index in range(self.number_of_transformers):
             for i in range(self.control_horizon):
-                model.addConstr((gp.quicksum((u[j] - u[j+1])
+                model.addConstr((gp.quicksum((u[j])
                                              for index, j in enumerate(
                                                  range(i*self.nb,(i+1)*self.nb,2))
                                              if self.cs_transformers[index] == tr_index) +
@@ -266,9 +267,9 @@ class eMPC_G2V(MPC):
             a[i] = u[i].x            
 
         if self.verbose:
-            print(f'Actions:\n {a.reshape(-1,self.n_ports, 2)}')
-            print(f'CapF1:\n {cap.reshape(-1,self.n_ports, 2)}')
-
+            print(f'Actions:\n {a.reshape(-1,self.n_ports)}')
+            print(f'CapF1:\n {cap.reshape(-1,self.n_ports)}')
+            
         # build normalized actions
         actions = np.zeros(self.n_ports)        
         for i in range(self.n_ports):                        

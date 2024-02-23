@@ -3,7 +3,8 @@ This script is used to evaluate the performance of the EVsSimulator environment.
 """
 from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import PowerTrackingErrorrMin
-from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G
+from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
+from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
 
 import numpy as np
@@ -25,7 +26,7 @@ def eval():
     # config_file = "/example_config_files/BusinessPST_config.yaml"
     # # config_file = "/example_config_files/simple_config.yaml"
     # config_file = "/example_config_files/config.yaml"
-    config_file = "/example_config_files/v2g_config.yaml"
+    config_file = "/example_config_files/V2G_MPC.yaml"
     # config_file = "/example_config_files/PublicPST.yaml"
 
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
@@ -43,10 +44,13 @@ def eval():
 
     state, _ = env.reset()
 
-    agent = OCCF_V2G(env, control_horizon=25, verbose=True)
+    agent = OCCF_V2G(env, control_horizon=10, verbose=True)
+    # agent = OCCF_G2V(env, control_horizon=25, verbose=True)
+    # agent = eMPC_V2G(env, control_horizon=30, verbose=True)
+    # agent = eMPC_G2V(env, control_horizon=25, verbose=True)
     # round_robin = RoundRobin(env, verbose=False)
     # charge_as_late_as_possible = ChargeAsLateAsPossible(verbose=False)
-    charge_as_fast_as_possible = ChargeAsFastAsPossible()
+    # charge_as_fast_as_possible = ChargeAsFastAsPossible()
     rewards = []
 
     for t in range(env.simulation_length):        
@@ -56,7 +60,7 @@ def eval():
         # actions = charge_as_late_as_possible.get_action(env)
         # input("Press Enter to continue...")
         # MPC        
-        actions = agent.get_action(t=t)
+        actions = agent.get_action(env)
         # actions = mpc.get_actions_OCCF_with_Loads(t=t)
         # actions = np.random.rand(env.number_of_ports) * -2 + 1
         
@@ -76,7 +80,7 @@ def eval():
             print(f'End of simulation at step {env.current_step}')
             break
 
-    exit()
+    return
     # Solve optimally
     # Power tracker optimizer
     # math_model = PowerTrackingErrorrMin(replay_path=new_replay_path)
@@ -142,4 +146,5 @@ def eval():
 
 
 if __name__ == "__main__":
-    eval()
+    while True:
+        eval()

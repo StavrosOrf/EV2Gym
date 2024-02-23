@@ -55,10 +55,10 @@ class EV():
                  battery_capacity=50,  # kWh
                  min_battery_capacity=10,  # kWh
                  max_ac_charge_power=22,  # kW
-                 min_ac_charge_power=2,  # kW
+                 min_ac_charge_power=0,  # kW
                  max_dc_charge_power=50,  # kW
                  max_discharge_power=-22,  # kW
-                 min_discharge_power=-2,  # kW                 
+                 min_discharge_power=0,  # kW                 
                  ev_phases=3,
                  noise_level=0,
                  transition_soc=0.8,

@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 
 class MPC(ABC):
 
-    def __init__(self, env, control_horizon=10, verbose=False):
+    def __init__(self, env, control_horizon=25, verbose=False, **kwargs):
         """
         Initialize the MPC baseline.
 
@@ -50,14 +50,14 @@ class MPC(ABC):
         Pmin = env.charging_stations[0].get_min_power()
 
         # Assume all EVs have the same power intake characteristics, and can receive Pmax !!!
-        Cx0 = np.zeros(self.EV_number)  # Initial SoC conditions [kWh] for EVs
+        self.Cx0 = np.zeros(self.EV_number)  # Initial SoC conditions [kWh] for EVs
 
         # Assume all EVs have enough time to reach the final SoC !!!
-        Cxf = np.zeros(self.EV_number)  # Final SoC conditions [kWh] for EVs
+        self.Cxf = np.zeros(self.EV_number)  # Final SoC conditions [kWh] for EVs
         # Arrival time of each EV in steps
-        arrival_times = np.zeros(self.EV_number, dtype=int)
+        self.arrival_times = np.zeros(self.EV_number, dtype=int)
         # Departure time of each EV in steps
-        departure_times = np.zeros(self.EV_number, dtype=int)
+        self.departure_times = np.zeros(self.EV_number, dtype=int)
 
         # Scheduling matrix [1, 0] (if EV is connected or not)
         self.u = np.zeros(
@@ -89,36 +89,35 @@ class MPC(ABC):
                 self.min_SoC = EV.min_battery_capacity/EV.battery_capacity
 
             # Assume all EVs have the same characteristics !!!
-            Cx0[index] = EV.battery_capacity_at_arrival
-            Cxf[index] = EV.desired_capacity
-            arrival_times[index] = EV.time_of_arrival
+            self.Cx0[index] = EV.battery_capacity_at_arrival
+            self.Cxf[index] = EV.desired_capacity
+            self.arrival_times[index] = EV.time_of_arrival
 
             if EV.time_of_departure > self.simulation_length:
-                departure_times[index] = self.simulation_length
+                self.departure_times[index] = self.simulation_length
             else:
-                departure_times[index] = EV.time_of_departure
+                self.departure_times[index] = EV.time_of_departure
 
             ev_location = EV.location
-            self.u[ev_location, arrival_times[index]
-                : departure_times[index]] = 1
-            self.x_init[ev_location, arrival_times[index]: departure_times[index]] = Cx0[index]
-            self.x_final[ev_location, arrival_times[index]: departure_times[index]] = Cxf[index]
-            self.x_max_batt[ev_location, arrival_times[index]: departure_times[index]] = EV.battery_capacity
+            self.u[ev_location, self.arrival_times[index]: self.departure_times[index]] = 1
+            self.x_init[ev_location, self.arrival_times[index]                        : self.departure_times[index]] = self.Cx0[index]
+            self.x_final[ev_location, self.arrival_times[index]                         : self.departure_times[index]] = self.Cxf[index]
+            self.x_max_batt[ev_location, self.arrival_times[index]                            : self.departure_times[index]] = EV.battery_capacity
             ev_pmax = min(Pmax, EV.max_ac_charge_power)
-            self.p_max_MT[ev_location, arrival_times[index]: departure_times[index]] = ev_pmax
+            self.p_max_MT[ev_location, self.arrival_times[index]                          : self.departure_times[index]] = ev_pmax
             ev_dis_pmax = min(abs(Pmin), abs(EV.max_discharge_power))
-            self.p_max_MT_dis[ev_location, arrival_times[index]: departure_times[index]] = ev_dis_pmax
+            self.p_max_MT_dis[ev_location, self.arrival_times[index]                              : self.departure_times[index]] = ev_dis_pmax
 
             ev_pmin = max(abs(Pmin), EV.min_ac_charge_power)
             ev_pmin = 0  # formulation does not support p_min different than 0
             ev_pmin = Pmin
-            self.p_min_MT[ev_location, arrival_times[index]: departure_times[index]] = ev_pmin
+            self.p_min_MT[ev_location, self.arrival_times[index]                          : self.departure_times[index]] = ev_pmin
 
         if self.verbose:
-            print(f'Initial SoC: {Cx0}')
-            print(f'Final SoC: {Cxf}')
-            print(f'Arrival times: {arrival_times}')
-            print(f'Departure times: {departure_times}')
+            print(f'Initial SoC: {self.Cx0}')
+            print(f'Final SoC: {self.Cxf}')
+            print(f'Arrival times: {self.arrival_times}')
+            print(f'Departure times: {self.departure_times}')
             print(f'Initial conditions: {self.x_init}')
             print(f'Final conditions: {self.x_final}')
             print(f'Pmax: {self.p_max_MT}')
@@ -174,7 +173,7 @@ class MPC(ABC):
             print(f' Discharge Prices: {self.disch_prices}')
 
     @abstractmethod
-    def get_action(self, t):
+    def get_action(self, env):
         pass
 
     def update_tr_power(self, t):
@@ -189,7 +188,7 @@ class MPC(ABC):
             self.tr_pv[i, :] = np.zeros(self.control_horizon)
             self.tr_pv[i, 0] = tr.solar_power[tr.current_step]
             l = len(tr.pv_generation_forecast[tr.current_step + 1:
-                                              tr.current_step+self.control_horizon])            
+                                              tr.current_step+self.control_horizon])
             self.tr_pv[i, 1:l+1] = tr.pv_generation_forecast[tr.current_step + 1:
                                                              tr.current_step+self.control_horizon]
 
@@ -199,18 +198,6 @@ class MPC(ABC):
                                                 tr.current_step+self.control_horizon+1])
             self.tr_loads[i, 1:l+1] = tr.inflexible_load_forecast[tr.current_step + 1:
                                                                   tr.current_step+self.control_horizon]
-
-            if self.verbose:
-                print(f'tr_pv: {self.tr_pv[i, :]}'
-                    f'\ntr_power_limit: {self.tr_power_limit[i, :]}'
-                    f'\ntr_loads: {self.tr_loads[i, :]}')
-                
-            #pritn the actual tr_loads
-            
-            print(f'tr_loads: {tr.inflexible_load[tr.current_step]}')
-            print(f'tr_pv: {tr.solar_power[tr.current_step]}')
-            
-            # input("Press Enter to continue...")
 
     def recosntruct_state(self, t):
         '''
@@ -247,8 +234,8 @@ class MPC(ABC):
                 if self.u[i, j] == 0 and self.u[i, j - 1] == 1:
                     self.XF[m - self.n_ports-1] = self.x_final[i, j - 1]
                 else:
-                    self.XF[m - self.n_ports -
-                            1] = self.x_max_batt[i, j - 1] * self.min_SoC
+                    self.XF[m - self.n_ports - 1] = self.x_max_batt[i, j - 1] * \
+                        self.min_SoC
 
                 if self.u[i, j] == 1 and self.u[i, j - 1] == 1 and self.u[i, j - 2] == 0:
                     self.XF[m - self.n_ports-1] = 0
@@ -261,36 +248,35 @@ class MPC(ABC):
         '''
         This function builds the station models for the V2G problem.
         '''
-        
+
         # Station model
         self.Amono = np.dstack([np.diag(self.u[:, i])
-                           for i in range(t, t + 1 + self.control_horizon)])
+                                for i in range(t, t + 1 + self.control_horizon)])
 
         self.Bmono = np.zeros((self.n_ports, self.nb, self.control_horizon+1))
         for j in range(t, t + self.control_horizon+1):
             Bmono2 = []
             bnew = self.T * np.diag(self.u[:, j]).T
-            for i in range(self.n_ports):                
+            for i in range(self.n_ports):
                 Bmono2.append(self.ch_eff * bnew[:, i])
-                Bmono2.append(-self.disch_eff * bnew[:, i])                
+                Bmono2.append(-self.disch_eff * bnew[:, i])
             Bmono2 = np.array(Bmono2).T
             self.Bmono[:, :, j - t] = Bmono2
-            
+
     def g2v_station_models(self, t):
-        
+
         self.Amono = np.dstack([np.diag(self.u[:, i])
-                            for i in range(t, t + 1 + self.control_horizon)])
-        
+                                for i in range(t, t + 1 + self.control_horizon)])
+
         self.Bmono = self.T * np.dstack([np.diag(self.u[:, i])
-                            for i in range(t, t + 1 + self.control_horizon)])
-        
+                                         for i in range(t, t + 1 + self.control_horizon)])
 
     def calculate_InequalityConstraints(self, t):
         '''
         This function calculates the inequality constraints for the optimization problem.
         Au and bu are the inequality constraints.
         '''
-        
+
         # Complete model calculation Gu, this is the G in the paper
         self.Gu = np.zeros((self.control_horizon * self.na,
                             self.control_horizon * self.nb))
@@ -309,12 +295,12 @@ class MPC(ABC):
                             self.nb: (j+1) * self.nb] = np.dot(Abar, Bbar)
 
                 Bbar = self.Bmono[:, :, j]
-                
+
         # Inequality constraint
         self.AU = np.vstack((self.Gu, -self.Gu))
         self.bU = np.concatenate(
             (np.abs(self.XMAX - self.Gxx0), -self.XF + self.Gxx0))
-        
+
     def set_power_limits_V2G(self, t):
         '''
         This function sets the power limits for the V2G problem.
@@ -327,12 +313,12 @@ class MPC(ABC):
         self.LB = np.zeros((self.control_horizon * self.nb, 1), dtype=float)
 
         self.UB = np.array([[self.p_max_MT[j, i + t], self.p_max_MT_dis[j, i + t]]
-                       for i in range(self.control_horizon)
-                       for j in range(self.n_ports)], dtype=float)
+                            for i in range(self.control_horizon)
+                            for j in range(self.n_ports)], dtype=float)
 
         self.LB = self.LB.flatten().reshape(-1)
         self.UB = self.UB.flatten().reshape(-1)
-        
+
     def set_power_limits_G2V(self, t):
         '''
         This function sets the power limits for the G2V problem.
@@ -340,25 +326,38 @@ class MPC(ABC):
         self.LB = np.zeros((self.control_horizon * self.nb, 1), dtype=float)
 
         self.UB = np.array([self.p_max_MT[j, i + t]
-                       for i in range(self.control_horizon)
-                       for j in range(self.n_ports)],dtype=float)
+                            for i in range(self.control_horizon)
+                            for j in range(self.n_ports)], dtype=float)
 
         self.LB = self.LB.flatten().reshape(-1)
         self.UB = self.UB.flatten().reshape(-1)
-        
+
     def print_info(self, t):
         '''
         This function prints the information of the optimization problem.
         '''
         print(f'-------------------------------------------- \n t: {t}')
+        for tr in range(self.number_of_transformers):
+            print(f'tr_pv: {self.tr_pv[tr, :]}'
+            f'\ntr_power_limit: {self.tr_power_limit[tr, :]}'
+            f'\ntr_loads: {self.tr_loads[tr, :]}')       
         print(f'x_next: {self.x_next}')
         print(f'Amono: {self.Amono.shape}')
         print(f'Bmono: {self.Bmono.shape}')
         print(f'Gxx0: {self.Gxx0.shape}')
         print(f'Gu:{self.Gu.shape}')
         print(f'self.XF: {self.XF.shape}')
+        print(f'XF: {self.XF}')
         print(f'self.XMAX: {self.XMAX.shape}')
+        print(f'xmax: {self.XMAX}')
         print(f'AU: {self.AU.shape}, BU: {self.bU.shape}')
         print(f'self.LB: {self.LB.shape}')
         print(f'self.UB: {self.UB.shape} ')
-  
+        print(f'UB: {self.UB}')
+        print(f'u: {self.u[:, t:t+self.control_horizon]}')
+        print(f'Initial SoC: {self.Cx0}')
+        print(f'Final SoC: {self.Cxf}')
+        print(f'Arrival times: {self.arrival_times}')
+        print(f'Departure times: {self.departure_times}')
+        print(f'Initial conditions: {self.x_init}')
+        print(f'Final conditions: {self.x_final}')

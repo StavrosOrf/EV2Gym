@@ -14,7 +14,7 @@ from EVsSimulator.baselines.mpc.mpc import MPC
 
 class OCCF_V2G(MPC):
 
-    def __init__(self, env, control_horizon=10, verbose=False):
+    def __init__(self, env, control_horizon=10, verbose=False, **kwargs):
         """
         Initialize the MPC baseline.
 
@@ -28,11 +28,11 @@ class OCCF_V2G(MPC):
         self.na = self.n_ports
         self.nb = 2 * self.na
 
-    def get_action(self, t):
+    def get_action(self, env):
         """
         This function computes the MPC actions for the economic problem including V2G.
         """
-
+        t = env.current_step
         # update transformer limits
         self.update_tr_power(t)
 
@@ -114,12 +114,12 @@ class OCCF_V2G(MPC):
                           for j in range(1, nb*h, 2)),
                          name="constr4b")
 
-        # Add the transformer constraints        
+        # Add the transformer constraints
         for tr_index in range(self.number_of_transformers):
             for i in range(self.control_horizon):
                 model.addConstr((gp.quicksum((u[j] - u[j+1])
                                              for index, j in enumerate(
-                                                 range(i*self.nb,(i+1)*self.nb,2))
+                                                 range(i*self.nb, (i+1)*self.nb, 2))
                                              if self.cs_transformers[index] == tr_index) +
                                  self.tr_loads[tr_index, i] +
                                  self.tr_pv[tr_index, i] <=
@@ -134,11 +134,11 @@ class OCCF_V2G(MPC):
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
         # model.params.MIPGap = 0.01
-        
-        #save the model
+
+        # save the model
         model.write('model.lp')
         model.optimize()
-        
+
         if model.status != GRB.Status.OPTIMAL:
             print(f'Objective value: {model.status}')
             print("Optimal solution not found !!!!!")
@@ -178,12 +178,13 @@ class OCCF_V2G(MPC):
         # input("Press Enter to continue...")
         return actions
 
+
 class OCCF_G2V(MPC):
     '''
     This class implements the MPC for the G2V OCCF.
     '''
-    
-    def __init__(self, env, control_horizon=10, verbose=False):
+
+    def __init__(self, env, control_horizon=10, verbose=False, **kwargs):
         """
         Initialize the MPC baseline.
 
@@ -196,13 +197,12 @@ class OCCF_G2V(MPC):
 
         self.na = self.n_ports
         self.nb = self.na
-        
-        
-    def get_action(self, t):
+
+    def get_action(self, env):
         """
         This function computes the MPC actions for the economic problem including G2V.
         """
-
+        t = env.current_step
         # update transformer limits
         self.update_tr_power(t)
 
@@ -226,12 +226,11 @@ class OCCF_G2V(MPC):
         f = []
         for i in range(self.control_horizon):
             for j in range(self.n_ports):
-                f.append(self.T * self.ch_prices[t + i])                
+                f.append(self.T * self.ch_prices[t + i])
 
         f = np.array(f).reshape(-1, 1)
 
         nb = self.nb
-        n = self.n_ports
         h = self.control_horizon
 
         model = gp.Model("optimization_model")
@@ -242,7 +241,6 @@ class OCCF_G2V(MPC):
         CapF1 = model.addVars(range(nb*h),
                               vtype=GRB.CONTINUOUS,
                               name="CapF1")
-
 
         # Constraints
         model.addConstrs((gp.quicksum(self.AU[i, j] * u[j]
@@ -260,19 +258,18 @@ class OCCF_G2V(MPC):
 
         # Constraints for charging P
         model.addConstrs((CapF1[j] <= u[j]
-                          for j in range(0, nb*h, 2)), name="constr3a")
-        
+                          for j in range(nb*h)), name="constr3a")
+
         # Constraints for charging P
         model.addConstrs((u[j] <= (self.UB[j]-CapF1[j])
-                          for j in range(0, nb*h, 2)), name="constr3b")
+                          for j in range(nb*h)), name="constr3b")
 
-
-        # Add the transformer constraints        
+        # Add the transformer constraints
         for tr_index in range(self.number_of_transformers):
             for i in range(self.control_horizon):
-                model.addConstr((gp.quicksum((u[j] - u[j+1])
+                model.addConstr((gp.quicksum(u[j]
                                              for index, j in enumerate(
-                                                 range(i*self.nb,(i+1)*self.nb,2))
+                                                 range(i*self.nb, (i+1)*self.nb))
                                              if self.cs_transformers[index] == tr_index) +
                                  self.tr_loads[tr_index, i] +
                                  self.tr_pv[tr_index, i] <=
@@ -281,14 +278,15 @@ class OCCF_G2V(MPC):
 
         obj_expr = gp.LinExpr()
         for i in range(nb*h):
-            obj_expr.addTerms(f[i], u[i])            
+            obj_expr.addTerms(f[i], u[i])
+            obj_expr.addTerms(-f[i], CapF1[i])
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
         # model.params.MIPGap = 0.01
 
         model.optimize()
-        
+
         if model.status != GRB.Status.OPTIMAL:
             print(f'Objective value: {model.status}')
             print("Optimal solution not found !!!!!")
@@ -302,13 +300,13 @@ class OCCF_G2V(MPC):
             cap[i] = CapF1[i].x
 
         if self.verbose:
-            print(f'Actions:\n {a.reshape(-1,self.n_ports, 2)}')
-            print(f'CapF1:\n {cap.reshape(-1,self.n_ports, 2)}')
+            print(f'Actions:\n {a.reshape(-1,self.n_ports)}')
+            print(f'CapF1:\n {cap.reshape(-1,self.n_ports)}')
 
         # build normalized actions
-        actions = np.zeros(self.n_ports)        
-        for i in range(self.n_ports):                        
-            actions[i] = a[i]/(self.p_max_MT[i, t])            
+        actions = np.zeros(self.n_ports)
+        for i in range(self.n_ports):
+            actions[i] = a[i]/(self.p_max_MT[i, t])
 
         if self.verbose:
             print(f'actions: {actions.shape} \n {actions}')

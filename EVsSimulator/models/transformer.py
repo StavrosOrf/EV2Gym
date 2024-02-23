@@ -58,7 +58,7 @@ class Transformer():
 
         self.current_step = 0
 
-        self.inflexible_load_forecast = np.zeros(96)
+        self.inflexible_load_forecast = np.zeros(env.simulation_length)
         if env.config['inflexible_loads']['include']:
             self.normalize_inflexible_loads(env)
             self.generate_inflexible_loads_forecast(env)
@@ -72,6 +72,10 @@ class Transformer():
 
         if env.config['demand_response']['include']:
             self.dr_events = self.generate_demand_response_events(env)
+            #clip the forecast to the min and max power
+            self.inflexible_load_forecast = np.clip(self.inflexible_load_forecast,
+                                                self.min_power,
+                                                self.max_power)
         else:
             self.dr_events = []
 
@@ -245,6 +249,7 @@ class Transformer():
 
         self.current_power = self.inflexible_load[step] + \
             self.solar_power[step]
+            
         self.current_amps = (self.current_power * 1000) / 400
 
     def step(self, amps, power) -> None:

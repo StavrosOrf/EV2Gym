@@ -412,7 +412,7 @@ class EVsSimulator(gym.Env):
                 break
 
         self._update_power_statistics()
-
+        
         self.current_step += 1
         self._step_date()
 
@@ -441,13 +441,11 @@ class EVsSimulator(gym.Env):
         return self._check_termination(user_satisfaction_list, reward)
 
     def _check_termination(self, user_satisfaction_list, reward):
-        if any(tr.is_overloaded() for tr in self.transformers):
-            input("Transformer overloaded, press Enter to continue...")
             
         truncated = False
         # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
-        (any(tr.is_overloaded() for tr in self.transformers)
+        (any(tr.is_overloaded() > 0 for tr in self.transformers)
                     and not self.generate_rnd_game):
             """Terminate if:
                 - The simulation length is reached
