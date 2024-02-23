@@ -325,8 +325,8 @@ def load_ev_charger_profiles(env) -> List[EV_Charger]:
 
     else:
         if v2g_enabled:
-            max_discharge_current = -55
-            min_discharge_current = -5
+            max_discharge_current = -56
+            min_discharge_current = 0
         else:
             max_discharge_current = 0
             min_discharge_current = 0

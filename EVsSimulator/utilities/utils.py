@@ -204,7 +204,7 @@ def spawn_single_EV(env,
 
     if env.empty_ports_at_end_of_simulation:
         if time_of_stay + step + 4 >= env.simulation_length:
-            time_of_stay = env.simulation_length - step - 4 - 1
+            time_of_stay = env.simulation_length - step - 4 - 2
 
     if env.heterogeneous_specs:
         return EV(id=port,
@@ -263,7 +263,7 @@ def EV_spawner(env) -> List[EV]:
     min_time_of_stay = env.min_time_of_stay  # minutes
     min_time_of_stay_steps = min_time_of_stay // env.timescale
 
-    for t in range(1, env.simulation_length-min_time_of_stay_steps-1):
+    for t in range(2, env.simulation_length-min_time_of_stay_steps-1):
         day = time.weekday()
         hour = time.hour
         minute = time.minute
@@ -293,7 +293,9 @@ def EV_spawner(env) -> List[EV]:
         for cs in env.charging_stations:
             for port in range(cs.n_ports):
                 # if port is empty
-                if occupancy_list[counter, t] == 0 and occupancy_list[counter, t-1] == 0:
+                if occupancy_list[counter, t] == 0 and \
+                    occupancy_list[counter, t-1] == 0 and \
+                        occupancy_list[counter, t-2] == 0:
                     # and there is an EV arriving
                     if arrival_probabilities[counter, t]*100 < tau * multiplier * (env.timescale/60) * user_spawn_multiplier:
                         ev = spawn_single_EV(

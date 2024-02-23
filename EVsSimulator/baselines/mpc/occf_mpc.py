@@ -150,15 +150,7 @@ class OCCF_V2G(MPC):
 
         for i in range(nb*h):
             a[i] = u[i].x
-            cap[i] = CapF1[i].x
-
-        for i in range(n*h):
-            z_bin[i] = Zbin[i].x
-
-        # if self.verbose:
-        #     print(f'Actions:\n {a.reshape(-1,self.n_ports, 2)}')
-            # print(f'CapF1:\n {cap.reshape(-1,self.n_ports, 2)}')
-            # print(f'Zbin: {z_bin.reshape(-1,n)}')
+            # cap[i] = CapF1[i].x
 
         # build normalized actions
         actions = np.zeros(self.n_ports)

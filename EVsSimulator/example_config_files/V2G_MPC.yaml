@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 30 #90 # in steps per simulation
+simulation_length: 96 #90 # in steps per simulation
 
 ##############################################################################
 # Date:
@@ -19,7 +19,7 @@ random_day: True # True or False
 
 # Simulation Starting Time
 # Hour and minute do not change after the environment has been reset
-hour: 13 # Simulation starting hour (24 hour format)
+hour: 5 # Simulation starting hour (24 hour format)
 minute: 0 # Simulation starting minute (0-59)
 
 # Simulate weekdays, weekends, or both
@@ -33,8 +33,8 @@ discharge_price_factor: 1.2 # how many times more abs(expensive/cheaper) it is t
 ##############################################################################
 # Charging Topology
 ##############################################################################
-v2g_enabled: True # True or False
-number_of_charging_stations: 2
+v2g_enabled: False # True or False
+number_of_charging_stations: 5
 number_of_transformers: 1
 number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology,
@@ -55,13 +55,13 @@ power_setpoints_uncertainty: 20 # (in percentage +/- %)
 ##############################################################################
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 inflexible_loads:
-  include: False # True or False
+  include: True # True or False
   inflexible_loads_capacity_multiplier_mean: 0.8 # 1 is default, the higher the number the more inflexible loads
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 0 # in percentage of load at time t%
 
 solar_power:
-  include: False # True or False
+  include: True # True or False
   solar_power_capacity_multiplier_mean: 2 # 1 is default, the higher the number the more solar power
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 0 # in percentage of load at time t%

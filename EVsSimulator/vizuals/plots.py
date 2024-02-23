@@ -62,15 +62,16 @@ def ev_city_plot(env):
     plt.close('all')
     # close plt ion
     plt.ioff()
-
+    plt.close('all')
+    
     # light weight plots when there are too many charging stations
     if not env.lightweight_plots:
         # Plot the energy level of each EV for each charging station
         plt.figure(figsize=(20, 17))
-        # plt.style.use('seaborn-darkgrid')
-        plt.grid(True, which='major', axis='both')
+        # plt.style.use('seaborn-darkgrid')        
         plt.rcParams.update({'font.size': 16})
         plt.rcParams['font.family'] = ['serif']
+        
         counter = 1
         dim_x = int(np.ceil(np.sqrt(env.cs)))
         dim_y = int(np.ceil(env.cs/dim_x))
@@ -88,7 +89,7 @@ def ev_city_plot(env):
 
             for port in range(cs.n_ports):
                 for i, (t_arr, t_dep) in enumerate(env.port_arrival[f'{cs.id}.{port}']):
-
+                    t_dep = t_dep + 1
                     if t_dep > len(df):
                         t_dep = len(df)
                     # x = df.index[t_arr:t_dep]
@@ -112,7 +113,7 @@ def ev_city_plot(env):
                        labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
                        fontsize=22)
             # if len(env.port_arrival[f'{cs.id}.{port}']) < 6:
-            if dim_x < 5:
+            if dim_x < 3:
                 plt.legend()
             plt.grid(True, which='minor', axis='both')
             counter += 1
@@ -124,7 +125,8 @@ def ev_city_plot(env):
         # save in pdf format
         plt.savefig(fig_name, format='png',  # svg
                     dpi=60, bbox_inches='tight')
-
+        
+        plt.close('all')
         # Plot the charging and discharging prices
         plt.figure(figsize=(20, 17))
 

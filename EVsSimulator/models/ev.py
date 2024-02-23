@@ -63,7 +63,7 @@ class EV():
                  noise_level=0,
                  transition_soc=0.8,
                  charge_efficiency=1,
-                 discharge_efficiency=1,                 
+                 discharge_efficiency=0.99,                 
                  timescale=5,
                  ):
 
@@ -166,9 +166,15 @@ class EV():
 
         self.total_energy_exchanged += self.current_energy #* self.timescale / 60
         self.abs_total_energy_exchanged += abs(self.current_energy) #* self.timescale / 60
-
+        
+        #round up to the nearest 0.01 the current capacity
+        self.current_capacity = self.my_ceil(self.current_capacity, 2)
+        
         self.active_steps.append(1 if self.actual_current != 0 else 0)
         return self.current_energy, self.actual_current
+
+    def my_ceil(self, a, precision=2):
+        return np.true_divide(np.ceil(a * 10**precision), 10**precision)
 
     def is_departing(self, timestep) -> Union[float, None]:
         '''
@@ -322,15 +328,13 @@ class EV():
         assert (amps < 0)
 
         voltage = voltage * math.sqrt(phases)
-
+        
         given_power = (amps * voltage / 1000)
-        # print(f'given_power: {given_power} kWh, {self.current_capacity} kWh', )
-
+        
         if abs(given_power/1000) > abs(self.max_discharge_power):
             given_power = self.max_discharge_power
 
-        given_energy = given_power * self.discharge_efficiency * self.timescale / 60
-
+        given_energy = given_power * self.discharge_efficiency * self.timescale / 60        
         if self.current_capacity + given_energy < self.min_battery_capacity:
             self.current_energy = -(self.current_capacity - self.min_battery_capacity)
             given_energy = self.current_energy
@@ -339,8 +343,8 @@ class EV():
         else:
             self.current_energy = given_energy  # * 60 / self.timescale
             self.prev_capacity = self.current_capacity
-            self.current_capacity += given_energy
-
+            self.current_capacity += given_energy        
+        
         self.required_energy = self.required_energy + self.current_energy
 
         return given_energy*60/self.timescale * 1000 / voltage

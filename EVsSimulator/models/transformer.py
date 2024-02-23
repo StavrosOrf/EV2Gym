@@ -299,7 +299,10 @@ class Transformer():
     def __str__(self) -> str:
         if self.max_power_or_current_mode == 'power':
             return f'  - Transformer {self.id}:  {self.min_power[self.current_step]:.1f} / ' +\
-                f'{self.current_power:5.1f} /{self.max_power[self.current_step]:5.1f} kW' +\
+                f'{self.current_power:5.1f} (L:{self.inflexible_load[self.current_step]:5.1f},' +\
+                f' PV: {self.solar_power[self.current_step]:5.1f},' + \
+                f' EVs: {(self.current_power-self.inflexible_load[self.current_step] - self.solar_power[self.current_step]):5.1f},' + \
+                f'{self.max_power[self.current_step]:5.1f} kW' +\
                 f'\tCSs: {self.cs_ids}'
         else:
             return f'  - Transformer {self.id}:  {self.min_current[self.current_step]:.1f} / ' +\

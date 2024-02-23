@@ -233,7 +233,7 @@ class eMPC_G2V(MPC):
                           for j in range(nb*h)), name="constr3b")
 
 
-        # Add the transformer constraints        
+        #Add the transformer constraints        
         for tr_index in range(self.number_of_transformers):
             for i in range(self.control_horizon):
                 model.addConstr((gp.quicksum((u[j])
