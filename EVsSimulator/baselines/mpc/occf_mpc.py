@@ -134,10 +134,10 @@ class OCCF_V2G(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        model.params.MIPGap = 0.01
+        # model.params.MIPGap = 0.01
 
         # save the model
-        model.write('model.lp')
+        # model.write('model.lp')
         model.optimize()
 
         if model.status != GRB.Status.OPTIMAL:
@@ -279,7 +279,7 @@ class OCCF_G2V(MPC):
         model.params.NonConvex = 2
         # model.params.MIPGap = 0.01
 
-        model.write('model.lp')
+        # model.write('model.lp')
         model.optimize()
 
         if model.status != GRB.Status.OPTIMAL:

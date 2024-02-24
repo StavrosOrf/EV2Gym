@@ -158,11 +158,11 @@ for algorithm in algorithms:
                 config_file=args.config_file,
                 load_from_replay_path=replay_path,
                 generate_rnd_game=True,
-                verbose=True,
+                verbose=False,
             )
 
             state = env.reset()
-            model = algorithm(env=env, replay_path=replay_path, verbose=True)
+            model = algorithm(env=env, replay_path=replay_path, verbose=False)
 
         rewards = []
 
@@ -179,7 +179,7 @@ for algorithm in algorithms:
             else:
                 actions = model.get_action(env)
                 new_state, reward, done, _, stats = env.step(
-                    actions, visualize=True)  # takes action
+                    actions, visualize=False)  # takes action
             ############################################################
 
             rewards.append(reward)

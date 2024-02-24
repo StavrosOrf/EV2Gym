@@ -118,9 +118,9 @@ class eMPC_V2G(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        model.params.MIPGap = 0.01
+        # model.params.MIPGap = 0.01
 
-        model.write('model.lp')
+        # model.write('model.lp')
         model.optimize()
 
         if model.status != GRB.Status.OPTIMAL:
@@ -136,7 +136,9 @@ class eMPC_V2G(MPC):
 
         # build normalized actions
         actions = np.zeros(self.n_ports)
-        print(f'Actions:\n {a.reshape(-1,self.n_ports, 2)}')
+        if self.verbose:
+            print(f'Actions:\n {a.reshape(-1,self.n_ports, 2)}')
+            
         e = 0.001
         for i in range(0, 2*self.n_ports, 2):
             if a[i] > e and a[i + 1] > e:
@@ -247,9 +249,9 @@ class eMPC_G2V(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        model.params.MIPGap = 0.01
+        # model.params.MIPGap = 0.01
 
-        model.write('model.lp')
+        # model.write('model.lp')
         model.optimize()
 
         if model.status != GRB.Status.OPTIMAL:
