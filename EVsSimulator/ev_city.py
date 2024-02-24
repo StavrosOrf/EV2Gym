@@ -165,9 +165,13 @@ class EVsSimulator(gym.Env):
 
         # Instatiate Transformers
         self.transformers = load_transformers(self)
+        for tr in self.transformers:
+            tr.reset(step=0)
 
         # Instatiate Charging Stations
         self.charging_stations = load_ev_charger_profiles(self)
+        for cs in self.charging_stations:
+            cs.reset()
 
         # Calculate the total number of ports in the simulation
         self.number_of_ports = np.array(

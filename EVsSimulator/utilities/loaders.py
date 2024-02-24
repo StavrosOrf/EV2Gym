@@ -216,8 +216,6 @@ def load_transformers(env) -> List[Transformer]:
         return env.replay.transformers
 
     transformers = []
-    transformer_mode = env.config['transformer_max_power_or_current_mode']
-    assert transformer_mode in ['current', 'power']  # 'current' or 'power'
 
     if env.config['inflexible_loads']['include']:
 
@@ -249,11 +247,9 @@ def load_transformers(env) -> List[Transformer]:
             transformer = Transformer(id=i,
                                       env=env,
                                       cs_ids=cs_ids,
-                                      max_power=env.charging_network_topology[tr]['max_power'],
-                                      max_current=env.charging_network_topology[tr]['max_current'],
+                                      max_power=env.charging_network_topology[tr]['max_power'],                                      
                                       inflexible_load=inflexible_loads[i, :],
-                                      solar_power=solar_power[i, :],
-                                      max_power_or_current_mode=transformer_mode,
+                                      solar_power=solar_power[i, :],                                      
                                       simulation_length=env.simulation_length
                                       )
 
@@ -269,9 +265,9 @@ def load_transformers(env) -> List[Transformer]:
                                       env=env,
                                       cs_ids=np.where(
                                           np.array(env.cs_transformers) == i)[0],
+                                      max_power=env.config['transformer']['max_power'],
                                       inflexible_load=inflexible_loads[i, :],
-                                      solar_power=solar_power[i, :],
-                                      max_power_or_current_mode=transformer_mode,
+                                      solar_power=solar_power[i, :],                                      
                                       simulation_length=env.simulation_length
                                       )
 
@@ -325,8 +321,8 @@ def load_ev_charger_profiles(env) -> List[EV_Charger]:
 
     else:
         if v2g_enabled:
-            max_discharge_current = -56
-            min_discharge_current = 0
+            max_discharge_current = env.config['v2g_enabled']['max_discharge_current']
+            min_discharge_current = env.config['v2g_enabled']['min_discharge_current']
         else:
             max_discharge_current = 0
             min_discharge_current = 0
@@ -336,8 +332,12 @@ def load_ev_charger_profiles(env) -> List[EV_Charger]:
                                     connected_bus=0,  # env.cs_buses[i],
                                     connected_transformer=env.cs_transformers[i],
                                     n_ports=env.number_of_ports_per_cs,
+                                    max_charge_current=env.config['charging_station']['max_charge_current'],
+                                    min_charge_current=env.config['charging_station']['min_charge_current'],
                                     max_discharge_current=max_discharge_current,
                                     min_discharge_current=min_discharge_current,
+                                    phases=env.config['charging_station']['phases'],
+                                    voltage=env.config['charging_station']['voltage'],
                                     timescale=env.timescale,
                                     verbose=env.verbose,)
 

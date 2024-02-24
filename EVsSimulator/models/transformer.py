@@ -15,10 +15,8 @@ class Transformer():
 
     def __init__(self,
                  id,  # unique identifier of the transformer
-                 env,
-                 max_current=250,  # The maximum capacity of the transformer in A
-                 max_power=100,  # The maximum power of the transformer in kW
-                 max_power_or_current_mode='current',  # 'current' or 'power'
+                 env,                 
+                 max_power=100,  # The maximum power of the transformer in kW                 
                  cs_ids=[],  # the charging stations connected to the transformer
                  inflexible_load=np.zeros(96),
                  solar_power=np.zeros(96),
@@ -29,8 +27,6 @@ class Transformer():
 
         :param id: unique identifier of the transformer
         :type id: int
-        :param max_current: The maximum capacity of the transformer in A, defaults to 150
-        :type max_current: int, optional
         :param min_current: The minimum capacity of the transformer in A, defaults to 0
         :type min_current: int, optional
         :param cs_ids: the charging stations connected to the transformer, defaults to []
@@ -41,12 +37,12 @@ class Transformer():
         """
 
         self.id = id
+        max_current = max_power * 1000 / 400
         self.max_current = np.ones(simulation_length)*max_current
         self.min_current = np.ones(simulation_length) * -max_current
         self.max_power = np.ones(simulation_length)*max_power
         self.min_power = np.ones(simulation_length) * -max_power
 
-        self.max_power_or_current_mode = max_power_or_current_mode
         self.inflexible_load = inflexible_load
         self.solar_power = solar_power
 
@@ -269,15 +265,9 @@ class Transformer():
         '''
         e = 0.0001
 
-        if self.max_power_or_current_mode == 'power':
-            if self.current_power > self.max_power[self.current_step] + e \
-                    or self.current_power < self.min_power[self.current_step] - e:
-                return True
-        else:
-            if self.current_amps > self.max_current[self.current_step] + e \
-                    or self.current_amps < self.min_current[self.current_step] - e:
-
-                return True
+        if self.current_power > self.max_power[self.current_step] + e \
+                or self.current_power < self.min_power[self.current_step] - e:
+            return True
 
         return False
 
@@ -288,23 +278,16 @@ class Transformer():
         Returns:
             - a amps value if the transformer is overloaded
         '''
-        if self.is_overloaded():
-            if self.max_power_or_current_mode == 'power':
-                return np.abs(self.current_power - self.max_power[self.current_step])
-            else:
-                return np.abs(self.current_amps - self.max_current[self.current_step])
+        if self.is_overloaded():            
+            return np.abs(self.current_power - self.max_power[self.current_step])
         else:
             return 0
 
     def __str__(self) -> str:
-        if self.max_power_or_current_mode == 'power':
-            return f'  - Transformer {self.id}:  {self.min_power[self.current_step]:.1f} / ' +\
-                f'{self.current_power:5.1f} (L:{self.inflexible_load[self.current_step]:5.1f},' +\
-                f' PV: {self.solar_power[self.current_step]:5.1f},' + \
-                f' EVs: {(self.current_power-self.inflexible_load[self.current_step] - self.solar_power[self.current_step]):5.1f},' + \
-                f'{self.max_power[self.current_step]:5.1f} kW' +\
-                f'\tCSs: {self.cs_ids}'
-        else:
-            return f'  - Transformer {self.id}:  {self.min_current[self.current_step]:.1f} / ' +\
-                f'{self.current_amps:5.1f} /{self.max_current[self.current_step]:5.1f} A' +\
-                f'\tCSs: {self.cs_ids}'
+
+        return f'  - Transformer {self.id}:  {self.min_power[self.current_step]:.1f} / ' +\
+            f'{self.current_power:5.1f} (L:{self.inflexible_load[self.current_step]:5.1f},' +\
+            f' PV: {self.solar_power[self.current_step]:5.1f},' + \
+            f' EVs: {(self.current_power-self.inflexible_load[self.current_step] - self.solar_power[self.current_step]):5.1f},' + \
+            f'{self.max_power[self.current_step]:5.1f} kW' +\
+            f'\tCSs: {self.cs_ids}'

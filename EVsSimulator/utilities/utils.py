@@ -74,7 +74,7 @@ def get_statistics(env) -> Dict:
              'battery_degradation_calendar': battery_degradation_calendar,
              'battery_degradation_cycling': battery_degradation_cycling,
              }
-    
+
     if env.eval_mode != "optimal" and env.replay is not None:
         if env.replay.optimal_stats is not None:
             stats['opt_profits'] = env.replay.optimal_stats["total_profits"]
@@ -121,13 +121,9 @@ def print_statistics(env) -> None:
     print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %')
     print(
         f'  - Total Battery degradation: {battery_degradation:.5f}% | Calendar: {battery_degradation_calendar:.5f}%, Cycling: {battery_degradation_cycling:.5f}%')
+    print(
+        f'  - Total transformer overload: {total_transformer_overload:.2f} kWh \n')
 
-    if env.config['transformer_max_power_or_current_mode'] == 'power':
-        print(
-            f'  - Total transformer overload: {total_transformer_overload:.2f} kWh \n')
-    else:
-        print(
-            f'  - Total transformer overload: {total_transformer_overload:.2f} Amperes / DT \n')
     print("==============================================================\n\n")
 
 
