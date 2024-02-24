@@ -103,6 +103,7 @@ def generate_replay():
 
     return replay_path
 
+
 # Algorithms to compare:
 algorithms = [ChargeAsLateAsPossible,
               ChargeAsFastAsPossible,
@@ -115,10 +116,10 @@ algorithms = [ChargeAsLateAsPossible,
 
 algorithms = [ChargeAsFastAsPossible,
               ChargeAsLateAsPossible,
-                OCCF_V2G,
-                # OCCF_G2V,
-                # eMPC_V2G,
-                # eMPC_G2V,
+              OCCF_V2G,
+              OCCF_G2V,
+              eMPC_V2G,
+              eMPC_G2V,
               ]
 
 if not replays_exist:
@@ -287,8 +288,7 @@ for i, algorithm in enumerate(algorithms):
     ax[i].set_title(f'{algorithms[i].__name__}', fontsize=fontsize-2)
 
     if i == len(algorithms) - 1:
-
-        ax[i].set_xticks(ticks=[j for j in range(0, simulation_length,
+        ax[i].set_xticks(ticks=[j for j in range(0, simulation_length +  len(date_range_print) - 1,
                                                  math.ceil(simulation_length / len(date_range_print)))],
                          labels=[
                              f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
@@ -297,7 +297,7 @@ for i, algorithm in enumerate(algorithms):
 
         ax[i].set_xlabel('Time', fontsize=fontsize-2)
     else:
-        ax[i].set_xticks([j for j in range(0, simulation_length,
+        ax[i].set_xticks([j for j in range(0, simulation_length +  len(date_range_print) - 1,
                                            math.ceil(simulation_length / len(date_range_print)))],
                          labels=[' ' for d in date_range_print])
 

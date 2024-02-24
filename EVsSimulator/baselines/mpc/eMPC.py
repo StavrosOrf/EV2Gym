@@ -38,7 +38,8 @@ class eMPC_V2G(MPC):
         self.update_tr_power(t)
 
         # reconstruct self.x_next using the environment
-        self.recosntruct_state(t)
+        self.reconstruct_state(t)
+        self.calculate_XF_V2G(t)
 
         # Station models: Amono and Bmono
         self.v2g_station_models(t)
@@ -71,7 +72,7 @@ class eMPC_V2G(MPC):
         u = model.addVars(range(nb*h),
                           vtype=GRB.CONTINUOUS,
                           name="u")  # Power
-        
+
         # Binary for charging or discharging
         Zbin = model.addVars(range(n*h),
                              vtype=GRB.BINARY,
@@ -99,12 +100,12 @@ class eMPC_V2G(MPC):
                           for j in range(1, nb*h, 2)),
                          name="constr4b")
 
-        # Add the transformer constraints        
+        # Add the transformer constraints
         for tr_index in range(self.number_of_transformers):
             for i in range(self.control_horizon):
                 model.addConstr((gp.quicksum((u[j] - u[j+1])
                                              for index, j in enumerate(
-                                                 range(i*self.nb,(i+1)*self.nb,2))
+                                                 range(i*self.nb, (i+1)*self.nb, 2))
                                              if self.cs_transformers[index] == tr_index) +
                                  self.tr_loads[tr_index, i] +
                                  self.tr_pv[tr_index, i] <=
@@ -113,14 +114,15 @@ class eMPC_V2G(MPC):
 
         obj_expr = gp.LinExpr()
         for i in range(nb*h):
-            obj_expr.addTerms(f[i], u[i])            
+            obj_expr.addTerms(f[i], u[i])
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
         model.params.MIPGap = 0.01
-                        
+
+        model.write('model.lp')
         model.optimize()
-        
+
         if model.status != GRB.Status.OPTIMAL:
             print(f'Objective value: {model.status}')
             print("Optimal solution not found !!!!!")
@@ -151,11 +153,12 @@ class eMPC_V2G(MPC):
         # input("Press Enter to continue...")
         return actions
 
+
 class eMPC_G2V(MPC):
     '''
     This class implements the MPC for the G2V OCCF.
     '''
-    
+
     def __init__(self, env, control_horizon=10, verbose=False, **kwargs):
         """
         Initialize the MPC baseline.
@@ -169,8 +172,7 @@ class eMPC_G2V(MPC):
 
         self.na = self.n_ports
         self.nb = self.na
-        
-        
+
     def get_action(self, env):
         """
         This function computes the MPC actions for the economic problem including G2V.
@@ -180,7 +182,8 @@ class eMPC_G2V(MPC):
         self.update_tr_power(t)
 
         # reconstruct self.x_next using the environment
-        self.recosntruct_state(t)
+        self.reconstruct_state(t)
+        self.calculate_XF_G2V(t)
 
         # Station models: Amono and Bmono
         self.g2v_station_models(t)
@@ -199,7 +202,7 @@ class eMPC_G2V(MPC):
         f = []
         for i in range(self.control_horizon):
             for j in range(self.n_ports):
-                f.append(self.T * self.ch_prices[t + i])                
+                f.append(self.T * self.ch_prices[t + i])
 
         f = np.array(f).reshape(-1, 1)
 
@@ -212,28 +215,26 @@ class eMPC_G2V(MPC):
                           vtype=GRB.CONTINUOUS,
                           name="u")  # Power
 
-
         # Constraints
         model.addConstrs((gp.quicksum(self.AU[i, j] * u[j]
                                       for j in range(nb*h))
                           <= self.bU[i]
-                          for i in range(nb*h)), name="constr1")  # Constraint with prediction model
+                          for i in range(2 * n *h)), name="constr1")
 
         # Constraints for charging P
         model.addConstrs((0 <= u[j]
                           for j in range(nb*h)), name="constr3a")
-        
+
         # Constraints for charging P
         model.addConstrs((u[j] <= self.UB[j]
                           for j in range(nb*h)), name="constr3b")
 
-
-        #Add the transformer constraints        
+# Add the transformer constraints
         for tr_index in range(self.number_of_transformers):
             for i in range(self.control_horizon):
-                model.addConstr((gp.quicksum((u[j])
+                model.addConstr((gp.quicksum(u[j]
                                              for index, j in enumerate(
-                                                 range(i*self.nb,(i+1)*self.nb,2))
+                                                 range(i*self.nb, (i+1)*self.nb))
                                              if self.cs_transformers[index] == tr_index) +
                                  self.tr_loads[tr_index, i] +
                                  self.tr_pv[tr_index, i] <=
@@ -242,14 +243,15 @@ class eMPC_G2V(MPC):
 
         obj_expr = gp.LinExpr()
         for i in range(nb*h):
-            obj_expr.addTerms(f[i], u[i])            
+            obj_expr.addTerms(f[i], u[i])
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        # model.params.MIPGap = 0.01
+        model.params.MIPGap = 0.01
 
+        model.write('model.lp')
         model.optimize()
-        
+
         if model.status != GRB.Status.OPTIMAL:
             print(f'Objective value: {model.status}')
             print("Optimal solution not found !!!!!")
@@ -259,18 +261,18 @@ class eMPC_G2V(MPC):
         cap = np.zeros((nb*h, 1))
 
         for i in range(self.n_ports):
-            a[i] = u[i].x            
+            a[i] = u[i].x
 
         if self.verbose:
             print(f'Actions:\n {a.reshape(-1,self.n_ports)}')
             print(f'CapF1:\n {cap.reshape(-1,self.n_ports)}')
-            
+
         # build normalized actions
-        actions = np.zeros(self.n_ports)        
-        for i in range(self.n_ports):                        
-            actions[i] = a[i]/self.max_ch_power[i//2]            
+        actions = np.zeros(self.n_ports)
+        for i in range(self.n_ports):
+            actions[i] = a[i]/self.max_ch_power[i//2]
 
         if self.verbose:
             print(f'actions: {actions.shape} \n {actions}')
-
+        # input("Press Enter to continue...")
         return actions

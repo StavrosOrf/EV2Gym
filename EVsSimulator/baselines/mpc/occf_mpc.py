@@ -37,7 +37,8 @@ class OCCF_V2G(MPC):
         self.update_tr_power(t)
 
         # reconstruct self.x_next using the environment
-        self.recosntruct_state(t)
+        self.reconstruct_state(t)
+        self.calculate_XF_V2G(t)
 
         # Station models: Amono and Bmono
         self.v2g_station_models(t)
@@ -199,7 +200,8 @@ class OCCF_G2V(MPC):
         self.update_tr_power(t)
 
         # reconstruct self.x_next using the environment
-        self.recosntruct_state(t)
+        self.reconstruct_state(t)
+        self.calculate_XF_G2V(t)
 
         # Station models: Amono and Bmono
         self.g2v_station_models(t)
@@ -238,15 +240,15 @@ class OCCF_G2V(MPC):
         model.addConstrs((gp.quicksum(self.AU[i, j] * u[j]
                                       for j in range(nb*h))
                           <= self.bU[i]
-                          for i in range(nb*h)), name="constr1")  # Constraint with prediction model
+                          for i in range(2 * nb *h)), name="constr1")  # Constraint with prediction model
 
         # Add the lower bound constraints
-        model.addConstrs(
-            (0 <= CapF1[i] for i in range(nb*h)), name="constr2a")
+        model.addConstrs((0 <= CapF1[i]
+                          for i in range(nb*h)), name="constr2a")
 
         # Add the upper bound constraints
-        model.addConstrs(
-            (CapF1[i] <= self.UB[i] for i in range(nb*h)), name="constr2b")
+        model.addConstrs((CapF1[i] <= self.UB[i]
+                          for i in range(nb*h)), name="constr2b")
 
         # Constraints for charging P
         model.addConstrs((CapF1[j] <= u[j]
@@ -277,6 +279,7 @@ class OCCF_G2V(MPC):
         model.params.NonConvex = 2
         # model.params.MIPGap = 0.01
 
+        model.write('model.lp')
         model.optimize()
 
         if model.status != GRB.Status.OPTIMAL:
@@ -285,21 +288,22 @@ class OCCF_G2V(MPC):
             exit()
 
         a = np.zeros((nb*h, 1))
-        cap = np.zeros((nb*h, 1))
+        # cap = np.zeros((nb*h, 1))
 
-        for i in range(nb*h):
+        for i in range(self.n_ports):
             a[i] = u[i].x
-            cap[i] = CapF1[i].x
+            # cap[i] = CapF1[i].x
 
         if self.verbose:
             print(f'Actions:\n {a.reshape(-1,self.n_ports)}')
-            print(f'CapF1:\n {cap.reshape(-1,self.n_ports)}')
+            # print(f'CapF1:\n {cap.reshape(-1,self.n_ports)}')
 
         # build normalized actions
         actions = np.zeros(self.n_ports)
         for i in range(self.n_ports):
-            actions[i] = a[i]/ self.max_ch_power[i//2]
+            actions[i] = a[i] / self.max_ch_power[i//2]
         if self.verbose:
             print(f'actions: {actions.shape} \n {actions}')
 
+        # input("Press Enter to continue...")
         return actions

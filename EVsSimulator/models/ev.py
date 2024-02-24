@@ -63,7 +63,7 @@ class EV():
                  noise_level=0,
                  transition_soc=0.8,
                  charge_efficiency=1,
-                 discharge_efficiency=0.99,                 
+                 discharge_efficiency=1,                 
                  timescale=5,
                  ):
 

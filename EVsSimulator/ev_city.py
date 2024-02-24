@@ -242,6 +242,9 @@ class EVsSimulator(gym.Env):
         # Reset all charging stations
         for cs in self.charging_stations:
             cs.reset()
+            
+        for tr in self.transformers:
+            tr.reset(step=self.current_step)
 
         if self.load_from_replay_path is not None or not self.config['random_day']:
             self.sim_date = self.sim_starting_date
@@ -443,11 +446,7 @@ class EVsSimulator(gym.Env):
         return self._check_termination(user_satisfaction_list, reward)
 
     def _check_termination(self, user_satisfaction_list, reward):
-        
-        # if any(tr.is_overloaded()  for tr in self.transformers):
-        if sum(tr.get_how_overloaded() for tr in self.transformers) > 0.1:                
-            input("Transformer overloaded, press Enter to continue...")
-
+        '''Checks if the episode is done or any constraint is violated'''
         truncated = False
         # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
