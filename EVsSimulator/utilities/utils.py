@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import datetime
-from scipy.signal import savgol_filter
 from typing import List, Dict
 
 from EVsSimulator.models.ev import EV
@@ -168,12 +167,15 @@ def spawn_single_EV(env,
             list(env.ev_specs.keys()), p=env.normalized_ev_registrations)
         battery_capacity = env.ev_specs[sampled_ev]["battery_capacity"]
     else:
-        battery_capacity = 50
+        battery_capacity = env.config["ev"]["battery_capacity"]
 
     if battery_capacity < required_energy:
         initial_battery_capacity = np.random.randint(1, battery_capacity)
     else:
         initial_battery_capacity = battery_capacity - required_energy
+
+    if initial_battery_capacity < env.config["ev"]['min_battery_capacity']:
+        initial_battery_capacity = env.config["ev"]['min_battery_capacity']
 
     # time of stay dependent on time of arrival
     time_of_stay_mean = env.df_time_of_stay_vs_arrival[(
@@ -226,12 +228,20 @@ def spawn_single_EV(env,
                   location=cs_id,
                   battery_capacity_at_arrival=initial_battery_capacity,
                   battery_capacity=battery_capacity,
-                  desired_capacity=0.8*battery_capacity,
+                  desired_capacity=env.config["ev"]['desired_capacity'],
+                  max_ac_charge_power=env.config["ev"]['max_ac_charge_power'],
+                  min_ac_charge_power=env.config["ev"]['min_ac_charge_power'],
+                  max_dc_charge_power=env.config["ev"]['max_dc_charge_power'],                  
+                  max_discharge_power=env.config["ev"]['max_discharge_power'],
+                  min_discharge_power=env.config["ev"]['min_discharge_power'],
                   time_of_arrival=step+1,
                   time_of_departure=int(
                       time_of_stay + step + 3),
-                  ev_phases=3,
-                  transition_soc=0.9999,
+                  ev_phases=env.config["ev"]['ev_phases'],
+                  transition_soc=env.config["ev"]['transition_soc'],
+                  charge_efficiency=env.config["ev"]['charge_efficiency'],
+                  discharge_efficiency=env.config["ev"]['discharge_efficiency'],
+                  
                   timescale=env.timescale,
                   )
 
@@ -256,7 +266,7 @@ def EV_spawner(env) -> List[EV]:
     time = env.sim_date
 
     # Define minimum time of stay duration so that an EV can fully charge
-    min_time_of_stay = env.min_time_of_stay  # minutes
+    min_time_of_stay = env.config['ev']["min_time_of_stay"]
     min_time_of_stay_steps = min_time_of_stay // env.timescale
 
     for t in range(2, env.simulation_length-min_time_of_stay_steps-1):
@@ -434,8 +444,6 @@ def generate_power_setpoints(env) -> np.ndarray:
     # return smooth_vector(power_setpoints)
 
     return median_smoothing(power_setpoints, 5)
-
-    # return savgol_filter(power_setpoints, window_length=5, polyorder=2)
 
 
 def calculate_charge_power_potential(env) -> float:

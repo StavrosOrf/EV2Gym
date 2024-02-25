@@ -49,8 +49,7 @@ class EV():
                  location,
                  battery_capacity_at_arrival,
                  time_of_arrival,
-                 time_of_departure,
-                 use_probabilistic_time_of_departure=False,
+                 time_of_departure,                 
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
                  min_battery_capacity=10,  # kWh
@@ -73,8 +72,7 @@ class EV():
 
         # EV simulation characteristics
         self.time_of_arrival = time_of_arrival
-        self.time_of_departure = time_of_departure
-        self.use_probabilistic_time_of_departure = use_probabilistic_time_of_departure
+        self.time_of_departure = time_of_departure        
         self.desired_capacity = battery_capacity if desired_capacity is None else desired_capacity
         self.battery_capacity_at_arrival = battery_capacity_at_arrival  # kWh
 
@@ -167,14 +165,14 @@ class EV():
         self.total_energy_exchanged += self.current_energy #* self.timescale / 60
         self.abs_total_energy_exchanged += abs(self.current_energy) #* self.timescale / 60
         
-        #round up to the nearest 0.01 the current capacity
-        self.current_capacity = self.my_ceil(self.current_capacity, 2)
+        # #round up to the nearest 0.01 the current capacity
+        # self.current_capacity = self.my_ceil(self.current_capacity, 2)
         
         self.active_steps.append(1 if self.actual_current != 0 else 0)
         return self.current_energy, self.actual_current
 
-    def my_ceil(self, a, precision=2):
-        return np.true_divide(np.ceil(a * 10**precision), 10**precision)
+    # def my_ceil(self, a, precision=2):
+    #     return np.true_divide(np.ceil(a * 10**precision), 10**precision)
 
     def is_departing(self, timestep) -> Union[float, None]:
         '''
@@ -187,13 +185,7 @@ class EV():
         if timestep < self.time_of_departure:
             return None
 
-        if self.use_probabilistic_time_of_departure:
-            raise NotImplementedError
-            if np.random.poisson(lam=2.0) < timestep - self.time_of_departure:
-                return self.get_user_satisfaction()
-        else:
-            # if timestep >= self.time_of_departure:
-            return self.get_user_satisfaction()
+        return self.get_user_satisfaction()
 
     def get_user_satisfaction(self) -> float:
         '''

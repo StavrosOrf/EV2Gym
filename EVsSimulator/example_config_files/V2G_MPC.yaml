@@ -41,7 +41,6 @@ v2g_enabled: True # True or False
 number_of_charging_stations: 1
 number_of_transformers: 1
 number_of_ports_per_cs: 1
-
 # Provide path if you want to load a specific charging topology,
 # else write None for a randomized one with the above parameters
 charging_network_topology: None #./config_files/charging_topology_10.json
@@ -63,6 +62,7 @@ inflexible_loads:
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 0 # in percentage of load at time t%
 
+# PV solar Power
 solar_power:
   include: True # True or False
   solar_power_capacity_multiplier_mean: 2 # 1 is default, the higher the number the more solar power
@@ -95,11 +95,11 @@ heterogeneous_ev_specs: False #if False, each EV has the same specifications
 # These values are used if not using a charging network topology file or 
 # if the EV specifications are not provided
 
-# Transformer model
+# Default Transformer model
 transformer:
   max_power: 100 # in kW
 
-# Charging Station model
+# Default Charging Station model
 charging_station:  
   min_charge_current: 0 # Amperes
   max_charge_current: 56 # Amperes
@@ -107,7 +107,19 @@ charging_station:
   max_discharge_current: -56 # Amperes
   voltage: 230 # Volts
   phases: 3 # 1,2, or 3
-
-# EV model
+   
+# Default EV model
 ev:
-
+  battery_capacity: 50 # in kWh
+  min_battery_capacity: 10 # in kWh
+  desired_capacity: 40 # in kWh
+  max_ac_charge_power: 22 # in kW
+  min_ac_charge_power: 0 # in kW
+  max_dc_charge_power: 50 # in kW
+  max_discharge_power: -22 # in kW
+  min_discharge_power: 0 # in kW
+  ev_phases: 3
+  transition_soc: 1 # 0-1 (0% - 100%)
+  charge_efficiency: 1 # 0-1 (0% - 100%)
+  discharge_efficiency: 1 # 0-1 (0% - 100%)
+  min_time_of_stay: 120 # in minutes

@@ -6,7 +6,7 @@
             "charger_1": {
                 "id": 0,                
                 "min_charge_current": 8,
-                "max_charge_current": 55,
+                "max_charge_current": 56,
                 "min_discharge_current": 0,
                 "max_discharge_current": 0,
                 "voltage": 230,
@@ -17,7 +17,7 @@
             "charger_2": {
                 "id": 1,                
                 "min_charge_current": 8,
-                "max_charge_current": 55,
+                "max_charge_current": 56,
                 "min_discharge_current": 0,
                 "max_discharge_current": 0,
                 "voltage": 230,
@@ -28,7 +28,7 @@
             "charger_3": {
                 "id": 2,                
                 "min_charge_current": 8,
-                "max_charge_current": 55,
+                "max_charge_current": 56,
                 "min_discharge_current": 0,
                 "max_discharge_current": 0,
                 "voltage": 230,
@@ -39,7 +39,7 @@
             "charger_4": {
                 "id": 3,                
                 "min_charge_current": 8,
-                "max_charge_current": 55,
+                "max_charge_current": 56,
                 "min_discharge_current": 0,
                 "max_discharge_current": 0,
                 "voltage": 230,
@@ -57,7 +57,7 @@
             "charger_1": {
                 "id": 4,                
                 "min_charge_current": 8,
-                "max_charge_current": 55,
+                "max_charge_current": 56,
                 "min_discharge_current": 0,
                 "max_discharge_current": 0,
                 "voltage": 230,
@@ -68,7 +68,7 @@
             "charger_2": {
                 "id": 5,                
                 "min_charge_current": 8,
-                "max_charge_current": 55,
+                "max_charge_current": 56,
                 "min_discharge_current": 0,
                 "max_discharge_current": 0,
                 "voltage": 230,
