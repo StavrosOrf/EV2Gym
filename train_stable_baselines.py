@@ -25,8 +25,8 @@ if __name__ == "__main__":
     parser.add_argument('--device', type=str, default="cuda:0")
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
-                        default="EVsSimulator/example_config_files/V2GProfitMax.yaml")
-    # default="EVsSimulator/example_config_files/PublicPST.yaml")
+                        # default="EVsSimulator/example_config_files/V2GProfitMax.yaml")
+    default="EVsSimulator/example_config_files/PublicPST.yaml")
 
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     else:
         raise ValueError("Unknown algorithm")
 
-    model.learn(total_timesteps=2_000_000,
+    model.learn(total_timesteps=200_000,
                 progress_bar=True,
                 callback=[
                     WandbCallback(

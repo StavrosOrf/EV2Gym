@@ -14,7 +14,7 @@ year: 2022 # 2015-2023
 month: 1 # 1-12
 day: 17 # 1-31
 # Whether to get a random date every time the environment is reset
-random_day: True # True or False
+random_day: False # True or False
 
 
 # Simulation Starting Time

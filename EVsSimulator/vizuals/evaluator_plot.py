@@ -140,7 +140,6 @@ def plot_total_power(results_path):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                fancybox=True, shadow=True, ncol=3, fontsize=24)    
             
-            
     plt.grid(True, which='minor', axis='both')
     
     fig_name = f'results/evaluator_{env.sim_name}/Transformer_Aggregated_Power.png'

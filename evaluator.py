@@ -62,7 +62,7 @@ try:
     replays_exist = True
 
 except:
-    n_test_cycles = 5  # args.n_test_cycles
+    n_test_cycles = args.n_test_cycles
     replays_exist = False
 
 
@@ -206,6 +206,7 @@ for algorithm in algorithms:
                                           'average_user_satisfaction': stats['average_user_satisfaction'],
                                           'power_tracker_violation': stats['power_tracker_violation'],
                                           'tracking_error': stats['tracking_error'],
+                                          'actual_tracking_error': stats['actual_tracking_error'],
                                           'energy_user_satisfaction': stats['energy_user_satisfaction'],
                                           'total_transformer_overload': stats['total_transformer_overload'],
                                           'battery_degradation': stats['battery_degradation'],
@@ -220,9 +221,8 @@ for algorithm in algorithms:
 
                 if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                     env = env.get_attr('env')[0]                    
-                    plot_results_dict[algorithm.__name__] = deepcopy(env)                   
-                else:
-                    plot_results_dict[algorithm.__name__] = deepcopy(env)                   
+                
+                plot_results_dict[algorithm.__name__] = deepcopy(env)                   
 
                 break
 
