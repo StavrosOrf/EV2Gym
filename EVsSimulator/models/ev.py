@@ -58,8 +58,7 @@ class EV():
                  max_dc_charge_power=50,  # kW
                  max_discharge_power=-22,  # kW
                  min_discharge_power=0,  # kW                 
-                 ev_phases=3,
-                 noise_level=0,
+                 ev_phases=3,                 
                  transition_soc=0.8,
                  charge_efficiency=1,
                  discharge_efficiency=1,                 
@@ -84,8 +83,7 @@ class EV():
         self.max_discharge_power = max_discharge_power  # kW
         self.min_discharge_power = min_discharge_power  # kW
         self.max_dc_charge_power = max_dc_charge_power  # kW
-        self.transition_soc = transition_soc
-        self.noise_level = noise_level
+        self.transition_soc = transition_soc        
         self.ev_phases = ev_phases
 
         self.charge_efficiency = charge_efficiency
@@ -165,14 +163,14 @@ class EV():
         self.total_energy_exchanged += self.current_energy #* self.timescale / 60
         self.abs_total_energy_exchanged += abs(self.current_energy) #* self.timescale / 60
         
-        # #round up to the nearest 0.01 the current capacity
-        # self.current_capacity = self.my_ceil(self.current_capacity, 2)
+        #round up to the nearest 0.01 the current capacity
+        self.current_capacity = self.my_ceil(self.current_capacity, 2)
         
         self.active_steps.append(1 if self.actual_current != 0 else 0)
         return self.current_energy, self.actual_current
 
-    # def my_ceil(self, a, precision=2):
-    #     return np.true_divide(np.ceil(a * 10**precision), 10**precision)
+    def my_ceil(self, a, precision=2):
+        return np.true_divide(np.ceil(a * 10**precision), 10**precision)
 
     def is_departing(self, timestep) -> Union[float, None]:
         '''
@@ -268,38 +266,36 @@ class EV():
         if pilot_dsoc > max_dsoc:
             pilot_dsoc = max_dsoc
 
-        # The pilot SoC rate of change has a new transition SoC at
-        # which decreasing of max charging rate occurs.
-        pilot_transition_soc = self.transition_soc + (
-            pilot_dsoc - max_dsoc
-        ) / max_dsoc * (self.transition_soc - 1)
-
-        # The charging equation depends on whether the current SoC of
-        # the battery is above or below the new transition SoC.
-        if self.get_soc() < pilot_transition_soc:
-            # In the pre-rampdown region, the charging equation changes
-            # depending on whether charging the battery over this
-            # time period causes the battery to transition between
-            # charging regions.
-            if 1 <= (pilot_transition_soc - self.get_soc()) / pilot_dsoc:
-                curr_soc = pilot_dsoc + self.get_soc()
-            else:
-                curr_soc = 1 + np.exp(
-                    (pilot_dsoc + self.get_soc() - pilot_transition_soc)
-                    / (pilot_transition_soc - 1)
-                ) * (pilot_transition_soc - 1)
+        if self.transition_soc == 1:
+            curr_soc = pilot_dsoc + self.get_soc()
+            if curr_soc > 1:
+                curr_soc = 1
+        
         else:
-            curr_soc = 1 + np.exp(pilot_dsoc / (pilot_transition_soc - 1)) * (
-                self.get_soc() - 1
-            )
+            # The pilot SoC rate of change has a new transition SoC at
+            # which decreasing of max charging rate occurs.
+            pilot_transition_soc = self.transition_soc + (
+                pilot_dsoc - max_dsoc
+            ) / max_dsoc * (self.transition_soc - 1)
 
-        # Add subtractive noise to the final SoC, scaling the noise
-        # such that _noise_level is the standard deviation of the noise
-        # in the battery charging power.
-        if self.noise_level > 0:
-            raw_noise = np.random.normal(0, self.noise_level)
-            scaled_noise = raw_noise * (period / 60) / self.battery_capacity
-            curr_soc -= abs(scaled_noise)
+            # The charging equation depends on whether the current SoC of
+            # the battery is above or below the new transition SoC.
+            if self.get_soc() < pilot_transition_soc:
+                # In the pre-rampdown region, the charging equation changes
+                # depending on whether charging the battery over this
+                # time period causes the battery to transition between
+                # charging regions.
+                if 1 <= (pilot_transition_soc - self.get_soc()) / pilot_dsoc:
+                    curr_soc = pilot_dsoc + self.get_soc()
+                else:
+                    curr_soc = 1 + np.exp(
+                        (pilot_dsoc + self.get_soc() - pilot_transition_soc)
+                        / (pilot_transition_soc - 1)
+                    ) * (pilot_transition_soc - 1)
+            else:
+                curr_soc = 1 + np.exp(pilot_dsoc / (pilot_transition_soc - 1)) * (
+                    self.get_soc() - 1
+                )
 
         dsoc = curr_soc - self.get_soc()
         self.prev_capacity = self.current_capacity

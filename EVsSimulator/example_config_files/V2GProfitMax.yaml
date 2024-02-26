@@ -4,10 +4,10 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 85 # in steps per simulation
+simulation_length: 25 #90 # in steps per simulation
 
 ##############################################################################
-# Date:
+# Date and Time
 ##############################################################################
 # Year, month, 
 year: 2022 # 2015-2023
@@ -25,13 +25,17 @@ minute: 0 # Simulation starting minute (0-59)
 # Simulate weekdays, weekends, or both
 simulation_days: weekdays # weekdays, weekends, or both
 
+# EV Spawn Behavior
+scenario: workplace # public, private, or workplace
+spawn_multiplier: 100 # 1 is default, the higher the number the more EVs spawn
+
 ##############################################################################
 # Prices
 ##############################################################################
 discharge_price_factor: 1.2 # how many times more abs(expensive/cheaper) it is to discharge than to charge
 
 ##############################################################################
-# Charging Topology
+# Charging Network
 ##############################################################################
 v2g_enabled: True # True or False
 number_of_charging_stations: 10
@@ -44,8 +48,6 @@ charging_network_topology: None #./config_files/charging_topology_10.json
 ##############################################################################
 # Power Setpoints Settings
 ##############################################################################
-# Whether to have the transformer limits in power or current
-transformer_max_power_or_current_mode: power # power or current
 # How much the power setpoints can vary in percentage compared to the nominal power
 # The higher the number the easier it is to meet the power setpoints, the opposite for negative numbers
 power_setpoints_uncertainty: 20 # (in percentage +/- %)
@@ -55,20 +57,21 @@ power_setpoints_uncertainty: 20 # (in percentage +/- %)
 ##############################################################################
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 inflexible_loads:
-  include: False # True or False
-  inflexible_loads_capacity_multiplier_mean: 1.3 # 1 is default, the higher the number the more inflexible loads
+  include: True # True or False
+  inflexible_loads_capacity_multiplier_mean: 0.8 # 1 is default, the higher the number the more inflexible loads
   forecast_mean: 100 # in percentage of load at time t%
-  forecast_std: 5 # in percentage of load at time t%
+  forecast_std: 0 # in percentage of load at time t%
 
+# PV solar Power
 solar_power:
-  include: False # True or False
-  solar_power_capacity_multiplier_mean: 4 # 1 is default, the higher the number the more solar power
+  include: True # True or False
+  solar_power_capacity_multiplier_mean: 2 # 1 is default, the higher the number the more solar power
   forecast_mean: 100 # in percentage of load at time t%
-  forecast_std: 5 # in percentage of load at time t%
+  forecast_std: 0 # in percentage of load at time t%
 
 # Whether to include demand response in the transformer power limit
 demand_response:
-  include: False # True or False
+  include: True # True or False
   events_per_day: 1
   #How much of the transformer power limit can be used for demand response
   event_capacity_percentage_mean: 25 # (in percentage +/- %)
@@ -83,9 +86,40 @@ demand_response:
 ##############################################################################
 # EV Specifications
 ##############################################################################
-heterogeneous_ev_specs: False #if False, each EV has its own specifications
+heterogeneous_ev_specs: False #if False, each EV has the same specifications
 # such as battery capacity, charging rate, etc.
 
-# EV Spawn Behavior
-scenario: workplace # public, private, or workplace
-spawn_multiplier: 10 # 1 is default, the higher the number the more EVs spawn
+##############################################################################
+# Default Model values
+##############################################################################
+# These values are used if not using a charging network topology file or 
+# if the EV specifications are not provided
+
+# Default Transformer model
+transformer:
+  max_power: 100 # in kW
+
+# Default Charging Station model
+charging_station:  
+  min_charge_current: 0 # Amperes
+  max_charge_current: 56 # Amperes
+  min_discharge_current: 0 # Amperes
+  max_discharge_current: -56 # Amperes
+  voltage: 230 # Volts
+  phases: 3 # 1,2, or 3
+   
+# Default EV model
+ev:
+  battery_capacity: 50 # in kWh
+  min_battery_capacity: 10 # in kWh
+  desired_capacity: 40 # in kWh
+  max_ac_charge_power: 22 # in kW
+  min_ac_charge_power: 0 # in kW
+  max_dc_charge_power: 50 # in kW
+  max_discharge_power: -22 # in kW
+  min_discharge_power: 0 # in kW
+  ev_phases: 3
+  transition_soc: 1 # 0-1 (0% - 100%)
+  charge_efficiency: 1 # 0-1 (0% - 100%)
+  discharge_efficiency: 1 # 0-1 (0% - 100%)
+  min_time_of_stay: 120 # in minutes

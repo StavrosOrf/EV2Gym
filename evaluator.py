@@ -3,6 +3,7 @@
 import yaml
 import os
 import pickle
+from copy import deepcopy
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,6 +15,7 @@ from EVsSimulator.utilities.arg_parser import arg_parser
 from EVsSimulator import ev_city
 
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
+from EVsSimulator.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
 
 from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
 from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
@@ -25,7 +27,6 @@ from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import Pow
 
 from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
 from EVsSimulator.rl_agent.reward import profit_maximization
-
 
 from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
 
@@ -51,9 +52,7 @@ eval_replay_path = f'./replay/{number_of_charging_stations}cs_{n_transformers}tr
 try:
     eval_replay_files = [f for f in os.listdir(
         eval_replay_path) if os.path.isfile(os.path.join(eval_replay_path, f))]
-    # assert len(
-    #     eval_replay_files) > 0, "No replay files found in evaluation replay folder"
-
+    
     print(f'Found {len(eval_replay_files)} replay files in {eval_replay_path}')
     if n_test_cycles > len(eval_replay_files):
         n_test_cycles = len(eval_replay_files)
@@ -114,8 +113,7 @@ algorithms = [ChargeAsLateAsPossible,
               TD3,
               PowerTrackingErrorrMin,]
 
-algorithms = [ChargeAsFastAsPossible,
-              ChargeAsLateAsPossible,
+algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,              
               OCCF_V2G,
               OCCF_G2V,
               eMPC_V2G,
@@ -125,6 +123,7 @@ algorithms = [ChargeAsFastAsPossible,
 if not replays_exist:
     eval_replay_files = [generate_replay() for _ in range(n_test_cycles)]
 
+plot_results_dict = {}
 counter = 0
 for algorithm in algorithms:
 
@@ -209,9 +208,21 @@ for algorithm in algorithms:
                 if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                     power_usage = env.get_attr('previous_power_usage')[0]
                     power_setpoints = env.get_attr('power_setpoints')[0]
+                    
+                    plot_results_dict[algorithm.__name__] = deepcopy(env)
+                    
                 else:
                     power_usage = env.current_power_usage
                     power_setpoints = env.power_setpoints
+                    
+                    
+                    plot_results_dict[algorithm.__name__] = deepcopy(env)
+                    # tr_solar_power = env.tr_solar_power                    
+                    # tr_inflexible_loads = env.tr_inflexible_loads                    
+                    # cs_power = env.cs_power                    
+                    # port_energy_level = env.port_energy_level
+                    # port_arrival = env.port_arrival
+                    
 
                 results_i = {f'Step_{j}': power_usage[j]
                              for j in range(simulation_length)}
@@ -238,6 +249,10 @@ for algorithm in algorithms:
 
                 break
 
+# save the plot_results_dict to a pickle file
+with open('plot_results_dict.pkl', 'wb') as f:
+    pickle.dump(plot_results_dict, f)
+
 # save the results to a csv file
 # results.to_csv('results.csv')
 # results_to_draw.to_csv('results_to_draw.csv')
@@ -245,15 +260,17 @@ for algorithm in algorithms:
 
 # Group the results by algorithm and print the average and the standard deviation of the statistics
 results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
-# replace Nan with 0
-results_grouped = results_grouped.fillna(0)
+# # replace Nan with 0
+# results_grouped = results_grouped.fillna(0)
 
 # print the main statistics in a latex table
 # print(results_grouped.to_latex())
 
 
 print(results_grouped)
-# results_grouped.to_csv('results_grouped.csv')
+results_grouped.to_csv('results_grouped.csv')
+
+exit()
 
 # plot the power usage and the power_setpoints vs time in vetical subplots for the last replay for every algorithm for one run
 

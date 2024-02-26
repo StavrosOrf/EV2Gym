@@ -11,7 +11,7 @@ class RoundRobin():
     And it assumes all chargers have the same number of ports
     '''
 
-    def __init__(self, env,verbose=False,  **kwargs):
+    def __init__(self, env, verbose=False,  **kwargs):
 
         self.verbose = verbose
         self.env = env
@@ -28,7 +28,7 @@ class RoundRobin():
 
     def get_env(self):
         return self.env
-    
+
     def update_ev_buffer(self, env) -> None:
         '''
         This function updates the EV buffer list with the EVs that are currently parked by adding or removing them.
@@ -107,7 +107,7 @@ class ChargeAsLateAsPossible():
         '''
         This function updates the EV buffer list with the EVs that are currently parked by adding or removing them.
         '''
-        ev_buffer = []  
+        ev_buffer = []
         counter = 0
         # iterate over all ports
         for cs in env.charging_stations:
@@ -115,7 +115,7 @@ class ChargeAsLateAsPossible():
                 if cs.evs_connected[port] is not None:
 
                     cs_max_power = cs.max_charge_current * \
-                        cs.voltage * math.sqrt(cs.phases) /1000
+                        cs.voltage * math.sqrt(cs.phases) / 1000
                     # find minimum steps required to charge the EV
                     min_steps = math.ceil((1 - cs.evs_connected[port].get_soc())
                                           / (cs_max_power * env.timescale/60 / cs.evs_connected[port].battery_capacity))
@@ -123,17 +123,16 @@ class ChargeAsLateAsPossible():
                     start_of_charging_step = cs.evs_connected[port].time_of_departure - min_steps
                     if cs.evs_connected[port].get_soc() < 1 and start_of_charging_step <= env.current_step:
                         ev_buffer.append(counter)
-                        
+
                 counter += 1
-        
+
         return ev_buffer
 
     def get_action(self, env) -> np.ndarray:
 
         # this function returns the action list based on the round robin algorithm
 
-  
-        ev_buffer = self.update_ev_buffer(env)         
+        ev_buffer = self.update_ev_buffer(env)
         # create action list
         action_list = np.zeros(env.number_of_ports)
 
@@ -142,18 +141,56 @@ class ChargeAsLateAsPossible():
             action_list[ev] = 1
 
         return action_list
-    
+
+
 class ChargeAsFastAsPossible():
     '''
     This class contains the Charge As Fast As Possible heuristic algorithm.
     '''
+
     def __init__(self, verbose=False, **kwargs):
         self.verbose = verbose
-    
+
     def get_action(self, env) -> np.ndarray:
         '''
         This function returns the action list based on the charge as fast as possible algorithm.
         '''
         action_list = np.ones(env.number_of_ports)
-        return action_list    
-        
+        return action_list
+
+
+class ChargeAsFastAsPossibleToDesiredCapacity():
+    '''
+    This class contains the Charge As Fast As Possible heuristic algorithm.
+    '''
+
+    def __init__(self, verbose=False, **kwargs):
+        self.verbose = verbose
+
+    def get_action(self, env) -> np.ndarray:
+        '''
+        This function returns the action list based on the charge as fast as possible algorithm.
+        It charges the EVs up to their desired capacity.
+        Desired capacity can be different than the maximum capacity of the battery.
+        '''
+        action_list = np.zeros(env.number_of_ports)
+
+        counter = 0
+        for i, cs in enumerate(env.charging_stations):
+            for port in range(cs.n_ports):
+                if cs.evs_connected[port] is not None:
+                    max_power_to_charge_cs = cs.get_max_power()
+                    max_power_to_charge = min(
+                        max_power_to_charge_cs, cs.evs_connected[port].max_ac_charge_power)
+
+                    max_energy_to_charge = max_power_to_charge * env.timescale/60
+                    if cs.evs_connected[port].current_capacity + max_energy_to_charge < cs.evs_connected[port].desired_capacity:
+                        action_list[counter] = 1
+                    else:
+                        action_list[counter] = ((cs.evs_connected[port].desired_capacity -
+                                                cs.evs_connected[port].current_capacity) *
+                                                60 / env.timescale) / max_power_to_charge_cs
+
+                counter += 1
+
+        return action_list

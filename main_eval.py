@@ -6,6 +6,9 @@ from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import Pow
 from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
 from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
+from EVsSimulator.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
+
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -46,11 +49,12 @@ def eval():
 
     # agent = OCCF_V2G(env, control_horizon=30, verbose=True)
     # agent = OCCF_G2V(env, control_horizon=25, verbose=True)
-    # agent = eMPC_V2G(env, control_horizon=15, verbose=True)
-    agent = eMPC_G2V(env, control_horizon=15, verbose=True)
+    agent = eMPC_V2G(env, control_horizon=15, verbose=True)
+    # agent = eMPC_G2V(env, control_horizon=15, verbose=True)
     # round_robin = RoundRobin(env, verbose=False)
     # charge_as_late_as_possible = ChargeAsLateAsPossible(verbose=False)
     # charge_as_fast_as_possible = ChargeAsFastAsPossible()
+    # agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 
     for t in range(env.simulation_length):        

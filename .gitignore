@@ -175,3 +175,5 @@ logs/
 eval_logs/
 results/
 models/
+plot_results_dict.pkl
+results_grouped.csv
