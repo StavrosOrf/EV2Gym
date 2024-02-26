@@ -22,12 +22,13 @@ def PublicPST(env, *args):
     # else:
     #     setpoint = 0       
     if env.current_step < env.simulation_length:  
-        setpoint = env.power_setpoints[env.current_step:env.current_step+10]
+        # setpoint = env.power_setpoints[env.current_step:env.current_step+10]
+        setpoint = env.power_setpoints[env.current_step]
     else:
-        setpoint = np.zeros(10)
+        setpoint = np.zeros((1))
         
-    if len(setpoint) < 10:
-        setpoint = np.append(setpoint, np.zeros(10-len(setpoint)))
+    # if len(setpoint) < 10:
+    #     setpoint = np.append(setpoint, np.zeros(10-len(setpoint)))
     
     state.append(setpoint)
     state.append(env.current_power_usage[env.current_step-1])

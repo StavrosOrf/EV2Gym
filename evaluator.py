@@ -6,7 +6,6 @@ import pickle
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import datetime
 import math
 
@@ -96,7 +95,7 @@ for algorithm in algorithms:
             env = gym.make('evs-v0')
 
             load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
-                f"{algorithm.__name__}_SquaredTrackingErrorReward_PublicPST"
+                f"{algorithm.__name__.lower()}_SquaredTrackingErrorReward_PublicPST"
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
         else:
