@@ -275,10 +275,10 @@ class EVsSimulator(gym.Env):
                 while self.sim_date.weekday() < 5:
                     self.sim_date += datetime.timedelta(days=1)
 
-            self.sim_starting_date = self.sim_date
-            self.EVs_profiles = load_ev_profiles(self)
-            self.power_setpoints = load_power_setpoints(self)
-            self.EVs = []
+        self.sim_starting_date = self.sim_date
+        self.EVs_profiles = load_ev_profiles(self)
+        self.power_setpoints = load_power_setpoints(self)
+        self.EVs = []
 
         # print(f'Simulation starting date: {self.sim_date}')
 
