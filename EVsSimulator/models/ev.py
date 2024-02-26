@@ -49,17 +49,16 @@ class EV():
                  location,
                  battery_capacity_at_arrival,
                  time_of_arrival,
-                 time_of_departure,
-                 use_probabilistic_time_of_departure=False,
+                 time_of_departure,                 
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
+                 min_battery_capacity=10,  # kWh
                  max_ac_charge_power=22,  # kW
-                 min_ac_charge_power=2,  # kW
+                 min_ac_charge_power=0,  # kW
                  max_dc_charge_power=50,  # kW
                  max_discharge_power=-22,  # kW
-                 min_discharge_power=-2,  # kW
-                 ev_phases=3,
-                 noise_level=0,
+                 min_discharge_power=0,  # kW                 
+                 ev_phases=3,                 
                  transition_soc=0.8,
                  charge_efficiency=1,
                  discharge_efficiency=1,                 
@@ -72,20 +71,19 @@ class EV():
 
         # EV simulation characteristics
         self.time_of_arrival = time_of_arrival
-        self.time_of_departure = time_of_departure
-        self.use_probabilistic_time_of_departure = use_probabilistic_time_of_departure
+        self.time_of_departure = time_of_departure        
         self.desired_capacity = battery_capacity if desired_capacity is None else desired_capacity
         self.battery_capacity_at_arrival = battery_capacity_at_arrival  # kWh
 
         # EV technical characteristics
         self.battery_capacity = battery_capacity  # kWh
+        self.min_battery_capacity = min_battery_capacity  # kWh
         self.max_ac_charge_power = max_ac_charge_power  # kW
         self.min_ac_charge_power = min_ac_charge_power  # kW
         self.max_discharge_power = max_discharge_power  # kW
         self.min_discharge_power = min_discharge_power  # kW
         self.max_dc_charge_power = max_dc_charge_power  # kW
-        self.transition_soc = transition_soc
-        self.noise_level = noise_level
+        self.transition_soc = transition_soc        
         self.ev_phases = ev_phases
 
         self.charge_efficiency = charge_efficiency
@@ -164,9 +162,15 @@ class EV():
 
         self.total_energy_exchanged += self.current_energy #* self.timescale / 60
         self.abs_total_energy_exchanged += abs(self.current_energy) #* self.timescale / 60
-
+        
+        #round up to the nearest 0.01 the current capacity
+        self.current_capacity = self.my_ceil(self.current_capacity, 2)
+        
         self.active_steps.append(1 if self.actual_current != 0 else 0)
         return self.current_energy, self.actual_current
+
+    def my_ceil(self, a, precision=2):
+        return np.true_divide(np.ceil(a * 10**precision), 10**precision)
 
     def is_departing(self, timestep) -> Union[float, None]:
         '''
@@ -179,13 +183,7 @@ class EV():
         if timestep < self.time_of_departure:
             return None
 
-        if self.use_probabilistic_time_of_departure:
-            raise NotImplementedError
-            if np.random.poisson(lam=2.0) < timestep - self.time_of_departure:
-                return self.get_user_satisfaction()
-        else:
-            # if timestep >= self.time_of_departure:
-            return self.get_user_satisfaction()
+        return self.get_user_satisfaction()
 
     def get_user_satisfaction(self) -> float:
         '''
@@ -268,38 +266,36 @@ class EV():
         if pilot_dsoc > max_dsoc:
             pilot_dsoc = max_dsoc
 
-        # The pilot SoC rate of change has a new transition SoC at
-        # which decreasing of max charging rate occurs.
-        pilot_transition_soc = self.transition_soc + (
-            pilot_dsoc - max_dsoc
-        ) / max_dsoc * (self.transition_soc - 1)
-
-        # The charging equation depends on whether the current SoC of
-        # the battery is above or below the new transition SoC.
-        if self.get_soc() < pilot_transition_soc:
-            # In the pre-rampdown region, the charging equation changes
-            # depending on whether charging the battery over this
-            # time period causes the battery to transition between
-            # charging regions.
-            if 1 <= (pilot_transition_soc - self.get_soc()) / pilot_dsoc:
-                curr_soc = pilot_dsoc + self.get_soc()
-            else:
-                curr_soc = 1 + np.exp(
-                    (pilot_dsoc + self.get_soc() - pilot_transition_soc)
-                    / (pilot_transition_soc - 1)
-                ) * (pilot_transition_soc - 1)
+        if self.transition_soc == 1:
+            curr_soc = pilot_dsoc + self.get_soc()
+            if curr_soc > 1:
+                curr_soc = 1
+        
         else:
-            curr_soc = 1 + np.exp(pilot_dsoc / (pilot_transition_soc - 1)) * (
-                self.get_soc() - 1
-            )
+            # The pilot SoC rate of change has a new transition SoC at
+            # which decreasing of max charging rate occurs.
+            pilot_transition_soc = self.transition_soc + (
+                pilot_dsoc - max_dsoc
+            ) / max_dsoc * (self.transition_soc - 1)
 
-        # Add subtractive noise to the final SoC, scaling the noise
-        # such that _noise_level is the standard deviation of the noise
-        # in the battery charging power.
-        if self.noise_level > 0:
-            raw_noise = np.random.normal(0, self.noise_level)
-            scaled_noise = raw_noise * (period / 60) / self.battery_capacity
-            curr_soc -= abs(scaled_noise)
+            # The charging equation depends on whether the current SoC of
+            # the battery is above or below the new transition SoC.
+            if self.get_soc() < pilot_transition_soc:
+                # In the pre-rampdown region, the charging equation changes
+                # depending on whether charging the battery over this
+                # time period causes the battery to transition between
+                # charging regions.
+                if 1 <= (pilot_transition_soc - self.get_soc()) / pilot_dsoc:
+                    curr_soc = pilot_dsoc + self.get_soc()
+                else:
+                    curr_soc = 1 + np.exp(
+                        (pilot_dsoc + self.get_soc() - pilot_transition_soc)
+                        / (pilot_transition_soc - 1)
+                    ) * (pilot_transition_soc - 1)
+            else:
+                curr_soc = 1 + np.exp(pilot_dsoc / (pilot_transition_soc - 1)) * (
+                    self.get_soc() - 1
+                )
 
         dsoc = curr_soc - self.get_soc()
         self.prev_capacity = self.current_capacity
@@ -320,24 +316,23 @@ class EV():
         assert (amps < 0)
 
         voltage = voltage * math.sqrt(phases)
-
+        
         given_power = (amps * voltage / 1000)
-        # print(f'given_power: {given_power} kWh, {self.current_capacity} kWh', )
-
+        
         if abs(given_power/1000) > abs(self.max_discharge_power):
             given_power = self.max_discharge_power
 
-        given_energy = given_power * self.discharge_efficiency * self.timescale / 60
-
-        if self.current_capacity + given_energy < 0:
-            self.current_energy = -self.current_capacity  # * 60 / self.timescale
+        given_energy = given_power * self.discharge_efficiency * self.timescale / 60        
+        if self.current_capacity + given_energy < self.min_battery_capacity:
+            self.current_energy = -(self.current_capacity - self.min_battery_capacity)
+            given_energy = self.current_energy
             self.prev_capacity = self.current_capacity
-            self.current_capacity = 0
+            self.current_capacity = self.min_battery_capacity
         else:
             self.current_energy = given_energy  # * 60 / self.timescale
             self.prev_capacity = self.current_capacity
-            self.current_capacity += given_energy
-
+            self.current_capacity += given_energy        
+        
         self.required_energy = self.required_energy + self.current_energy
 
         return given_energy*60/self.timescale * 1000 / voltage

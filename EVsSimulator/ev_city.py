@@ -59,8 +59,7 @@ class EVsSimulator(gym.Env):
         # read yaml config file
         assert config_file is not None, "Please provide a config file!!!"
         self.config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
-
-        self.min_time_of_stay = 120  # minimum time of stay in minutes
+        
         self.generate_rnd_game = generate_rnd_game
         self.load_from_replay_path = load_from_replay_path
         self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
@@ -165,9 +164,13 @@ class EVsSimulator(gym.Env):
 
         # Instatiate Transformers
         self.transformers = load_transformers(self)
+        for tr in self.transformers:
+            tr.reset(step=0)
 
         # Instatiate Charging Stations
         self.charging_stations = load_ev_charger_profiles(self)
+        for cs in self.charging_stations:
+            cs.reset()
 
         # Calculate the total number of ports in the simulation
         self.number_of_ports = np.array(
@@ -205,8 +208,8 @@ class EVsSimulator(gym.Env):
 
         if self.save_plots:
             os.makedirs("./plots", exist_ok=True)
-            print(f"Creating directory: ./plots/{self.sim_name}")
-            os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
+            print(f"Creating directory: ./results/{self.sim_name}")
+            os.makedirs(f"./results/{self.sim_name}", exist_ok=True)
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         high = np.ones([self.number_of_ports])
@@ -242,8 +245,11 @@ class EVsSimulator(gym.Env):
         # Reset all charging stations
         for cs in self.charging_stations:
             cs.reset()
+            
+        for tr in self.transformers:
+            tr.reset(step=self.current_step)
 
-        if self.load_from_replay_path is not None:
+        if self.load_from_replay_path is not None or not self.config['random_day']:
             self.sim_date = self.sim_starting_date
         else:
             # select random date in range
@@ -269,7 +275,6 @@ class EVsSimulator(gym.Env):
                 while self.sim_date.weekday() < 5:
                     self.sim_date += datetime.timedelta(days=1)
 
-
             self.sim_starting_date = self.sim_date
             self.EVs_profiles = load_ev_profiles(self)
             self.power_setpoints = load_power_setpoints(self)
@@ -284,20 +289,6 @@ class EVsSimulator(gym.Env):
 
         return self._get_observation(), {}
 
-    def _calculate_ev_load_curve(self):
-        '''This function calculates the load curve of the EVs in the simulation'''
-        for i in range(self.simulation_length):
-            # all ports are charging instantly
-            actions = np.ones(self.number_of_ports)
-
-            new_state, reward, done, _ = self.step(
-                actions, visualize=False)  # takes action
-
-            # input("Press Enter to continue...")
-
-            if done and i < self.simulation_length-1:
-                return
-
     def init_statistic_variables(self):
         self.current_step = 0
         self.total_evs_spawned = 0
@@ -308,7 +299,7 @@ class EVsSimulator(gym.Env):
 
         self.previous_power_usage = self.current_power_usage
         self.current_power_usage = np.zeros(self.simulation_length)
-        
+
         # self.transformer_amps = np.zeros([self.number_of_transformers,
         #                                   self.simulation_length])
 
@@ -372,6 +363,7 @@ class EVsSimulator(gym.Env):
         total_costs = 0
         total_invalid_action_punishment = 0
         user_satisfaction_list = []
+        departing_evs = []
 
         self.current_ev_departed = 0
         self.current_ev_arrived = 0
@@ -385,10 +377,12 @@ class EVsSimulator(gym.Env):
         # Call step for each charging station and spawn EVs where necessary
         for i, cs in enumerate(self.charging_stations):
             n_ports = cs.n_ports
-            costs, user_satisfaction, invalid_action_punishment = cs.step(
+            costs, user_satisfaction, invalid_action_punishment, ev = cs.step(
                 actions[port_counter:port_counter + n_ports],
                 self.charge_prices[cs.id, self.current_step],
                 self.discharge_prices[cs.id, self.current_step])
+
+            departing_evs += ev
 
             for u in user_satisfaction:
                 user_satisfaction_list.append(u)
@@ -416,7 +410,7 @@ class EVsSimulator(gym.Env):
 
                 if not self.lightweight_plots:
                     self.port_arrival[f'{ev.location}.{index}'].append(
-                        (self.current_step+1, ev.time_of_departure))
+                        (self.current_step+1, ev.time_of_departure+1))
 
                 self.total_evs_spawned += 1
                 self.current_ev_arrived += 1
@@ -425,7 +419,7 @@ class EVsSimulator(gym.Env):
             elif ev.time_of_arrival > self.current_step + 1:
                 break
 
-        self._update_power_statistics()
+        self._update_power_statistics(departing_evs)
 
         self.current_step += 1
         self._step_date()
@@ -455,12 +449,12 @@ class EVsSimulator(gym.Env):
         return self._check_termination(user_satisfaction_list, reward)
 
     def _check_termination(self, user_satisfaction_list, reward):
-
+        '''Checks if the episode is done or any constraint is violated'''
         truncated = False
         # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
-        (any(tr.is_overloaded() for tr in self.transformers)
-                    and not self.generate_rnd_game):
+            (any(tr.is_overloaded() > 0 for tr in self.transformers)
+             and not self.generate_rnd_game):
             """Terminate if:
                 - The simulation length is reached
                 - Any user satisfaction score is below the threshold
@@ -505,7 +499,7 @@ class EVsSimulator(gym.Env):
 
         return replay.replay_path
 
-    def _update_power_statistics(self):
+    def _update_power_statistics(self, departing_evs):
         '''Updates the power statistics of the simulation'''
 
         # if not self.lightweight_plots:
@@ -516,24 +510,32 @@ class EVsSimulator(gym.Env):
             self.tr_inflexible_loads[tr.id,
                                      self.current_step] = tr.inflexible_load[self.current_step]
             self.tr_solar_power[tr.id,
-                                 self.current_step] = tr.solar_power[self.current_step]
+                                self.current_step] = tr.solar_power[self.current_step]
 
         for cs in self.charging_stations:
             self.cs_power[cs.id, self.current_step] = cs.current_power_output
             self.cs_current[cs.id, self.current_step] = cs.current_total_amps
 
             for port in range(cs.n_ports):
+                if not self.lightweight_plots:
+                    self.port_current_signal[port, cs.id,
+                                             self.current_step] = cs.current_signal[port]
                 ev = cs.evs_connected[port]
                 if ev is not None and not self.lightweight_plots:
                     # self.port_power[port, cs.id,
                     #                 self.current_step] = ev.current_energy
                     self.port_current[port, cs.id,
                                       self.current_step] = ev.actual_current
-                    self.port_current_signal[port, cs.id,
-                                             self.current_step] = cs.current_signal[port]
 
                     self.port_energy_level[port, cs.id,
                                            self.current_step] = ev.current_capacity/ev.battery_capacity
+
+            for ev in departing_evs:
+                if not self.lightweight_plots:
+                    self.port_energy_level[ev.id, ev.location, self.current_step] = \
+                        ev.current_capacity/ev.battery_capacity
+                    self.port_current[ev.id, ev.location,
+                                      self.current_step] = ev.actual_current
 
     def _step_date(self):
         '''Steps the simulation date by one timestep'''

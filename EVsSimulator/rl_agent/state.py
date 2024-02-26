@@ -129,8 +129,7 @@ def BusinessPSTwithMoreKnowledge(env, *args):
         state.append(env.power_setpoints[env.current_step-1]/100)
         state.append(env.charge_power_potential[env.current_step-1]/100)
 
-    for tr in env.transformers:
-        state.append(tr.max_current/100)
+    for tr in env.transformers:        
         for cs in env.charging_stations:
             if cs.connected_transformer == tr.id:
                 for EV in cs.evs_connected:

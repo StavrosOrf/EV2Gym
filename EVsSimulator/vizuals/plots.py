@@ -48,7 +48,7 @@ def ev_city_plot(env):
         - The energy level of each EV in charging stations
         - The total power of the CPO
     '''
-    print("Plotting simulation data at ./plots/" + env.sim_name + "/")
+    print("Plotting simulation data at ./results/" + env.sim_name + "/")
 
     date_range = pd.date_range(start=env.sim_starting_date,
                                end=env.sim_starting_date +
@@ -62,15 +62,16 @@ def ev_city_plot(env):
     plt.close('all')
     # close plt ion
     plt.ioff()
-
+    plt.close('all')
+    
     # light weight plots when there are too many charging stations
     if not env.lightweight_plots:
         # Plot the energy level of each EV for each charging station
         plt.figure(figsize=(20, 17))
-        # plt.style.use('seaborn-darkgrid')
-        plt.grid(True, which='major', axis='both')
+        # plt.style.use('seaborn-darkgrid')        
         plt.rcParams.update({'font.size': 16})
         plt.rcParams['font.family'] = ['serif']
+        
         counter = 1
         dim_x = int(np.ceil(np.sqrt(env.cs)))
         dim_y = int(np.ceil(env.cs/dim_x))
@@ -88,7 +89,7 @@ def ev_city_plot(env):
 
             for port in range(cs.n_ports):
                 for i, (t_arr, t_dep) in enumerate(env.port_arrival[f'{cs.id}.{port}']):
-
+                    t_dep = t_dep + 1
                     if t_dep > len(df):
                         t_dep = len(df)
                     # x = df.index[t_arr:t_dep]
@@ -112,19 +113,20 @@ def ev_city_plot(env):
                        labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
                        fontsize=22)
             # if len(env.port_arrival[f'{cs.id}.{port}']) < 6:
-            if dim_x < 5:
+            if dim_x < 3:
                 plt.legend()
             plt.grid(True, which='minor', axis='both')
             counter += 1
 
         plt.tight_layout()
         # Save plt to html
-        fig_name = f'plots/{env.sim_name}/EV_Energy_Level.png'  # .html
+        fig_name = f'results/{env.sim_name}/EV_Energy_Level.png'  # .html
         # plt.show()
         # save in pdf format
         plt.savefig(fig_name, format='png',  # svg
                     dpi=60, bbox_inches='tight')
-
+        
+        plt.close('all')
         # Plot the charging and discharging prices
         plt.figure(figsize=(20, 17))
 
@@ -144,7 +146,7 @@ def ev_city_plot(env):
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
                    fontsize=22)
         plt.tight_layout()
-        fig_name = f'plots/{env.sim_name}/Prices.png'
+        fig_name = f'results/{env.sim_name}/Prices.png'
         plt.savefig(fig_name, format='png',
                     dpi=60, bbox_inches='tight')
 
@@ -158,9 +160,19 @@ def ev_city_plot(env):
             plt.subplot(dim_x, dim_y, counter)
             df = pd.DataFrame([],
                               index=date_range)
+            
+            colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+1))
 
             if env.config['inflexible_loads']['include']:
                 df['inflexible'] = env.tr_inflexible_loads[tr.id, :] * 1000 / 400
+                blue = np.array([0.529, 0.808, 0.922, 1])                
+                colors = np.insert(colors, 0, blue, axis=0)
+                
+            if env.config['solar_power']['include']:
+                df['solar'] = env.tr_solar_power[tr.id, :] * 1000 / 400
+                gold = np.array([1, 0.843, 0, 1])
+                colors = np.insert(colors, 0, gold, axis=0)
+                
 
             for cs in tr.cs_ids:
                 df[cs] = env.cs_current[cs, :]
@@ -170,7 +182,7 @@ def ev_city_plot(env):
             df_pos[df_pos <= 0] = 0
             df_neg = df.copy()
             df_neg[df_neg > 0] = 0
-            colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+1))
+            
 
             # Add another row with one datetime step to make the plot look better
             df_pos.loc[df_pos.index[-1] +
@@ -226,7 +238,7 @@ def ev_city_plot(env):
 
         plt.tight_layout()
         # plt.show()
-        fig_name = f'plots/{env.sim_name}/Transformer_Current.png'
+        fig_name = f'results/{env.sim_name}/Transformer_Current.png'
         plt.savefig(fig_name, format='png',
                     dpi=60, bbox_inches='tight')
 
@@ -308,7 +320,7 @@ def ev_city_plot(env):
                        fontsize=24)
             # place the legend under each plot
 
-            if dim_x < 5:
+            if dim_x < 3:
                 plt.legend([f'Port {i}' for i in range(
                     cs.n_ports)] + ['Max. Current',
                                     'Actual Current',
@@ -320,7 +332,7 @@ def ev_city_plot(env):
 
         plt.tight_layout()
         # Save plt to html
-        fig_name = f'plots/{env.sim_name}/CS_Current_signals.png'
+        fig_name = f'results/{env.sim_name}/CS_Current_signals.png'
         plt.savefig(fig_name, format='png', dpi=60, bbox_inches='tight')
 
     plt.close('all')
@@ -465,7 +477,7 @@ def ev_city_plot(env):
 
     if len(env.transformers) < 10:
         plt.tight_layout()
-        fig_name = f'plots/{env.sim_name}/Transformer_Aggregated_Power.png'
+        fig_name = f'results/{env.sim_name}/Transformer_Aggregated_Power.png'
         plt.savefig(fig_name, format='png',
                     dpi=60, bbox_inches='tight')
     else:
@@ -559,7 +571,7 @@ def ev_city_plot(env):
 
     plt.tight_layout()
     # plt.show()
-    fig_name = f'plots/{env.sim_name}/Total_Aggregated_Power.png'
+    fig_name = f'results/{env.sim_name}/Total_Aggregated_Power.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
@@ -570,7 +582,7 @@ def ev_city_plot(env):
     # plt.legend()
     # plt.grid(True, which='minor', axis='both')
     # plt.tight_layout()
-    # fig_name = f'plots/{env.sim_name}/Prices.png'
+    # fig_name = f'results/{env.sim_name}/Prices.png'
     # plt.savefig(fig_name, format='png',
     #             dpi=60, bbox_inches='tight')
 
