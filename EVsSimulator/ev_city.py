@@ -208,8 +208,8 @@ class EVsSimulator(gym.Env):
 
         if self.save_plots:
             os.makedirs("./plots", exist_ok=True)
-            print(f"Creating directory: ./plots/{self.sim_name}")
-            os.makedirs(f"./plots/{self.sim_name}", exist_ok=True)
+            print(f"Creating directory: ./results/{self.sim_name}")
+            os.makedirs(f"./results/{self.sim_name}", exist_ok=True)
 
         # Action space: is a vector of size "Sum of all ports of all charging stations"
         high = np.ones([self.number_of_ports])

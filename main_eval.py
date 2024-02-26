@@ -145,7 +145,7 @@ def eval():
         plt.title('Reward per time step')
 
         plt.tight_layout()
-        plt.savefig(f'plots/{env.sim_name}/RewardsComparison.html',
+        plt.savefig(f'results/{env.sim_name}/RewardsComparison.html',
                     format='svg', dpi=600, bbox_inches='tight')
 
 

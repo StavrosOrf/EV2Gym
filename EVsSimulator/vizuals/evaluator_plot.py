@@ -143,7 +143,7 @@ def plot_total_power(results_path):
             
     plt.grid(True, which='minor', axis='both')
     
-    fig_name = f'plots/evaluator_{env.sim_name}/Transformer_Aggregated_Power.png'
+    fig_name = f'results/evaluator_{env.sim_name}/Transformer_Aggregated_Power.png'
     # plt.savefig(fig_name, format='png',
     #             dpi=60, bbox_inches='tight')
     
@@ -178,7 +178,7 @@ def plot_comparable_EV_SoC(results_path):
         counter = 1
         dim_x = int(np.ceil(np.sqrt(env.cs)))
         dim_y = int(np.ceil(env.cs/dim_x))
-        for cs in env.charging_stations[0]:
+        for cs in env.charging_stations:
 
             plt.subplot(dim_x, dim_y, counter)
             df = pd.DataFrame([], index=date_range)
@@ -206,13 +206,8 @@ def plot_comparable_EV_SoC(results_path):
                              where='post',
                              color=color_list[index],
                              marker=marker_list[index],
-                             )
-                    # plt.fill_between(df.index,
-                    #                  y,
-                    #                  step='post',
-                    #                  alpha=0.7,
-                    #                  label=f'EV {i}, Port {port}')
-
+                             label=algorithm_names[index])
+                             
             
             plt.title(f'Charging Station {cs.id + 1}', fontsize=24)
             # plt.xlabel(f'Time', fontsize=24)
@@ -224,17 +219,24 @@ def plot_comparable_EV_SoC(results_path):
                     fontsize=22)
             counter += 1
             
-    plt.legend(algorithm_names, loc='upper center', bbox_to_anchor=(1, -0.15),
+    plt.legend(loc='upper center', bbox_to_anchor=(1.1, -0.15),
                 fancybox=True, shadow=True, ncol=5, fontsize=24)
+    
     plt.grid(True, which='minor', axis='both')    
             
-    fig_name = f'plots/evaluator_{env.sim_name}/EV_Energy_Level.png'
+    fig_name = f'results/evaluator_{env.sim_name}/EV_Energy_Level.png'
     plt.show()
-    
-    
 
+
+def plot_actual_power_vs_setpoint(save_path):
+    '''
+    This function is used to plot the actual power vs the setpoint power    
+    '''
+    
+    
+    
 if __name__ == "__main__":
 
-    # plot_total_power(results_path='plot_results_dict.pkl')
-    plot_comparable_EV_SoC(results_path='plot_results_dict.pkl')
+    plot_total_power(results_path='plot_results_dict.pkl')
+    # plot_comparable_EV_SoC(results_path='plot_results_dict.pkl')
     pass

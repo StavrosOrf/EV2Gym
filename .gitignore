@@ -164,7 +164,7 @@ wandb/
 *.lp
 *.mps
 replay/
-plots/
+results/
 model.lp
 vscode/
 .vscode/settings.json

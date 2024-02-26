@@ -48,7 +48,7 @@ def ev_city_plot(env):
         - The energy level of each EV in charging stations
         - The total power of the CPO
     '''
-    print("Plotting simulation data at ./plots/" + env.sim_name + "/")
+    print("Plotting simulation data at ./results/" + env.sim_name + "/")
 
     date_range = pd.date_range(start=env.sim_starting_date,
                                end=env.sim_starting_date +
@@ -120,7 +120,7 @@ def ev_city_plot(env):
 
         plt.tight_layout()
         # Save plt to html
-        fig_name = f'plots/{env.sim_name}/EV_Energy_Level.png'  # .html
+        fig_name = f'results/{env.sim_name}/EV_Energy_Level.png'  # .html
         # plt.show()
         # save in pdf format
         plt.savefig(fig_name, format='png',  # svg
@@ -146,7 +146,7 @@ def ev_city_plot(env):
                    labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
                    fontsize=22)
         plt.tight_layout()
-        fig_name = f'plots/{env.sim_name}/Prices.png'
+        fig_name = f'results/{env.sim_name}/Prices.png'
         plt.savefig(fig_name, format='png',
                     dpi=60, bbox_inches='tight')
 
@@ -238,7 +238,7 @@ def ev_city_plot(env):
 
         plt.tight_layout()
         # plt.show()
-        fig_name = f'plots/{env.sim_name}/Transformer_Current.png'
+        fig_name = f'results/{env.sim_name}/Transformer_Current.png'
         plt.savefig(fig_name, format='png',
                     dpi=60, bbox_inches='tight')
 
@@ -332,7 +332,7 @@ def ev_city_plot(env):
 
         plt.tight_layout()
         # Save plt to html
-        fig_name = f'plots/{env.sim_name}/CS_Current_signals.png'
+        fig_name = f'results/{env.sim_name}/CS_Current_signals.png'
         plt.savefig(fig_name, format='png', dpi=60, bbox_inches='tight')
 
     plt.close('all')
@@ -477,7 +477,7 @@ def ev_city_plot(env):
 
     if len(env.transformers) < 10:
         plt.tight_layout()
-        fig_name = f'plots/{env.sim_name}/Transformer_Aggregated_Power.png'
+        fig_name = f'results/{env.sim_name}/Transformer_Aggregated_Power.png'
         plt.savefig(fig_name, format='png',
                     dpi=60, bbox_inches='tight')
     else:
@@ -571,7 +571,7 @@ def ev_city_plot(env):
 
     plt.tight_layout()
     # plt.show()
-    fig_name = f'plots/{env.sim_name}/Total_Aggregated_Power.png'
+    fig_name = f'results/{env.sim_name}/Total_Aggregated_Power.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
@@ -582,7 +582,7 @@ def ev_city_plot(env):
     # plt.legend()
     # plt.grid(True, which='minor', axis='both')
     # plt.tight_layout()
-    # fig_name = f'plots/{env.sim_name}/Prices.png'
+    # fig_name = f'results/{env.sim_name}/Prices.png'
     # plt.savefig(fig_name, format='png',
     #             dpi=60, bbox_inches='tight')
 

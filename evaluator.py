@@ -62,7 +62,7 @@ try:
     replays_exist = True
 
 except:
-    n_test_cycles = 1  # args.n_test_cycles
+    n_test_cycles = 5  # args.n_test_cycles
     replays_exist = False
 
 
@@ -104,21 +104,32 @@ def generate_replay():
 
 
 # Algorithms to compare:
-algorithms = [ChargeAsLateAsPossible,
+algorithms = [
+            #     ChargeAsLateAsPossible,
               ChargeAsFastAsPossible,
-              RoundRobin,
+            #   RoundRobin,
               PPO,
-              ARS,
-              DDPG,
-              TD3,
-              PowerTrackingErrorrMin,]
-
-algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,              
-              OCCF_V2G,
-              OCCF_G2V,
-              eMPC_V2G,
-              eMPC_G2V,
+            #   ARS,
+            #   DDPG,
+            #   TD3,
+              PowerTrackingErrorrMin,
               ]
+
+# algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,              
+#               OCCF_V2G,
+#               OCCF_G2V,
+#               eMPC_V2G,
+#               eMPC_G2V,
+#               ]
+
+evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
+    f'_{n_test_cycles}_cycles_' +\
+    f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
+
+# make a directory for the evaluation
+save_path = f'./results/{evaluation_name}/'
+os.makedirs(save_path, exist_ok=True)
+
 
 if not replays_exist:
     eval_replay_files = [generate_replay() for _ in range(n_test_cycles)]
@@ -148,10 +159,11 @@ for algorithm in algorithms:
 
             load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
                 f"{algorithm.__name__.lower()}_SquaredTrackingErrorReward_PublicPST"
-
-            state = env.reset()
+            
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
+            state = env.reset()
+            
         else:
             env = ev_city.EVsSimulator(
                 config_file=args.config_file,
@@ -174,7 +186,8 @@ for algorithm in algorithms:
 
             if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                 action, _ = model.predict(state, deterministic=True)
-                obs, reward, done, info = env.step(action)
+                obs, reward, done, stats = env.step(action)
+                stats = stats[0]
             else:
                 actions = model.get_action(env)
                 new_state, reward, done, _, stats = env.step(
@@ -183,7 +196,7 @@ for algorithm in algorithms:
 
             rewards.append(reward)
 
-            if done:
+            if done:                
                 results_i = pd.DataFrame({'run': k,
                                           'Algorithm': algorithm.__name__,
                                           'total_ev_served': stats['total_ev_served'],
@@ -206,55 +219,20 @@ for algorithm in algorithms:
                     results = pd.concat([results, results_i])
 
                 if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
-                    power_usage = env.get_attr('previous_power_usage')[0]
-                    power_setpoints = env.get_attr('power_setpoints')[0]
-                    
-                    plot_results_dict[algorithm.__name__] = deepcopy(env)
-                    
+                    env = env.get_attr('env')[0]                    
+                    plot_results_dict[algorithm.__name__] = deepcopy(env)                   
                 else:
-                    power_usage = env.current_power_usage
-                    power_setpoints = env.power_setpoints
-                    
-                    
-                    plot_results_dict[algorithm.__name__] = deepcopy(env)
-                    # tr_solar_power = env.tr_solar_power                    
-                    # tr_inflexible_loads = env.tr_inflexible_loads                    
-                    # cs_power = env.cs_power                    
-                    # port_energy_level = env.port_energy_level
-                    # port_arrival = env.port_arrival
-                    
-
-                results_i = {f'Step_{j}': power_usage[j]
-                             for j in range(simulation_length)}
-                results_i['run'] = k
-                results_i['Algorithm'] = algorithm.__name__
-                results_i = pd.DataFrame(results_i, index=[counter])
-
-                if counter == 1:
-                    results_to_draw = results_i
-                else:
-                    results_to_draw = pd.concat([results_to_draw, results_i])
-
-                results_i = {
-                    f'Step_{j}': power_setpoints[j] for j in range(simulation_length)}
-                results_i['run'] = k
-
-                results_i = pd.DataFrame(results_i, index=[counter])
-
-                if counter == 1:
-                    results_to_draw_setpoint = results_i
-                else:
-                    results_to_draw_setpoint = pd.concat(
-                        [results_to_draw_setpoint, results_i])
+                    plot_results_dict[algorithm.__name__] = deepcopy(env)                   
 
                 break
 
 # save the plot_results_dict to a pickle file
-with open('plot_results_dict.pkl', 'wb') as f:
+with open(save_path +'plot_results_dict.pkl', 'wb') as f:
     pickle.dump(plot_results_dict, f)
 
 # save the results to a csv file
-# results.to_csv('results.csv')
+results.to_csv(save_path + 'data.csv')
+
 # results_to_draw.to_csv('results_to_draw.csv')
 # results_to_draw_setpoint.to_csv('results_to_draw_setpoint.csv')
 
@@ -266,9 +244,8 @@ results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
 # print the main statistics in a latex table
 # print(results_grouped.to_latex())
 
-
 print(results_grouped)
-results_grouped.to_csv('results_grouped.csv')
+# results_grouped.to_csv('results_grouped.csv')
 
 exit()
 
