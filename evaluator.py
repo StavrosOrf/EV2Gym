@@ -29,6 +29,8 @@ from EVsSimulator.rl_agent.reward import profit_maximization
 
 from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
 
+from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC, plot_actual_power_vs_setpoint
+
 import gymnasium as gym
 import torch
 
@@ -51,7 +53,7 @@ eval_replay_path = f'./replay/{number_of_charging_stations}cs_{n_transformers}tr
 try:
     eval_replay_files = [f for f in os.listdir(
         eval_replay_path) if os.path.isfile(os.path.join(eval_replay_path, f))]
-    
+
     print(f'Found {len(eval_replay_files)} replay files in {eval_replay_path}')
     if n_test_cycles > len(eval_replay_files):
         n_test_cycles = len(eval_replay_files)
@@ -104,17 +106,18 @@ def generate_replay():
 
 # Algorithms to compare:
 algorithms = [
-            #     ChargeAsLateAsPossible,
-              ChargeAsFastAsPossible,
-            #   RoundRobin,
-              PPO,
-            #   ARS,
-            #   DDPG,
-            #   TD3,
-              PowerTrackingErrorrMin,
-              ]
+        ChargeAsLateAsPossible,
+    ChargeAsFastAsPossible,
+    PPO,
+      ARS,
+      DDPG,
+    SAC,
+    TQC,
+    RoundRobin,
+    PowerTrackingErrorrMin,
+]
 
-# algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,              
+# algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
 #               OCCF_V2G,
 #               OCCF_G2V,
 #               eMPC_V2G,
@@ -158,11 +161,11 @@ for algorithm in algorithms:
 
             load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
                 f"{algorithm.__name__.lower().lower()}_SquaredTrackingErrorReward_PublicPST"
-            
+
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
             state = env.reset()
-            
+
         else:
             env = ev_city.EVsSimulator(
                 config_file=args.config_file,
@@ -176,26 +179,23 @@ for algorithm in algorithms:
 
         rewards = []
 
-        for _ in range(simulation_length):
-
+        for i in range(simulation_length):
             ################# Your algorithm goes here #################
-            # actions is a vector of size number of ports and it takes values from -1 to 1
-            # 0 means no charging, 1 means charging at the maximum rate, -1 means discharging at the maximum rate
-            # discharging might not be supported by the charging station, so negative values might be clipped to 0
-
             if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                 action, _ = model.predict(state, deterministic=True)
                 obs, reward, done, stats = env.step(action)
+                if i == simulation_length - 2:
+                    saved_env = deepcopy(env.get_attr('env')[0])
+                
                 stats = stats[0]
             else:
                 actions = model.get_action(env)
-                new_state, reward, done, _, stats = env.step(
-                    actions, visualize=False)  # takes action
+                new_state, reward, done, _, stats = env.step(actions)
             ############################################################
 
             rewards.append(reward)
 
-            if done:                
+            if done:
                 results_i = pd.DataFrame({'run': k,
                                           'Algorithm': algorithm.__name__,
                                           'total_ev_served': stats['total_ev_served'],
@@ -205,7 +205,7 @@ for algorithm in algorithms:
                                           'average_user_satisfaction': stats['average_user_satisfaction'],
                                           'power_tracker_violation': stats['power_tracker_violation'],
                                           'tracking_error': stats['tracking_error'],
-                                          'actual_tracking_error': stats['actual_tracking_error'],
+                                          'energy_tracking_error': stats['energy_tracking_error'],
                                           'energy_user_satisfaction': stats['energy_user_satisfaction'],
                                           'total_transformer_overload': stats['total_transformer_overload'],
                                           'battery_degradation': stats['battery_degradation'],
@@ -218,15 +218,15 @@ for algorithm in algorithms:
                 else:
                     results = pd.concat([results, results_i])
 
-                if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
-                    env = env.get_attr('env')[0]                    
-                
-                plot_results_dict[algorithm.__name__] = deepcopy(env)                   
+                if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:                    
+                    env = saved_env
+
+                plot_results_dict[algorithm.__name__] = deepcopy(env)
 
                 break
 
 # save the plot_results_dict to a pickle file
-with open(save_path +'plot_results_dict.pkl', 'wb') as f:
+with open(save_path + 'plot_results_dict.pkl', 'wb') as f:
     pickle.dump(plot_results_dict, f)
 
 # save the results to a csv file
@@ -243,8 +243,18 @@ results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
 # print the main statistics in a latex table
 # print(results_grouped.to_latex())
 
-print(results_grouped)
+
 # results_grouped.to_csv('results_grouped.csv')
+
+plot_total_power(results_path=save_path + 'plot_results_dict.pkl',
+                 save_path=save_path,
+                 algorithm_names=[algorithm.__name__ for algorithm in algorithms])
+
+plot_comparable_EV_SoC(results_path=save_path + 'plot_results_dict.pkl',
+                       save_path=save_path,
+                       algorithm_names=[algorithm.__name__ for algorithm in algorithms])
+
+print(results_grouped[['tracking_error', 'energy_tracking_error']])
 
 exit()
 
@@ -281,7 +291,7 @@ for i, algorithm in enumerate(algorithms):
     ax[i].set_title(f'{algorithms[i].__name__}', fontsize=fontsize-2)
 
     if i == len(algorithms) - 1:
-        ax[i].set_xticks(ticks=[j for j in range(0, simulation_length +  len(date_range_print) - 1,
+        ax[i].set_xticks(ticks=[j for j in range(0, simulation_length + len(date_range_print) - 1,
                                                  math.ceil(simulation_length / len(date_range_print)))],
                          labels=[
                              f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
@@ -290,7 +300,7 @@ for i, algorithm in enumerate(algorithms):
 
         ax[i].set_xlabel('Time', fontsize=fontsize-2)
     else:
-        ax[i].set_xticks([j for j in range(0, simulation_length +  len(date_range_print) - 1,
+        ax[i].set_xticks([j for j in range(0, simulation_length + len(date_range_print) - 1,
                                            math.ceil(simulation_length / len(date_range_print)))],
                          labels=[' ' for d in date_range_print])
 

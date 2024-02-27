@@ -8,10 +8,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import datetime
+import os
+from EVsSimulator.ev_city import EVsSimulator
+
 
 marker_list = ['.', 'x', 'o', 'v', '<', 's', 'p', 'P', '*', 'h', 'H', '+', 'X', 'D', 'd', '|', '_']
+
 # color_list = ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a']
-color_list = ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a']
+
+color_list = ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a','b','g','r','c','m','y','k']
 algorithm_names =[
     'Charge As Fast As Possible',
     # 'Charge As Late As Possible',
@@ -22,7 +27,8 @@ algorithm_names =[
     'eMPC G2V',      
 ]
 
-def plot_total_power(results_path):
+def plot_total_power(results_path, save_path=None, algorithm_names=None):        
+    
     # Load the env pickle files
     with open(results_path, 'rb') as f:
         replay = pickle.load(f)
@@ -102,6 +108,7 @@ def plot_total_power(results_path):
                                  linestyle='--',
                                  linewidth=2,
                                  label='Demand Response Event')
+                    
                 plt.step(df.index,
                      #  tr.max_power
                      [tr.max_power.max()] * len(df.index),
@@ -141,15 +148,15 @@ def plot_total_power(results_path):
                fancybox=True, shadow=True, ncol=3, fontsize=24)    
             
     plt.grid(True, which='minor', axis='both')
+    plt.tight_layout()
     
-    fig_name = f'results/evaluator_{env.sim_name}/Transformer_Aggregated_Power.png'
-    # plt.savefig(fig_name, format='png',
-    #             dpi=60, bbox_inches='tight')
+    fig_name = f'{save_path}/Transformer_Aggregated_Power.png'
+    plt.savefig(fig_name, format='png',
+                dpi=60, bbox_inches='tight')
     
-    plt.show()
-    exit()
+    # plt.show()    
     
-def plot_comparable_EV_SoC(results_path):
+def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
     '''
     This function is used to plot the SoC of the EVs in the same plot
     '''
@@ -208,8 +215,7 @@ def plot_comparable_EV_SoC(results_path):
                              label=algorithm_names[index])
                              
             
-            plt.title(f'Charging Station {cs.id + 1}', fontsize=24)
-            # plt.xlabel(f'Time', fontsize=24)
+            plt.title(f'Charging Station {cs.id + 1}', fontsize=24)            
             plt.ylabel('SoC', fontsize=24)
             plt.ylim([0.1, 1])
             plt.xlim([env.sim_starting_date, env.sim_date])
@@ -222,9 +228,13 @@ def plot_comparable_EV_SoC(results_path):
                 fancybox=True, shadow=True, ncol=5, fontsize=24)
     
     plt.grid(True, which='minor', axis='both')    
+    plt.tight_layout()
             
-    fig_name = f'results/evaluator_{env.sim_name}/EV_Energy_Level.png'
-    plt.show()
+    fig_name = f'{save_path}/EV_Energy_Level.png'
+    plt.savefig(fig_name, format='png',
+                dpi=60, bbox_inches='tight')
+    
+    # plt.show()
 
 
 def plot_actual_power_vs_setpoint(save_path):
@@ -233,9 +243,10 @@ def plot_actual_power_vs_setpoint(save_path):
     '''
     
     
-    
 if __name__ == "__main__":
 
-    plot_total_power(results_path='plot_results_dict.pkl')
+    plot_total_power(results_path='./results/eval_20cs_1tr_PublicPST_5_algos_3_cycles_2024_02_27_109389/plot_results_dict.pkl',
+                     save_path=None,
+                     algorithm_names=algorithm_names)
     # plot_comparable_EV_SoC(results_path='plot_results_dict.pkl')
     pass

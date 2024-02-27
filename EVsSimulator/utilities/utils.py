@@ -25,17 +25,24 @@ def get_statistics(env) -> Dict:
     total_transformer_overload = np.array(env.tr_overload).sum()
 
     tracking_error = 0
-    actual_tracking_error = 0
+    energy_tracking_error = 0
     power_tracker_violation = 0
     for t in range(env.simulation_length):
-        tracking_error += (min(env.power_setpoints[t], env.charge_power_potential[t]) -
+        # tracking_error += (min(env.power_setpoints[t], env.charge_power_potential[t]) -
+        #                    env.current_power_usage[t])**2
+        # energy_tracking_error += abs(min(env.power_setpoints[t], env.charge_power_potential[t]) -
+        #                              env.current_power_usage[t])
+
+        tracking_error += (env.power_setpoints[t] -
                            env.current_power_usage[t])**2
-        actual_tracking_error += (min(env.power_setpoints[t], env.charge_power_potential[t]) -
-                                    env.current_power_usage[t])
-        
+        energy_tracking_error += abs(env.power_setpoints[t] -
+                                     env.current_power_usage[t])
+
         if env.current_power_usage[t] > env.power_setpoints[t]:
             power_tracker_violation += env.current_power_usage[t] - \
                 env.power_setpoints[t]
+
+    energy_tracking_error *= env.timescale / 60
 
     # calculate total batery degradation
     battery_degradation = np.array(
@@ -71,7 +78,7 @@ def get_statistics(env) -> Dict:
              'average_user_satisfaction': average_user_satisfaction,
              'power_tracker_violation': power_tracker_violation,
              'tracking_error': tracking_error,
-             'actual_tracking_error': actual_tracking_error,
+             'energy_tracking_error': energy_tracking_error,
              'energy_user_satisfaction': energy_user_satisfaction,
              'total_transformer_overload': total_transformer_overload,
              'battery_degradation': battery_degradation,
@@ -83,7 +90,7 @@ def get_statistics(env) -> Dict:
         if env.replay.optimal_stats is not None:
             stats['opt_profits'] = env.replay.optimal_stats["total_profits"]
             stats['opt_tracking_error'] = env.replay.optimal_stats["tracking_error"]
-            stats['opt_actual_tracking_error'] = env.replay.optimal_stats["actual_tracking_error"]
+            stats['opt_actual_tracking_error'] = env.replay.optimal_stats["energy_tracking_error"]
             stats['opt_power_tracker_violation'] = env.replay.optimal_stats["power_tracker_violation"]
             stats['opt_energy_user_satisfaction'] = env.replay.optimal_stats["energy_user_satisfaction"]
             stats['opt_total_energy_charged'] = env.replay.optimal_stats["total_energy_charged"]
@@ -102,7 +109,7 @@ def print_statistics(env) -> None:
     average_user_satisfaction = stats['average_user_satisfaction']
     total_transformer_overload = stats['total_transformer_overload']
     tracking_error = stats['tracking_error']
-    actual_tracking_error = stats['actual_tracking_error']
+    energy_tracking_error = stats['energy_tracking_error']
     power_tracker_violation = stats['power_tracker_violation']
     energy_user_satisfaction = stats['energy_user_satisfaction']
     total_transformer_overload = stats['total_transformer_overload']
@@ -124,7 +131,7 @@ def print_statistics(env) -> None:
         f'  - Total energy charged: {total_energy_charged:.1f} | discharged: {total_energy_discharged:.1f} kWh')
     print(
         f'  - Power Tracking squared error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW')
-    print(f' - Actual Power Tracking error: {actual_tracking_error:.2f} kW')
+    print(f' - Actual Energy Tracking error: {energy_tracking_error:.2f} kW')
     print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %')
     print(
         f'  - Total Battery degradation: {battery_degradation:.5f}% | Calendar: {battery_degradation_calendar:.5f}%, Cycling: {battery_degradation_cycling:.5f}%')
@@ -239,7 +246,7 @@ def spawn_single_EV(env,
                   desired_capacity=env.config["ev"]['desired_capacity'],
                   max_ac_charge_power=env.config["ev"]['max_ac_charge_power'],
                   min_ac_charge_power=env.config["ev"]['min_ac_charge_power'],
-                  max_dc_charge_power=env.config["ev"]['max_dc_charge_power'],                  
+                  max_dc_charge_power=env.config["ev"]['max_dc_charge_power'],
                   max_discharge_power=env.config["ev"]['max_discharge_power'],
                   min_discharge_power=env.config["ev"]['min_discharge_power'],
                   time_of_arrival=step+1,
@@ -249,7 +256,6 @@ def spawn_single_EV(env,
                   transition_soc=env.config["ev"]['transition_soc'],
                   charge_efficiency=env.config["ev"]['charge_efficiency'],
                   discharge_efficiency=env.config["ev"]['discharge_efficiency'],
-                  
                   timescale=env.timescale,
                   )
 

@@ -77,6 +77,12 @@ if __name__ == "__main__":
 
     if algorithm == "ddpg":
         model = DDPG("MlpPolicy", env, verbose=1,
+                    learning_rate = 1e-3,
+                    buffer_size = 1_000_000,  # 1e6
+                    learning_starts = 100,
+                    batch_size = 100,
+                    tau = 0.005,
+                    gamma = 0.99,                     
                      device=device, tensorboard_log="./logs/")
     elif algorithm == "td3":
         model = TD3("MlpPolicy", env, verbose=1,
