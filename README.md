@@ -35,3 +35,27 @@ Focused on **realistic** parameters and **fully customizable**:
 * EV spawn rate, time of stay, and energy required are based on realistic distributions ElaadNL,time, day, month and year.
 * EV and Charger characteristics are based on real EVs and chargers existing in NL.
 
+## File Structure
+```bash
+├── EVsSimulator
+│   ├── __init__.py
+│   ├── baselines
+│   │   ├── __init__.py
+│   │   ├── DDPG
+│   │   ├── DT
+│   │   ├── gurobi_models
+
+```
+
+## Citation
+If you use this code in your research, please cite it using the following BibTeX entry:
+```bibtex
+@misc{EVsSimulator,
+
+}
+```
+
+## License
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+```
+

@@ -1,4 +1,4 @@
-  
+
 import os
 import time
 import pkg_resources
@@ -59,24 +59,23 @@ if __name__ == "__main__":
     replay_path = None
 
     gym.register(id=args.env, entry_point='gym_env.ev_city:EVsSimulator')
-    
-    
+
     ###### Set the config file here ######
     config_file = "EVsSimulator/example_config_files/BusinessPST_config.yaml"
-    
+
     ####### Set the reward function here #######
     reward_function = SquaredTrackingErrorReward
-    
+
     ####### Set the State function here #######
     state_function = BusinessPSTwithMoreKnowledge
 
     env = EVsSimulator(config_file=config_file,
-                         generate_rnd_game=True,
-                         save_plots=False,
-                         save_replay=False,
-                         reward_function=reward_function,
-                         state_function=state_function,
-                         )
+                       generate_rnd_game=True,
+                       save_plots=False,
+                       save_replay=False,
+                       reward_function=reward_function,
+                       state_function=state_function,
+                       )
 
     # Set random seed for all used libraries where possible
     # seed = np.random.randint(0, 1000000)
@@ -244,14 +243,14 @@ if __name__ == "__main__":
                 else:
                     save_plots = False
                 eval_env = EVsSimulator(config_file=config_file,
-                                          load_from_replay_path=eval_replay_path +
-                                          eval_replay_files[test_cycle],
-                                          save_replay=False,
-                                          generate_rnd_game=True,
-                                          save_plots=save_plots,
-                                          extra_sim_name=run_name,
-                                          reward_function=reward_function,
-                                          state_function=state_function)
+                                        load_from_replay_path=eval_replay_path +
+                                        eval_replay_files[test_cycle],
+                                        save_replay=False,
+                                        generate_rnd_game=True,
+                                        save_plots=save_plots,
+                                        extra_sim_name=run_name,
+                                        reward_function=reward_function,
+                                        state_function=state_function)
 
                 state = torch.Tensor([eval_env.reset()]).to(device)
                 test_reward = 0
@@ -284,8 +283,7 @@ if __name__ == "__main__":
             for key in test_stats[0].keys():
                 stats[key] = np.mean([test_stats[i][key]
                                      for i in range(len(test_stats))])
-            
-                       
+
             if stats['tracking_error'] < best_trackking_error:
                 best_trackking_error = stats['tracking_error']
                 agent.save_checkpoint(timestep, memory, run_name+"_best")
@@ -294,7 +292,7 @@ if __name__ == "__main__":
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
                            'test/total_ev_served': stats['total_ev_served'],
-                              'test/total_profits': stats['total_profits'],
+                           'test/total_profits': stats['total_profits'],
                            'test/total_energy_charged': stats['total_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
@@ -309,7 +307,8 @@ if __name__ == "__main__":
                            #    'test/std_opt_ratio': np.std(opt_profits),
                            })
 
-            print(f'Testing at timestep {timestep}, Mean test return: {mean_test_rewards[-1]}')
+            print(
+                f'Testing at timestep {timestep}, Mean test return: {mean_test_rewards[-1]}')
         epoch += 1
 
     agent.save_checkpoint(timestep, memory, run_name+"_last")

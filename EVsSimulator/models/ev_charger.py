@@ -6,6 +6,7 @@ Author: Stavros Orfanoudakis 2023
 '''
 
 import numpy as np
+import math
 
 
 class EV_Charger:
@@ -36,7 +37,8 @@ class EV_Charger:
 
     Methods:
         - step: updates the EV charger status according to the actions taken by the EVs
-        - reset: resets the EV charger status to the initial state              
+        - reset: resets the EV charger status to the initial state      
+
 '''
 
     def __init__(self,
@@ -44,14 +46,14 @@ class EV_Charger:
                  connected_bus,
                  connected_transformer,
                  geo_location=None,
-                 min_charge_current=8,  # Amperes
-                 max_charge_current=55,  # Amperes
-                 min_discharge_current=0,  # -8,  # Amperes
-                 max_discharge_current=0,  # -55,  # Amperes
+                 min_charge_current=0,  # Amperes
+                 max_charge_current=56,  # Amperes
+                 min_discharge_current=0,  # Amperes
+                 max_discharge_current=-56,  # Amperes
                  voltage=230,  # Volts
                  n_ports=2,
                  charger_type="AC",  # AC or DC
-                 phases=3,                 
+                 phases=3,
                  timescale=5,
                  verbose=False):
 
@@ -98,7 +100,7 @@ class EV_Charger:
         '''
         Updates the EV charger status according to the actions taken by the EVs
         Inputs:
-            - actions: a list of actions taken by the EVs connected to the EV charger in the format of (power) *n_ports positive for charging negative for discharging, default is to zer if no ev is connected        
+            - actions: a list of actions taken by the EVs connected to the EV charger in the format of (current) *n_ports positive for charging negative for discharging, default is to zer if no ev is connected        
             - charge_price: the price of charging per kWh in the current timestep
             - discharge_price: the price of discharging per kWh in the current timestep
 
@@ -113,7 +115,7 @@ class EV_Charger:
         self.current_charge_price = charge_price
         self.current_discharge_price = discharge_price
         self.current_signal = []
-        
+
         assert (len(actions) == self.n_ports)
         # if no EV is connected, set action to 0
         invalid_action_punishment = 0
@@ -122,7 +124,7 @@ class EV_Charger:
                 actions[i] = 0
                 invalid_action_punishment += 1
 
-        # normalize actions to sum to 1 for charging surplass or -1 for discharging surplass        
+        # normalize actions to sum to 1 for charging surplass or -1 for discharging surplass
         if sum(actions) > 1:
             normalized_actions = [action / sum(actions) for action in actions]
         elif sum(actions) < -1:
@@ -136,75 +138,72 @@ class EV_Charger:
 
         # Update EVs connected to the EV charger and get profits/costs
         for i, action in enumerate(normalized_actions):
+            actual_energy = 0
             action = round(action, 5)
             assert (action >= -1 and action <= 1,
                     f'Action {action} is not in range [-1,1]')
-            
+
             amps = 0
             if action == 0 and self.evs_connected[i] is not None:
-                
-                actual_power, actual_amps = self.evs_connected[i].step(
-                    amps, self.voltage)                
-                # actual_power, actual_amps = 0, 0
+
+                actual_energy, actual_amps = self.evs_connected[i].step(
+                    amps, self.voltage)
 
             elif action > 0:
                 amps = action * self.max_charge_current
                 if amps < self.min_charge_current-0.01:
                     amps = 0
 
-                actual_power, actual_amps = self.evs_connected[i].step(
+                actual_energy, actual_amps = self.evs_connected[i].step(
                     amps,
                     self.voltage,
                     phases=self.phases,
                     type=self.charger_type)
-                profit += abs(actual_power) * charge_price
-                self.total_energy_charged += abs(actual_power)
-                self.current_power_output += actual_power
+
+                profit += abs(actual_energy) * charge_price
+                self.total_energy_charged += abs(actual_energy)
+                self.current_power_output += actual_energy * 60/self.timescale
                 self.current_total_amps += actual_amps
 
             elif action < 0:
-
                 amps = action * abs(self.max_discharge_current)
                 if amps > self.min_discharge_current-0.01:
                     amps = self.min_discharge_current
 
-                actual_power, actual_amps = self.evs_connected[i].step(
+                actual_energy, actual_amps = self.evs_connected[i].step(
                     amps,
                     self.voltage,
                     phases=self.phases,
                     type=self.charger_type)
-                profit += abs(actual_power) * discharge_price
-                self.total_energy_discharged += abs(actual_power)
-                self.current_power_output += actual_power
+
+                profit += abs(actual_energy) * discharge_price
+                self.total_energy_discharged += abs(actual_energy)
+                self.current_power_output += actual_energy * 60/self.timescale
                 self.current_total_amps += actual_amps
 
+            # print(f'CS {self.id} port {i} action {action} amps {amps} energy {actual_energy} total_amps {self.current_total_amps}')
             self.current_signal.append(amps)
-            
+
             if self.current_total_amps - 0.0001 > self.max_charge_current:
                 raise Exception(
                     f'sum of amps {self.current_total_amps} is higher than max charge current {self.max_charge_current}')
 
-            # if self.verbose and self.evs_connected[i] is not None:
-            #     print(f'Actual energy: {actual_power:.2f} kWh' +
-            #           f' | Actual amps: {actual_amps:.2f} A' +
-            #           f' | Action: {action}'
-            #           )
-
         self.total_profits += profit
 
+        departing_evs = []
         # Check if EVs are departing
         for i, ev in enumerate(self.evs_connected):
             if ev is not None:
-                # print(f'EV {ev.id} check departure step {self.current_step}' +\
-                #       f' earlier time of departure {ev.earlier_time_of_departure}' +\
-                #       f', Is departing: {ev.is_departing(self.current_step)}')
                 if ev.is_departing(self.current_step) is not None:
+                    # calculate battery degradation
+                    # _,_ = ev.get_battery_degradation()
                     self.evs_connected[i] = None
                     self.n_evs_connected -= 1
                     self.total_evs_served += 1
                     ev_user_satisfaction = ev.get_user_satisfaction()
                     self.total_user_satisfaction += ev_user_satisfaction
                     user_satisfaction.append(ev_user_satisfaction)
+                    departing_evs.append(ev)
                     if self.verbose:
                         print(f'- EV {ev.id} is departing from CS {self.id}' +
                               f' port {i}'
@@ -213,8 +212,7 @@ class EV_Charger:
 
         self.current_step += 1
 
-        return profit, user_satisfaction, invalid_action_punishment
-
+        return profit, user_satisfaction, invalid_action_punishment, departing_evs
 
     def __str__(self) -> str:
 
@@ -230,7 +228,16 @@ class EV_Charger:
             f' in {self.current_step: 4d} steps' + \
             f' |{self.total_profits: 7.1f} € |' + \
             f' +{self.total_energy_charged: 5.1f} /' + \
-            f' -{self.total_energy_discharged: 5.1f} kW'
+            f' -{self.total_energy_discharged: 5.1f} kWh'
+
+    def get_max_power(self):
+        return self.max_charge_current * self.voltage * math.sqrt(self.phases) / 1000
+
+    def get_min_charge_power(self):
+        return self.min_charge_current * self.voltage * math.sqrt(self.phases) / 1000
+
+    def get_min_power(self):
+        return self.max_discharge_current * self.voltage * math.sqrt(self.phases) / 1000
 
     def get_avg_user_satisfaction(self):
         if self.total_evs_served == 0:
@@ -252,7 +259,7 @@ class EV_Charger:
 
         if self.verbose:
             print(f'+ EV connected to Charger {self.id} at port {index}' +
-                  f' leaving at {ev.earlier_time_of_departure}' +
+                  f' leaving at {ev.time_of_departure}' +
                   f' SoC {ev.get_soc()*100:.1f}%')
 
         return index

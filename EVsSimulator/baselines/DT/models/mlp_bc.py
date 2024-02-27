@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from .model import TrajectoryModel
+from EVsSimulator.baselines.DT.models.model import TrajectoryModel
 
 
 class MLPBCModel(TrajectoryModel):

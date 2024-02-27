@@ -29,13 +29,12 @@ class EvCityReplay():
         self.n_cs = env.cs
         self.n_transformers = env.number_of_transformers
         self.timescale = env.timescale
-        self.score_threshold = env.score_threshold
         self.sim_date = env.sim_starting_date
         # self.cs_transformers = env.cs_transformers
         self.power_setpoints = env.power_setpoints
         self.scenario = env.scenario
         self.heterogeneous_specs = env.heterogeneous_specs
-        self.ev_load_potential = env.current_power_setpoints
+        self.ev_load_potential = env.current_power_usage
 
         self.transformers = env.transformers
         self.charging_stations = env.charging_stations
@@ -75,12 +74,15 @@ class EvCityReplay():
         self.charge_prices = env.charge_prices
         self.discharge_prices = env.discharge_prices
 
-        self.tra_max_amps = np.ones([self.n_transformers])
-        self.tra_min_amps = np.ones([self.n_transformers])
+        self.tra_max_amps = np.ones([self.n_transformers, self.sim_length])
+        self.tra_min_amps = np.ones([self.n_transformers, self.sim_length])
 
         for i, tra in enumerate(env.transformers):
-            self.tra_max_amps[i] = tra.max_current
-            self.tra_min_amps[i] = tra.min_current
+            current_from_inflexible = env.tr_inflexible_loads[i,:] * 1000 / 400
+            current_from_solar = env.tr_solar_power[i,:] * 1000 / 400
+            
+            self.tra_max_amps[i] = tra.max_current - abs(current_from_inflexible) + abs(current_from_solar)
+            self.tra_min_amps[i] = tra.min_current + abs(current_from_inflexible) - abs(current_from_solar)
 
         self.port_max_charge_current = np.ones([self.n_cs])
         self.port_min_charge_current = np.ones([self.n_cs])
@@ -149,7 +151,7 @@ class EvCityReplay():
             port = ev.id
             cs_id = ev.location
             t_arr = ev.time_of_arrival
-            original_t_dep = ev.earlier_time_of_departure
+            original_t_dep = ev.time_of_departure
             # print(f'EV {i} is at port {port} of CS {cs_id} from {t_arr} to {original_t_dep}')            
 
             if t_arr >= self.sim_length:

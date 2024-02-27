@@ -11,14 +11,14 @@ from gurobipy import *
 import pickle
 
 
-class EV_City_Math_Model():
+class PowerTrackingErrorrMin():
     '''
-    This file contains the EV_City_Math_Model class, which is used to solve the ev_city V2G problem optimally.
+    This file contains the PowerTrackingErrorrMin class, which is used to solve the ev_city V2G problem optimally.
     '''
 
-    def __init__(self, sim_file_path=None):
+    def __init__(self, replay_path=None, **kwargs):
 
-        replay = pickle.load(open(sim_file_path, 'rb'))
+        replay = pickle.load(open(replay_path, 'rb'))
 
         self.sim_length = replay.sim_length
         self.n_cs = replay.n_cs
@@ -54,8 +54,8 @@ class EV_City_Math_Model():
         # create model
         # print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
-        # self.m.setParam('OutputFlag', 0)
-        # self.m.setParam('MIPGap', 0)
+        self.m.setParam('OutputFlag', 0)
+        # self.m.setParam('MIPGap', 0.2)
 
         # energy of EVs t timeslot t
         energy = self.m.addVars(self.number_of_ports_per_cs,
@@ -184,10 +184,10 @@ class EV_City_Math_Model():
                           for t in range(self.sim_length))
 
         # transformer current output constraint (circuit breaker)
-        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] <= tra_max_amps[i]
+        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] <= tra_max_amps[i,t]
                            for i in range(self.n_transformers)
                            for t in range(self.sim_length)), name='tr_current_limit_max')
-        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] >= tra_min_amps[i]
+        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] >= tra_min_amps[i,t]
                            for i in range(self.n_transformers)
                            for t in range(self.sim_length)), name='tr_current_limit_min')
 
@@ -344,7 +344,7 @@ class EV_City_Math_Model():
                             GRB.MINIMIZE)
 
         # print constraints
-        # self.m.write("model.lp")
+        self.m.write("model.lp")
         print(f'Optimizing....')        
         self.m.params.NonConvex = 2
         self.m.optimize()
@@ -388,6 +388,8 @@ class EV_City_Math_Model():
         if self.m.status != GRB.Status.OPTIMAL:
             print(f'Optimization ended with status {self.m.status}')
             exit()
+        
+        self.get_actions()
 
     def get_actions(self):
         '''
@@ -408,3 +410,12 @@ class EV_City_Math_Model():
                             / self.port_max_discharge_current[i]
 
         return self.actions
+
+    def get_action(self, env, **kwargs):
+        '''
+        This function returns the action for the current step of the environment.
+        '''
+        
+        step = env.current_step
+        
+        return self.actions[:, :, step].T.reshape(-1)

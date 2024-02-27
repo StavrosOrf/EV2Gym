@@ -7,8 +7,8 @@ import numpy as np
 import roboschool
 import torch
 
-from DDPG.ddpg import DDPG
-from wrappers import NormalizedActions
+from EVsSimulator.baselines.DDPG.ddpg import DDPG
+# from wrappers import NormalizedActions
 
 # Create logger
 logger = logging.getLogger('test')
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         # See pull request 'https://github.com/openai/roboschool/pull/192'
         kwargs['swingup'] = True
     env = gym.make(args.env, **kwargs)
-    env = NormalizedActions(env)
+    # env = NormalizedActions(env)
 
     # Setting rnd seed for reproducibility
     env.seed(args.seed)

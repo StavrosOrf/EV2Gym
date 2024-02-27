@@ -126,7 +126,7 @@ class Renderer():
         self.cpo_power_ax = nx.draw_networkx_labels(self.G,
                                                     pos=pos__down_attrs,
                                                     labels={"cpo": str(
-                                                    round(self.env.current_power_setpoints[self.env.current_step], 1)) + "kW"},
+                                                    round(self.env.current_power_usage[self.env.current_step], 1)) + "kW"},
                                                     ax=ax,
                                                     verticalalignment='bottom',
                                                     font_size=12,
@@ -207,7 +207,7 @@ class Renderer():
         image_path = pkg_resources.resource_filename(
             'EVsSimulator', "vizuals/icons/logo.png")
         icon = PIL.Image.open(image_path)
-        icon = icon.resize((100, 50), PIL.Image.ANTIALIAS)
+        icon = icon.resize((100, 50), PIL.Image.LANCZOS)
         self.fig.figimage(icon, 20, 20, alpha=1, zorder=1)
 
         # add text to a box in the bottom right corner
@@ -247,7 +247,7 @@ class Renderer():
 
         self.text_box.set_text(text)
         self.cpo_power_ax["cpo"].set_text(str(
-            round(self.env.current_power_setpoints[self.env.current_step-1], 1)) + "kW")
+            round(self.env.current_power_usage[self.env.current_step-1], 1)) + "kW")
 
         counter = 0
         for i in range(0, self.env.cs):
@@ -274,7 +274,7 @@ class Renderer():
                                     ].set_text(str(round(self.env.charging_stations[i].current_total_amps, 1)) + "A")
 
             self.charger_labels_ax["charger_" + str(i)].set_text(
-                str(round(self.env.charging_stations[i].current_power_output*60/self.env.timescale, 1)) + "kW")
+                str(round(self.env.charging_stations[i].current_power_output, 1)) + "kW")
 
         for i in range(0, self.env.number_of_transformers):
             # append transformer current to node labels
