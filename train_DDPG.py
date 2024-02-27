@@ -10,6 +10,7 @@ from EVsSimulator.ev_city import EVsSimulator
 import torch
 import wandb
 import yaml
+import pickle
 
 from EVsSimulator.utilities.arg_parser import arg_parser
 
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     ####### Set the reward function here #######
     #reward_function = SquaredTrackingErrorwithPenaltyandPriorityChargingReward
 
-    reward_function_name = os.getenv("REWARD_FUNCTION", "SquaredPowerSetPointReward")
+    reward_function_name = os.getenv("REWARD_FUNCTION", "SquaredTrackingErrorReward")
 
     # Map environment variable values to actual reward function classes
     reward_functions = {
@@ -188,6 +189,7 @@ if __name__ == "__main__":
 
     highest_opt_ratio = np.inf
     best_trackking_error = np.inf
+    
 
     # Main training loop
     while timestep <= args.timesteps:
@@ -263,6 +265,7 @@ if __name__ == "__main__":
             for test_cycle in range(n_test_cycles):
 
                 # load evaluation enviroments from replay files
+                replay = pickle.load(open(eval_replay_path + eval_replay_files[test_cycle], 'rb'))
 
                 if test_cycle == 0:
                     save_plots = True
@@ -309,6 +312,8 @@ if __name__ == "__main__":
             for key in test_stats[0].keys():
                 stats[key] = np.mean([test_stats[i][key]
                                      for i in range(len(test_stats))])
+                stats[key + '_std'] = np.std([test_stats[i][key]
+                                           for i in range(len(test_stats))])
             
                        
             if stats['tracking_error'] < best_trackking_error:
@@ -319,7 +324,7 @@ if __name__ == "__main__":
             if log_to_wandb:
                 wandb.log({'test/mean_test_return': mean_test_rewards[-1],
                            'test/total_ev_served': stats['total_ev_served'],
-                              'test/total_profits': stats['total_profits'],
+                            'test/total_profits': stats['total_profits'],
                            'test/total_energy_charged': stats['total_energy_charged'],
                            'test/total_energy_discharged': stats['total_energy_discharged'],
                            'test/average_user_satisfaction': stats['average_user_satisfaction'],
@@ -328,13 +333,14 @@ if __name__ == "__main__":
                            'test/opt_energy_user_satisfaction': stats['opt_energy_user_satisfaction']/100,
                            'test/opt_power_tracker_violation': stats['opt_power_tracker_violation'],
                            'test/tracking_error': stats['tracking_error'],
+                           'test/std_tracking_error': stats['tracking_error_std'],
                            'test/power_tracker_violation': stats['power_tracker_violation'],
                            'test/energy_user_satisfaction': stats['energy_user_satisfaction']/100,
                            'test/transformer_overload': stats['total_transformer_overload'],
-                           #'test/unst_tracking_error': stats['unst_tracking_error'],
-                           #'test/unst_power_tracker_violation': stats['unst_power_tracker_violation'],
-                           #'test/unst_energy_user_satisfaction': stats['unst_energy_user_satisfaction']/100,
-                           #'test/uns_transformer_overload': stats['uns_transformer_overload'],
+                           'test/unst_tracking_error': replay.unstirred_stats['tracking_error'],
+                           'test/unst_power_tracker_violation': replay.unstirred_stats['power_tracker_violation'],
+                            'test/unst_energy_user_satisfaction': replay.unstirred_stats['energy_user_satisfaction']/100,
+                            'test/unst_transformer_overload': replay.unstirred_stats['total_transformer_overload'],
                            #    'test/std_opt_ratio': np.std(opt_profits),
                            })
 
