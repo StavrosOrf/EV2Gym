@@ -10,6 +10,7 @@ class RoundRobin():
     It does not consider multiple transfomer constraints. 
     And it assumes all chargers have the same number of ports
     '''
+    algo_name = "Round Robin"
 
     def __init__(self, env, verbose=False,  **kwargs):
 
@@ -98,6 +99,7 @@ class ChargeAsLateAsPossible():
     '''
     This is a class that contains the Charge As Late As Possible heuristic algorithm.
     '''
+    algo_name = "Charge As Late As Possible"
 
     def __init__(self, verbose=False, **kwargs):
 
@@ -147,7 +149,8 @@ class ChargeAsFastAsPossible():
     '''
     This class contains the Charge As Fast As Possible heuristic algorithm.
     '''
-
+    algo_name = "Charge As Fast As Possible"
+    
     def __init__(self, verbose=False, **kwargs):
         self.verbose = verbose
 
@@ -163,6 +166,7 @@ class ChargeAsFastAsPossibleToDesiredCapacity():
     '''
     This class contains the Charge As Fast As Possible heuristic algorithm.
     '''
+    algo_name = "Charge As Fast As Possible To Desired Capacity"
 
     def __init__(self, verbose=False, **kwargs):
         self.verbose = verbose

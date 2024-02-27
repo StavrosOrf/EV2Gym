@@ -106,13 +106,9 @@ def generate_replay():
 
 # Algorithms to compare:
 algorithms = [
-        ChargeAsLateAsPossible,
     ChargeAsFastAsPossible,
-    PPO,
-      ARS,
-      DDPG,
-    SAC,
-    TQC,
+    ChargeAsLateAsPossible,
+    PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
     RoundRobin,
     PowerTrackingErrorrMin,
 ]
@@ -160,7 +156,7 @@ for algorithm in algorithms:
             env = gym.make('evs-v0')
 
             load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
-                f"{algorithm.__name__.lower().lower()}_SquaredTrackingErrorReward_PublicPST"
+                f"{algorithm.__name__.lower()}_SquaredTrackingErrorReward_PublicPST"
 
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
@@ -186,7 +182,7 @@ for algorithm in algorithms:
                 obs, reward, done, stats = env.step(action)
                 if i == simulation_length - 2:
                     saved_env = deepcopy(env.get_attr('env')[0])
-                
+
                 stats = stats[0]
             else:
                 actions = model.get_action(env)
@@ -218,7 +214,7 @@ for algorithm in algorithms:
                 else:
                     results = pd.concat([results, results_i])
 
-                if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:                    
+                if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                     env = saved_env
 
                 plot_results_dict[algorithm.__name__] = deepcopy(env)
@@ -232,9 +228,6 @@ with open(save_path + 'plot_results_dict.pkl', 'wb') as f:
 # save the results to a csv file
 results.to_csv(save_path + 'data.csv')
 
-# results_to_draw.to_csv('results_to_draw.csv')
-# results_to_draw_setpoint.to_csv('results_to_draw_setpoint.csv')
-
 # Group the results by algorithm and print the average and the standard deviation of the statistics
 results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
 # # replace Nan with 0
@@ -242,77 +235,32 @@ results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
 
 # print the main statistics in a latex table
 # print(results_grouped.to_latex())
+# savethe latex results in a txt file
+with open(save_path + 'results_grouped.txt', 'w') as f:
+    f.write(results_grouped.to_latex())
 
 
 # results_grouped.to_csv('results_grouped.csv')
 
+
+algorithm_names = []
+for algorithm in algorithms:
+    # if class has attribute .name, use it
+    if hasattr(algorithm, 'algo_name'):
+        algorithm_names.append(algorithm.algo_name)
+    else:
+        algorithm_names.append(algorithm.__name__)
+
 plot_total_power(results_path=save_path + 'plot_results_dict.pkl',
                  save_path=save_path,
-                 algorithm_names=[algorithm.__name__ for algorithm in algorithms])
+                 algorithm_names=algorithm_names)
 
 plot_comparable_EV_SoC(results_path=save_path + 'plot_results_dict.pkl',
                        save_path=save_path,
-                       algorithm_names=[algorithm.__name__ for algorithm in algorithms])
+                       algorithm_names=algorithm_names)
+
+plot_actual_power_vs_setpoint(results_path=save_path + 'plot_results_dict.pkl',
+                              save_path=save_path,
+                              algorithm_names=algorithm_names)
 
 print(results_grouped[['tracking_error', 'energy_tracking_error']])
-
-exit()
-
-# plot the power usage and the power_setpoints vs time in vetical subplots for the last replay for every algorithm for one run
-
-fig, ax = plt.subplots(len(algorithms), 1, figsize=(10, 5))
-plt.grid(True, which='major', axis='both')
-plt.rcParams['font.family'] = ['serif']
-# print(results_to_draw.head(15))
-fontsize = 28
-
-
-date_range_print = pd.date_range(start=env.sim_starting_date,
-                                 end=env.sim_date,
-                                 periods=8)
-
-run = 0
-for i, algorithm in enumerate(algorithms):
-    actual_power = results_to_draw[results_to_draw.Algorithm ==
-                                   algorithm.__name__]
-    actual_power = actual_power[actual_power.run == run]
-    actual_power = actual_power.drop(columns=['run', 'Algorithm']).values
-
-    setpoints = results_to_draw_setpoint[results_to_draw_setpoint.run == run]
-    setpoints = setpoints.drop(columns=['run']).values
-
-    x = np.arange(0, simulation_length, 1)
-    ax[i].step(x, actual_power.T, alpha=0.5, color='blue')
-    ax[i].step(x, setpoints.T, alpha=0.5, color='red')
-
-    # plot a black line at y=0
-    ax[i].axhline(0, color='black', lw=2)
-
-    ax[i].set_title(f'{algorithms[i].__name__}', fontsize=fontsize-2)
-
-    if i == len(algorithms) - 1:
-        ax[i].set_xticks(ticks=[j for j in range(0, simulation_length + len(date_range_print) - 1,
-                                                 math.ceil(simulation_length / len(date_range_print)))],
-                         labels=[
-                             f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
-                         rotation=45,
-                         fontsize=22)
-
-        ax[i].set_xlabel('Time', fontsize=fontsize-2)
-    else:
-        ax[i].set_xticks([j for j in range(0, simulation_length + len(date_range_print) - 1,
-                                           math.ceil(simulation_length / len(date_range_print)))],
-                         labels=[' ' for d in date_range_print])
-
-    ax[i].set_ylabel('Power (kW)', fontsize=fontsize-2)
-    ax[i].legend(['Actual Power', 'Setpoint'], fontsize=fontsize-2)
-    ax[i].set_xlim([0, simulation_length-1])
-    ax[i].grid(True, which='major', axis='both')
-    ax[i].set_ylim([0, max(actual_power.max(), setpoints.max())+10])
-
-    # ax[i].set_yticks(ticks = ax[i].get_yticks,#get the yticks from the data)
-    #                     size=fontsize-2)
-
-    # ax[i].set_grid(True)
-
-plt.show()
