@@ -141,7 +141,7 @@ def BusinessPSTwithMoreKnowledge(env, *args):
                                       #EV.min_ac_charge_power*1000 /
                                       #(cs.voltage*math.sqrt(cs.phases)),
                                       EV.time_of_arrival / env.simulation_length,  # time of arrival
-                                      EV.etime_of_departure / env.simulation_length,  # time of departure
+                                      EV.time_of_departure / env.simulation_length,  # time of departure
                                       EV.get_soc(),  # soc
                                       #(EV.etime_of_departure - env.current_step) \
                                       #  / env.simulation_length, #remaining time

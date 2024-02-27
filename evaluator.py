@@ -27,7 +27,7 @@ from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import Pow
 from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
 from EVsSimulator.rl_agent.reward import profit_maximization
 
-from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
+from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwithMoreKnowledge
 
 from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC, plot_actual_power_vs_setpoint
 
@@ -63,7 +63,7 @@ try:
     replays_exist = True
 
 except:
-    n_test_cycles = args.n_test_cycles
+    n_test_cycles = args.n_test_cycles # change test cycles
     replays_exist = False
 
 
@@ -80,6 +80,11 @@ elif args.config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
 elif args.config_file == "EVsSimulator/example_config_files/V2G_MPC.yaml":
     reward_function = profit_maximization
     state_function = V2G_profit_max
+
+elif args.config_file == "EVsSimulator/example_config_files/BusinessPST.yaml":
+    reward_function = SquaredTrackingErrorReward
+    state_function = BusinessPSTwithMoreKnowledge
+
 else:
     raise ValueError('Unknown config file')
 
@@ -106,14 +111,12 @@ def generate_replay():
 
 # Algorithms to compare:
 algorithms = [
-        ChargeAsLateAsPossible,
+    ChargeAsLateAsPossible,
     ChargeAsFastAsPossible,
-    PPO,
-      ARS,
-      DDPG,
-    SAC,
-    TQC,
-    RoundRobin,
+    DDPG,
+    #SAC,
+    #TQC,
+    #RoundRobin,
     PowerTrackingErrorrMin,
 ]
 
@@ -160,7 +163,7 @@ for algorithm in algorithms:
             env = gym.make('evs-v0')
 
             load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
-                f"{algorithm.__name__.lower().lower()}_SquaredTrackingErrorReward_PublicPST"
+                f"{algorithm.__name__.lower().lower()}_SquaredTrackingErrorReward_BusinessPSTwithMoreKnowledge"
 
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
@@ -205,7 +208,7 @@ for algorithm in algorithms:
                                           'average_user_satisfaction': stats['average_user_satisfaction'],
                                           'power_tracker_violation': stats['power_tracker_violation'],
                                           'tracking_error': stats['tracking_error'],
-                                          'energy_tracking_error': stats['energy_tracking_error'],
+                                          'energy_tracking_error': stats['energy_tracking_error'], #sum of the absolute tracking error
                                           'energy_user_satisfaction': stats['energy_user_satisfaction'],
                                           'total_transformer_overload': stats['total_transformer_overload'],
                                           'battery_degradation': stats['battery_degradation'],

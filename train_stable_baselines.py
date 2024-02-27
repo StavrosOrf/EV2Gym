@@ -3,13 +3,13 @@
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.callbacks import EvalCallback
-from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
+
 
 from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
 from EVsSimulator.rl_agent.reward import profit_maximization
 
-from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
+from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwithMoreKnowledge
 
 import gymnasium as gym
 import argparse
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
                         # default="EVsSimulator/example_config_files/V2GProfitMax.yaml")
-    default="EVsSimulator/example_config_files/PublicPST.yaml")
+    default="EVsSimulator/example_config_files/BusinessPST.yaml")
 
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
@@ -44,6 +44,11 @@ if __name__ == "__main__":
         reward_function = SquaredTrackingErrorReward
         state_function = PublicPST
         group_name = f'{config["number_of_charging_stations"]}cs_PublicPST'
+
+    elif config_file == "EVsSimulator/example_config_files/BusinessPST.yaml":
+        reward_function = SquaredTrackingErrorReward
+        state_function = BusinessPSTwithMoreKnowledge
+        group_name = f'{config["number_of_charging_stations"]}cs_BusinessPST'
 
     run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
 
@@ -75,7 +80,7 @@ if __name__ == "__main__":
                                  n_eval_episodes=10, deterministic=True,
                                  render=False)
 
-    if algorithm == "ddpg":
+    if algorithm == "ddpg":                             #Experimenting with different hyperparameters
         model = DDPG("MlpPolicy", env, verbose=1,
                     learning_rate = 1e-3,
                     buffer_size = 1_000_000,  # 1e6
@@ -111,13 +116,13 @@ if __name__ == "__main__":
     else:
         raise ValueError("Unknown algorithm")
 
-    model.learn(total_timesteps=200_000,
+    model.learn(total_timesteps=1000,
                 progress_bar=True,
                 callback=[
-                    WandbCallback(
-                        gradient_save_freq=100000,
-                        model_save_path=f"models/{run.id}",
-                        verbose=2),
+                    #WandbCallback(
+                    #    gradient_save_freq=100000,
+                    #    model_save_path=f"models/{run.id}",
+                    #    verbose=2),
                     eval_callback])
 
     model.save(f"./saved_models/{group_name}/{run_name}")
@@ -126,7 +131,7 @@ if __name__ == "__main__":
     obs = env.reset()
 
     stats = []
-    for i in range(96*1000):
+    for i in range(48*1000):
 
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = env.step(action)
