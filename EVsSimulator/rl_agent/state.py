@@ -63,9 +63,7 @@ def PublicPST(env, *args):
     return state
 
 def V2G_profit_max(env, *args):
-    # This state function is the public power setpoints
-    # The state is the public power setpoints
-    # The state is a vector
+
 
     state = [
         (env.current_step),        

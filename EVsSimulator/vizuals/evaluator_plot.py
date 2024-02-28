@@ -248,7 +248,7 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
         replay = pickle.load(f)
 
     plt.close('all')
-    plt.figure(figsize=(7, 10))
+    plt.figure(figsize=(7, 11))
     plt.rc('font', family='serif')
 
     for index, key in enumerate(replay.keys()):
@@ -268,16 +268,16 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
         #plot the actual power vs the setpoint power for each algorithm in subplots                
         plt.subplot(len(replay), 1, index+1)
         
-        actual_power = env.current_power_usage
-        print(actual_power)
-        setpoints = env.power_setpoints        
-        print(setpoints)
+        actual_power = env.current_power_usage        
+        setpoints = env.power_setpoints                
 
         plt.step(date_range, actual_power.T, alpha=0.9, color='#00429d')
         plt.step(date_range, setpoints.T, alpha=1, color='#93003a')
         
         plt.axhline(0, color='black', lw=2)
         plt.title(f'{algorithm_names[index]}', fontsize=22)
+        
+        plt.yticks(fontsize=22)
         
         if index == len(replay) - 1:
             plt.xticks(ticks=date_range_print,
@@ -289,21 +289,17 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
                        labels=[' ' for d in date_range_print])
         
         if index == len(replay) // 2:
-            plt.ylabel('Power (kW)', fontsize=28)               
+            plt.ylabel('Power (kW)', fontsize=26)               
         
     # Put the legend under the plot in a separate axis           
-    plt.legend(['Actual Power', 'Setpoint Power'], loc='upper center',
-               bbox_to_anchor=(0.5, -1),
-               fancybox=True, shadow=True, ncol=2, fontsize=24)
+    plt.legend(['Actual Power', 'Setpoint'], loc='upper center',
+               bbox_to_anchor=(0.5, -1.5),
+               fancybox=True, shadow=True, ncol=2, fontsize=22)
         
-    # plt.tight_layout()
+    plt.tight_layout()
     fig_name = f'{save_path}/Actual_vs_Setpoint_Power.png'
     plt.savefig(fig_name, format='png',
-                dpi=60, bbox_inches='tight')
-    plt.show()
-        
-        
-    
+                dpi=60, bbox_inches='tight')                
 
 if __name__ == "__main__":
 

@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 25 #90 # in steps per simulation
+simulation_length: 85 #90 # in steps per simulation
 
 ##############################################################################
 # Date and Time
@@ -16,7 +16,6 @@ day: 17 # 1-31
 # Whether to get a random date every time the environment is reset
 random_day: True # True or False
 
-
 # Simulation Starting Time
 # Hour and minute do not change after the environment has been reset
 hour: 5 # Simulation starting hour (24 hour format)
@@ -26,8 +25,8 @@ minute: 0 # Simulation starting minute (0-59)
 simulation_days: weekdays # weekdays, weekends, or both
 
 # EV Spawn Behavior
-scenario: workplace # public, private, or workplace
-spawn_multiplier: 100 # 1 is default, the higher the number the more EVs spawn
+scenario: private # public, private, or workplace
+spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn
 
 ##############################################################################
 # Prices
@@ -57,21 +56,21 @@ power_setpoints_uncertainty: 20 # (in percentage +/- %)
 ##############################################################################
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 inflexible_loads:
-  include: True # True or False
+  include: False # True or False
   inflexible_loads_capacity_multiplier_mean: 0.8 # 1 is default, the higher the number the more inflexible loads
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 0 # in percentage of load at time t%
 
 # PV solar Power
 solar_power:
-  include: True # True or False
+  include: False # True or False
   solar_power_capacity_multiplier_mean: 2 # 1 is default, the higher the number the more solar power
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 0 # in percentage of load at time t%
 
 # Whether to include demand response in the transformer power limit
 demand_response:
-  include: True # True or False
+  include: False # True or False
   events_per_day: 1
   #How much of the transformer power limit can be used for demand response
   event_capacity_percentage_mean: 25 # (in percentage +/- %)
@@ -112,7 +111,7 @@ charging_station:
 ev:
   battery_capacity: 50 # in kWh
   min_battery_capacity: 10 # in kWh
-  desired_capacity: 40 # in kWh
+  desired_capacity: 50 # in kWh
   max_ac_charge_power: 22 # in kW
   min_ac_charge_power: 0 # in kW
   max_dc_charge_power: 50 # in kW

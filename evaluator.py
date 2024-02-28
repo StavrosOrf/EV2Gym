@@ -109,6 +109,9 @@ algorithms = [
     ChargeAsFastAsPossible,
     ChargeAsLateAsPossible,
     PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
+    # SAC,
+    # TD3,
+    # ARS,
     RoundRobin,
     PowerTrackingErrorrMin,
 ]
@@ -155,8 +158,12 @@ for algorithm in algorithms:
                                       })
             env = gym.make('evs-v0')
 
-            load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
-                f"{algorithm.__name__.lower()}_SquaredTrackingErrorReward_PublicPST"
+            if algorithm == RecurrentPPO:
+                load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
+                    f"rppo_{reward_function.__name__}_{state_function.__name__}"
+            else:
+                load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
+                    f"{algorithm.__name__.lower()}_{reward_function.__name__}_{state_function.__name__}"
 
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
@@ -207,6 +214,7 @@ for algorithm in algorithms:
                                           'battery_degradation': stats['battery_degradation'],
                                           'battery_degradation_calendar': stats['battery_degradation_calendar'],
                                           'battery_degradation_cycling': stats['battery_degradation_cycling'],
+                                          'total_reward': sum(rewards),
                                           }, index=[counter])
 
                 if counter == 1:
@@ -241,7 +249,9 @@ with open(save_path + 'results_grouped.txt', 'w') as f:
 
 
 # results_grouped.to_csv('results_grouped.csv')
-
+# print(results_grouped[['tracking_error', 'energy_tracking_error']])
+print(results_grouped[['total_profits', 'average_user_satisfaction']])
+input('Press Enter to continue')
 
 algorithm_names = []
 for algorithm in algorithms:
@@ -263,4 +273,4 @@ plot_actual_power_vs_setpoint(results_path=save_path + 'plot_results_dict.pkl',
                               save_path=save_path,
                               algorithm_names=algorithm_names)
 
-print(results_grouped[['tracking_error', 'energy_tracking_error']])
+

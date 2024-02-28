@@ -84,6 +84,7 @@ def get_statistics(env) -> Dict:
              'battery_degradation': battery_degradation,
              'battery_degradation_calendar': battery_degradation_calendar,
              'battery_degradation_cycling': battery_degradation_cycling,
+             'total_reward': env.total_reward,
              }
 
     if env.eval_mode != "optimal" and env.replay is not None:

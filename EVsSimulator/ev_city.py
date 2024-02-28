@@ -290,8 +290,10 @@ class EVsSimulator(gym.Env):
         return self._get_observation(), {}
 
     def init_statistic_variables(self):
+        
         self.current_step = 0
         self.total_evs_spawned = 0
+        self.total_reward = 0
 
         self.current_ev_departed = 0
         self.current_ev_arrived = 0
@@ -555,4 +557,7 @@ class EVsSimulator(gym.Env):
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''
 
-        return self.reward_function(self, total_costs, user_satisfaction_list, invalid_action_punishment)
+        reward = self.reward_function(self, total_costs, user_satisfaction_list, invalid_action_punishment)
+        self.total_reward += reward
+        
+        return reward
