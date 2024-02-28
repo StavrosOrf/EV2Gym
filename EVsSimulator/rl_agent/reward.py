@@ -30,6 +30,20 @@ def SqTrError_TrPenalty_UserIncentives(env, _, user_satisfaction_list, *args):
                     
     return reward
 
+def ProfitMax_TrPenalty_UserIncentives(env, total_costs, user_satisfaction_list, *args):
+    # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
+    # It penalizes transofrmers that are overloaded    
+    # The reward is negative
+    reward = total_costs
+    
+    for tr in env.transformers:
+        reward -= 100 * tr.get_how_overloaded()                        
+    
+    for score in user_satisfaction_list:        
+        reward -= 100 * math.exp(-10*score)
+        
+    return reward
+
 def SquaredTrackingErrorRewardWithPenalty(env,*args):
     # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
     # The reward is negative
@@ -69,7 +83,7 @@ def profit_maximization(env, total_costs, user_satisfaction_list, *args):
     
     for score in user_satisfaction_list:
         # reward -= 100 * (1 - score)
-        reward -= 100 * math.exp(-6*score)
+        reward -= 100 * math.exp(-10*score)
     
     return reward
 

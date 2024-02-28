@@ -167,7 +167,7 @@ class Transformer():
                                         * power_limit)
 
         return known_max_power
-    
+        
     def get_load_pv_forecast(self, step, horizon) -> np.array:
         
         load_forecast = self.inflexible_load_forecast[step:step+horizon]
@@ -175,6 +175,23 @@ class Transformer():
         
         load_forecast[0] = self.inflexible_load[step]
         pv_forecast[0] = self.solar_power[step]
+        
+        if len(load_forecast) < horizon:
+            load_forecast = np.append(load_forecast, np.zeros(horizon-len(load_forecast))
+                                        * self.inflexible_load_forecast[-1])
+            pv_forecast = np.append(pv_forecast, np.zeros(horizon-len(pv_forecast))
+                                        * self.pv_generation_forecast[-1])
+        
+        return load_forecast, pv_forecast
+
+    def get_load_pv_forecast(self, step, horizon) -> np.array:
+        
+        load_forecast = self.inflexible_load_forecast[step:step+horizon]
+        pv_forecast = self.pv_generation_forecast[step:step+horizon]
+        
+        if step < len(self.inflexible_load):
+            load_forecast[0] = self.inflexible_load[step]
+            pv_forecast[0] = self.solar_power[step]
         
         if len(load_forecast) < horizon:
             load_forecast = np.append(load_forecast, np.zeros(horizon-len(load_forecast))

@@ -6,10 +6,10 @@ from stable_baselines3.common.callbacks import EvalCallback
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 
 from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, ProfitMax_TrPenalty_UserIncentives
 from EVsSimulator.rl_agent.reward import profit_maximization
 
-from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
+from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
 
 import gymnasium as gym
 import argparse
@@ -44,7 +44,11 @@ if __name__ == "__main__":
         reward_function = SquaredTrackingErrorReward
         state_function = PublicPST
         group_name = f'{config["number_of_charging_stations"]}cs_PublicPST'
-
+    elif config_file == "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml":
+        reward_function = ProfitMax_TrPenalty_UserIncentives
+        state_function = V2G_profit_max_loads
+        group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitPlusLoads'
+                
     run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
 
     run = wandb.init(project='EVsSimulator',
@@ -111,7 +115,7 @@ if __name__ == "__main__":
     else:
         raise ValueError("Unknown algorithm")
 
-    model.learn(total_timesteps=200_000,
+    model.learn(total_timesteps=4_000_000,
                 progress_bar=True,
                 callback=[
                     WandbCallback(

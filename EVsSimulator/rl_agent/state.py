@@ -64,7 +64,6 @@ def PublicPST(env, *args):
 
 def V2G_profit_max(env, *args):
 
-
     state = [
         (env.current_step),        
     ]
@@ -101,9 +100,57 @@ def V2G_profit_max(env, *args):
 
     state = np.array(np.hstack(state))
 
-    np.set_printoptions(suppress=True)
+    return state
+
+def V2G_profit_max_loads(env, *args):
+    '''
+    This is the state function for the V2GProfitMax scenario with loads
+    '''
+    
+    state = [
+        (env.current_step),        
+    ]
+
+    state.append(env.current_power_usage[env.current_step-1])
+
+    charge_prices = abs(env.charge_prices[0, env.current_step:
+        env.current_step+20])
+    
+    if len(charge_prices) < 20:
+        charge_prices = np.append(charge_prices, np.zeros(20-len(charge_prices)))
+    
+    state.append(charge_prices)
+    
+    # For every transformer
+    for tr in env.transformers:
+        loads, pv = tr.get_load_pv_forecast(step = env.current_step,
+                                            horizon = 20)
+        power_limits = tr.get_power_limits(step = env.current_step,
+                                           horizon = 20)
+        state.append(loads-pv)
+        state.append(power_limits)
+        
+        # For every charging station connected to the transformer
+        for cs in env.charging_stations:
+            if cs.connected_transformer == tr.id:
+
+                # For every EV connected to the charging station
+                for EV in cs.evs_connected:
+                    # If there is an EV connected
+                    if EV is not None:
+                        state.append([
+                            EV.get_soc(),
+                            EV.time_of_departure - env.current_step,
+                            ])
+
+                    # else if there is no EV connected put zeros
+                    else:
+                        state.append(np.zeros(2))
+
+    state = np.array(np.hstack(state))
 
     return state
+    
 
 
 def BusinessPSTwithMoreKnowledge(env, *args):
