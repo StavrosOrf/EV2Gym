@@ -24,10 +24,35 @@ data = data[columns_to_keep]
 
 data_grouped = data.groupby('Algorithm').agg(['mean', 'std'])
 # round up the values of certain columns
-data_grouped = data_grouped.round({'total_energy_charged': 0,
+data_grouped = data_grouped.round({('total_energy_charged','mean'): 0,
                                    'average_user_satisfaction': 2,
                                    'tracking_error': 0, 
                                    'energy_tracking_error': 1,
                                    'total_reward': 0})
+print(data_grouped['total_energy_charged'].keys())
+# create new columns with the mean and std of the total_energy_charged combined as a string 
+data_grouped['total_energy_charged'] = data_grouped['total_energy_charged']\
+       .apply(lambda x: f"${x['mean']:.0f}$ ±${x['std']:.0f}$", axis=1)
+data_grouped['average_user_satisfaction'] = data_grouped['average_user_satisfaction']\
+       .apply(lambda x: f"${x['mean']*100:.0f}$ ±${x['std']*100:.0f}$", axis=1)
+data_grouped['tracking_error'] = data_grouped['tracking_error']\
+       .apply(lambda x: f"${x['mean']/1000:.1f}$ ±${(x['std']/1000):.1f}$", axis=1)
+data_grouped['energy_tracking_error'] = data_grouped['energy_tracking_error']\
+       .apply(lambda x: f"${x['mean']:.0f}$ ±${x['std']:.0f}$", axis=1)
+data_grouped['total_reward'] = data_grouped['total_reward']\
+       .apply(lambda x: f"${x['mean']/1000:.1f}$ ±${x['std']/1000:.1f}$", axis=1)
+       
+# drop the mean and std columns
+data_grouped = data_grouped.droplevel(1, axis=1)
+# print the results
+# drop duplicate columns
+data_grouped = data_grouped.loc[:,~data_grouped.columns.duplicated()]
+#rename columns
+data_grouped.columns = ['Energy Charged', 'User Satisfaction', 'Tracking Error', 'Energy Tracking Error', 'Reward']
 
+
+#rename algorithm names with shorter names
+#rename PowerTrackingErrorrMin to Optimal
 print(data_grouped)
+print(data_grouped.to_latex())
+
