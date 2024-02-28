@@ -112,12 +112,13 @@ def generate_replay(evaluation_name):
 # Algorithms to compare:
 algorithms = [
     ChargeAsFastAsPossible,
-    # ChargeAsLateAsPossible,
-    # PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
-    SAC,
-    TQC,
-    TD3,
+    ChargeAsLateAsPossible,
+    PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
+    # SAC,
+    # TQC,
+    # TD3,
     # RoundRobin,
+    # eMPC_V2G,
     V2GProfitMaxOracleGB,
     # V2GProfitMaxOracle,
 ]
@@ -182,6 +183,8 @@ for algorithm in algorithms:
                 load_from_replay_path=replay_path,
                 generate_rnd_game=True,
                 verbose=False,
+                state_function=state_function,
+                reward_function=reward_function,
             )
 
             state = env.reset()
@@ -259,8 +262,8 @@ with open(save_path + 'results_grouped.txt', 'w') as f:
 
 # results_grouped.to_csv('results_grouped.csv')
 # print(results_grouped[['tracking_error', 'energy_tracking_error']])
-print(results_grouped[['total_profits', 'average_user_satisfaction']])
-# input('Press Enter to continue')
+print(results_grouped[['total_profits', 'average_user_satisfaction','total_reward']])
+input('Press Enter to continue')
 
 algorithm_names = []
 for algorithm in algorithms:

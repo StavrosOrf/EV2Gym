@@ -35,11 +35,11 @@ def arg_parser():
     # Environment specific arguments
     parser.add_argument("--config_file", default="EVsSimulator/example_config_files/V2GProfitMax.yaml",
                         help="Path to the config file (default: config_files/config.yaml)")
-    parser.add_argument("--n_test_cycles", default=1, type=int,
+    parser.add_argument("--n_test_cycles", default=100, type=int,
                         help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 
     # Generate trajectories specific arguments
-    parser.add_argument("--n_trajectories", default=100, type=int,
+    parser.add_argument("--n_trajectories", default=1, type=int,
                         help="Num. of trajectories to generate (default: 10)")
     
     #
