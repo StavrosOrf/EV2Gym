@@ -140,9 +140,9 @@ class EvCityReplay():
         self.t_dep = np.zeros([self.max_n_ports,
                                self.n_cs,
                                self.sim_length])  # time of departure of the ev, 0 if port is empty
-        # self.ev_des_energy = np.zeros([self.max_n_ports,
-        #                                self.n_cs,
-        #                                self.sim_length])  # desired energy of the ev, 0 if port is empty
+        self.ev_des_energy = np.zeros([self.max_n_ports,
+                                       self.n_cs,
+                                       self.sim_length])  # desired energy of the ev, 0 if port is empty
         self.max_energy_at_departure = np.zeros([self.max_n_ports,
                                                 self.n_cs,
                                                 self.sim_length])  # max energy of ev when only charging
@@ -185,7 +185,7 @@ class EvCityReplay():
                 self.t_dep[port, cs_id, t_dep-1] = 1                            
                 self.max_energy_at_departure[port, cs_id, t_dep-1] = ev.prev_capacity
             
-                # self.ev_des_energy[port, cs_id, t_dep] = ev.desired_capacity
+            self.ev_des_energy[port, cs_id, t_dep] = ev.desired_capacity
 
         # print(f'u: {self.u}')
         # print(f'ev_arrival: {self.ev_arrival}')

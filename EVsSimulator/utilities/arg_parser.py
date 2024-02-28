@@ -28,15 +28,15 @@ def arg_parser():
     parser.add_argument("--noise_stddev", default=0.3, type=int,
                         help="Standard deviation of the OU-Noise (default: 0.2)")
     parser.add_argument("--hidden_size", nargs=2, default=[256, 256], type=tuple,
-                        help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
-    parser.add_argument("--n_test_cycles", default=1, type=int,
-                        help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
+                        help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")    
     parser.add_argument("--wandb", default=True, type=bool,
                         help="Enable logging to wandb (default: True)")
 
     # Environment specific arguments
     parser.add_argument("--config_file", default="EVsSimulator/example_config_files/V2GProfitMax.yaml",
                         help="Path to the config file (default: config_files/config.yaml)")
+    parser.add_argument("--n_test_cycles", default=1, type=int,
+                        help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 
     # Generate trajectories specific arguments
     parser.add_argument("--n_trajectories", default=100, type=int,

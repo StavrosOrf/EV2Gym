@@ -1,5 +1,5 @@
 from EVsSimulator import ev_city
-from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import PowerTrackingErrorrMin
+from EVsSimulator.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
 
 import numpy as np
 import os

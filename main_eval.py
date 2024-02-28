@@ -2,13 +2,14 @@
 This script is used to evaluate the performance of the EVsSimulator environment.
 """
 from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import PowerTrackingErrorrMin
+from EVsSimulator.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
+from EVsSimulator.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
 from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
 from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
+from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle
+
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
 from EVsSimulator.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
-
-
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,11 +27,9 @@ def eval():
     replay_path = "./replay/replay_sim_2024_02_21_056441.pkl"
     replay_path = None
 
-    # config_file = "/example_config_files/BusinessPST_config.yaml"
-    # # config_file = "/example_config_files/simple_config.yaml"
-    # config_file = "/example_config_files/config.yaml"
     config_file = "/example_config_files/V2G_MPC.yaml"
-    # config_file = "/example_config_files/PublicPST.yaml"
+    config_file = "/example_config_files/PublicPST.yaml"
+    config_file = "/example_config_files/V2GProfitMax.yaml"
 
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
 
@@ -49,25 +48,18 @@ def eval():
 
     # agent = OCCF_V2G(env, control_horizon=30, verbose=True)
     # agent = OCCF_G2V(env, control_horizon=25, verbose=True)
-    agent = eMPC_V2G(env, control_horizon=15, verbose=True)
+    # agent = eMPC_V2G(env, control_horizon=15, verbose=True)
+    # agent = V2GProfitMaxOracle(env,verbose=True)
     # agent = eMPC_G2V(env, control_horizon=15, verbose=True)
-    # round_robin = RoundRobin(env, verbose=False)
-    # charge_as_late_as_possible = ChargeAsLateAsPossible(verbose=False)
-    # charge_as_fast_as_possible = ChargeAsFastAsPossible()
+    # agent = RoundRobin(env, verbose=False)
+    # agent = ChargeAsLateAsPossible(verbose=False)
+    agent = ChargeAsFastAsPossible()
     # agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 
     for t in range(env.simulation_length):        
-        # all ports are charging instantly        
-        # actions = charge_as_fast_as_possible.get_action(env)
-        # actions = round_robin.get_action(env)
-        # actions = charge_as_late_as_possible.get_action(env)
-        # input("Press Enter to continue...")
-        # MPC        
         actions = agent.get_action(env)
-        # actions = mpc.get_actions_OCCF_with_Loads(t=t)
-        # actions = np.random.rand(env.number_of_ports) * -2 + 1
-        
+       
         if verbose:
             print(f'Actions: {actions}')
 
@@ -83,13 +75,12 @@ def eval():
         if done:
             print(f'End of simulation at step {env.current_step}')
             break
-
-    return
-    # Solve optimally
+        
+     # Solve optimally
     # Power tracker optimizer
     # math_model = PowerTrackingErrorrMin(replay_path=new_replay_path)
     # Profit maximization optimizer
-    # math_model = ev_city_profit_maximization.EV_City_Math_Model(replay_path=new_replay_path)    
+    agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)    
     
     # opt_actions = math_model.get_actions()
     # print(f'Optimal actions: {opt_actions.shape}')
@@ -105,11 +96,7 @@ def eval():
     rewards_opt = []
 
     for t in range(env.simulation_length):
-        # all ports are charging instantly
-        # print(f'Optimal actions: {opt_actions[:,:,t]}')
-        # print(f'Optimal actions: {opt_actions[:,:,t].T.reshape(-1)}')
-        # actions = opt_actions[:, :, t].T.reshape(-1)
-        actions = agent.get_action(t=t)
+        actions = agent.get_action(env)
         if verbose:
             print(f' OptimalActions: {actions}')
 
@@ -123,32 +110,7 @@ def eval():
         if done:
             break
 
-    if save_plots:
-        plt.figure(figsize=(10, 10))
-        # Plot the commulative reward in subplot 1
-        plt.subplot(2, 1, 1)
-        plt.plot(np.cumsum(rewards))
-        plt.plot(np.cumsum(rewards_opt))
-        plt.legend(['Charge Immediately', 'Optimal'])
-        plt.ylabel('Cumulative reward')
-        # plt.xticks(np.arange(0, steps, 1))
-        plt.title('Cumulative reward')
-
-        # Plot the reward per step in subplot 2
-        plt.subplot(2, 1, 2)
-        plt.plot(rewards)
-        plt.plot(rewards_opt)
-        plt.legend(['Charge Immediately', 'Optimal'])
-        plt.xlabel('Time step')
-        plt.ylabel('Reward')
-        # plt.xticks(np.arange(0, steps, 1))
-        plt.title('Reward per time step')
-
-        plt.tight_layout()
-        plt.savefig(f'results/{env.sim_name}/RewardsComparison.html',
-                    format='svg', dpi=600, bbox_inches='tight')
-
-
 if __name__ == "__main__":
     while True:
         eval()
+        exit()

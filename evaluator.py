@@ -18,18 +18,22 @@ from EVsSimulator.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCap
 
 from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
 from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
+from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle
 
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 
-from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import PowerTrackingErrorrMin
+from EVsSimulator.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
+from EVsSimulator.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
 
 from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
 from EVsSimulator.rl_agent.reward import profit_maximization
 
 from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
 
-from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC, plot_actual_power_vs_setpoint
+from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
+from EVsSimulator.vizuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
+from EVsSimulator.vizuals.evaluator_plot import plot_comparable_EV_SoC_single
 
 import gymnasium as gym
 import torch
@@ -84,16 +88,17 @@ else:
     raise ValueError('Unknown config file')
 
 
-def generate_replay():
+def generate_replay(evaluation_name):
     env = ev_city.EVsSimulator(
         config_file=args.config_file,
         generate_rnd_game=True,
         save_replay=True,
+        replay_save_path=f"replay/{evaluation_name}/",
     )
-    replay_path = f"replay/replay_{env.sim_name}.pkl"
+    replay_path = f"replay/{evaluation_name}/replay_{env.sim_name}.pkl"
 
     for _ in range(env.simulation_length):
-        actions = np.random.rand(env.number_of_ports) * -2 + 1
+        actions = np.ones(env.cs)
 
         new_state, reward, done, truncated, _ = env.step(
             actions, visualize=False)  # takes action
@@ -107,13 +112,14 @@ def generate_replay():
 # Algorithms to compare:
 algorithms = [
     ChargeAsFastAsPossible,
-    ChargeAsLateAsPossible,
-    PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
-    # SAC,
-    # TD3,
-    # ARS,
-    RoundRobin,
-    PowerTrackingErrorrMin,
+    # ChargeAsLateAsPossible,
+    # PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
+    SAC,
+    TQC,
+    TD3,
+    # RoundRobin,
+    V2GProfitMaxOracleGB,
+    # V2GProfitMaxOracle,
 ]
 
 # algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
@@ -124,7 +130,7 @@ algorithms = [
 #               ]
 
 evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
-    f'_{n_test_cycles}_cycles_' +\
+    f'_{n_test_cycles}_exp_' +\
     f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
 
 # make a directory for the evaluation
@@ -133,7 +139,8 @@ os.makedirs(save_path, exist_ok=True)
 
 
 if not replays_exist:
-    eval_replay_files = [generate_replay() for _ in range(n_test_cycles)]
+    eval_replay_files = [generate_replay(
+        evaluation_name) for _ in range(n_test_cycles)]
 
 plot_results_dict = {}
 counter = 0
@@ -178,7 +185,13 @@ for algorithm in algorithms:
             )
 
             state = env.reset()
-            model = algorithm(env=env, replay_path=replay_path, verbose=False)
+            try:
+                model = algorithm(
+                    env=env, replay_path=replay_path, verbose=False)
+            except:
+                print(
+                    f'Error in {algorithm.__name__} with replay {replay_path}')
+                continue
 
         rewards = []
 
@@ -192,7 +205,7 @@ for algorithm in algorithms:
 
                 stats = stats[0]
             else:
-                actions = model.get_action(env)
+                actions = model.get_action(env=env)
                 new_state, reward, done, _, stats = env.step(actions)
             ############################################################
 
@@ -238,11 +251,7 @@ results.to_csv(save_path + 'data.csv')
 
 # Group the results by algorithm and print the average and the standard deviation of the statistics
 results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
-# # replace Nan with 0
-# results_grouped = results_grouped.fillna(0)
 
-# print the main statistics in a latex table
-# print(results_grouped.to_latex())
 # savethe latex results in a txt file
 with open(save_path + 'results_grouped.txt', 'w') as f:
     f.write(results_grouped.to_latex())
@@ -251,7 +260,7 @@ with open(save_path + 'results_grouped.txt', 'w') as f:
 # results_grouped.to_csv('results_grouped.csv')
 # print(results_grouped[['tracking_error', 'energy_tracking_error']])
 print(results_grouped[['total_profits', 'average_user_satisfaction']])
-input('Press Enter to continue')
+# input('Press Enter to continue')
 
 algorithm_names = []
 for algorithm in algorithms:
@@ -273,4 +282,10 @@ plot_actual_power_vs_setpoint(results_path=save_path + 'plot_results_dict.pkl',
                               save_path=save_path,
                               algorithm_names=algorithm_names)
 
+plot_total_power_V2G(results_path=save_path + 'plot_results_dict.pkl',
+                     save_path=save_path,
+                     algorithm_names=algorithm_names)
 
+plot_comparable_EV_SoC_single(results_path=save_path + 'plot_results_dict.pkl',
+                              save_path=save_path,
+                              algorithm_names=algorithm_names)

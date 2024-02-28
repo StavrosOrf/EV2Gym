@@ -11,14 +11,14 @@ from gurobipy import *
 import pickle
 
 
-class EV_City_Math_Model():
+class V2GProfitMaxOracleGB():
     '''
     This file contains the EV_City_Math_Model class, which is used to solve the ev_city V2G problem optimally.
     '''
+    algo_name = 'Optimal (Offline)' 
+    def __init__(self, replay_path=None, **kwargs):
 
-    def __init__(self, sim_file_path=None):
-
-        replay = pickle.load(open(sim_file_path, 'rb'))
+        replay = pickle.load(open(replay_path, 'rb'))
 
         self.sim_length = replay.sim_length
         self.n_cs = replay.n_cs
@@ -52,15 +52,18 @@ class EV_City_Math_Model():
         ev_max_ch_power = replay.ev_max_ch_power  # * self.dt
         ev_max_dis_power = replay.ev_max_dis_power  # * self.dt
         ev_max_energy_at_departure = replay.max_energy_at_departure
+        ev_des_energy = replay.ev_des_energy
         u = replay.u
         energy_at_arrival = replay.energy_at_arrival
         ev_arrival = replay.ev_arrival
         t_dep = replay.t_dep
+        
         # create model
         print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
         # self.m.setParam('OutputFlag', 0)
-        # self.m.setParam('MIPGap', 0.5)
+        self.m.setParam('MIPGap', 0.01)
+        self.m.setParam('TimeLimit', 60)
 
         # energy of EVs t timeslot t
         energy = self.m.addVars(self.number_of_ports_per_cs,
@@ -120,11 +123,20 @@ class EV_City_Math_Model():
                                         self.sim_length,
                                         vtype=GRB.CONTINUOUS,
                                         name='current_tr_dis')        
+        
+        power_cs_ch = self.m.addVars(self.n_cs,
+                                     self.sim_length,
+                                     vtype=GRB.CONTINUOUS,
+                                     name='power_cs_ch')
+
+        power_cs_dis = self.m.addVars(self.n_cs,
+                                      self.sim_length,
+                                      vtype=GRB.CONTINUOUS,
+                                      name='power_cs_dis')
 
         costs = self.m.addVar(vtype=GRB.CONTINUOUS,
                                name='total_soc')
-        # Constrains
-        print('Creating constraints...')
+        # Constrains        
         # transformer current and power variables
         for t in range(self.sim_length):
             for i in range(self.n_transformers):
@@ -140,12 +152,19 @@ class EV_City_Math_Model():
                             for p in range(self.number_of_ports_per_cs)
                             for i in range(self.n_cs)
                             for t in range(self.sim_length))
+        
+        self.m.addConstrs(power_cs_ch[i, t] == (current_cs_ch[i, t] * voltages[i])
+                          for i in range(self.n_cs)
+                          for t in range(self.sim_length))
+        self.m.addConstrs(power_cs_dis[i, t] == (current_cs_dis[i, t] * voltages[i])
+                          for i in range(self.n_cs)
+                          for t in range(self.sim_length))
 
         # transformer current output constraint (circuit breaker)
-        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] <= tra_max_amps[i]
+        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] <= tra_max_amps[i, t]
                            for i in range(self.n_transformers)
                            for t in range(self.sim_length)), name='tr_current_limit_max')
-        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] >= tra_min_amps[i]
+        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] >= tra_min_amps[i, t]
                            for i in range(self.n_transformers)
                            for t in range(self.sim_length)), name='tr_current_limit_min')
 
@@ -194,7 +213,7 @@ class EV_City_Math_Model():
                            ), name='ev_current_dis_limit_min')
 
         # ev max charging current constraint
-        self.m.addConstrs((current_ev_ch[p, i, t] <= ev_max_ch_power[p, i, t]/voltages[i]
+        self.m.addConstrs((current_ev_ch[p, i, t] <= min(ev_max_ch_power[p, i, t]/voltages[i], port_max_charge_current[i])
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)
@@ -203,7 +222,7 @@ class EV_City_Math_Model():
                           name='ev_current_ch_limit_max')
 
         # ev max discharging current constraint
-        self.m.addConstrs((current_ev_dis[p, i, t] <= -ev_max_dis_power[p, i, t]/voltages[i]
+        self.m.addConstrs((current_ev_dis[p, i, t] <= min(-ev_max_dis_power[p, i, t]/voltages[i], -port_max_discharge_current[i])
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)
@@ -262,7 +281,7 @@ class EV_City_Math_Model():
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)), name='ev_power_mode_2')
-
+        
         # time of departure of EVs
         for t in range(self.sim_length):
             for i in range(self.n_cs):
@@ -270,48 +289,30 @@ class EV_City_Math_Model():
                     if t_dep[p, i, t] == 1:
                         # input(f'Energy at departure: {t_dep[p,i,t]}')
                         self.m.addLConstr(energy[p, i, t] >= ev_max_energy_at_departure[p,i,t],
+                        # self.m.addLConstr(energy[p, i, t] >= ev_max_energy_at_departure[p,i,t],
                                         #    ev_des_energy[p, i, t]),
                                           name=f'ev_departure_energy.{p}.{i}.{t}')
-        # Objective function
-        # self.m.setObjective(power_error.sum() - total_soc[0],
-        #                     GRB.MINIMIZE)
 
         self.m.setObjective(costs,
                             GRB.MAXIMIZE)
 
         # print constraints
-        self.m.write("model.lp")
-        print(f'Starting Optimization....')
-        # self.m.params.NonConvex = 2
-        self.m.optimize()
+        # self.m.write("model.lp")
+        print(f'Optimizing...')        
+        self.m.params.NonConvex = 2
+        
+        self.m.optimize()        
 
         self.act_current_ev_ch = act_current_ev_ch
         self.act_current_ev_dis = act_current_ev_dis
         self.port_max_charge_current = port_max_charge_current
         self.port_max_discharge_current = port_max_discharge_current
 
-        # for t in range(self.sim_length):
-        #     print(
-        #         f'------------------ Time {t} ------------------------------------------- ')
-        #     for i in range(self.n_cs):
-        #         print(
-        #             f'CS.{i}: {current_cs_ch[i, t].x:.2f} {current_cs_dis[i, t].x:.2f} ')
-
-        #         for p in range(self.number_of_ports_per_cs):
-
-        #             print(f'Port {p} :'
-        #                   f' Energy {energy[p, i, t].x:.2f} |' +
-        #                   f' Ch {current_ev_ch[p, i, t].x:.2f}' +
-        #                   f' o_ch {omega_ch[p, i, t].x:2.0f}  -  ' +
-        #                   f' Dis {current_ev_dis[p, i, t].x:.2f}' +
-        #                   f' o_dis {omega_dis[p, i, t].x:2.0f}|' +
-        #                   f' u {u[p, i, t]:4.1f}')
-        # print(t_dep)
-        print(
-            f'Is MIP?: {self.m.IsMIP}, IsMultiObj?: {self.m.IsMultiObj}, Is QCP?: {self.m.IsQCP}, Is QP?: {self.m.IsQP}')
         if self.m.status != GRB.Status.OPTIMAL:
             print(f'Optimization ended with status {self.m.status}')
-            exit()
+            # exit()
+        
+        self.get_actions()
 
     def get_actions(self):
         '''
@@ -332,3 +333,12 @@ class EV_City_Math_Model():
                             / self.port_max_discharge_current[i]
 
         return self.actions
+
+    def get_action(self, env, **kwargs):
+        '''
+        This function returns the action for the current step of the environment.
+        '''
+
+        step = env.current_step
+
+        return self.actions[:, :, step].T.reshape(-1)

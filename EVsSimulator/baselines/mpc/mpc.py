@@ -215,6 +215,16 @@ class MPC(ABC):
             self.tr_loads[i, 1:l] = tr.inflexible_load_forecast[tr.current_step + 2:
                                                                 tr.current_step+self.control_horizon]
 
+    def update_tr_power_oracle(self, t):
+        '''
+        This function updates the transformer power limits, loads and PV generation for the next control horizon based on forecasts.
+        '''
+
+        for i, tr in enumerate(self.env.transformers):
+            self.tr_power_limit[i, :] = tr.max_power
+            self.tr_pv[i, :] = tr.solar_power
+            self.tr_loads[i, :] = tr.inflexible_load
+            
     def reconstruct_state(self, t):
         '''
         This function reconstructs the state of the environment using the historical data.
