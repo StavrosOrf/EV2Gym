@@ -25,7 +25,7 @@ minute: 0 # Simulation starting minute (0-59)
 simulation_days: weekdays # weekdays, weekends, or both
 
 # EV Spawn Behavior
-scenario: private # public, private, or workplace
+scenario: workplace # public, private, or workplace
 spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn
 
 ##############################################################################
@@ -56,21 +56,21 @@ power_setpoints_uncertainty: 20 # (in percentage +/- %)
 ##############################################################################
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 inflexible_loads:
-  include: False # True or False
+  include: True # True or False
   inflexible_loads_capacity_multiplier_mean: 0.8 # 1 is default, the higher the number the more inflexible loads
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 0 # in percentage of load at time t%
 
 # PV solar Power
 solar_power:
-  include: False # True or False
+  include: True # True or False
   solar_power_capacity_multiplier_mean: 2 # 1 is default, the higher the number the more solar power
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 0 # in percentage of load at time t%
 
 # Whether to include demand response in the transformer power limit
 demand_response:
-  include: False # True or False
+  include: True # True or False
   events_per_day: 1
   #How much of the transformer power limit can be used for demand response
   event_capacity_percentage_mean: 25 # (in percentage +/- %)
@@ -96,7 +96,7 @@ heterogeneous_ev_specs: False #if False, each EV has the same specifications
 
 # Default Transformer model
 transformer:
-  max_power: 100 # in kW
+  max_power: 50 # in kW
 
 # Default Charging Station model
 charging_station:  
