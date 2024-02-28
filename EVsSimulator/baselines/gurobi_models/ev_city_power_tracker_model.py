@@ -15,9 +15,9 @@ class PowerTrackingErrorrMin():
     '''
     This file contains the PowerTrackingErrorrMin class, which is used to solve the ev_city V2G problem optimally.
     '''
-
-    def __init__(self, replay_path=None, **kwargs):
-
+    algo_name = 'Optimal (Offline)'        
+    def __init__(self, replay_path=None, **kwargs):        
+        
         replay = pickle.load(open(replay_path, 'rb'))
 
         self.sim_length = replay.sim_length
@@ -184,10 +184,10 @@ class PowerTrackingErrorrMin():
                           for t in range(self.sim_length))
 
         # transformer current output constraint (circuit breaker)
-        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] <= tra_max_amps[i,t]
+        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] <= tra_max_amps[i, t]
                            for i in range(self.n_transformers)
                            for t in range(self.sim_length)), name='tr_current_limit_max')
-        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] >= tra_min_amps[i,t]
+        self.m.addConstrs((current_tr_ch[i, t] - current_tr_dis[i, t] >= tra_min_amps[i, t]
                            for i in range(self.n_transformers)
                            for t in range(self.sim_length)), name='tr_current_limit_min')
 
@@ -304,7 +304,7 @@ class PowerTrackingErrorrMin():
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)), name='ev_power_mode_2')
-        
+
         # self.m.addConstrs((omega_dis[p, i, t] + omega_ch[p, i, t] <= 0.99
         #                    for p in range(self.number_of_ports_per_cs)
         #                    for i in range(self.n_cs)
@@ -315,22 +315,21 @@ class PowerTrackingErrorrMin():
             # flag = False
             # for i in range(self.n_cs):
 
-                # total_soc[t] = gp.quicksum(energy[p, i, t]
-                #                            for p in range(self.number_of_ports_per_cs)
-                #                            if t_dep[p, i, t] == 1)
-                # for p in range(self.number_of_ports_per_cs):
-                #     # if t_dep[p, i, t] == 1:
-                #     #     # total_soc[t] += energy[p, i, t-1]
-                #     #     flag = True
-                        # input(f'Energy at departure: {t_dep[p,i,t]}')
-                        # self.m.addLConstr((energy[p, i, t] >= 15),
-                        #                 #    ev_des_energy[p, i, t]),
-                        #                   name=f'ev_departure_energy.{p}.{i}.{t}')
-                    # else:
-                    #     total_soc[t] = 0
+            # total_soc[t] = gp.quicksum(energy[p, i, t]
+            #                            for p in range(self.number_of_ports_per_cs)
+            #                            if t_dep[p, i, t] == 1)
+            # for p in range(self.number_of_ports_per_cs):
+            #     # if t_dep[p, i, t] == 1:
+            #     #     # total_soc[t] += energy[p, i, t-1]
+            #     #     flag = True
+            # input(f'Energy at departure: {t_dep[p,i,t]}')
+            # self.m.addLConstr((energy[p, i, t] >= 15),
+            #                 #    ev_des_energy[p, i, t]),
+            #                   name=f'ev_departure_energy.{p}.{i}.{t}')
+            # else:
+            #     total_soc[t] = 0
             # if not flag:
-                # total_soc[t] = 0
-
+            # total_soc[t] = 0
 
             total_soc[t] = gp.quicksum(energy[p, i, t]
                                        for p in range(self.number_of_ports_per_cs)
@@ -339,13 +338,13 @@ class PowerTrackingErrorrMin():
 
         # Objective function
         # self.m.setObjective( 10000000 * power_error.sum() - total_soc.sum(),
-        #                     GRB.MINIMIZE)        
+        #                     GRB.MINIMIZE)
         self.m.setObjective(power_error.sum(),
                             GRB.MINIMIZE)
 
         # print constraints
         self.m.write("model.lp")
-        print(f'Optimizing....')        
+        print(f'Optimizing....')
         self.m.params.NonConvex = 2
         self.m.optimize()
 
@@ -353,7 +352,7 @@ class PowerTrackingErrorrMin():
         self.act_current_ev_dis = act_current_ev_dis
         self.port_max_charge_current = port_max_charge_current
         self.port_max_discharge_current = port_max_discharge_current
-        
+
         # total_soc_sum = 0
         # total_error_sum = 0
         # for t in range(self.sim_length):
@@ -388,7 +387,7 @@ class PowerTrackingErrorrMin():
         if self.m.status != GRB.Status.OPTIMAL:
             print(f'Optimization ended with status {self.m.status}')
             exit()
-        
+
         self.get_actions()
 
     def get_actions(self):
@@ -415,7 +414,7 @@ class PowerTrackingErrorrMin():
         '''
         This function returns the action for the current step of the environment.
         '''
-        
+
         step = env.current_step
-        
+
         return self.actions[:, :, step].T.reshape(-1)
