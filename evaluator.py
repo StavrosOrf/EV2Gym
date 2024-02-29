@@ -32,7 +32,7 @@ from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_ma
 
 from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
 from EVsSimulator.vizuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
-from EVsSimulator.vizuals.evaluator_plot import plot_comparable_EV_SoC_single
+from EVsSimulator.vizuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_prices
 
 import gymnasium as gym
 import torch
@@ -114,12 +114,12 @@ def generate_replay(evaluation_name):
 # Algorithms to compare:
 algorithms = [
     ChargeAsFastAsPossible,
-    ChargeAsLateAsPossible,
-    PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
-    # SAC,
+    # ChargeAsLateAsPossible,
+    # PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
+    SAC,
     # TQC,
-    # TD3,
-    # DDPG,
+    TD3,
+    # RecurrentPPO,
     # RoundRobin,
     eMPC_V2G,
     # V2GProfitMaxLoadsOracle,
@@ -187,7 +187,7 @@ for algorithm in algorithms:
                 load_from_replay_path=replay_path,
                 generate_rnd_game=True,
                 verbose=False,
-                save_plots=True,
+                # save_plots=True,
                 state_function=state_function,
                 reward_function=reward_function,
             )
@@ -278,6 +278,7 @@ for algorithm in algorithms:
     else:
         algorithm_names.append(algorithm.__name__)
 
+
 plot_total_power(results_path=save_path + 'plot_results_dict.pkl',
                  save_path=save_path,
                  algorithm_names=algorithm_names)
@@ -297,3 +298,7 @@ plot_total_power_V2G(results_path=save_path + 'plot_results_dict.pkl',
 plot_comparable_EV_SoC_single(results_path=save_path + 'plot_results_dict.pkl',
                               save_path=save_path,
                               algorithm_names=algorithm_names)
+
+plot_prices(results_path=save_path + 'plot_results_dict.pkl',
+            save_path=save_path,
+            algorithm_names=algorithm_names)

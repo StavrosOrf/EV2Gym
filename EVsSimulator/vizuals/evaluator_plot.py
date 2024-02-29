@@ -530,7 +530,57 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
     plt.tight_layout()
     fig_name = f'{save_path}/Actual_vs_Setpoint_Power.png'
     plt.savefig(fig_name, format='png',
-                dpi=60, bbox_inches='tight')                
+                dpi=60, bbox_inches='tight')          
+    
+def plot_prices(results_path, save_path=None, algorithm_names=None):
+    with open(results_path, 'rb') as f:
+        replay = pickle.load(f)
+
+    plt.close('all')
+    plt.figure(figsize=(7, 11))
+    plt.rc('font', family='serif')
+    
+    keys = list(replay.keys())
+    env = replay[keys[0]]
+    
+    date_range = pd.date_range(start=env.sim_starting_date,
+                                 end=env.sim_starting_date +
+                                 (env.simulation_length - 1) *
+                                 datetime.timedelta(
+                                      minutes=env.timescale),
+                                 freq=f'{env.timescale}min')
+    date_range_print = pd.date_range(start=env.sim_starting_date,
+                                     end=env.sim_date,
+                                     periods=10)
+    
+    plt.close('all')
+    plt.figure(figsize=(10, 7))
+    plt.grid(True, which='major', axis='both')    
+    plt.rc('font', family='serif')
+    
+    charge_prices = env.charge_prices[0, :]
+    discharge_prices = env.discharge_prices[0, :]
+    
+    plt.step(date_range, charge_prices, alpha=0.9, color='#00429d',label='Charge Prices')
+    plt.step(date_range, discharge_prices, alpha=1, color='#93003a', label='Discharge Prices')
+    
+    plt.axhline(0, color='black', lw=2)    
+    plt.yticks(fontsize=22)
+    plt.xticks(ticks=date_range_print,
+               labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
+               fontsize=22)
+    plt.ylabel('Price (€/kWh)', fontsize=26)
+    
+    plt.legend(fontsize=22)
+    
+    #show grid lines
+    
+    
+    # plt.tight_layout()
+    fig_name = f'{save_path}/Prices.png'
+    plt.savefig(fig_name, format='png',
+                dpi=60, bbox_inches='tight')
+    plt.show()
 
 if __name__ == "__main__":
 

@@ -126,6 +126,17 @@ class OCCF_V2G(MPC):
                                  self.tr_pv[tr_index, i] <=
                                  self.tr_power_limit[tr_index, i]),
                                 name=f'constr5_{tr_index}_t{i}')
+                
+        for tr_index in range(self.number_of_transformers):
+            for i in range(self.control_horizon):
+                model.addConstr((gp.quicksum((u[j] - u[j+1])
+                                             for index, j in enumerate(
+                                                 range(i*self.nb, (i+1)*self.nb, 2))
+                                             if self.cs_transformers[index] == tr_index) +
+                                 self.tr_loads[tr_index, i] +
+                                 self.tr_pv[tr_index, i] >=
+                                 -self.tr_power_limit[tr_index, :].max()),
+                                name=f'constr5_{tr_index}_t{i}')        
 
         obj_expr = gp.LinExpr()
         for i in range(nb*h):
@@ -269,7 +280,17 @@ class OCCF_G2V(MPC):
                                  self.tr_pv[tr_index, i] <=
                                  self.tr_power_limit[tr_index, i]),
                                 name=f'constr5_{tr_index}_t{i}')
-
+                
+        for tr_index in range(self.number_of_transformers):
+            for i in range(self.control_horizon):
+                model.addConstr((gp.quicksum(u[j]
+                                             for index, j in enumerate(
+                                                 range(i*self.nb, (i+1)*self.nb))
+                                             if self.cs_transformers[index] == tr_index) +
+                                 self.tr_loads[tr_index, i] +
+                                 self.tr_pv[tr_index, i] >=
+                                 -self.tr_power_limit[tr_index, :].max()),
+                                name=f'constr5_{tr_index}_t{i}')
         obj_expr = gp.LinExpr()
         for i in range(nb*h):
             obj_expr.addTerms(f[i], u[i])
