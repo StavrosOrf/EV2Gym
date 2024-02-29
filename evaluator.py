@@ -18,7 +18,7 @@ from EVsSimulator.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCap
 
 from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
 from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
-from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle
+from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle, V2GProfitMaxLoadsOracle
 
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
@@ -26,10 +26,9 @@ from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 from EVsSimulator.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
 from EVsSimulator.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
 
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
-from EVsSimulator.rl_agent.reward import profit_maximization
-
-from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST
+from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward
+from EVsSimulator.rl_agent.reward import profit_maximization, ProfitMax_TrPenalty_UserIncentives
+from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
 
 from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
 from EVsSimulator.vizuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
@@ -84,6 +83,9 @@ elif args.config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
 elif args.config_file == "EVsSimulator/example_config_files/V2G_MPC.yaml":
     reward_function = profit_maximization
     state_function = V2G_profit_max
+elif args.config_file == "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml":
+    reward_function = ProfitMax_TrPenalty_UserIncentives
+    state_function = V2G_profit_max_loads
 else:
     raise ValueError('Unknown config file')
 
@@ -117,8 +119,10 @@ algorithms = [
     # SAC,
     # TQC,
     # TD3,
+    # DDPG,
     # RoundRobin,
-    # eMPC_V2G,
+    eMPC_V2G,
+    # V2GProfitMaxLoadsOracle,
     V2GProfitMaxOracleGB,
     # V2GProfitMaxOracle,
 ]
@@ -183,6 +187,7 @@ for algorithm in algorithms:
                 load_from_replay_path=replay_path,
                 generate_rnd_game=True,
                 verbose=False,
+                save_plots=True,
                 state_function=state_function,
                 reward_function=reward_function,
             )
@@ -263,7 +268,7 @@ with open(save_path + 'results_grouped.txt', 'w') as f:
 # results_grouped.to_csv('results_grouped.csv')
 # print(results_grouped[['tracking_error', 'energy_tracking_error']])
 print(results_grouped[['total_profits', 'average_user_satisfaction','total_reward']])
-input('Press Enter to continue')
+# input('Press Enter to continue')
 
 algorithm_names = []
 for algorithm in algorithms:

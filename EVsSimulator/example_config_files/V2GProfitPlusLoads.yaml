@@ -57,7 +57,7 @@ power_setpoints_uncertainty: 20 # (in percentage +/- %)
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 inflexible_loads:
   include: True # True or False
-  inflexible_loads_capacity_multiplier_mean: 0.8 # 1 is default, the higher the number the more inflexible loads
+  inflexible_loads_capacity_multiplier_mean: 0.8 # 0.8 1 is default, the higher the number the more inflexible loads
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 0 # in percentage of load at time t%
 
@@ -73,7 +73,7 @@ demand_response:
   include: True # True or False
   events_per_day: 1
   #How much of the transformer power limit can be used for demand response
-  event_capacity_percentage_mean: 25 # (in percentage +/- %)
+  event_capacity_percentage_mean: 15 # (in percentage +/- %)
   event_capacity_percentage_std: 5 # (in percentage +/- %)
   event_length_minutes_min: 60
   event_length_minutes_max: 60
@@ -111,7 +111,7 @@ charging_station:
 ev:
   battery_capacity: 50 # in kWh
   min_battery_capacity: 10 # in kWh
-  desired_capacity: 40 # in kWh
+  desired_capacity: 50 # in kWh
   max_ac_charge_power: 22 # in kW
   min_ac_charge_power: 0 # in kW
   max_dc_charge_power: 50 # in kW

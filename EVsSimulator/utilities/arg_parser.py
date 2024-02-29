@@ -33,7 +33,7 @@ def arg_parser():
                         help="Enable logging to wandb (default: True)")
 
     # Environment specific arguments
-    parser.add_argument("--config_file", default="EVsSimulator/example_config_files/V2GProfitMax.yaml",
+    parser.add_argument("--config_file", default="EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml",
                         help="Path to the config file (default: config_files/config.yaml)")
     parser.add_argument("--n_test_cycles", default=100, type=int,
                         help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")

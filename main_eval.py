@@ -29,7 +29,7 @@ def eval():
 
     config_file = "/example_config_files/V2G_MPC.yaml"
     config_file = "/example_config_files/PublicPST.yaml"
-    config_file = "/example_config_files/V2GProfitMax.yaml"
+    config_file = "/example_config_files/V2GProfitPlusLoads.yaml"
 
     config_file = pkg_resources.resource_filename('EVsSimulator', config_file)
 
@@ -48,12 +48,12 @@ def eval():
 
     # agent = OCCF_V2G(env, control_horizon=30, verbose=True)
     # agent = OCCF_G2V(env, control_horizon=25, verbose=True)
-    # agent = eMPC_V2G(env, control_horizon=15, verbose=True)
+    agent = eMPC_V2G(env, control_horizon=25, verbose=True)
     # agent = V2GProfitMaxOracle(env,verbose=True)
     # agent = eMPC_G2V(env, control_horizon=15, verbose=True)
     # agent = RoundRobin(env, verbose=False)
     # agent = ChargeAsLateAsPossible(verbose=False)
-    agent = ChargeAsFastAsPossible()
+    # agent = ChargeAsFastAsPossible()
     # agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 

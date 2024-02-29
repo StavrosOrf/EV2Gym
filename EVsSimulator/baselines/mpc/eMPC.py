@@ -118,7 +118,9 @@ class eMPC_V2G(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        # model.params.MIPGap = 0.01
+        
+        model.params.MIPGap = 0.01
+        model.params.TimeLimit = 20
 
         # model.write('model.lp')
         model.optimize()
@@ -126,7 +128,12 @@ class eMPC_V2G(MPC):
         if model.status != GRB.Status.OPTIMAL:
             print(f'Objective value: {model.status}')
             print("Optimal solution not found !!!!!")
-            exit()
+            # exit()
+            
+        if model.status == GRB.Status.INF_OR_UNBD or \
+                model.status == GRB.Status.INFEASIBLE:                                
+            actions = np.ones(self.n_ports) * 0.5
+            return actions
 
         a = np.zeros((nb*h, 1))
         # z_bin = np.zeros((n*h, 1))
