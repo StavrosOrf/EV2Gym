@@ -114,11 +114,11 @@ def generate_replay(evaluation_name):
 # Algorithms to compare:
 algorithms = [
     ChargeAsFastAsPossible,
-    # ChargeAsLateAsPossible,
-    # PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
-    SAC,
+    ChargeAsLateAsPossible,
+    PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
+    # SAC,
     # TQC,
-    TD3,
+    # TD3,
     # RecurrentPPO,
     # RoundRobin,
     eMPC_V2G,

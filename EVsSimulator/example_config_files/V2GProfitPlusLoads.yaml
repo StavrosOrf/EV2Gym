@@ -57,16 +57,16 @@ power_setpoints_uncertainty: 20 # (in percentage +/- %)
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 inflexible_loads:
   include: True # True or False
-  inflexible_loads_capacity_multiplier_mean: 1 # 0.8 1 is default, the higher the number the more inflexible loads
+  inflexible_loads_capacity_multiplier_mean: 0.8 # 1 is default, the higher the number the more inflexible loads
   forecast_mean: 100 # in percentage of load at time t%
-  forecast_std: 0 # in percentage of load at time t%
+  forecast_std: 5 # in percentage of load at time t%
 
 # PV solar Power
 solar_power:
   include: True # True or False
   solar_power_capacity_multiplier_mean: 2 # 1 is default, the higher the number the more solar power
   forecast_mean: 100 # in percentage of load at time t%
-  forecast_std: 0 # in percentage of load at time t%
+  forecast_std: 5 # in percentage of load at time t%
 
 # Whether to include demand response in the transformer power limit
 demand_response:
@@ -77,10 +77,10 @@ demand_response:
   event_capacity_percentage_std: 5 # (in percentage +/- %)
   event_length_minutes_min: 60
   event_length_minutes_max: 60
-  event_start_hour_mean: 18
+  event_start_hour_mean: 14
   event_start_hour_std: 2
   # How many minutes ahead we know the event is going to happen
-  notification_of_event_minutes: 15
+  notification_of_event_minutes: 30
 
 ##############################################################################
 # EV Specifications

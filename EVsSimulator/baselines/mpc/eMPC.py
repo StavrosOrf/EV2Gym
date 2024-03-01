@@ -131,7 +131,7 @@ class eMPC_V2G(MPC):
         model.params.NonConvex = 2
         
         model.params.MIPGap = 0.01
-        model.params.TimeLimit = 20
+        model.params.TimeLimit = 30
 
         # model.write('model.lp')
         model.optimize()
@@ -143,7 +143,7 @@ class eMPC_V2G(MPC):
             
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                                
-            actions = np.ones(self.n_ports) * 0
+            actions = np.ones(self.n_ports) * 0.15
             return actions
 
         a = np.zeros((nb*h, 1))

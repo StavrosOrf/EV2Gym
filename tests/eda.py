@@ -51,8 +51,6 @@ data_grouped.columns = ['Profits/Costs', 'Energy Charged',
 print(data_grouped)
 print(data_grouped.to_latex())
 
-
-
 #%%
 data = pd.read_csv('data_Profitmax.csv')
 
