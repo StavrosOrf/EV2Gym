@@ -163,7 +163,15 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
         replay = pickle.load(f)
 
     plt.close('all')
-    plt.figure(figsize=(10, 7))
+    fig, ax = plt.subplots()
+    plt.grid(True, which='major', axis='both')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    
+    ax.spines['left'].set_linewidth(2)
+    # ax.spines['bottom'].set_linewidth(2)           
+    
     plt.rc('font', family='serif')
    
     light_blue = np.array([0.529, 0.808, 0.922, 1])
@@ -184,7 +192,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
                                    freq=f'{env.timescale}min')
         date_range_print = pd.date_range(start=env.sim_starting_date,
                                          end=env.sim_date,
-                                         periods=10)
+                                         periods=13)
 
         counter = 1
         dim_x = int(np.ceil(np.sqrt(env.number_of_transformers)))
@@ -240,16 +248,16 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
                                      linewidth=2,
                                      label='Demand Response Event')
 
-                plt.step(df.index,
-                         #  tr.max_power
-                         [-tr.max_power.max()] * len(df.index),
-                         where='post',
-                         color='r',
-                         linestyle='--',
-                         linewidth=2,
-                         alpha=0.7,
-                        #  label='Transf. Limit'
-                         )
+                # plt.step(df.index,
+                #          #  tr.max_power
+                #          [-tr.max_power.max()] * len(df.index),
+                #          where='post',
+                #          color='r',
+                #          linestyle='--',
+                #          linewidth=2,
+                #          alpha=0.7,
+                #         #  label='Transf. Limit'
+                #          )
                 
                 plt.step(df.index,
                          #  tr.max_power
@@ -383,9 +391,16 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
         replay = pickle.load(f)
 
     plt.close('all')
-    plt.figure(figsize=(10, 7))
+    fig, ax = plt.subplots()
     plt.rc('font', family='serif')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    
+    ax.spines['left'].set_linewidth(2)
+    ax.spines['bottom'].set_linewidth(2)
 
+    plt.grid(True, which='major', axis='both')
+    
     for index, key in enumerate(replay.keys()):
         print(f'{index}: {key}')
         env = replay[key]
@@ -398,15 +413,16 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
                                    freq=f'{env.timescale}min')
         date_range_print = pd.date_range(start=env.sim_starting_date,
                                          end=env.sim_date,
-                                         periods=10)
+                                         periods=13)
 
         color_list_map = plt.cm.get_cmap('Accent', len(replay.keys()))
         color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
         
         counter = 1
         for cs in env.charging_stations:   
-            if counter > 1:
-                break
+            if counter != 1:
+                counter += 1
+                continue
             
             # plt.subplot(1, 2, counter)
             df = pd.DataFrame([], index=date_range)
@@ -440,12 +456,12 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
             # plt.title(f'Charging Station {cs.id + 1}', fontsize=24)
             
             if counter == 1:
-                plt.ylabel('SoC', fontsize=24)
-                plt.yticks(np.arange(0, 1.1, 0.1),
-                           fontsize=22)
+                plt.ylabel('SoC', fontsize=28)
+                plt.yticks(np.arange(0, 1.1, 0.2),
+                           fontsize=28)
                     
             else:
-                plt.yticks(fontsize=22)
+                plt.yticks(fontsize=28)
                 plt.yticks(np.arange(0, 1.1, 0.1),
                             labels=[' ' for d in np.arange(0, 1.1, 0.1)])            
             
@@ -453,7 +469,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
             plt.xlim([env.sim_starting_date, env.sim_date])
             plt.xticks(ticks=date_range_print,
                        labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
-                       fontsize=22)
+                       fontsize=28)
             counter += 1
 
     # plt.legend(loc='upper center', bbox_to_anchor=(0, -0.15),
@@ -551,27 +567,35 @@ def plot_prices(results_path, save_path=None, algorithm_names=None):
                                  freq=f'{env.timescale}min')
     date_range_print = pd.date_range(start=env.sim_starting_date,
                                      end=env.sim_date,
-                                     periods=10)
+                                     periods=13)
     
     plt.close('all')
-    plt.figure(figsize=(10, 7))
+    fig, ax = plt.subplots()
+    
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['left'].set_linewidth(2)
+    ax.spines['bottom'].set_linewidth(2)
+    
     plt.grid(True, which='major', axis='both')    
     plt.rc('font', family='serif')
     
     charge_prices = env.charge_prices[0, :]
     discharge_prices = env.discharge_prices[0, :]
     
-    plt.step(date_range, charge_prices, alpha=0.9, color='#00429d',label='Charge Prices')
+    plt.step(date_range, -charge_prices, alpha=0.9, color='#00429d',label='Charge Prices')
     plt.step(date_range, discharge_prices, alpha=1, color='#93003a', label='Discharge Prices')
     
-    plt.axhline(0, color='black', lw=2)    
-    plt.yticks(fontsize=22)
+    plt.xlim([env.sim_starting_date, env.sim_date])
+    # plt.ylim()
+    # plt.axhline(0, color='black', lw=2)    
+    plt.yticks(np.arange(0.150, 0.351, 0.05),fontsize=28)
     plt.xticks(ticks=date_range_print,
                labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
-               fontsize=22)
-    plt.ylabel('Price (€/kWh)', fontsize=26)
+               fontsize=28)
+    plt.ylabel('Price (€/kWh)', fontsize=28)
     
-    plt.legend(fontsize=22)
+    plt.legend(fontsize=28)
     
     #show grid lines
     
@@ -584,8 +608,8 @@ def plot_prices(results_path, save_path=None, algorithm_names=None):
 
 if __name__ == "__main__":
 
-    plot_total_power(results_path='./results/eval_20cs_1tr_PublicPST_5_algos_3_cycles_2024_02_27_109389/plot_results_dict.pkl',
-                     save_path=None,
-                     algorithm_names=algorithm_names)
+    plot_total_power_V2G(results_path='E:/GitHub\EVsSimulator/results/eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_03_727260/plot_results_dict.pkl',
+                     save_path='E:\GitHub\EVsSimulator\results\eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_03_727260',
+                     algorithm_names=['Charge As Fast As Possible', 'OCCF V2G', 'OCCF G2V', 'eMPC V2G', 'eMPC G2V'])
     # plot_comparable_EV_SoC(results_path='plot_results_dict.pkl')
     pass

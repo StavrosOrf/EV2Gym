@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
-import math
+import time
 
 from EVsSimulator.utilities.arg_parser import arg_parser
 from EVsSimulator import ev_city
@@ -52,7 +52,7 @@ n_test_cycles = args.n_test_cycles
 
 scenario = args.config_file.split("/")[-1].split(".")[0]
 eval_replay_path = f'./replay/{number_of_charging_stations}cs_{n_transformers}tr_{scenario}/'
-
+print(f'Looking for replay files in {eval_replay_path}')
 try:
     eval_replay_files = [f for f in os.listdir(
         eval_replay_path) if os.path.isfile(os.path.join(eval_replay_path, f))]
@@ -69,7 +69,6 @@ except:
     n_test_cycles = args.n_test_cycles
     replays_exist = False
 
-
 print(f'Number of test cycles: {n_test_cycles}')
 
 if args.config_file == "EVsSimulator/example_config_files/V2GProfitMax.yaml":
@@ -83,6 +82,7 @@ elif args.config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
 elif args.config_file == "EVsSimulator/example_config_files/V2G_MPC.yaml":
     reward_function = profit_maximization
     state_function = V2G_profit_max
+    
 elif args.config_file == "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml":
     reward_function = ProfitMax_TrPenalty_UserIncentives
     state_function = V2G_profit_max_loads
@@ -127,12 +127,12 @@ algorithms = [
     # V2GProfitMaxOracle,
 ]
 
-# algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
-#               OCCF_V2G,
-#               OCCF_G2V,
-#               eMPC_V2G,
-#               eMPC_G2V,
-#               ]
+algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
+              OCCF_V2G,
+              OCCF_G2V,
+              eMPC_V2G,
+              eMPC_G2V,
+              ]
 
 evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
     f'_{n_test_cycles}_exp_' +\
@@ -177,6 +177,9 @@ for algorithm in algorithms:
                 load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
                     f"{algorithm.__name__.lower()}_{reward_function.__name__}_{state_function.__name__}"
 
+            #initialize the timer
+            timer = time.time()
+            
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
             state = env.reset()
@@ -186,23 +189,27 @@ for algorithm in algorithms:
                 config_file=args.config_file,
                 load_from_replay_path=replay_path,
                 generate_rnd_game=True,
-                verbose=False,
+                verbose=True,
                 # save_plots=True,
                 state_function=state_function,
                 reward_function=reward_function,
             )
-
+            
+            #initialize the timer
+            timer = time.time()
             state = env.reset()
             try:
                 model = algorithm(
-                    env=env, replay_path=replay_path, verbose=False)
+                    env=env, replay_path=replay_path, verbose=True)
             except:
                 print(
                     f'Error in {algorithm.__name__} with replay {replay_path}')
                 continue
 
         rewards = []
+        
 
+        
         for i in range(simulation_length):
             ################# Your algorithm goes here #################
             if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
@@ -214,7 +221,7 @@ for algorithm in algorithms:
                 stats = stats[0]
             else:
                 actions = model.get_action(env=env)
-                new_state, reward, done, _, stats = env.step(actions)
+                new_state, reward, done, _, stats = env.step(actions, visualize=True)  # takes action
             ############################################################
 
             rewards.append(reward)
@@ -236,6 +243,7 @@ for algorithm in algorithms:
                                           'battery_degradation_calendar': stats['battery_degradation_calendar'],
                                           'battery_degradation_cycling': stats['battery_degradation_cycling'],
                                           'total_reward': sum(rewards),
+                                          'time': time.time() - timer,
                                           }, index=[counter])
 
                 if counter == 1:
@@ -267,8 +275,8 @@ with open(save_path + 'results_grouped.txt', 'w') as f:
 
 # results_grouped.to_csv('results_grouped.csv')
 # print(results_grouped[['tracking_error', 'energy_tracking_error']])
-print(results_grouped[['total_profits', 'average_user_satisfaction','total_reward']])
-# input('Press Enter to continue')
+print(results_grouped[['total_profits', 'average_user_satisfaction','time']])
+input('Press Enter to continue')
 
 algorithm_names = []
 for algorithm in algorithms:

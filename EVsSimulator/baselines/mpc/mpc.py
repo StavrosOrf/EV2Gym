@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 
 class MPC(ABC):
 
-    def __init__(self, env, control_horizon=25, verbose=False, **kwargs):
+    def __init__(self, env, control_horizon=25, verbose=True, **kwargs):
         """
         Initialize the MPC baseline.
 

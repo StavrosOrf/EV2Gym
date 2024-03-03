@@ -67,7 +67,7 @@ def ev_city_plot(env):
     # light weight plots when there are too many charging stations
     if not env.lightweight_plots:
         # Plot the energy level of each EV for each charging station
-        plt.figure(figsize=(20, 17))
+        plt.figure(figsize=(20, 17))        
         # plt.style.use('seaborn-darkgrid')        
         plt.rcParams.update({'font.size': 16})
         plt.rcParams['font.family'] = ['serif']
@@ -338,7 +338,7 @@ def ev_city_plot(env):
     plt.close('all')
     # Plot the total power for each CS group
     df_total_power = pd.DataFrame([], index=date_range)
-    plt.figure(figsize=(20, 17))
+    plt.figure(figsize=(10, 8))
 
     counter = 1
     dim_x = int(np.ceil(np.sqrt(env.number_of_transformers)))
@@ -483,8 +483,8 @@ def ev_city_plot(env):
     else:
         # clear plt canvas
         plt.close('all')
-
-    # plt.show()
+        
+    plt.show()
     # Plot the total power of the CPO
     plt.figure(figsize=(20, 17))
 

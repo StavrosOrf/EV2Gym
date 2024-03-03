@@ -189,9 +189,12 @@ def spawn_single_EV(env,
         initial_battery_capacity = np.random.randint(1, battery_capacity)
     else:
         initial_battery_capacity = battery_capacity - required_energy
-
+        
+    if initial_battery_capacity > env.config["ev"]['desired_capacity']:
+        initial_battery_capacity = np.random.randint(1, battery_capacity)
+        
     if initial_battery_capacity < env.config["ev"]['min_battery_capacity']:
-        initial_battery_capacity = env.config["ev"]['min_battery_capacity']
+        initial_battery_capacity = env.config["ev"]['min_battery_capacity']        
 
     # time of stay dependent on time of arrival
     time_of_stay_mean = env.df_time_of_stay_vs_arrival[(
@@ -216,8 +219,9 @@ def spawn_single_EV(env,
     if time_of_stay < min_time_of_stay_steps:
         time_of_stay = min_time_of_stay_steps
 
-    if env.empty_ports_at_end_of_simulation:
+    if env.empty_ports_at_end_of_simulation:        
         if time_of_stay + step + 4 >= env.simulation_length:
+            return None
             time_of_stay = env.simulation_length - step - 4 - 2
 
     if env.heterogeneous_specs:
@@ -329,9 +333,10 @@ def EV_spawner(env) -> List[EV]:
                             step=t,
                             min_time_of_stay_steps=min_time_of_stay_steps)
 
-                        ev_list.append(ev)
-                        occupancy_list[counter, t +
-                                       1:ev.time_of_departure] = 1
+                        if ev is not None:                        
+                            ev_list.append(ev)
+                            occupancy_list[counter, t +
+                                        1:ev.time_of_departure] = 1
 
                 counter += 1
         # step the time

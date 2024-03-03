@@ -54,7 +54,7 @@ class EVsSimulator(gym.Env):
         super(EVsSimulator, self).__init__()
 
         if verbose:
-            print(f'Initializing EVCity environment...')
+            print(f'Initializing EVs-Simulator environment...')
 
         # read yaml config file
         assert config_file is not None, "Please provide a config file!!!"
@@ -82,6 +82,7 @@ class EVsSimulator(gym.Env):
 
         if seed is None:
             self.seed = np.random.randint(0, 1000000)
+            # print(f"Random seed: {self.seed}")
         else:
             self.seed = seed
         # set random seed
@@ -207,7 +208,7 @@ class EVsSimulator(gym.Env):
             self.renderer = Renderer(self)
 
         if self.save_plots:
-            os.makedirs("./plots", exist_ok=True)
+            os.makedirs("./results", exist_ok=True)
             print(f"Creating directory: ./results/{self.sim_name}")
             os.makedirs(f"./results/{self.sim_name}", exist_ok=True)
 
@@ -480,6 +481,9 @@ class EVsSimulator(gym.Env):
                 self._save_sim_replay()
 
             if self.save_plots:
+                #save the env as a pickle file
+                with open(f"./results/{self.sim_name}/env.pkl", 'wb') as f:
+                    pickle.dump(self, f)
                 ev_city_plot(self)
 
             self.done = True

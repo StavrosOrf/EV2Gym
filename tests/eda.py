@@ -10,7 +10,8 @@ columns_to_keep = ['Algorithm','total_profits',
        'total_transformer_overload',
        'battery_degradation',
        'battery_degradation_calendar', 'battery_degradation_cycling',
-       'total_reward']
+       'total_reward',
+       'time']
 
 data = data[columns_to_keep]
 data_grouped = data.groupby('Algorithm').agg(['mean', 'std'])
@@ -34,6 +35,8 @@ data_grouped['battery_degradation_cycling'] = data_grouped['battery_degradation_
        .apply(lambda x: f"${x['mean']*1000:.2f}$ ±${x['std']*1000:.2f}$", axis=1)
 data_grouped['total_reward'] = data_grouped['total_reward']\
        .apply(lambda x: f"${x['mean']/1000:.1f}$ ±${x['std']/1000:.1f}$", axis=1)
+data_grouped['time'] = data_grouped['time']\
+       .apply(lambda x: f"${x['mean']:.2f}$ ±${x['std']:.2f}$", axis=1)
        
 # drop the mean and std columns
 data_grouped = data_grouped.droplevel(1, axis=1)
@@ -46,10 +49,11 @@ data_grouped.columns = ['Profits/Costs', 'Energy Charged',
                             'Energy Discharged', 'User Satisfaction',
                             'Transformer Overload',
                             'Battery Degradation', 'Battery Degradation Calendar',
-                            'Battery Degradation Cycling', 'Reward']
+                            'Battery Degradation Cycling', 'Reward', 'Time']
 
 print(data_grouped)
 print(data_grouped.to_latex())
+exit()
 
 #%%
 data = pd.read_csv('data_Profitmax.csv')

@@ -130,8 +130,8 @@ class eMPC_V2G(MPC):
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
         
-        model.params.MIPGap = 0.01
-        model.params.TimeLimit = 30
+        # model.params.MIPGap = 0.01
+        # model.params.TimeLimit = 30
 
         # model.write('model.lp')
         model.optimize()

@@ -15,8 +15,8 @@ class Transformer():
 
     def __init__(self,
                  id,  # unique identifier of the transformer
-                 env,                 
-                 max_power=100,  # The maximum power of the transformer in kW                 
+                 env,
+                 max_power=100,  # The maximum power of the transformer in kW
                  cs_ids=[],  # the charging stations connected to the transformer
                  inflexible_load=np.zeros(96),
                  solar_power=np.zeros(96),
@@ -68,10 +68,10 @@ class Transformer():
 
         if env.config['demand_response']['include']:
             self.dr_events = self.generate_demand_response_events(env)
-            #clip the forecast to the min and max power
+            # clip the forecast to the min and max power
             self.inflexible_load_forecast = np.clip(self.inflexible_load_forecast,
-                                                self.min_power,
-                                                self.max_power)
+                                                    self.min_power,
+                                                    self.max_power)
         else:
             self.dr_events = []
 
@@ -125,7 +125,7 @@ class Transformer():
                    self.max_power[event_start_step:event_end_step]):
 
                 self.max_power[event_start_step:event_end_step] = self.inflexible_load[event_start_step:
-                    event_end_step].max()
+                                                                                       event_end_step].max()
 
                 capacity_percentage = 100*(1 - max(self.inflexible_load[event_start_step:event_end_step]) /
                                            max(self.max_power))
@@ -148,17 +148,17 @@ class Transformer():
         known_max_power = max(self.max_power) * np.ones(horizon)
         power_limit = max(self.max_power)
 
-        for event in self.dr_events:            
+        for event in self.dr_events:
             if step + self.steps_ahead >= event['event_start_step'] and \
                     event['event_end_step'] >= step:
 
                 if step > event['event_start_step']:
                     known_max_power[:event['event_end_step']-step] = power_limit - \
                         power_limit * event['capacity_percentage'] / 100
-                else:                                        
+                else:
                     known_max_power[abs(event['event_start_step'] - step):
                                     abs(event['event_end_step']-step)] = power_limit - \
-                    power_limit * event['capacity_percentage'] / 100
+                        power_limit * event['capacity_percentage'] / 100
                 continue
 
         # append the last value if the horizon is larger than the max_power
@@ -167,38 +167,21 @@ class Transformer():
                                         * power_limit)
 
         return known_max_power
-        
-    def get_load_pv_forecast(self, step, horizon) -> np.array:
-        
-        load_forecast = self.inflexible_load_forecast[step:step+horizon]
-        pv_forecast = self.pv_generation_forecast[step:step+horizon]
-        
-        load_forecast[0] = self.inflexible_load[step]
-        pv_forecast[0] = self.solar_power[step]
-        
-        if len(load_forecast) < horizon:
-            load_forecast = np.append(load_forecast, np.zeros(horizon-len(load_forecast))
-                                        * self.inflexible_load_forecast[-1])
-            pv_forecast = np.append(pv_forecast, np.zeros(horizon-len(pv_forecast))
-                                        * self.pv_generation_forecast[-1])
-        
-        return load_forecast, pv_forecast
 
     def get_load_pv_forecast(self, step, horizon) -> np.array:
-        
+
         load_forecast = self.inflexible_load_forecast[step:step+horizon]
         pv_forecast = self.pv_generation_forecast[step:step+horizon]
-        
-        if step < len(self.inflexible_load):
-            load_forecast[0] = self.inflexible_load[step]
-            pv_forecast[0] = self.solar_power[step]
-        
+
+        load_forecast[0] = self.inflexible_load[step]
+        pv_forecast[0] = self.solar_power[step]
+
         if len(load_forecast) < horizon:
             load_forecast = np.append(load_forecast, np.zeros(horizon-len(load_forecast))
-                                        * self.inflexible_load_forecast[-1])
+                                      * self.inflexible_load_forecast[-1])
             pv_forecast = np.append(pv_forecast, np.zeros(horizon-len(pv_forecast))
-                                        * self.pv_generation_forecast[-1])
-        
+                                    * self.pv_generation_forecast[-1])
+
         return load_forecast, pv_forecast
 
     def normalize_pv_generation(self, env) -> None:
@@ -263,12 +246,11 @@ class Transformer():
             forecast_uncertainty_mean,
             forecast_uncertainty_std,
             len(self.inflexible_load))
-        
+
         # clip the forecast to the min and max power
         self.inflexible_load_forecast = np.clip(self.inflexible_load_forecast,
                                                 self.min_power,
                                                 self.max_power)
-        
 
     def reset(self, step) -> None:
         '''
@@ -278,7 +260,7 @@ class Transformer():
 
         self.current_power = self.inflexible_load[step] + \
             self.solar_power[step]
-            
+
         self.current_amps = (self.current_power * 1000) / 400
 
     def step(self, amps, power) -> None:
@@ -311,7 +293,7 @@ class Transformer():
         Returns:
             - a amps value if the transformer is overloaded
         '''
-        if self.is_overloaded():            
+        if self.is_overloaded():
             return np.abs(self.current_power - self.max_power[self.current_step])
         else:
             return 0
