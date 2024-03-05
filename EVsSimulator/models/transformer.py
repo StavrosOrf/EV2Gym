@@ -172,9 +172,10 @@ class Transformer():
 
         load_forecast = self.inflexible_load_forecast[step:step+horizon]
         pv_forecast = self.pv_generation_forecast[step:step+horizon]
-
-        load_forecast[0] = self.inflexible_load[step]
-        pv_forecast[0] = self.solar_power[step]
+        
+        if step < len(self.inflexible_load_forecast):                        
+            load_forecast[0] = self.inflexible_load[step]
+            pv_forecast[0] = self.solar_power[step]
 
         if len(load_forecast) < horizon:
             load_forecast = np.append(load_forecast, np.zeros(horizon-len(load_forecast))

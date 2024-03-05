@@ -29,7 +29,7 @@ def eval():
 
     config_file = "EVsSimulator/example_config_files/V2G_MPC.yaml"
     # config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
-    # config_file = "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml"
+    config_file = "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml"
     
 
     env = EVsSimulator(config_file=config_file,

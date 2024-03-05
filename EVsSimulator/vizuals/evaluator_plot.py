@@ -192,7 +192,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
                                    freq=f'{env.timescale}min')
         date_range_print = pd.date_range(start=env.sim_starting_date,
                                          end=env.sim_date,
-                                         periods=13)
+                                         periods=7)
 
         counter = 1
         dim_x = int(np.ceil(np.sqrt(env.number_of_transformers)))
@@ -248,16 +248,16 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
                                      linewidth=2,
                                      label='Demand Response Event')
 
-                # plt.step(df.index,
-                #          #  tr.max_power
-                #          [-tr.max_power.max()] * len(df.index),
-                #          where='post',
-                #          color='r',
-                #          linestyle='--',
-                #          linewidth=2,
-                #          alpha=0.7,
-                #         #  label='Transf. Limit'
-                #          )
+                plt.step(df.index,
+                         #  tr.max_power
+                         [-tr.max_power.max()] * len(df.index),
+                         where='post',
+                         color='r',
+                         linestyle='--',
+                         linewidth=2,
+                         alpha=0.7,
+                        #  label='Transf. Limit'
+                         )
                 
                 plt.step(df.index,
                          #  tr.max_power
@@ -289,11 +289,11 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
     plt.xticks(ticks=date_range_print,
                labels=[
                    f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
-               rotation=45,
+            #    rotation=45,
                fontsize=28)
     plt.yticks(fontsize=28)
     # put legend under the plot
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.25),
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
                fancybox=True, shadow=True, ncol=3, fontsize=24)    
 
     fig_name = f'{save_path}/Transformer_Aggregated_Power_Prices.png'
@@ -496,7 +496,7 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
 
     plt.close('all')
     plt.figure(figsize=(7, 11))
-    plt.rc('font', family='serif')
+    plt.rc('font', family='serif')    
 
     for index, key in enumerate(replay.keys()):
         print(f'{index}: {key}')
@@ -510,10 +510,11 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
                                    freq=f'{env.timescale}min')
         date_range_print = pd.date_range(start=env.sim_starting_date,
                                          end=env.sim_date,
-                                         periods=10)
+                                         periods=6)
 
         #plot the actual power vs the setpoint power for each algorithm in subplots                
         plt.subplot(len(replay), 1, index+1)
+        plt.grid(True, which='major', axis='both')
         
         actual_power = env.current_power_usage        
         setpoints = env.power_setpoints                
@@ -528,7 +529,8 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
         
         if index == len(replay) - 1:
             plt.xticks(ticks=date_range_print,
-                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                    #    rotation=45,
                        fontsize=22)
             # plt.xlabel('Time', fontsize=28)
         else:
@@ -536,17 +538,20 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
                        labels=[' ' for d in date_range_print])
         
         if index == len(replay) // 2:
-            plt.ylabel('Power (kW)', fontsize=26)               
+            plt.ylabel('Power (kW)', fontsize=22)               
+            
+        plt.xlim([env.sim_starting_date, env.sim_date])
+        plt.ylim([0, 1.1*env.current_power_usage.max()])
         
     # Put the legend under the plot in a separate axis           
     plt.legend(['Actual Power', 'Setpoint'], loc='upper center',
-               bbox_to_anchor=(0.5, -1.5),
+               bbox_to_anchor=(0.5, -0.5),
                fancybox=True, shadow=True, ncol=2, fontsize=22)
         
     plt.tight_layout()
     fig_name = f'{save_path}/Actual_vs_Setpoint_Power.png'
     plt.savefig(fig_name, format='png',
-                dpi=60, bbox_inches='tight')          
+                dpi=60, bbox_inches='tight')    
     
 def plot_prices(results_path, save_path=None, algorithm_names=None):
     with open(results_path, 'rb') as f:
@@ -567,7 +572,7 @@ def plot_prices(results_path, save_path=None, algorithm_names=None):
                                  freq=f'{env.timescale}min')
     date_range_print = pd.date_range(start=env.sim_starting_date,
                                      end=env.sim_date,
-                                     periods=13)
+                                     periods=7)
     
     plt.close('all')
     fig, ax = plt.subplots()
@@ -591,7 +596,8 @@ def plot_prices(results_path, save_path=None, algorithm_names=None):
     # plt.axhline(0, color='black', lw=2)    
     plt.yticks(np.arange(0.150, 0.351, 0.05),fontsize=28)
     plt.xticks(ticks=date_range_print,
-               labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
+               labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+            #    rotation=45,
                fontsize=28)
     plt.ylabel('Price (€/kWh)', fontsize=28)
     

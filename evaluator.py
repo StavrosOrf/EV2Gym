@@ -44,7 +44,6 @@ config = yaml.load(open(args.config_file, 'r'), Loader=yaml.FullLoader)
 
 number_of_charging_stations = config["number_of_charging_stations"]
 n_transformers = config["number_of_transformers"]
-steps = config["simulation_length"]
 timescale = config["timescale"]
 simulation_length = config["simulation_length"]
 
@@ -114,25 +113,27 @@ def generate_replay(evaluation_name):
 # Algorithms to compare:
 algorithms = [
     ChargeAsFastAsPossible,
-    ChargeAsLateAsPossible,
-    PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
-    # SAC,
-    # TQC,
+    # ChargeAsLateAsPossible,
+    # PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
+    SAC,
+    TQC,
     # TD3,
+    # ARS,
     # RecurrentPPO,
     # RoundRobin,
     eMPC_V2G,
     # V2GProfitMaxLoadsOracle,
     V2GProfitMaxOracleGB,
     # V2GProfitMaxOracle,
+    # PowerTrackingErrorrMin
 ]
 
-algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
-              OCCF_V2G,
-              OCCF_G2V,
-              eMPC_V2G,
-              eMPC_G2V,
-              ]
+# algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
+#               OCCF_V2G,
+#               OCCF_G2V,
+#               eMPC_V2G,
+#               eMPC_G2V,
+#               ]
 
 evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
     f'_{n_test_cycles}_exp_' +\
@@ -189,7 +190,7 @@ for algorithm in algorithms:
                 config_file=args.config_file,
                 load_from_replay_path=replay_path,
                 generate_rnd_game=True,
-                verbose=True,
+                # verbose=True,
                 # save_plots=True,
                 state_function=state_function,
                 reward_function=reward_function,
@@ -200,7 +201,7 @@ for algorithm in algorithms:
             state = env.reset()
             try:
                 model = algorithm(
-                    env=env, replay_path=replay_path, verbose=True)
+                    env=env, replay_path=replay_path, verbose=False)
             except:
                 print(
                     f'Error in {algorithm.__name__} with replay {replay_path}')
@@ -221,7 +222,7 @@ for algorithm in algorithms:
                 stats = stats[0]
             else:
                 actions = model.get_action(env=env)
-                new_state, reward, done, _, stats = env.step(actions, visualize=True)  # takes action
+                new_state, reward, done, _, stats = env.step(actions, visualize=False)  # takes action
             ############################################################
 
             rewards.append(reward)
@@ -274,8 +275,8 @@ with open(save_path + 'results_grouped.txt', 'w') as f:
 
 
 # results_grouped.to_csv('results_grouped.csv')
-# print(results_grouped[['tracking_error', 'energy_tracking_error']])
-print(results_grouped[['total_profits', 'average_user_satisfaction','time']])
+print(results_grouped[['tracking_error', 'energy_tracking_error']])
+# print(results_grouped[['total_profits', 'average_user_satisfaction','time']])
 input('Press Enter to continue')
 
 algorithm_names = []
