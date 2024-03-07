@@ -130,24 +130,20 @@ class eMPC_V2G(MPC):
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
         
-        # model.params.MIPGap = 0.01
-        # model.params.TimeLimit = 30
-
-        # model.write('model.lp')
+        if self.MIPGap is not None:
+            model.params.MIPGap = self.MIPGap
+        model.params.TimeLimit = self.time_limit        
         model.optimize()
 
-        if model.status != GRB.Status.OPTIMAL:
-            print(f'Objective value: {model.status}')
-            print("Optimal solution not found !!!!!")
-            # exit()
+        if model.status != GRB.Status.OPTIMAL:            
+            print("Optimal solution not found !!!!!")            
             
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                                
-            actions = np.ones(self.n_ports) * 0.15
+            actions = np.ones(self.n_ports) * 0
             return actions
 
         a = np.zeros((nb*h, 1))
-        # z_bin = np.zeros((n*h, 1))
 
         for i in range(2*self.n_ports):
             a[i] = u[i].x
@@ -278,15 +274,19 @@ class eMPC_G2V(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        # model.params.MIPGap = 0.01
-
-        # model.write('model.lp')
+        
+        if self.MIPGap is not None:
+            model.params.MIPGap = self.MIPGap
+        model.params.TimeLimit = self.time_limit        
         model.optimize()
 
-        if model.status != GRB.Status.OPTIMAL:
-            print(f'Objective value: {model.status}')
-            print("Optimal solution not found !!!!!")
-            exit()
+        if model.status != GRB.Status.OPTIMAL:            
+            print("Optimal solution not found !!!!!")            
+            
+        if model.status == GRB.Status.INF_OR_UNBD or \
+                model.status == GRB.Status.INFEASIBLE:                                
+            actions = np.ones(self.n_ports) * 0
+            return actions
 
         a = np.zeros((nb*h, 1))
         cap = np.zeros((nb*h, 1))

@@ -88,6 +88,12 @@ class EVsSimulator(gym.Env):
         # set random seed
         np.random.seed(self.seed)
         random.seed(self.seed)
+        
+        self.tr_seed = self.config['tr_seed']        
+        if self.tr_seed == -1:
+            self.tr_seed = self.seed            
+        self.tr_rng = np.random.default_rng(seed=self.tr_seed)
+                
 
         if load_from_replay_path is not None:
             with open(load_from_replay_path, 'rb') as file:
@@ -241,6 +247,10 @@ class EVsSimulator(gym.Env):
         # set random seed
         np.random.seed(self.seed)
         random.seed(self.seed)
+        
+        if self.tr_seed == -1:
+            self.tr_seed = self.seed            
+        self.tr_rng = np.random.default_rng(seed=self.tr_seed)
 
         self.current_step = 0
         # Reset all charging stations

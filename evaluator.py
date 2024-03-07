@@ -128,12 +128,12 @@ algorithms = [
     # PowerTrackingErrorrMin
 ]
 
-# algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
-#               OCCF_V2G,
-#               OCCF_G2V,
-#               eMPC_V2G,
-#               eMPC_G2V,
-#               ]
+algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
+              OCCF_V2G,
+              OCCF_G2V,
+              eMPC_V2G,
+              eMPC_G2V,
+              ]
 
 evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
     f'_{n_test_cycles}_exp_' +\
@@ -209,8 +209,6 @@ for algorithm in algorithms:
 
         rewards = []
         
-
-        
         for i in range(simulation_length):
             ################# Your algorithm goes here #################
             if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
@@ -275,8 +273,8 @@ with open(save_path + 'results_grouped.txt', 'w') as f:
 
 
 # results_grouped.to_csv('results_grouped.csv')
-print(results_grouped[['tracking_error', 'energy_tracking_error']])
-# print(results_grouped[['total_profits', 'average_user_satisfaction','time']])
+# print(results_grouped[['tracking_error', 'energy_tracking_error']])
+print(results_grouped[['total_profits', 'average_user_satisfaction','time']])
 input('Press Enter to continue')
 
 algorithm_names = []

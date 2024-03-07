@@ -134,7 +134,8 @@ def generate_residential_inflexible_loads(env) -> np.ndarray:
     new_data = pd.DataFrame()
 
     for i in range(number_of_transformers):
-        new_data['tr_'+str(i)] = data.sample(10, axis=1).sum(axis=1)
+        new_data['tr_'+str(i)] = data.sample(10, axis=1,
+                                             random_state=env.tr_seed).sum(axis=1)
 
     # return the "tr_" columns
     return new_data.to_numpy().T
@@ -199,7 +200,7 @@ def generate_pv_generation(env) -> np.ndarray:
     new_data = pd.DataFrame()
 
     for i in range(number_of_transformers):
-        new_data['tr_'+str(i)] = data * np.random.uniform(0.9, 1.1)
+        new_data['tr_'+str(i)] = data * env.tr_rng.uniform(0.9, 1.1)
 
     return new_data.to_numpy().T
 
@@ -234,7 +235,7 @@ def load_transformers(env) -> List[Transformer]:
         solar_power = generate_pv_generation(env)
     else:
         solar_power = np.zeros((env.number_of_transformers,
-                                  env.simulation_length))
+                                env.simulation_length))
 
     if env.charging_network_topology:
         # parse the topology file and create the transformers
@@ -247,9 +248,9 @@ def load_transformers(env) -> List[Transformer]:
             transformer = Transformer(id=i,
                                       env=env,
                                       cs_ids=cs_ids,
-                                      max_power=env.charging_network_topology[tr]['max_power'],                                      
+                                      max_power=env.charging_network_topology[tr]['max_power'],
                                       inflexible_load=inflexible_loads[i, :],
-                                      solar_power=solar_power[i, :],                                      
+                                      solar_power=solar_power[i, :],
                                       simulation_length=env.simulation_length
                                       )
 
@@ -267,7 +268,7 @@ def load_transformers(env) -> List[Transformer]:
                                           np.array(env.cs_transformers) == i)[0],
                                       max_power=env.config['transformer']['max_power'],
                                       inflexible_load=inflexible_loads[i, :],
-                                      solar_power=solar_power[i, :],                                      
+                                      solar_power=solar_power[i, :],
                                       simulation_length=env.simulation_length
                                       )
 
@@ -400,7 +401,8 @@ def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
             discharge_prices[:, i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
                                               'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
         except:
-            print('Error: no price found for the given date and hour. Using 2022 prices instead.')
+            print(
+                'Error: no price found for the given date and hour. Using 2022 prices instead.')
 
             year = 2022
             if day > 28:
@@ -410,10 +412,10 @@ def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
                                             'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
             discharge_prices[:, i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
                                               'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
-        
+
         # step to next
         sim_temp_date = sim_temp_date + \
             datetime.timedelta(minutes=env.timescale)
-            
+
     discharge_prices = discharge_prices * env.config['discharge_price_factor']
     return charge_prices, discharge_prices

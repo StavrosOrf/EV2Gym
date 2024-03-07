@@ -258,9 +258,9 @@ class EV():
         # All calculations are done in terms of battery SoC, so we
         # convert pilot signal and max power into pilot and max rate of
         # change of SoC.
-        pilot_dsoc = pilot * voltage / 1000 / \
+        pilot_dsoc = self.charge_efficiency * pilot * voltage / 1000 / \
             self.battery_capacity / (60 / period)
-        max_dsoc = self.max_ac_charge_power / \
+        max_dsoc = self.charge_efficiency * self.max_ac_charge_power / \
             self.battery_capacity / (60 / period)
 
         if pilot_dsoc > max_dsoc:

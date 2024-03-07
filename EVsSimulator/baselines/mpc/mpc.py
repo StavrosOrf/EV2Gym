@@ -12,7 +12,12 @@ from abc import ABC, abstractmethod
 
 class MPC(ABC):
 
-    def __init__(self, env, control_horizon=25, verbose=True, **kwargs):
+    def __init__(self, env,
+                 control_horizon=25,
+                 verbose=True,
+                 time_limit = 200,
+                 MIPGap = None,
+                 **kwargs):
         """
         Initialize the MPC baseline.
 
@@ -33,6 +38,8 @@ class MPC(ABC):
         self.t_min = env.timescale  # Time scale in minutes
         self.control_horizon = control_horizon  # prediction horizon in steps
 
+        self.time_limit = time_limit
+        self.MIPGap = MIPGap
         self.verbose = verbose
 
         if self.verbose:

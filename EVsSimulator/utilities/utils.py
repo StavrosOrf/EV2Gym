@@ -400,7 +400,7 @@ def generate_power_setpoints(env) -> np.ndarray:
     prices = prices / np.max(prices)
 
     required_energy_multiplier = 100 + \
-        env.config["power_setpoints_uncertainty"]
+        env.config["power_setpoint_flexiblity"]
 
     min_cs_power = env.charging_stations[0].get_min_charge_power()
     max_cs_power = env.charging_stations[0].get_max_power()

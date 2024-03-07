@@ -93,10 +93,10 @@ class Transformer():
         events = []
         for _ in range(events_per_day):
 
-            event_length_minutes = np.random.randint(
+            event_length_minutes = env.tr_rng.integers(
                 event_length_minutes_min, event_length_minutes_max+1)
 
-            event_start_hour = np.random.normal(
+            event_start_hour = env.tr_rng.normal(
                 event_start_hour_mean*60, event_start_hour_std*60)
 
             event_start_hour = np.clip(event_start_hour, 0, 23*60)
@@ -109,7 +109,7 @@ class Transformer():
             event_end_step = int(event_start_step +
                                  event_length_minutes // env.timescale)
 
-            capacity_percentage = np.random.normal(
+            capacity_percentage = env.tr_rng.normal(
                 event_capacity_percentage_mean, event_capacity_percentage_std)
             capacity_percentage = np.clip(capacity_percentage, 0, 100)
 
@@ -191,7 +191,7 @@ class Transformer():
         '''
         if env.config['solar_power']['include']:
             mult = env.config['solar_power']['solar_power_capacity_multiplier_mean']
-            mult = np.random.normal(mult, 0.1)
+            mult = env.tr_rng.normal(mult, 0.1)
             self.solar_power = -self.solar_power * \
                 mult * max(self.max_power)
 
@@ -217,7 +217,7 @@ class Transformer():
 
         if env.config['inflexible_loads']['include']:
             mult = env.config['inflexible_loads']['inflexible_loads_capacity_multiplier_mean']
-            mult = np.random.normal(mult, 0.1)
+            mult = env.tr_rng.normal(mult, 0.1)
 
             # scale up the data to match the max_power of the transformers
             self.inflexible_load = self.inflexible_load * \

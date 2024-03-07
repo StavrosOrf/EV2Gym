@@ -145,16 +145,19 @@ class OCCF_V2G(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        # model.params.MIPGap = 0.01
-
-        # save the model
-        # model.write('model.lp')
+        
+        if self.MIPGap is not None:
+            model.params.MIPGap = self.MIPGap
+        model.params.TimeLimit = self.time_limit        
         model.optimize()
 
-        if model.status != GRB.Status.OPTIMAL:
-            print(f'Objective value: {model.status}')
-            print("Optimal solution not found !!!!!")
-            exit()
+        if model.status != GRB.Status.OPTIMAL:            
+            print("Optimal solution not found !!!!!")            
+            
+        if model.status == GRB.Status.INF_OR_UNBD or \
+                model.status == GRB.Status.INFEASIBLE:                                
+            actions = np.ones(self.n_ports) * 0
+            return actions
 
         a = np.zeros((nb*h, 1))
         cap = np.zeros((nb*h, 1))
@@ -298,15 +301,19 @@ class OCCF_G2V(MPC):
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
         model.params.NonConvex = 2
-        # model.params.MIPGap = 0.01
-
-        # model.write('model.lp')
+        
+        if self.MIPGap is not None:
+            model.params.MIPGap = self.MIPGap
+        model.params.TimeLimit = self.time_limit        
         model.optimize()
 
-        if model.status != GRB.Status.OPTIMAL:
-            print(f'Objective value: {model.status}')
-            print("Optimal solution not found !!!!!")
-            exit()
+        if model.status != GRB.Status.OPTIMAL:            
+            print("Optimal solution not found !!!!!")            
+            
+        if model.status == GRB.Status.INF_OR_UNBD or \
+                model.status == GRB.Status.INFEASIBLE:                                
+            actions = np.ones(self.n_ports) * 0
+            return actions
 
         a = np.zeros((nb*h, 1))
         # cap = np.zeros((nb*h, 1))
