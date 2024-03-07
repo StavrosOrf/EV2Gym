@@ -42,8 +42,7 @@ def plot_total_power(results_path, save_path=None, algorithm_names=None):
     light_blue = np.array([0.529, 0.808, 0.922, 1])
     gold = np.array([1, 0.843, 0, 1])
 
-    for index, key in enumerate(replay.keys()):
-        print(f'{index}: {key}')
+    for index, key in enumerate(replay.keys()):        
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -180,8 +179,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
     color_list_map = plt.cm.get_cmap('Accent', len(replay.keys()))
     color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
 
-    for index, key in enumerate(replay.keys()):
-        print(f'{index}: {key}')
+    for index, key in enumerate(replay.keys()):        
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -315,8 +313,7 @@ def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
     plt.figure(figsize=(10, 7))
     plt.rc('font', family='serif')
 
-    for index, key in enumerate(replay.keys()):
-        print(f'{index}: {key}')
+    for index, key in enumerate(replay.keys()):        
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -401,8 +398,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
 
     plt.grid(True, which='major', axis='both')
     
-    for index, key in enumerate(replay.keys()):
-        print(f'{index}: {key}')
+    for index, key in enumerate(replay.keys()):        
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -498,8 +494,7 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
     plt.figure(figsize=(7, 11))
     plt.rc('font', family='serif')    
 
-    for index, key in enumerate(replay.keys()):
-        print(f'{index}: {key}')
+    for index, key in enumerate(replay.keys()):        
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,

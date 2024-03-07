@@ -484,7 +484,7 @@ def ev_city_plot(env):
         # clear plt canvas
         plt.close('all')
         
-    plt.show()
+    # plt.show()
     # Plot the total power of the CPO
     plt.figure(figsize=(20, 17))
 

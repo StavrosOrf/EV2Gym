@@ -128,18 +128,25 @@ class eMPC_V2G(MPC):
             obj_expr.addTerms(f[i], u[i])
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
-        model.params.NonConvex = 2
+        model.setParam('OutputFlag', self.output_flag)
+        model.params.NonConvex = 2        
         
         if self.MIPGap is not None:
             model.params.MIPGap = self.MIPGap
         model.params.TimeLimit = self.time_limit        
         model.optimize()
 
+        if self.MIPGap is not None:
+            model.params.MIPGap = self.MIPGap
+        model.params.TimeLimit = self.time_limit        
+        model.optimize()
+
         if model.status != GRB.Status.OPTIMAL:            
-            print("Optimal solution not found !!!!!")            
+            print(f"Optimal solution not found - step{t} !!!")            
             
         if model.status == GRB.Status.INF_OR_UNBD or \
-                model.status == GRB.Status.INFEASIBLE:                                
+                model.status == GRB.Status.INFEASIBLE:                  
+            print(f"INFEASIBLE (applying default actions) - step{t} !!!")                          
             actions = np.ones(self.n_ports) * 0.25
             return actions
 
@@ -273,6 +280,7 @@ class eMPC_G2V(MPC):
             obj_expr.addTerms(f[i], u[i])
 
         model.setObjective(obj_expr, GRB.MINIMIZE)
+        model.setParam('OutputFlag', self.output_flag)
         model.params.NonConvex = 2
         
         if self.MIPGap is not None:
@@ -281,10 +289,11 @@ class eMPC_G2V(MPC):
         model.optimize()
 
         if model.status != GRB.Status.OPTIMAL:            
-            print("Optimal solution not found !!!!!")            
+            print(f"Optimal solution not found - step{t} !!!")            
             
         if model.status == GRB.Status.INF_OR_UNBD or \
-                model.status == GRB.Status.INFEASIBLE:                                
+                model.status == GRB.Status.INFEASIBLE:                  
+            print(f"INFEASIBLE (applying default actions) - step{t} !!!")                          
             actions = np.ones(self.n_ports) * 0.25
             return actions
 

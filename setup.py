@@ -3,15 +3,12 @@
 from setuptools import find_packages
 from setuptools import setup
 
-# print(find_packages())
-# exit()
-
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
     name='EVsSimulator',
-    version='0.0.11',
+    version='0.0.12',
     description='A realistic V2X environment using gym',
     author='Stavros Orfanoudakis',
     long_description=long_description,
@@ -29,6 +26,14 @@ setup(
         '': ['*.csv','*.json','*.yaml','*.npy','*.png']
     },
     include_package_data=True,
+    install_requires=[
+        'gymnasium',
+        'pyyaml',
+        'matplotlib',
+        'pandas',
+        'networkx',
+        'gurobipy',
+    ]
 )
 
 """

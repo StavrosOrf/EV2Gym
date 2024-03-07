@@ -130,9 +130,9 @@ algorithms = [
 
 algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
               OCCF_V2G,
-            #   OCCF_G2V,
-            #   eMPC_V2G,
-            #   eMPC_G2V,
+              OCCF_G2V,
+              eMPC_V2G,
+              eMPC_G2V,
               ]
 
 evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
@@ -154,6 +154,7 @@ for algorithm in algorithms:
 
     print(' +------- Evaluating', algorithm.__name__, " -------+")
     for k in range(n_test_cycles):
+        print(f' Test cycle {k+1}/{n_test_cycles} -- {algorithm.__name__}')
         counter += 1
 
         if replays_exist:
@@ -271,11 +272,10 @@ results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
 with open(save_path + 'results_grouped.txt', 'w') as f:
     f.write(results_grouped.to_latex())
 
-
 # results_grouped.to_csv('results_grouped.csv')
 # print(results_grouped[['tracking_error', 'energy_tracking_error']])
 print(results_grouped[['total_profits', 'average_user_satisfaction','time']])
-input('Press Enter to continue')
+# input('Press Enter to continue')
 
 algorithm_names = []
 for algorithm in algorithms:

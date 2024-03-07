@@ -27,7 +27,7 @@ simulation_days: weekdays # weekdays, weekends, or both
 
 # EV Spawn Behavior
 scenario: private # public, private, or workplace
-spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn
+spawn_multiplier: 10 # 1 is default, the higher the number the more EVs spawn
 
 ##############################################################################
 # Prices
@@ -38,7 +38,7 @@ discharge_price_factor: 1.2 # how many times more abs(expensive/cheaper) it is t
 # Charging Network
 ##############################################################################
 v2g_enabled: True # True or False
-number_of_charging_stations: 15
+number_of_charging_stations: 48
 number_of_transformers: 3
 number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology,
@@ -60,7 +60,7 @@ tr_seed: -1 # seed for the random number generator of transformer loads(-1 for r
 
 inflexible_loads:
   include: True # True or False
-  inflexible_loads_capacity_multiplier_mean: 0.9 # 1 is default, the higher the number the more inflexible loads
+  inflexible_loads_capacity_multiplier_mean: 0.8 # 1 is default, the higher the number the more inflexible loads
   forecast_mean: 100 # in percentage of load at time t%
   forecast_std: 5 # in percentage of load at time t%
 

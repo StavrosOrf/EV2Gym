@@ -16,6 +16,7 @@ class MPC(ABC):
                  control_horizon=25,
                  verbose=True,
                  time_limit = 200,
+                 output_flag = 0,
                  MIPGap = None,
                  **kwargs):
         """
@@ -38,6 +39,7 @@ class MPC(ABC):
         self.t_min = env.timescale  # Time scale in minutes
         self.control_horizon = control_horizon  # prediction horizon in steps
 
+        self.output_flag = output_flag
         self.time_limit = time_limit
         self.MIPGap = MIPGap
         self.verbose = verbose

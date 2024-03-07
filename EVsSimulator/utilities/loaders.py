@@ -354,7 +354,12 @@ def load_ev_profiles(env) -> List[EV]:
         - ev_profiles: a list of ev_profile objects'''
 
     if env.load_from_replay_path is None:
-        return EV_spawner(env)
+        
+        ev_profiles = EV_spawner(env)
+        while len(ev_profiles) == 0:
+            ev_profiles = EV_spawner(env)
+            
+        return ev_profiles
     else:
         return env.replay.EVs
 
