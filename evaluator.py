@@ -130,9 +130,9 @@ algorithms = [
 
 algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
               OCCF_V2G,
-              OCCF_G2V,
-              eMPC_V2G,
-              eMPC_G2V,
+            #   OCCF_G2V,
+            #   eMPC_V2G,
+            #   eMPC_G2V,
               ]
 
 evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\

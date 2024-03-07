@@ -156,7 +156,7 @@ class OCCF_V2G(MPC):
             
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                                
-            actions = np.ones(self.n_ports) * 0
+            actions = np.ones(self.n_ports) * 0.25
             return actions
 
         a = np.zeros((nb*h, 1))
@@ -312,7 +312,7 @@ class OCCF_G2V(MPC):
             
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                                
-            actions = np.ones(self.n_ports) * 0
+            actions = np.ones(self.n_ports) * 0.25
             return actions
 
         a = np.zeros((nb*h, 1))
