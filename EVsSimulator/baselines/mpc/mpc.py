@@ -14,7 +14,7 @@ class MPC(ABC):
 
     def __init__(self, env,
                  control_horizon=25,
-                 verbose=True,
+                 verbose=False,
                  time_limit = 200,
                  output_flag = 0,
                  MIPGap = None,

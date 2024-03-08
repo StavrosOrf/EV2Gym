@@ -81,7 +81,7 @@ elif args.config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
 elif args.config_file == "EVsSimulator/example_config_files/V2G_MPC.yaml":
     reward_function = profit_maximization
     state_function = V2G_profit_max
-    
+
 elif args.config_file == "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml":
     reward_function = ProfitMax_TrPenalty_UserIncentives
     state_function = V2G_profit_max_loads
@@ -129,8 +129,11 @@ algorithms = [
 ]
 
 algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
+              #   'OCCF_V2G_15',
+              #   'OCCF_V2G_25',
               OCCF_V2G,
               OCCF_G2V,
+            #   'eMPC_V2G_50',
               eMPC_V2G,
               eMPC_G2V,
               ]
@@ -152,10 +155,11 @@ plot_results_dict = {}
 counter = 0
 for algorithm in algorithms:
 
-    print(' +------- Evaluating', algorithm.__name__, " -------+")
+    print(' +------- Evaluating', algorithm, " -------+")
     for k in range(n_test_cycles):
-        print(f' Test cycle {k+1}/{n_test_cycles} -- {algorithm.__name__}')
+        print(f' Test cycle {k+1}/{n_test_cycles} -- {algorithm}')
         counter += 1
+        h = -1
 
         if replays_exist:
             replay_path = eval_replay_path + eval_replay_files[k]
@@ -179,9 +183,9 @@ for algorithm in algorithms:
                 load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
                     f"{algorithm.__name__.lower()}_{reward_function.__name__}_{state_function.__name__}"
 
-            #initialize the timer
+            # initialize the timer
             timer = time.time()
-            
+
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
             state = env.reset()
@@ -191,27 +195,48 @@ for algorithm in algorithms:
                 config_file=args.config_file,
                 load_from_replay_path=replay_path,
                 generate_rnd_game=True,
-                # verbose=True,
-                # save_plots=True,
                 state_function=state_function,
                 reward_function=reward_function,
             )
-            
-            #initialize the timer
+
+            # initialize the timer
             timer = time.time()
             state = env.reset()
             try:
-                model = algorithm(
-                    env=env, replay_path=replay_path, verbose=False)
-            except:
+                if type(algorithm) == str:
+                    if algorithm.split('_')[0] in ['OCCF', 'eMPC']:
+                        h = int(algorithm.split('_')[2])
+                        algorithm = algorithm.split(
+                            '_')[0] + '_' + algorithm.split('_')[1]
+                        print(
+                            f'Algorithm: {algorithm} with control horizon {h}')
+                        if algorithm == 'OCCF_V2G':
+                            model = OCCF_V2G(env=env, control_horizon=h)
+                            algorithm = OCCF_V2G
+                        elif algorithm == 'OCCF_G2V':
+                            model = OCCF_G2V(env=env, control_horizon=h)
+                            algorithm = OCCF_G2V
+                        elif algorithm == 'eMPC_V2G':
+                            model = eMPC_V2G(env=env, control_horizon=h)
+                            algorithm = eMPC_V2G
+                        elif algorithm == 'eMPC_G2V':
+                            model = eMPC_G2V(env=env, control_horizon=h)
+                            algorithm = eMPC_G2V
+
+                else:
+                    model = algorithm(env=env,
+                                      replay_path=replay_path,
+                                      verbose=False)
+            except Exception as error:
+                print(error)
                 print(
-                    f'Error in {algorithm.__name__} with replay {replay_path}')
+                    f'Error in {algorithm} with replay {replay_path}')
                 continue
 
         rewards = []
-        
+
         for i in range(simulation_length):
-            ################# Your algorithm goes here #################
+            ################# Evaluation ##############################
             if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                 action, _ = model.predict(state, deterministic=True)
                 obs, reward, done, stats = env.step(action)
@@ -221,7 +246,8 @@ for algorithm in algorithms:
                 stats = stats[0]
             else:
                 actions = model.get_action(env=env)
-                new_state, reward, done, _, stats = env.step(actions, visualize=False)  # takes action
+                new_state, reward, done, _, stats = env.step(
+                    actions, visualize=False)  # takes action
             ############################################################
 
             rewards.append(reward)
@@ -229,6 +255,7 @@ for algorithm in algorithms:
             if done:
                 results_i = pd.DataFrame({'run': k,
                                           'Algorithm': algorithm.__name__,
+                                          'control_horizon': h,
                                           'total_ev_served': stats['total_ev_served'],
                                           'total_profits': stats['total_profits'],
                                           'total_energy_charged': stats['total_energy_charged'],
@@ -274,7 +301,7 @@ with open(save_path + 'results_grouped.txt', 'w') as f:
 
 # results_grouped.to_csv('results_grouped.csv')
 # print(results_grouped[['tracking_error', 'energy_tracking_error']])
-print(results_grouped[['total_profits', 'average_user_satisfaction','time']])
+print(results_grouped[['total_transformer_overload', 'average_user_satisfaction', 'time']])
 # input('Press Enter to continue')
 
 algorithm_names = []

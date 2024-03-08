@@ -37,7 +37,7 @@ def arg_parser():
     parser.add_argument("--config_file", default="EVsSimulator/example_config_files/V2G_MPC.yaml",
     # parser.add_argument("--config_file", default="EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml",
                         help="Path to the config file (default: config_files/config.yaml)")
-    parser.add_argument("--n_test_cycles", default=5, type=int,
+    parser.add_argument("--n_test_cycles", default=1, type=int,
                         help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 
     # Generate trajectories specific arguments

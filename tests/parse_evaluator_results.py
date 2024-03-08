@@ -1,6 +1,44 @@
 #%%
 import pandas as pd
 
+data = pd.read_csv('./results/data_MPC.csv')
+
+#keep only rows where run is 0
+# data = data[data['run'] == 3]
+
+columns_to_keep = ['Algorithm','total_profits',
+       'total_energy_charged', 'total_energy_discharged',
+       'average_user_satisfaction',
+       'total_transformer_overload',
+       'battery_degradation',
+       # 'battery_degradation_calendar', 'battery_degradation_cycling',
+       # 'total_reward',
+       'time']
+
+data = data[columns_to_keep]
+
+# create new columns with rounded values
+data['total_profits'] = data['total_profits'].apply(lambda x: f"${x:.1f}$")
+data['total_energy_charged'] = data['total_energy_charged'].apply(lambda x: f"${x:.1f}$")
+data['total_energy_discharged'] = data['total_energy_discharged'].apply(lambda x: f"${x:.1f}$")
+data['average_user_satisfaction'] = data['average_user_satisfaction'].apply(lambda x: f"${x*100:.0f}$")
+data['total_transformer_overload'] = data['total_transformer_overload'].apply(lambda x: f"${x:.1f}$")
+data['battery_degradation'] = data['battery_degradation'].apply(lambda x: f"${x*1000:.2f}$")
+data['time'] = data['time'].apply(lambda x: f"${x:.2f}$")
+
+print(data.columns)
+
+data.columns = ['Algorithm',
+       'Profits', 'Energy Charged',
+                        'Energy Discharged', 'User Satisfaction',
+                        'Transformer Overload',
+                        'Battery Degradation', 'Time']
+
+print(data)
+print(data.to_latex())
+exit()
+
+
 #%%
 data = pd.read_csv('data_V2GProfitPlusLoads.csv')
 

@@ -11,9 +11,9 @@ from EVsSimulator.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
 from EVsSimulator.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
-from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle, V2GProfitMaxLoadsOracle
-from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
-from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
+# from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle, V2GProfitMaxLoadsOracle
+# from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
+# from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
 from EVsSimulator.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
 from EVsSimulator import ev_city
@@ -31,39 +31,31 @@ import time
 
 
 
-env_path = "E:/GitHub/EVsSimulator/results/eval_10cs_1tr_V2GProfitPlusLoads_5_algos_1_exp_2024_03_05_415326/plot_results_dict.pkl"
-save_path = "E:/GitHub/EVsSimulator/results/eval_10cs_1tr_V2GProfitPlusLoads_5_algos_1_exp_2024_03_05_415326/"
+env_path = "E:/GitHub/EVsSimulator/results/eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_08_428016/plot_results_dict.pkl"
+save_path = "E:/GitHub/EVsSimulator/results/eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_08_428016/"
 
-algorithms = [
-    ChargeAsFastAsPossible,
-    # ChargeAsLateAsPossible,
-    # PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
-    SAC,
-    TQC,
-    # TD3,
-    # ARS,
-    # RecurrentPPO,
-    # RoundRobin,
-    eMPC_V2G,
-    # V2GProfitMaxLoadsOracle,
-    V2GProfitMaxOracleGB,
-    # V2GProfitMaxOracle,
-    # PowerTrackingErrorrMin
-]
+algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
+              'OCCF_V2G',
+              'OCCF_G2V',
+              'eMPC_V2G',
+              'eMPC_G2V',
+              ]
 algorithm_names = []
 for algorithm in algorithms:
     # if class has attribute .name, use it
     if hasattr(algorithm, 'algo_name'):
         algorithm_names.append(algorithm.algo_name)
+    elif type(algorithm) == str:
+        algorithm_names.append(algorithm)
     else:
         algorithm_names.append(algorithm.__name__)
 
 plot_total_power_V2G(results_path=env_path,
                      save_path=save_path,
                      algorithm_names=algorithm_names)
-# plot_comparable_EV_SoC_single(results_path=env_path,
-#                               save_path=save_path,
-#                               algorithm_names=algorithm_names)
-plot_prices(results_path=env_path,
-            save_path=save_path,
-            algorithm_names=algorithm_names)
+plot_comparable_EV_SoC_single(results_path=env_path,
+                              save_path=save_path,
+                              algorithm_names=algorithm_names)
+# plot_prices(results_path=env_path,
+#             save_path=save_path,
+#             algorithm_names=algorithm_names)
