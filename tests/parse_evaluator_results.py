@@ -1,8 +1,10 @@
 #%%
 import pandas as pd
+#%%
 
-data = pd.read_csv('./results/data_MPC.csv')
-
+# data = pd.read_csv('./results/data_MPC.csv')
+# data = pd.read_csv('../results/eval_10cs_1tr_V2GProfitPlusLoads_13_algos_20_exp_2024_03_10_797555/data.csv')
+data = pd.read_csv('../results/eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_10_323570/data.csv')
 #keep only rows where run is 0
 # data = data[data['run'] == 3]
 
@@ -36,11 +38,11 @@ data.columns = ['Algorithm',
 
 print(data)
 print(data.to_latex())
-exit()
 
 
 #%%
-data = pd.read_csv('data_V2GProfitPlusLoads.csv')
+# data = pd.read_csv('data_V2GProfitPlusLoads.csv')
+data = pd.read_csv('../results/eval_10cs_1tr_V2GProfitPlusLoads_13_algos_20_exp_2024_03_10_797555/data.csv')
 
 columns_to_keep = ['Algorithm','total_profits',
        'total_energy_charged', 'total_energy_discharged',

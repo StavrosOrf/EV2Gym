@@ -8,6 +8,8 @@ import numpy as np
 
 paths = ['results/eval_6cs_3tr_V2G_MPC_5_algos_20_exp_2024_03_07_610105',
          #  'results/eval_48cs_3tr_V2G_MPC_5_algos_5_exp_2024_03_07_166424',
+         'results/eval_30cs_3tr_V2G_MPC_5_algos_2_exp_2024_03_08_380121',
+         'results/eval_18cs_3tr_V2G_MPC_5_algos_2_exp_2024_03_08_704132',
          'results/eval_24cs_3tr_V2G_MPC_5_algos_5_exp_2024_03_07_055202',
          'results/eval_12cs_3tr_V2G_MPC_5_algos_20_exp_2024_03_07_523345']
 
@@ -49,6 +51,10 @@ results_all['Algorithm'] = results_all['Algorithm'].replace({'ChargeAsFastAsPoss
                                                              'ChargeAsFastAsPossible': 'AFAP',
                                                              'ChargeAsLateAsPossible': 'ALAP', })
 print(results_all.columns)
+#drop rows where algorithm = 'ChargeAsFastAsPossibleToDesiredCapacity'
+
+results_all = results_all[results_all['Algorithm'] != 'AFAP']
+
 
 # plot in the same plot the execution time of the algorithms for different cs numbers
 sns.set_theme(style="whitegrid")
@@ -70,7 +76,7 @@ ax = sns.catplot(x="cs_number",
                  native_scale=True,
                  kind="point",
                  errorbar="se",
-                 order=[6, 12, 24],
+                 order=[6, 12,18,24,30],
                  height=6,
                  aspect=.75,
                  alpha=0.7,
@@ -79,8 +85,8 @@ ax = sns.catplot(x="cs_number",
 # logarithmic scale
 # ax.set(yscale="log")
 # use xticks to match the cs_number and real number of charging stations
-ax.set(xticks=np.arange(6,25, step=6),
-       xticklabels=np.arange(6, 25, step=6))
+ax.set(xticks=np.arange(6,31, step=6),
+       xticklabels=np.arange(6, 31, step=6))
 # set labels
 #increase font size
 ax.set_xticklabels(fontsize=22)
@@ -99,7 +105,7 @@ ax = sns.catplot(x="cs_number",
                  hue="Algorithm",
                  data=results_all,
                  kind="point",
-                 order=[6, 12, 24],
+                 order=[6, 12,18,24,30],
                  height=6,
                  aspect=.75,
                  legend_out=False,)

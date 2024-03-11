@@ -364,8 +364,8 @@ class EV():
         b_cap_ah = 2.05  # ah
         b_cap_kwh = 78  # kwh
 
-        d_dist = 11120  # km
-        b_age = 365  # days
+        d_dist = 15000  # km
+        b_age = 2*365  # days
         G = 0.186  # kwh/km
 
         # Age of the battery in days
@@ -377,7 +377,7 @@ class EV():
         theta = 298.15  # Kelvin
         k = 0.8263  # Volts
 
-        v_min = 3.15  # Volts
+        v_min = 3.3324  # Volts
         self.historic_soc.append(self.get_soc()) # Add the final soc to the historic soc
         avg_soc = np.mean(self.historic_soc) 
         v_avg = v_min + k * avg_soc
@@ -398,7 +398,7 @@ class EV():
         delta_DoD = 2 * abs(avg_filtered_soc.repeat(len( filtered_historic_soc)) - filtered_historic_soc).mean()
         # print(f'delta_DoD: {delta_DoD}')
         v_half_soc = v_min + k * 0.5
-        beta = z0 * (v_half_soc / math.sqrt(2) - z1)**2 + z2 + z3 * delta_DoD        
+        beta = z0 * (v_half_soc - z1)**2 + z2 + z3 * delta_DoD        
 
         Q_sim = (self.abs_total_energy_exchanged / b_cap_kwh) * b_cap_ah
 

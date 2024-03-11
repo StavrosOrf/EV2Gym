@@ -26,7 +26,7 @@ def battery_degradation_test():
 
     amps_list = np.arange(8, 56, 1)
     amps_list = [56]
-    required_energy_list = np.arange(0, 50, 0.5)
+    required_energy_list = np.arange(0, 50, 1)
 
     calendar_degradation = np.zeros(
         (len(amps_list), len(required_energy_list)))
@@ -91,7 +91,7 @@ def battery_degradation_test():
         e1 = 23.75e6
         e2 = 6976
 
-        b_age = 365  # days        
+        b_age = 2*365  # days        
 
         # Age of the battery in days
         T_acc = b_age
@@ -101,7 +101,7 @@ def battery_degradation_test():
 
         theta = 298.15  # Kelvin
         k = 0.8263  # Volts
-        v_min = 3.15  # Volts
+        v_min = 3.3324  # Volts
         
         v_avg = v_min + k * avg_soc
 
@@ -136,7 +136,7 @@ def battery_degradation_test():
     
     # move scilimits to the left
     # ax1.yaxis.major.formatter._useMathText = True
-    ax1.set_ylim(0,8)
+    # ax1.set_ylim(0,2)
     
     
     ax1.legend(["Calendar deg."],loc='upper left',bbox_to_anchor=(0, 0.7),)
@@ -164,7 +164,7 @@ def battery_degradation_test():
     #grid lines
     ax1.grid()
     ax2.grid()
-    plt.show(   )
+    plt.show()
     
     
     exit()

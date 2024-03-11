@@ -113,14 +113,14 @@ def generate_replay(evaluation_name):
 # Algorithms to compare:
 algorithms = [
     ChargeAsFastAsPossible,
-    # ChargeAsLateAsPossible,
-    # PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
-    SAC,
-    TQC,
-    # TD3,
-    # ARS,
-    # RecurrentPPO,
-    # RoundRobin,
+    ChargeAsLateAsPossible,
+    PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
+    # SAC,
+    # TQC,
+    # # TD3,
+    # # ARS,
+    # # RecurrentPPO,
+    # # RoundRobin,
     eMPC_V2G,
     # V2GProfitMaxLoadsOracle,
     V2GProfitMaxOracleGB,
@@ -129,13 +129,18 @@ algorithms = [
 ]
 
 algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
-              #   'OCCF_V2G_15',
-              #   'OCCF_V2G_25',
-              OCCF_V2G,
-              OCCF_G2V,
+              # 'OCCF_V2G_15',
+              'OCCF_V2G_25',
+            #   'OCCF_V2G_50',
+              'OCCF_G2V_25',
+            #   'OCCF_G2V_50',
+              'eMPC_V2G_25',
             #   'eMPC_V2G_50',
-              eMPC_V2G,
-              eMPC_G2V,
+              'eMPC_G2V_25',
+            #   'eMPC_G2V_50',
+              
+            #   eMPC_V2G,
+            #   eMPC_G2V,
               ]
 
 evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
@@ -301,7 +306,8 @@ with open(save_path + 'results_grouped.txt', 'w') as f:
 
 # results_grouped.to_csv('results_grouped.csv')
 # print(results_grouped[['tracking_error', 'energy_tracking_error']])
-print(results_grouped[['total_transformer_overload', 'average_user_satisfaction', 'time']])
+print(results_grouped[['total_transformer_overload',
+      'average_user_satisfaction', 'time']])
 # input('Press Enter to continue')
 
 algorithm_names = []
