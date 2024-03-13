@@ -299,7 +299,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    plt.show()
+    # plt.show()
 
 def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
     '''
@@ -476,7 +476,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    plt.show()    
+    # plt.show()    
 
 
 def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=None):
