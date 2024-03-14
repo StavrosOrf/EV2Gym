@@ -16,7 +16,7 @@ from EVsSimulator import ev_city
 from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
 from EVsSimulator.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
 
-from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
+from EVsSimulator.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
 from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
 from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle, V2GProfitMaxLoadsOracle
 
@@ -130,16 +130,16 @@ def evaluator():
     ]
 
     algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
-                'OCCF_V2G_20',
-                # 'OCCF_V2G_20',
-                # 'OCCF_V2G_30',
-                'OCCF_G2V_20',
-                # # 'OCCF_G2V_20',
-                # # 'OCCF_G2V_30',
-                'eMPC_V2G_20',
+                'OCMF_V2G_10',
+                # 'OCMF_V2G_20',
+                # 'OCMF_V2G_30',
+                'OCMF_G2V_10',
+                # # 'OCMF_G2V_20',
+                # # 'OCMF_G2V_30',
+                'eMPC_V2G_10',
                 # # 'eMPC_V2G_20',
                 # # 'eMPC_V2G_30',
-                'eMPC_G2V_20',
+                'eMPC_G2V_10',
                 # 'eMPC_G2V_30',
                 
                 
@@ -154,7 +154,6 @@ def evaluator():
     # make a directory for the evaluation
     save_path = f'./results/{evaluation_name}/'
     os.makedirs(save_path, exist_ok=True)
-
 
     if not replays_exist:
         eval_replay_files = [generate_replay(
@@ -213,18 +212,18 @@ def evaluator():
                 state = env.reset()
                 try:
                     if type(algorithm) == str:
-                        if algorithm.split('_')[0] in ['OCCF', 'eMPC']:
+                        if algorithm.split('_')[0] in ['OCMF', 'eMPC']:
                             h = int(algorithm.split('_')[2])
                             algorithm = algorithm.split(
                                 '_')[0] + '_' + algorithm.split('_')[1]
                             print(
                                 f'Algorithm: {algorithm} with control horizon {h}')
-                            if algorithm == 'OCCF_V2G':
-                                model = OCCF_V2G(env=env, control_horizon=h)
-                                algorithm = OCCF_V2G
-                            elif algorithm == 'OCCF_G2V':
-                                model = OCCF_G2V(env=env, control_horizon=h)
-                                algorithm = OCCF_G2V
+                            if algorithm == 'OCMF_V2G':
+                                model = OCMF_V2G(env=env, control_horizon=h)
+                                algorithm = OCMF_V2G
+                            elif algorithm == 'OCMF_G2V':
+                                model = OCMF_G2V(env=env, control_horizon=h)
+                                algorithm = OCMF_G2V
                             elif algorithm == 'eMPC_V2G':
                                 model = eMPC_V2G(env=env, control_horizon=h)
                                 algorithm = eMPC_V2G

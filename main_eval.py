@@ -4,7 +4,7 @@ This script is used to evaluate the performance of the EVsSimulator environment.
 from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
 from EVsSimulator.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
-from EVsSimulator.baselines.mpc.occf_mpc import OCCF_V2G, OCCF_G2V
+from EVsSimulator.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
 from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
 from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle
 
@@ -27,7 +27,7 @@ def eval():
     replay_path = "./replay/replay_sim_2024_02_21_056441.pkl"
     replay_path = None
 
-    config_file = "EVsSimulator/example_config_files/V2G_MPC.yaml"
+    config_file = "EVsSimulator/example_config_files/V2G_MPC2.yaml"
     # config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
     # config_file = "EVsSimulator/example_config_files/BusinessPST.yaml"
     # config_file = "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml"
@@ -57,15 +57,15 @@ def eval():
     print(f'Max time of stay: {max_time_of_stay}')
     print(f'Min time of stay: {min_time_of_stay}')
     # exit()
-    # agent = OCCF_V2G(env, control_horizon=30, verbose=True)
-    # agent = OCCF_G2V(env, control_horizon=25, verbose=True)
+    # agent = OCMF_V2G(env, control_horizon=30, verbose=True)
+    # agent = OCMF_G2V(env, control_horizon=25, verbose=True)
     # agent = eMPC_V2G(env, control_horizon=25, verbose=True)
     # agent = V2GProfitMaxOracle(env,verbose=True)
     # agent = eMPC_G2V(env, control_horizon=15, verbose=True)
-    agent = RoundRobin(env, verbose=False)
+    # agent = RoundRobin(env, verbose=False)
     # agent = ChargeAsLateAsPossible(verbose=False)
     # agent = ChargeAsFastAsPossible()
-    # agent = ChargeAsFastAsPossibleToDesiredCapacity()
+    agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 
     for t in range(env.simulation_length):        

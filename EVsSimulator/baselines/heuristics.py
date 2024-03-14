@@ -194,6 +194,8 @@ class ChargeAsFastAsPossibleToDesiredCapacity():
                         action_list[counter] = ((cs.evs_connected[port].desired_capacity -
                                                 cs.evs_connected[port].current_capacity) *
                                                 60 / env.timescale) / max_power_to_charge_cs
+                        if action_list[counter] < 0:
+                            action_list[counter] = 0
 
                 counter += 1
 

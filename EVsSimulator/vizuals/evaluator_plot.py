@@ -3,7 +3,7 @@ This file is used to plot the comparatigve results of the different algorithms.
 '''
 
 import pickle
-
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -299,7 +299,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    plt.show()
+    # plt.show()
 
 def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
     '''
@@ -408,7 +408,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
                                    freq=f'{env.timescale}min')
         date_range_print = pd.date_range(start=env.sim_starting_date,
                                          end=env.sim_date,
-                                         periods=13)
+                                         periods=7)
 
         color_list_map = plt.cm.get_cmap('Accent', len(replay.keys()))
         color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
@@ -463,7 +463,8 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
             plt.ylim([0.1, 1.09])
             plt.xlim([env.sim_starting_date, env.sim_date])
             plt.xticks(ticks=date_range_print,
-                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45,
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                    #    rotation=45,
                        fontsize=28)
             counter += 1
 
@@ -476,7 +477,111 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    # plt.show()    
+    # plt.show() 
+    
+
+def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None):
+    '''
+    This function is used to plot the SoC of the EVs in the same plot
+    '''
+
+    with open(results_path, 'rb') as f:
+        replay = pickle.load(f)
+
+    plt.close('all')
+    fig, ax = plt.subplots()
+    plt.rc('font', family='serif')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    
+    ax.spines['left'].set_linewidth(2)
+    ax.spines['bottom'].set_linewidth(2)
+
+    plt.grid(True, which='major', axis='both')
+    for index, key in enumerate(replay.keys()):        
+        env = replay[key]
+
+        date_range = pd.date_range(start=env.sim_starting_date,
+                                   end=env.sim_starting_date +
+                                   (env.simulation_length - 1) *
+                                   datetime.timedelta(
+                                       minutes=env.timescale),
+                                   freq=f'{env.timescale}min')
+        date_range_print = pd.date_range(start=env.sim_starting_date,
+                                         end=env.sim_date,
+                                         periods=7)
+
+        color_list_map = plt.cm.get_cmap('Accent', len(replay.keys()))
+        color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
+        
+        counter = 1
+        for cs in env.charging_stations:   
+            if counter != 1:
+                counter += 1
+                continue
+            
+            # plt.subplot(1, 2, counter)
+            df = pd.DataFrame([], index=date_range)
+
+            for port in range(cs.n_ports):
+                df[port] = env.port_current[port, cs.id, :]
+            
+            #multiply df[port] by the voltage to get the power
+            df = df * cs.voltage * math.sqrt(cs.phases) / 1000
+            
+            # Add another row with one datetime step to make the plot look better
+            df.loc[df.index[-1] +
+                   datetime.timedelta(minutes=env.timescale)] = df.iloc[-1]
+
+            for port in range(cs.n_ports):
+                for i, (t_arr, t_dep) in enumerate(env.port_arrival[f'{cs.id}.{port}']):
+                    t_dep = t_dep + 1
+                    if t_dep > len(df):
+                        t_dep = len(df)
+                    # x = df.index[t_arr:t_dep]
+                    y = df[port].values.T[t_arr:t_dep]
+                    # fill y with 0 before and after to match the length of df
+                    y = np.concatenate(
+                        [np.zeros(t_arr), y, np.zeros(len(df) - t_dep)])
+
+                    plt.step(df.index,
+                             y,
+                             where='post',
+                             color=color_list[index],
+                             marker=marker_list[index],
+                             alpha=0.8,
+                             label=algorithm_names[index])
+
+            # plt.title(f'Charging Station {cs.id + 1}', fontsize=24)
+            
+            if counter == 1:
+                plt.ylabel('Power (kW)', fontsize=28)
+                plt.yticks([-22,-11,0,11,22],
+                           fontsize=28)
+                    
+            else:
+                plt.yticks(fontsize=28)
+                # plt.yticks(np.arange(0, 1.1, 0.1),
+                #             labels=[' ' for d in np.arange(0, 1.1, 0.1)])            
+            
+            # plt.ylim([0.1, 1.09])
+            plt.xlim([env.sim_starting_date, env.sim_date])
+            plt.xticks(ticks=date_range_print,
+                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                    #    rotation=45,
+                       fontsize=28)
+            counter += 1
+
+    # plt.legend(loc='upper center', bbox_to_anchor=(0, -0.15),
+    #            fancybox=True, shadow=True, ncol=, fontsize=24)
+
+    plt.tight_layout()
+
+    fig_name = f'{save_path}/CS_Power_single.png'
+    plt.savefig(fig_name, format='png',
+                dpi=60, bbox_inches='tight')
+
+    # plt.show()   
 
 
 def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=None):
@@ -504,7 +609,7 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
                                    freq=f'{env.timescale}min')
         date_range_print = pd.date_range(start=env.sim_starting_date,
                                          end=env.sim_date,
-                                         periods=6)
+                                         periods=7)
 
         #plot the actual power vs the setpoint power for each algorithm in subplots                
         plt.subplot(len(replay), 1, index+1)
@@ -588,7 +693,10 @@ def plot_prices(results_path, save_path=None, algorithm_names=None):
     plt.xlim([env.sim_starting_date, env.sim_date])
     # plt.ylim()
     # plt.axhline(0, color='black', lw=2)    
-    plt.yticks(np.arange(0.150, 0.351, 0.05),fontsize=28)
+    y_ticks = np.arange(0.150, 0.351, 0.05)
+    plt.yticks(y_ticks,fontsize=28)
+
+    plt.ylim([0.12, 0.35])
     plt.xticks(ticks=date_range_print,
                labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
             #    rotation=45,
@@ -604,7 +712,7 @@ def plot_prices(results_path, save_path=None, algorithm_names=None):
     fig_name = f'{save_path}/Prices.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
-    # plt.show()
+    plt.show()
 
 if __name__ == "__main__":
 

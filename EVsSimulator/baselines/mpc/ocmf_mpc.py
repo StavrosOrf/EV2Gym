@@ -1,5 +1,5 @@
 '''
-This file contains the implementation of the OCCF_V2G and OCCF_G2V MPC
+This file contains the implementation of the OCMF_V2G and OCMF_G2V MPC
 
 Authors: Cesar Diaz-Londono, Stavros Orfanoudakis
 '''
@@ -12,7 +12,7 @@ import numpy as np
 from EVsSimulator.baselines.mpc.mpc import MPC
 
 
-class OCCF_V2G(MPC):
+class OCMF_V2G(MPC):
 
     def __init__(self, env, control_horizon=10, verbose=False, **kwargs):
         """
@@ -163,7 +163,7 @@ class OCCF_V2G(MPC):
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                  
             print(f"INFEASIBLE (applying default actions) - step{t} !!!")                          
-            actions = np.ones(self.n_ports) * 0.25
+            actions = np.ones(self.n_ports) * 0 # 0.25
             return actions
 
         a = np.zeros((nb*h, 1))
@@ -193,7 +193,7 @@ class OCCF_V2G(MPC):
         return actions
 
 
-class OCCF_G2V(MPC):
+class OCMF_G2V(MPC):
     '''
     This class implements the MPC for the G2V OCCF.
     '''
@@ -321,7 +321,7 @@ class OCCF_G2V(MPC):
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                  
             print(f"INFEASIBLE (applying default actions) - step{t} !!!")                          
-            actions = np.ones(self.n_ports) * 0.25
+            actions = np.ones(self.n_ports) * 0 #0.25
             return actions
 
         a = np.zeros((nb*h, 1))

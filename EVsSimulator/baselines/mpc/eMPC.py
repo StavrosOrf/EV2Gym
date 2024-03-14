@@ -142,7 +142,7 @@ class eMPC_V2G(MPC):
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                  
             print(f"INFEASIBLE (applying default actions) - step{t} !!!")                          
-            actions = np.ones(self.n_ports) * 0.25
+            actions = np.ones(self.n_ports) * 0 #0.25
             return actions
 
         a = np.zeros((nb*h, 1))
@@ -289,7 +289,7 @@ class eMPC_G2V(MPC):
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                  
             print(f"INFEASIBLE (applying default actions) - step{t} !!!")                          
-            actions = np.ones(self.n_ports) * 0.25
+            actions = np.ones(self.n_ports) * 0#0.25
             return actions
 
         a = np.zeros((nb*h, 1))

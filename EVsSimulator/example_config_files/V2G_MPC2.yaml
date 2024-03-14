@@ -38,7 +38,7 @@ inflexible_loads:
   forecast_mean: 100
   forecast_std: 5
   include: true
-  inflexible_loads_capacity_multiplier_mean: 1.2
+  inflexible_loads_capacity_multiplier_mean: 1
 minute: 0
 month: 1
 number_of_charging_stations: 30

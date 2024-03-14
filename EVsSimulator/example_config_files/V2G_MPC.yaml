@@ -41,7 +41,7 @@ inflexible_loads:
   inflexible_loads_capacity_multiplier_mean: 0.5
 minute: 0
 month: 1
-number_of_charging_stations: 50
+number_of_charging_stations: 75
 number_of_ports_per_cs: 1
 number_of_transformers: 3
 power_setpoint_flexiblity: 20
