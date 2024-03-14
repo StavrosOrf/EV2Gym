@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 85 #90 # in steps per simulation
+simulation_length: 30 #90 # in steps per simulation
 
 ##############################################################################
 # Date and Time
@@ -37,7 +37,7 @@ discharge_price_factor: 1.2 # how many times more abs(expensive/cheaper) it is t
 ##############################################################################
 # Charging Network
 ##############################################################################
-v2g_enabled: False # True or False
+v2g_enabled: True # True or False
 number_of_charging_stations: 3
 number_of_transformers: 1
 number_of_ports_per_cs: 1
@@ -86,7 +86,7 @@ demand_response:
 ##############################################################################
 # EV Specifications
 ##############################################################################
-heterogeneous_ev_specs: False #if False, each EV has the same specifications
+heterogeneous_ev_specs: True #if False, each EV has the same specifications
 # such as battery capacity, charging rate, etc.
 
 ##############################################################################
@@ -94,6 +94,7 @@ heterogeneous_ev_specs: False #if False, each EV has the same specifications
 ##############################################################################
 # These values are used if not using a charging network topology file or 
 # if the EV specifications are not provided
+tr_seed: -1 # Seed for the transformer
 
 # Default Transformer model
 transformer:

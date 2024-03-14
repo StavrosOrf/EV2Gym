@@ -29,6 +29,7 @@ def eval():
 
     config_file = "EVsSimulator/example_config_files/V2G_MPC.yaml"
     # config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
+    # config_file = "EVsSimulator/example_config_files/BusinessPST.yaml"
     # config_file = "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml"
     
 
@@ -81,13 +82,9 @@ def eval():
     # exit()
     # Solve optimally
     # Power tracker optimizer
-    # math_model = PowerTrackingErrorrMin(replay_path=new_replay_path)
-    # Profit maximization optimizer
-    # agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)    
-    
-    # # opt_actions = math_model.get_actions()
-    # # print(f'Optimal actions: {opt_actions.shape}')
-
+    # agent = PowerTrackingErrorrMin(replay_path=new_replay_path)
+    # # Profit maximization optimizer
+    # # agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)    
     # # Simulate in the gym environment and get the rewards
 
     # env = EVsSimulator(config_file=config_file,

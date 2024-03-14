@@ -6,19 +6,35 @@ import numpy as np
 
 # load_execution time data
 
-paths = ['results/eval_6cs_3tr_V2G_MPC_5_algos_20_exp_2024_03_07_610105',
-         #  'results/eval_48cs_3tr_V2G_MPC_5_algos_5_exp_2024_03_07_166424',
-         'results/eval_30cs_3tr_V2G_MPC_5_algos_2_exp_2024_03_08_380121',
-         'results/eval_18cs_3tr_V2G_MPC_5_algos_2_exp_2024_03_08_704132',
-         'results/eval_24cs_3tr_V2G_MPC_5_algos_5_exp_2024_03_07_055202',
-         'results/eval_12cs_3tr_V2G_MPC_5_algos_20_exp_2024_03_07_523345']
+# paths = ['results/eval_6cs_3tr_V2G_MPC_5_algos_20_exp_2024_03_07_610105',
+#          #  'results/eval_48cs_3tr_V2G_MPC_5_algos_5_exp_2024_03_07_166424',
+#          'results/eval_30cs_3tr_V2G_MPC_5_algos_2_exp_2024_03_08_380121',
+#          'results/eval_18cs_3tr_V2G_MPC_5_algos_2_exp_2024_03_08_704132',
+#          'results/eval_24cs_3tr_V2G_MPC_5_algos_5_exp_2024_03_07_055202',
+#          'results/eval_12cs_3tr_V2G_MPC_5_algos_20_exp_2024_03_07_523345']
 
+paths = ['results/eval_5cs_3tr_V2G_MPC_9_algos_2_exp_2024_03_13_334101',
+         'results/eval_10cs_3tr_V2G_MPC_9_algos_2_exp_2024_03_13_451909',
+            'results/eval_20cs_3tr_V2G_MPC_9_algos_2_exp_2024_03_13_502174',
+            'results/eval_30cs_3tr_V2G_MPC_9_algos_2_exp_2024_03_13_336628']
+
+order_list = [5, 10, 20, 30]
 results = None
 results_all = None
 
 for path in paths:
 
     data_og = pd.read_csv(f'{path}/data.csv')
+    #drop rows where algorithm = 'ChargeAsFastAsPossibleToDesiredCapacity'
+    data_og = data_og[data_og['Algorithm'] != 'ChargeAsFastAsPossibleToDesiredCapacity']
+    
+    #drop rows where control horizon = -1
+    data_og = data_og[data_og['control_horizon'] != -1]
+    data_og = data_og[data_og['control_horizon'] != 30]
+    
+    # data_og['Algorithm'] = data_og['Algorithm'] + \
+    #     data_og['control_horizon'].astype(str)
+        
     # group by algorithm and find mean and std time
     data = data_og.groupby(['Algorithm']).agg(
         {'time': ['mean', 'std']}).reset_index()
@@ -76,7 +92,7 @@ ax = sns.catplot(x="cs_number",
                  native_scale=True,
                  kind="point",
                  errorbar="se",
-                 order=[6, 12,18,24,30],
+                 order=order_list,
                  height=6,
                  aspect=.75,
                  alpha=0.7,
@@ -85,8 +101,11 @@ ax = sns.catplot(x="cs_number",
 # logarithmic scale
 # ax.set(yscale="log")
 # use xticks to match the cs_number and real number of charging stations
-ax.set(xticks=np.arange(6,31, step=6),
-       xticklabels=np.arange(6, 31, step=6))
+ax.set(xticks=np.arange(5,31, step=5),
+       xticklabels=np.arange(5, 31, step=5))
+
+ax.set(yticks=np.arange(0, 8001, step=1500),
+       yticklabels=np.arange(0, 8001, step=1500))
 # set labels
 #increase font size
 ax.set_xticklabels(fontsize=22)
@@ -98,14 +117,14 @@ ax = ax.set_axis_labels("Charging Stations", "Execution time (s)")
 # move legend inside the plot
 
 plt.show()
-
+exit()
 # use catplot to plot profits
 ax = sns.catplot(x="cs_number",
                  y="total_profits",
                  hue="Algorithm",
                  data=results_all,
                  kind="point",
-                 order=[6, 12,18,24,30],
+                 order=order_list,
                  height=6,
                  aspect=.75,
                  legend_out=False,)

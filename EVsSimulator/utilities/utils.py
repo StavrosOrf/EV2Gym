@@ -230,7 +230,7 @@ def spawn_single_EV(env,
                   battery_capacity_at_arrival=initial_battery_capacity,
                   max_ac_charge_power=env.ev_specs[sampled_ev]["max_ac_charge_power"],
                   max_dc_charge_power=env.ev_specs[sampled_ev]["max_dc_charge_power"],
-                  max_discharge_power=env.ev_specs[sampled_ev]["max_dc_discarge_power"],
+                  max_discharge_power=-env.ev_specs[sampled_ev]["max_dc_discharge_power"],
                   discharge_efficiency=np.round(1 -
                                                 (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
                   transition_soc=np.round(0.9 - \

@@ -8,15 +8,15 @@ charging_station:
   voltage: 230
 day: 17
 demand_response:
-  event_capacity_percentage_mean: 15
+  event_capacity_percentage_mean: 20
   event_capacity_percentage_std: 0
   event_length_minutes_max: 60
   event_length_minutes_min: 60
-  event_start_hour_mean: 16
-  event_start_hour_std: 1
+  event_start_hour_mean: 18
+  event_start_hour_std: 0
   events_per_day: 1
   include: true
-  notification_of_event_minutes: 15
+  notification_of_event_minutes: 150
 discharge_price_factor: 1.2
 ev:
   battery_capacity: 50
@@ -38,15 +38,15 @@ inflexible_loads:
   forecast_mean: 100
   forecast_std: 5
   include: true
-  inflexible_loads_capacity_multiplier_mean: 0.5
+  inflexible_loads_capacity_multiplier_mean: 1.2
 minute: 0
 month: 1
-number_of_charging_stations: 50
+number_of_charging_stations: 30
 number_of_ports_per_cs: 1
-number_of_transformers: 3
+number_of_transformers: 1
 power_setpoint_flexiblity: 20
 random_day: false
-scenario: private
+scenario: public
 simulation_days: weekdays
 simulation_length: 96
 solar_power:
@@ -54,7 +54,7 @@ solar_power:
   forecast_std: 5
   include: true
   solar_power_capacity_multiplier_mean: 3
-spawn_multiplier: 10
+spawn_multiplier: 100
 timescale: 15
 tr_seed: -1
 transformer:

@@ -31,8 +31,8 @@ import time
 
 
 
-env_path = "E:/GitHub/EVsSimulator/results/eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_08_428016/plot_results_dict.pkl"
-save_path = "E:/GitHub/EVsSimulator/results/eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_08_428016/"
+env_path = "E:/GitHub/EVsSimulator/results/eval_30cs_1tr_V2G_MPC2_5_algos_1_exp_2024_03_14_779463/plot_results_dict.pkl"
+save_path = "E:/GitHub/EVsSimulator/results/eval_30cs_1tr_V2G_MPC2_5_algos_1_exp_2024_03_14_779463/"
 
 algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
               'OCCF_V2G',

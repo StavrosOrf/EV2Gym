@@ -12,7 +12,7 @@ file_path = './EVsSimulator/example_config_files/V2G_MPC.yaml'
 
 counter = 0
 # for config in ['V2GProfitMax', 'PublicPST', 'V2GProfitPlusLoads']:
-for cs in [5, 10, 20, 30, 40, 50, 75, 100, 125]: 
+for cs in [50, 75, 100, 125]: 
 # for cs in [5, 10]: 
         #read the yaml file as yaml
         print("Number of charging stations: ", cs)

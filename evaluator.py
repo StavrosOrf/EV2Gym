@@ -79,7 +79,7 @@ def evaluator():
         reward_function = SquaredTrackingErrorReward
         state_function = PublicPST
 
-    elif args.config_file == "EVsSimulator/example_config_files/V2G_MPC.yaml":
+    elif args.config_file == "EVsSimulator/example_config_files/V2G_MPC2.yaml":
         reward_function = profit_maximization
         state_function = V2G_profit_max
 
@@ -130,17 +130,17 @@ def evaluator():
     ]
 
     algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
-                'OCCF_V2G_10',
+                'OCCF_V2G_20',
                 # 'OCCF_V2G_20',
-                'OCCF_V2G_30',
-                'OCCF_G2V_10',
-                # 'OCCF_G2V_20',
-                'OCCF_G2V_30',
-                'eMPC_V2G_10',
-                # 'eMPC_V2G_20',
-                'eMPC_V2G_30',
-                'eMPC_G2V_10',
-                'eMPC_G2V_30',
+                # 'OCCF_V2G_30',
+                'OCCF_G2V_20',
+                # # 'OCCF_G2V_20',
+                # # 'OCCF_G2V_30',
+                'eMPC_V2G_20',
+                # # 'eMPC_V2G_20',
+                # # 'eMPC_V2G_30',
+                'eMPC_G2V_20',
+                # 'eMPC_G2V_30',
                 
                 
                 #   eMPC_V2G,
@@ -245,6 +245,7 @@ def evaluator():
             rewards = []
 
             for i in range(simulation_length):
+                print(f' Step {i+1}/{simulation_length} -- {algorithm}')
                 ################# Evaluation ##############################
                 if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                     action, _ = model.predict(state, deterministic=True)

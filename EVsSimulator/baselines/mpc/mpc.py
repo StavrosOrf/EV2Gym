@@ -15,9 +15,9 @@ class MPC(ABC):
     def __init__(self, env,
                  control_horizon=25,
                  verbose=False,
-                 time_limit = 200,
+                 time_limit = 20,
                  output_flag = 0,
-                 MIPGap = None,
+                 MIPGap = 0.01,#None,
                  **kwargs):
         """
         Initialize the MPC baseline.
