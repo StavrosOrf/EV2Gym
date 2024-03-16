@@ -41,6 +41,26 @@ data.columns = ['Algorithm',
 print(data)
 print(data.to_latex())
 
+#%%
+# Plot total capacity lost (battery degradation) for each algorithm as a histogram for each run
+data = pd.read_csv('C:/Users/stayr/Downloads/data_1.csv')
+print(data.columns)
+
+columns_to_keep = ['run','Algorithm','battery_degradation']
+
+#use seaborn to plot the histogram
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.set(style="whitegrid")
+
+data = data[columns_to_keep]
+
+#plot the histogram
+# g = sns.FacetGrid(data, col="Algorithm",row='run')
+sns.histplot("Algorithm", "battery_degradation", palette="viridis")
+g.set_xticklabels(rotation=90)
+plt.show()
+
 
 #%%
 # data = pd.read_csv('data_V2GProfitPlusLoads.csv')

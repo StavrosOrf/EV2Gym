@@ -8,6 +8,7 @@ import gurobipy as gp
 from gurobipy import GRB
 from gurobipy import *
 import numpy as np
+import time
 
 from EVsSimulator.baselines.mpc.mpc import MPC
 
@@ -151,6 +152,7 @@ class OCMF_V2G(MPC):
             model.params.MIPGap = self.MIPGap
         model.params.TimeLimit = self.time_limit        
         model.optimize()
+        self.total_exec_time += model.Runtime
 
         if self.MIPGap is not None:
             model.params.MIPGap = self.MIPGap
@@ -215,7 +217,7 @@ class OCMF_G2V(MPC):
     def get_action(self, env):
         """
         This function computes the MPC actions for the economic problem including G2V.
-        """
+        """        
         t = env.current_step
         # update transformer limits
         self.update_tr_power(t)
@@ -314,9 +316,8 @@ class OCMF_G2V(MPC):
             model.params.MIPGap = self.MIPGap
         model.params.TimeLimit = self.time_limit        
         model.optimize()
-
-        if model.status != GRB.Status.OPTIMAL:            
-            print(f"Optimal solution not found - step{t} !!!")            
+        self.total_exec_time += model.Runtime #+ time.time() - start_time
+        print(f'Optimization time: {model.Runtime}')      
             
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                  

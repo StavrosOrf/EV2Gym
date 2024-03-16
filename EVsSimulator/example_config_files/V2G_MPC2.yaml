@@ -12,7 +12,7 @@ demand_response:
   event_capacity_percentage_std: 0
   event_length_minutes_max: 60
   event_length_minutes_min: 60
-  event_start_hour_mean: 18
+  event_start_hour_mean: 17
   event_start_hour_std: 0
   events_per_day: 1
   include: true
@@ -38,7 +38,7 @@ inflexible_loads:
   forecast_mean: 100
   forecast_std: 5
   include: true
-  inflexible_loads_capacity_multiplier_mean: 1
+  inflexible_loads_capacity_multiplier_mean: 1.1
 minute: 0
 month: 1
 number_of_charging_stations: 30

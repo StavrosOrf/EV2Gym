@@ -15,9 +15,9 @@ class MPC(ABC):
     def __init__(self, env,
                  control_horizon=25,
                  verbose=False,
-                 time_limit = 20,
-                 output_flag = 0,
-                 MIPGap = 0.01,#None,
+                 time_limit = 200,
+                 output_flag = 1,
+                 MIPGap = None,
                  **kwargs):
         """
         Initialize the MPC baseline.
@@ -38,6 +38,7 @@ class MPC(ABC):
         self.simulation_length = env.simulation_length  # Simulation length in steps
         self.t_min = env.timescale  # Time scale in minutes
         self.control_horizon = control_horizon  # prediction horizon in steps
+        self.total_exec_time = 0
 
         self.output_flag = output_flag
         self.time_limit = time_limit

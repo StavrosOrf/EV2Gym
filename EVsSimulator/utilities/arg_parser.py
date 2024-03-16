@@ -34,7 +34,7 @@ def arg_parser():
 
     # Environment specific arguments
     # parser.add_argument("--config_file", default="EVsSimulator/example_config_files/PublicPST.yaml",
-    parser.add_argument("--config_file", default="EVsSimulator/example_config_files/V2G_MPC2.yaml",
+    parser.add_argument("--config_file", default="EVsSimulator/example_config_files/V2G_MPC.yaml",
     # parser.add_argument("--config_file", default="EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml",
                         help="Path to the config file (default: config_files/config.yaml)")
     parser.add_argument("--n_test_cycles", default=1, type=int,

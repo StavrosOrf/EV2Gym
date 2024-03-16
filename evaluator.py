@@ -79,7 +79,7 @@ def evaluator():
         reward_function = SquaredTrackingErrorReward
         state_function = PublicPST
 
-    elif args.config_file == "EVsSimulator/example_config_files/V2G_MPC2.yaml":
+    elif args.config_file == "EVsSimulator/example_config_files/V2G_MPC.yaml":
         reward_function = profit_maximization
         state_function = V2G_profit_max
 
@@ -129,14 +129,15 @@ def evaluator():
         # PowerTrackingErrorrMin
     ]
 
-    algorithms = [ChargeAsFastAsPossibleToDesiredCapacity,
-                'OCMF_V2G_10',
+    algorithms = [
+        # ChargeAsFastAsPossibleToDesiredCapacity,
+                # 'OCMF_V2G_10',
                 # 'OCMF_V2G_20',
                 # 'OCMF_V2G_30',
                 'OCMF_G2V_10',
                 # # 'OCMF_G2V_20',
                 # # 'OCMF_G2V_30',
-                'eMPC_V2G_10',
+                # 'eMPC_V2G_10',
                 # # 'eMPC_V2G_20',
                 # # 'eMPC_V2G_30',
                 'eMPC_G2V_10',
@@ -265,6 +266,7 @@ def evaluator():
                     results_i = pd.DataFrame({'run': k,
                                             'Algorithm': algorithm.__name__,
                                             'control_horizon': h,
+                                            'discharge_price_factor': config['discharge_price_factor'],
                                             'total_ev_served': stats['total_ev_served'],
                                             'total_profits': stats['total_profits'],
                                             'total_energy_charged': stats['total_energy_charged'],
@@ -280,6 +282,7 @@ def evaluator():
                                             'battery_degradation_cycling': stats['battery_degradation_cycling'],
                                             'total_reward': sum(rewards),
                                             'time': time.time() - timer,
+                                            'time_gb': model.total_exec_time,
                                             }, index=[counter])
 
                     if counter == 1:
@@ -311,7 +314,7 @@ def evaluator():
     # results_grouped.to_csv('results_grouped.csv')
     # print(results_grouped[['tracking_error', 'energy_tracking_error']])
     print(results_grouped[['total_transformer_overload',
-        'average_user_satisfaction', 'time']])
+        'time_gb', 'time']])
     # input('Press Enter to continue')
     
     return

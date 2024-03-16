@@ -15,7 +15,7 @@ demand_response:
   event_start_hour_mean: 16
   event_start_hour_std: 1
   events_per_day: 1
-  include: true
+  include: False
   notification_of_event_minutes: 15
 discharge_price_factor: 1.2
 ev:
@@ -37,13 +37,13 @@ hour: 0
 inflexible_loads:
   forecast_mean: 100
   forecast_std: 5
-  include: true
+  include: False
   inflexible_loads_capacity_multiplier_mean: 0.5
 minute: 0
 month: 1
-number_of_charging_stations: 75
+number_of_charging_stations: 10
 number_of_ports_per_cs: 1
-number_of_transformers: 3
+number_of_transformers: 1
 power_setpoint_flexiblity: 20
 random_day: false
 scenario: private
@@ -52,9 +52,9 @@ simulation_length: 96
 solar_power:
   forecast_mean: 100
   forecast_std: 5
-  include: true
+  include: False
   solar_power_capacity_multiplier_mean: 3
-spawn_multiplier: 10
+spawn_multiplier: 100
 timescale: 15
 tr_seed: -1
 transformer:

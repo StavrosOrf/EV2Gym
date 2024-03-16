@@ -176,7 +176,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
     light_blue = np.array([0.529, 0.808, 0.922, 1])
     gold = np.array([1, 0.843, 0, 1])
     
-    color_list_map = plt.cm.get_cmap('Accent', len(replay.keys()))
+    color_list_map = plt.cm.get_cmap('Set1', len(replay.keys()))
     color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
 
     for index, key in enumerate(replay.keys()):        
@@ -215,7 +215,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
                                      np.array([0]*len(df.index)),
                                      df['inflexible'],
                                      step='post',
-                                     alpha=0.7,
+                                     alpha=0.3,
                                      color=light_blue,
                                      linestyle='--',
                                      linewidth=2,
@@ -227,7 +227,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
                                      df['inflexible'],
                                      df['solar'] + df['inflexible'],
                                      step='post',
-                                     alpha=0.7,
+                                     alpha=0.8,
                                      color=gold,
                                      linestyle='--',
                                      linewidth=2,
@@ -299,7 +299,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    # plt.show()
+    plt.show()
 
 def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
     '''
@@ -410,7 +410,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
                                          end=env.sim_date,
                                          periods=7)
 
-        color_list_map = plt.cm.get_cmap('Accent', len(replay.keys()))
+        color_list_map = plt.cm.get_cmap('Set1', len(replay.keys()))
         color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
         
         counter = 1
@@ -477,7 +477,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    # plt.show() 
+    plt.show() 
     
 
 def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None):
@@ -511,7 +511,7 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None)
                                          end=env.sim_date,
                                          periods=7)
 
-        color_list_map = plt.cm.get_cmap('Accent', len(replay.keys()))
+        color_list_map = plt.cm.get_cmap('Set1', len(replay.keys()))
         color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
         
         counter = 1
@@ -581,7 +581,7 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None)
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    # plt.show()   
+    plt.show()   
 
 
 def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=None):

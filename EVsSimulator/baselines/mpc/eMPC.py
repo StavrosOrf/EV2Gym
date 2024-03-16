@@ -135,9 +135,7 @@ class eMPC_V2G(MPC):
             model.params.MIPGap = self.MIPGap
         model.params.TimeLimit = self.time_limit        
         model.optimize()
-
-        # if model.status != GRB.Status.OPTIMAL:            
-        #     print(f"Optimal solution not found - step{t} !!!")            
+        self.total_exec_time += model.Runtime
             
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                  
@@ -282,9 +280,7 @@ class eMPC_G2V(MPC):
             model.params.MIPGap = self.MIPGap
         model.params.TimeLimit = self.time_limit        
         model.optimize()
-
-        if model.status != GRB.Status.OPTIMAL:            
-            print(f"Optimal solution not found - step{t} !!!")            
+        self.total_exec_time += model.Runtime      
             
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                  
