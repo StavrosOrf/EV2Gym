@@ -37,11 +37,11 @@ hour: 0
 inflexible_loads:
   forecast_mean: 100
   forecast_std: 5
-  include: true
+  include: false
   inflexible_loads_capacity_multiplier_mean: 0.5
 minute: 0
 month: 1
-number_of_charging_stations: 10
+number_of_charging_stations: 5
 number_of_ports_per_cs: 1
 number_of_transformers: 3
 power_setpoint_flexiblity: 20
@@ -52,7 +52,7 @@ simulation_length: 96
 solar_power:
   forecast_mean: 100
   forecast_std: 5
-  include: true
+  include: false
   solar_power_capacity_multiplier_mean: 1
 spawn_multiplier: 100
 timescale: 15

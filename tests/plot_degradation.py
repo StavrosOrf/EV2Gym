@@ -27,7 +27,8 @@ data = data[columns_to_keep]
 plt.rc('font', family='serif')
 # plot the histogram
 # g = sns.FacetGrid(data, col="Algorithm",row='run')
-ax = sns.histplot(data, x="battery_degradation", hue="Algorithm", palette="viridis",
+ax = sns.histplot(data, x="battery_degradation", hue="Algorithm",
+                  palette="Set1",
              stat="probability",
              common_norm=True,
              fill=True,
@@ -44,6 +45,11 @@ plt.ylabel('Probability',
               fontsize=22,              
               )
 
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+ax.spines['left'].set_linewidth(1.5)
+ax.spines['bottom'].set_linewidth(1.5)
+    
 #change x ticks style to scientific notation
 plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
 #ijncrease x ticks font size

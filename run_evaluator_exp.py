@@ -11,7 +11,7 @@ from evaluator import evaluator
 file_path = './EVsSimulator/example_config_files/V2G_MPC.yaml'
 
 counter = 0
-for cs in [10, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250]:
+for cs in [5,15]:
     #read the yaml file as yaml
     print("Number of charging stations: ", cs)
     file = yaml.load(open(file_path, 'r'), Loader=yaml.FullLoader)
