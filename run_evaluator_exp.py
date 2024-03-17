@@ -10,30 +10,30 @@ from evaluator import evaluator
 
 file_path = './EVsSimulator/example_config_files/V2G_MPC.yaml'
 
-# counter = 0
-# for cs in [50, 75, 100, 125]:
-#     #read the yaml file as yaml
-#     print("Number of charging stations: ", cs)
-#     file = yaml.load(open(file_path, 'r'), Loader=yaml.FullLoader)
-#     #change the number of charging stations
-#     file['number_of_charging_stations'] = cs
-#     #save the yaml file
-#     with open(file_path, 'w') as f:
-#         yaml.dump(file, f)
-
-#     evaluator()
-#     counter += 1
-
 counter = 0
-for m in [0.9, 1, 1.1, 1.2]:
-    # read the yaml file as yaml
-    print("Discharge price factor: ", m)
+for cs in [10, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250]:
+    #read the yaml file as yaml
+    print("Number of charging stations: ", cs)
     file = yaml.load(open(file_path, 'r'), Loader=yaml.FullLoader)
-    # change the number of charging stations
-    file['discharge_price_factor'] = m
-    # save the yaml file
+    #change the number of charging stations
+    file['number_of_charging_stations'] = cs
+    #save the yaml file
     with open(file_path, 'w') as f:
         yaml.dump(file, f)
 
     evaluator()
     counter += 1
+
+# counter = 0
+# for m in [0.9, 1, 1.1, 1.2]:
+#     # read the yaml file as yaml
+#     print("Discharge price factor: ", m)
+#     file = yaml.load(open(file_path, 'r'), Loader=yaml.FullLoader)
+#     # change the number of charging stations
+#     file['discharge_price_factor'] = m
+#     # save the yaml file
+#     with open(file_path, 'w') as f:
+#         yaml.dump(file, f)
+
+#     evaluator()
+#     counter += 1

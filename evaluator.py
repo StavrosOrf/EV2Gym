@@ -133,15 +133,15 @@ def evaluator():
         # ChargeAsFastAsPossibleToDesiredCapacity,
                 'OCMF_V2G_10',
                 # 'OCMF_V2G_20',
-                # 'OCMF_V2G_30',
+                'OCMF_V2G_30',
                 'OCMF_G2V_10',
                 # # 'OCMF_G2V_20',
-                # # 'OCMF_G2V_30',
+                'OCMF_G2V_30',
                 'eMPC_V2G_10',
                 # # 'eMPC_V2G_20',
-                # # 'eMPC_V2G_30',
+                'eMPC_V2G_30',
                 'eMPC_G2V_10',
-                # 'eMPC_G2V_30',
+                'eMPC_G2V_30',
                 
                 
                 #   eMPC_V2G,
@@ -154,7 +154,8 @@ def evaluator():
 
     # make a directory for the evaluation
     save_path = f'./results/{evaluation_name}/'
-    os.makedirs(save_path, exist_ok=True)
+    os.makedirs(save_path, exist_ok=True)        
+    os.system(f'cp {args.config_file} {save_path}')
 
     if not replays_exist:
         eval_replay_files = [generate_replay(
