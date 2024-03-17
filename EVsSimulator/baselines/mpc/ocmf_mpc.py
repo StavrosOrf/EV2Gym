@@ -65,40 +65,35 @@ class OCMF_V2G(MPC):
                 f2.append(self.T * self.ch_prices[t + i])
                 f2.append(self.T * self.disch_prices[t + i]*2)
 
-        f = np.array(f).reshape(-1, 1)
-        f2 = np.array(f2).reshape(-1, 1)
+        f = np.array(f).reshape(-1)
+        f2 = np.array(f2).reshape(-1)
 
         nb = self.nb
         n = self.n_ports
         h = self.control_horizon
 
         model = gp.Model("optimization_model")
-        u = model.addVars(range(nb*h),
+        u = model.addMVar(nb*h,
                           vtype=GRB.CONTINUOUS,
                           name="u")  # Power
 
-        CapF1 = model.addVars(range(nb*h),
+        CapF1 = model.addMVar(nb*h,
                               vtype=GRB.CONTINUOUS,
                               name="CapF1")
 
         # Binary for charging or discharging
-        Zbin = model.addVars(range(n*h),
+        Zbin = model.addMVar(n*h,
                              vtype=GRB.BINARY,
                              name="Zbin")
 
         # Constraints
-        model.addConstrs((gp.quicksum(self.AU[i, j] * u[j]
-                                      for j in range(nb*h))
-                          <= self.bU[i]
-                          for i in range(nb*h)), name="constr1")  # Constraint with prediction model
+        model.addConstr((self.AU @ u)  <= self.bU, name="constr1")
 
         # Add the lower bound constraints
-        model.addConstrs(
-            (0 <= CapF1[i] for i in range(nb*h)), name="constr2a")
+        model.addConstr((0 <= CapF1), name="constr2a")
 
         # Add the upper bound constraints
-        model.addConstrs(
-            (CapF1[i] <= self.UB[i] for i in range(nb*h)), name="constr2b")
+        model.addConstr((CapF1 <= self.UB), name="constr2b")
 
         # Constraints for charging P
         model.addConstrs((CapF1[j] <= u[j]
@@ -139,12 +134,7 @@ class OCMF_V2G(MPC):
                                  -self.tr_power_limit[tr_index, :].max()),
                                 name=f'constr5_{tr_index}_t{i}')        
 
-        obj_expr = gp.LinExpr()
-        for i in range(nb*h):
-            obj_expr.addTerms(f[i], u[i])
-            obj_expr.addTerms(-f2[i], CapF1[i])
-
-        model.setObjective(obj_expr, GRB.MINIMIZE)        
+        model.setObjective(f @ u - f2 @ CapF1, GRB.MINIMIZE)
         model.setParam('OutputFlag', self.output_flag)
         model.params.NonConvex = 2
         
@@ -158,9 +148,7 @@ class OCMF_V2G(MPC):
             model.params.MIPGap = self.MIPGap
         model.params.TimeLimit = self.time_limit        
         model.optimize()
-
-        if model.status != GRB.Status.OPTIMAL:            
-            print(f"Optimal solution not found - step{t} !!!")            
+   
             
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                  
@@ -245,41 +233,36 @@ class OCMF_G2V(MPC):
             for j in range(self.n_ports):
                 f.append(self.T * self.ch_prices[t + i])
 
-        f = np.array(f).reshape(-1, 1)
+        f = np.array(f).reshape(-1)
+        if self.verbose:
+            print(f'f: {f.shape}')
 
         nb = self.nb
         h = self.control_horizon
 
         model = gp.Model("optimization_model")
-        u = model.addVars(range(nb*h),
+        u = model.addMVar(nb*h,                         
                           vtype=GRB.CONTINUOUS,
                           name="u")  # Power
 
-        CapF1 = model.addVars(range(nb*h),
+        CapF1 = model.addMVar(nb*h,
                               vtype=GRB.CONTINUOUS,
                               name="CapF1")
 
         # Constraints
-        model.addConstrs((gp.quicksum(self.AU[i, j] * u[j]
-                                      for j in range(nb*h))
-                          <= self.bU[i]
-                          for i in range(2 * nb *h)), name="constr1")  # Constraint with prediction model
+        model.addConstr((self.AU @ u)  <= self.bU, name="constr1")
 
         # Add the lower bound constraints
-        model.addConstrs((0 <= CapF1[i]
-                          for i in range(nb*h)), name="constr2a")
+        model.addConstr((0 <= CapF1), name="constr2a")
 
         # Add the upper bound constraints
-        model.addConstrs((CapF1[i] <= self.UB[i]
-                          for i in range(nb*h)), name="constr2b")
+        model.addConstr((CapF1 <= self.UB), name="constr2b")
 
         # Constraints for charging P
-        model.addConstrs((CapF1[j] <= u[j]
-                          for j in range(nb*h)), name="constr3a")
+        model.addConstr((CapF1 <= u), name="constr3a")
 
         # Constraints for charging P
-        model.addConstrs((u[j] <= (self.UB[j]-CapF1[j])
-                          for j in range(nb*h)), name="constr3b")
+        model.addConstr((u <= (self.UB-CapF1)), name="constr3b")
 
         # Add the transformer constraints
         for tr_index in range(self.number_of_transformers):
@@ -303,12 +286,8 @@ class OCMF_G2V(MPC):
                                  self.tr_pv[tr_index, i] >=
                                  -self.tr_power_limit[tr_index, :].max()),
                                 name=f'constr5_{tr_index}_t{i}')
-        obj_expr = gp.LinExpr()
-        for i in range(nb*h):
-            obj_expr.addTerms(f[i], u[i])
-            obj_expr.addTerms(-f[i], CapF1[i])
 
-        model.setObjective(obj_expr, GRB.MINIMIZE)        
+        model.setObjective(f @ u - f @ CapF1, GRB.MINIMIZE)
         model.setParam('OutputFlag', self.output_flag)
         model.params.NonConvex = 2
         
@@ -316,8 +295,7 @@ class OCMF_G2V(MPC):
             model.params.MIPGap = self.MIPGap
         model.params.TimeLimit = self.time_limit        
         model.optimize()
-        self.total_exec_time += model.Runtime #+ time.time() - start_time
-        print(f'Optimization time: {model.Runtime}')      
+        self.total_exec_time += model.Runtime        
             
         if model.status == GRB.Status.INF_OR_UNBD or \
                 model.status == GRB.Status.INFEASIBLE:                  

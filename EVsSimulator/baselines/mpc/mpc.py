@@ -16,7 +16,7 @@ class MPC(ABC):
                  control_horizon=25,
                  verbose=False,
                  time_limit = 200,
-                 output_flag = 1,
+                 output_flag = 0,
                  MIPGap = None,
                  **kwargs):
         """
@@ -414,7 +414,7 @@ class MPC(ABC):
         print(f'Initial SoC: {self.Cx0}')
         print(f'Final SoC: {self.Cxf}')
         print(f'Arrival times: {self.arrival_times}')
-        print(f'Departure times: {self.departure_times}')
+        print(f'Departure times: {self.departure_times}')        
         
         # print(f'x_init: {self.x_init}')
         # print(f'Desired Final: {self.x_final}')

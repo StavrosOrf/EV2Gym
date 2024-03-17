@@ -62,27 +62,24 @@ class eMPC_V2G(MPC):
                 f.append(self.T * self.ch_prices[t + i])
                 f.append(-self.T * self.disch_prices[t + i])
 
-        f = np.array(f).reshape(-1, 1)
+        f = np.array(f).reshape(-1)
 
         nb = self.nb
         n = self.n_ports
         h = self.control_horizon
 
         model = gp.Model("optimization_model")
-        u = model.addVars(range(nb*h),
+        u = model.addMVar(nb*h,
                           vtype=GRB.CONTINUOUS,
                           name="u")  # Power
 
         # Binary for charging or discharging
-        Zbin = model.addVars(range(n*h),
+        Zbin = model.addMVar(n*h,
                              vtype=GRB.BINARY,
                              name="Zbin")
 
         # Constraints
-        model.addConstrs((gp.quicksum(self.AU[i, j] * u[j]
-                                      for j in range(nb*h))
-                          <= self.bU[i]
-                          for i in range(nb*h)), name="constr1")  # Constraint with prediction model
+        model.addConstr((self.AU @ u)  <= self.bU, name="constr1")
 
         # Constraints for charging P
         model.addConstrs((0 <= u[j]
@@ -123,11 +120,7 @@ class eMPC_V2G(MPC):
                                  -self.tr_power_limit[tr_index, :].max()),
                                 name=f'constr5_{tr_index}_t{i}')
 
-        obj_expr = gp.LinExpr()
-        for i in range(nb*h):
-            obj_expr.addTerms(f[i], u[i])
-
-        model.setObjective(obj_expr, GRB.MINIMIZE)
+        model.setObjective(f @ u, GRB.MINIMIZE)
         model.setParam('OutputFlag', self.output_flag)
         model.params.NonConvex = 2        
         
@@ -220,32 +213,27 @@ class eMPC_G2V(MPC):
             for j in range(self.n_ports):
                 f.append(self.T * self.ch_prices[t + i])
 
-        f = np.array(f).reshape(-1, 1)
+        f = np.array(f).reshape(-1)
 
         nb = self.nb
         n = self.n_ports
         h = self.control_horizon
 
         model = gp.Model("optimization_model")
-        u = model.addVars(range(nb*h),
+        u = model.addMVar(nb*h,
                           vtype=GRB.CONTINUOUS,
                           name="u")  # Power
 
         # Constraints
-        model.addConstrs((gp.quicksum(self.AU[i, j] * u[j]
-                                      for j in range(nb*h))
-                          <= self.bU[i]
-                          for i in range(2 * n *h)), name="constr1")
+        model.addConstr((self.AU @ u)  <= self.bU, name="constr1")
 
-        # Constraints for charging P
-        model.addConstrs((0 <= u[j]
-                          for j in range(nb*h)), name="constr3a")
+        # Add the lower bound constraints
+        model.addConstr((0 <= u), name="constr2a")
 
-        # Constraints for charging P
-        model.addConstrs((u[j] <= self.UB[j]
-                          for j in range(nb*h)), name="constr3b")
+        # Add the upper bound constraints
+        model.addConstr((u <= self.UB), name="constr2b")
 
-# Add the transformer constraints
+        # Add the transformer constraints
         for tr_index in range(self.number_of_transformers):
             for i in range(self.control_horizon):
                 model.addConstr((gp.quicksum(u[j]
@@ -267,12 +255,8 @@ class eMPC_G2V(MPC):
                                  self.tr_pv[tr_index, i] >=
                                  -self.tr_power_limit[tr_index, :].max()),
                                 name=f'constr5_{tr_index}_t{i}')
-                
-        obj_expr = gp.LinExpr()
-        for i in range(nb*h):
-            obj_expr.addTerms(f[i], u[i])
-
-        model.setObjective(obj_expr, GRB.MINIMIZE)
+                        
+        model.setObjective(f @ u, GRB.MINIMIZE)
         model.setParam('OutputFlag', self.output_flag)
         model.params.NonConvex = 2
         

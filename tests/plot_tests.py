@@ -30,13 +30,9 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 
-
-
-# For results table and SoC, Charger
-env_path = "E:/GitHub/EVsSimulator/results/eval_30cs_1tr_V2G_MPC2_5_algos_1_exp_2024_03_14_305094/plot_results_dict.pkl"
-
 # Total power
 env_path = "E:/GitHub/EVsSimulator/results/eval_30cs_1tr_V2G_MPC2_5_algos_1_exp_2024_03_16_207848/plot_results_dict.pkl"
+env_path = "E:/GitHub/EVsSimulator/results/eval_10cs_1tr_V2G_MPC_4_algos_1_exp_2024_03_17_169234/plot_results_dict.pkl"
 
 
 # env_path = "E:/GitHub/EVsSimulator/results/eval_30cs_1tr_V2G_MPC2_5_algos_1_exp_2024_03_14_995836/plot_results_dict.pkl"
