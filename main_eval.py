@@ -1,24 +1,25 @@
 """
-This script is used to evaluate the performance of the EVsSimulator environment.
+This script is used to evaluate the performance of the ev2gym environment.
 """
-from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
-from EVsSimulator.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
-from EVsSimulator.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
-from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
-from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle
+from ev2gym.models.ev2gym_env import EV2Gym
+from ev2gym.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
+from ev2gym.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
+from ev2gym.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
+from ev2gym.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
+from ev2gym.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle
 
-from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
-from EVsSimulator.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
+from ev2gym.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
+from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pkg_resources
+import gymnasium as gym
 
 
 def eval():
     """
-    Runs an evaluation of the EVsSimulator environment.
+    Runs an evaluation of the ev2gym environment.
     """
 
     verbose = True
@@ -27,13 +28,13 @@ def eval():
     replay_path = "./replay/replay_sim_2024_02_21_056441.pkl"
     replay_path = None
 
-    config_file = "EVsSimulator/example_config_files/V2G_MPC2.yaml"
-    # config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
-    # config_file = "EVsSimulator/example_config_files/BusinessPST.yaml"
-    # config_file = "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml"
+    config_file = "ev2gym/example_config_files/V2G_MPC2.yaml"
+    # config_file = "ev2gym/example_config_files/PublicPST.yaml"
+    # config_file = "ev2gym/example_config_files/BusinessPST.yaml"
+    # config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
     
 
-    env = EVsSimulator(config_file=config_file,
+    env = EV2Gym(config_file=config_file,
                        load_from_replay_path=replay_path,
                        verbose=False,
                        save_replay=True,
@@ -42,6 +43,12 @@ def eval():
                     #    seed=42,
                        #    render_mode = True,
                        )
+    
+    # env = gym.make('EV2Gym-v1',
+    #                config_file=config_file,
+    #                load_from_replay_path=replay_path,
+    #                verbose=False,
+    #                save_plots=save_plots)
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
 
@@ -71,8 +78,7 @@ def eval():
     for t in range(env.simulation_length):        
         actions = agent.get_action(env)
 
-        new_state, reward, done, truncated, _ = env.step(
-            actions, visualize=False)  # takes action
+        new_state, reward, done, truncated, _ = env.step(actions)  # takes action
         rewards.append(reward)
 
         if done:
@@ -87,7 +93,7 @@ def eval():
     # # agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)    
     # # Simulate in the gym environment and get the rewards
 
-    # env = EVsSimulator(config_file=config_file,
+    # env = ev2gym(config_file=config_file,
     #                    load_from_replay_path=new_replay_path,
     #                    verbose=True,
     #                    save_plots=True,

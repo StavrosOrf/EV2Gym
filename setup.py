@@ -7,14 +7,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name='EVsSimulator',
-    version='0.0.12',
-    description='A realistic V2X environment using gym',
+    name='ev2gym',
+    version='0.0.1',
+    description='A realistic V2G simulator environment',
     author='Stavros Orfanoudakis',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    keywords='gym, Reinforcement Learning, V2X, EVs, EVsSimulator, Electric Vehicles, Electric Vehicle Simulator',
-    # package_dir = {"": "EVsSimulator"},
+    keywords='gym, Reinforcement Learning, V2X, V2G, G2V, EVs, ev2gym, Electric Vehicles, Electric Vehicle Simulator',
+    # package_dir = {"": "ev2gym"},
     packages=find_packages(),
     python_requires=">=3.6",
     classifiers=[

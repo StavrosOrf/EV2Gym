@@ -14,7 +14,7 @@ for config in ['V2GProfitPlusLoads']:
         command = 'tmux new-session -d \; send-keys "python3 train_stable_baselines.py' + \
             ' --algorithm ' + algorithm + \
             ' --device cuda:' + str(counter % 2) + \
-            ' --config_file EVsSimulator/example_config_files/' + config + '.yaml' + \
+            ' --config_file ev2gym/example_config_files/' + config + '.yaml' + \
             '" Enter'
         os.system(command=command)
         print(command)

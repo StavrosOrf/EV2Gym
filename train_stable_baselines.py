@@ -1,15 +1,15 @@
-# this file is used to evalaute the performance of the EVsSimulator environment with various stable baselines algorithms.
+# this file is used to evalaute the performance of the ev2gym environment with various stable baselines algorithms.
 
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.callbacks import EvalCallback
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 
-from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, ProfitMax_TrPenalty_UserIncentives
-from EVsSimulator.rl_agent.reward import profit_maximization
+from ev2gym.models.ev2gym_env import EV2Gym
+from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, ProfitMax_TrPenalty_UserIncentives
+from ev2gym.rl_agent.reward import profit_maximization
 
-from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
+from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
 
 import gymnasium as gym
 import argparse
@@ -25,8 +25,8 @@ if __name__ == "__main__":
     parser.add_argument('--device', type=str, default="cuda:0")
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
-                        # default="EVsSimulator/example_config_files/V2GProfitMax.yaml")
-    default="EVsSimulator/example_config_files/PublicPST.yaml")
+                        # default="ev2gym/example_config_files/V2GProfitMax.yaml")
+    default="ev2gym/example_config_files/PublicPST.yaml")
 
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
@@ -35,30 +35,30 @@ if __name__ == "__main__":
 
     config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
 
-    if config_file == "EVsSimulator/example_config_files/V2GProfitMax.yaml":
+    if config_file == "ev2gym/example_config_files/V2GProfitMax.yaml":
         reward_function = profit_maximization
         state_function = V2G_profit_max
         group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitMax'
 
-    elif config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
+    elif config_file == "ev2gym/example_config_files/PublicPST.yaml":
         reward_function = SquaredTrackingErrorReward
         state_function = PublicPST
         group_name = f'{config["number_of_charging_stations"]}cs_PublicPST'
-    elif config_file == "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml":
+    elif config_file == "ev2gym/example_config_files/V2GProfitPlusLoads.yaml":
         reward_function = ProfitMax_TrPenalty_UserIncentives
         state_function = V2G_profit_max_loads
         group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitPlusLoads'
                 
     run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
 
-    run = wandb.init(project='EVsSimulator',
+    run = wandb.init(project='ev2gym',
                      sync_tensorboard=True,
                      group=group_name,
                      name=run_name,
                      save_code=True,
                      )
 
-    gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
+    gym.envs.register(id='evs-v0', entry_point='ev2gym.ev_city:ev2gym',
                       kwargs={'config_file': config_file,
                               'verbose': False,
                               'save_plots': False,

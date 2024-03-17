@@ -8,7 +8,7 @@ import yaml
 import subprocess
 from evaluator import evaluator
 
-file_path = './EVsSimulator/example_config_files/V2G_MPC.yaml'
+file_path = './ev2gym/example_config_files/V2G_MPC.yaml'
 
 counter = 0
 for cs in [5,15]:

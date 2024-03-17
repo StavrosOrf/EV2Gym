@@ -10,7 +10,7 @@ import os
 import sys
 # sys.path.insert(0, os.path.abspath('../..'))
 # sys.path.insert(0, os.path.abspath('..'))
-# sys.path.append(os.path.abspath('../EVsSimulator'))
+# sys.path.append(os.path.abspath('../ev2gym'))
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -52,7 +52,7 @@ autodoc_default_options = {
     'show-inheritance': True,
 }
 
-autoapi_dirs = ['../EVsSimulator/rl_agent']
+autoapi_dirs = ['../ev2gym/rl_agent']
 
 # -- Options for HTML output -------------------------------------------------
 

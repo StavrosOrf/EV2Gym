@@ -5,7 +5,7 @@ This file is used to assess the battery drgradation model.
 import os
 import sys
 sys.path.append(os.path.realpath('../'))
-from EVsSimulator.models.ev import EV
+from ev2gym.models.ev import EV
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D

@@ -10,29 +10,29 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 
-from EVsSimulator.utilities.arg_parser import arg_parser
-from EVsSimulator import ev_city
+from ev2gym.utilities.arg_parser import arg_parser
+from ev2gym.models import ev2gym_env
 
-from EVsSimulator.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
-from EVsSimulator.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
+from ev2gym.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
+from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
 
-from EVsSimulator.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
-from EVsSimulator.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
-from EVsSimulator.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle, V2GProfitMaxLoadsOracle
+from ev2gym.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
+from ev2gym.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
+from ev2gym.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle, V2GProfitMaxLoadsOracle
 
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 
-from EVsSimulator.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
-from EVsSimulator.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
+from ev2gym.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
+from ev2gym.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
 
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward
-from EVsSimulator.rl_agent.reward import profit_maximization, ProfitMax_TrPenalty_UserIncentives
-from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
+from ev2gym.rl_agent.reward import SquaredTrackingErrorReward
+from ev2gym.rl_agent.reward import profit_maximization, ProfitMax_TrPenalty_UserIncentives
+from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
 
-from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
-from EVsSimulator.vizuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
-from EVsSimulator.vizuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_prices
+from ev2gym.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
+from ev2gym.vizuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
+from ev2gym.vizuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_prices
 
 import gymnasium as gym
 import torch
@@ -71,19 +71,19 @@ def evaluator():
 
     print(f'Number of test cycles: {n_test_cycles}')
 
-    if args.config_file == "EVsSimulator/example_config_files/V2GProfitMax.yaml":
+    if args.config_file == "ev2gym/example_config_files/V2GProfitMax.yaml":
         reward_function = profit_maximization
         state_function = V2G_profit_max
 
-    elif args.config_file == "EVsSimulator/example_config_files/PublicPST.yaml":
+    elif args.config_file == "ev2gym/example_config_files/PublicPST.yaml":
         reward_function = SquaredTrackingErrorReward
         state_function = PublicPST
 
-    elif args.config_file == "EVsSimulator/example_config_files/V2G_MPC.yaml":
+    elif args.config_file == "ev2gym/example_config_files/V2G_MPC.yaml":
         reward_function = profit_maximization
         state_function = V2G_profit_max
 
-    elif args.config_file == "EVsSimulator/example_config_files/V2GProfitPlusLoads.yaml":
+    elif args.config_file == "ev2gym/example_config_files/V2GProfitPlusLoads.yaml":
         reward_function = ProfitMax_TrPenalty_UserIncentives
         state_function = V2G_profit_max_loads
     else:
@@ -91,7 +91,7 @@ def evaluator():
 
 
     def generate_replay(evaluation_name):
-        env = ev_city.EVsSimulator(
+        env = ev2gym_env.EV2Gym(
             config_file=args.config_file,
             generate_rnd_game=True,
             save_replay=True,
@@ -177,7 +177,7 @@ def evaluator():
                 replay_path = eval_replay_files[k]
 
             if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
-                gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
+                gym.envs.register(id='evs-v0', entry_point='ev2gym.ev_city:ev2gym',
                                 kwargs={'config_file': args.config_file,
                                         'generate_rnd_game': True,
                                         'state_function': state_function,
@@ -201,7 +201,7 @@ def evaluator():
                 state = env.reset()
 
             else:
-                env = ev_city.EVsSimulator(
+                env = ev2gym_env.EV2Gym(
                     config_file=args.config_file,
                     load_from_replay_path=replay_path,
                     generate_rnd_game=True,
