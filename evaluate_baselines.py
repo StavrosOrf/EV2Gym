@@ -1,28 +1,28 @@
 """
-This script is used to evaluate the baselines in the EVsSimulator environment.
+This script is used to evaluate the baselines in the ev2gym environment.
 """
 
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 from tqdm import tqdm
-from EVsSimulator.ev_city import EVsSimulator
+from ev2gym.models.ev2gym_env import EV2Gym
 import gymnasium as gym
 import os
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
-from EVsSimulator.rl_agent.reward import profit_maximization
+from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
+from ev2gym.rl_agent.reward import profit_maximization
 
-from EVsSimulator.rl_agent.state import V2G_profit_max
+from ev2gym.rl_agent.state import V2G_profit_max
 import pickle
 
 algorithms = ['ddpg', 'td3', 'sac', 'a2c', 'ppo', 'tqc', 'trpo', 'ars', 'rppo']
 algorithms = ['ars']
 device = "cuda"
 
-config_file = "EVsSimulator/example_config_files/PublicPST.yaml"
+config_file = "ev2gym/example_config_files/PublicPST.yaml"
 
-config_file = "EVsSimulator/example_config_files/V2GProfitMax.yaml"
+config_file = "ev2gym/example_config_files/V2GProfitMax.yaml"
 
-gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
+gym.envs.register(id='evs-v0', entry_point='ev2gym.ev_city:ev2gym',
                   kwargs={'config_file': config_file,
                           'verbose': False,
                           'save_plots': True,

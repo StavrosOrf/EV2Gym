@@ -1,10 +1,10 @@
-from EVsSimulator import ev_city
-from EVsSimulator.baselines.gurobi_models.ev_city_power_tracker_model import PowerTrackingErrorrMin
+from ev2gym.models import ev2gym_env
+from ev2gym.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
 
 import numpy as np
 import os
 import pickle
-from EVsSimulator.utilities.arg_parser import arg_parser
+from ev2gym.utilities.arg_parser import arg_parser
 import yaml
 
 """"
@@ -18,7 +18,7 @@ def evalreplay(config_file,
 
     verbose = False
 
-    env = ev_city.EVsSimulator(config_file=config_file,
+    env = ev2gym_env.EV2Gym(config_file=config_file,
                                load_from_replay_path=None,
                                generate_rnd_game=True,
                                save_plots=False,
@@ -57,7 +57,7 @@ def evalreplay(config_file,
 
     # Simulate in the gym environment and get the rewards
     # save replay in the replay folder for evaluating pther algorithms
-    env = ev_city.EVsSimulator(config_file=config_file,
+    env = ev2gym_env.EV2Gym(config_file=config_file,
                                load_from_replay_path=new_replay_path,
                                replay_save_path="./replay/"+group_name+"/",
                                generate_rnd_game=False,

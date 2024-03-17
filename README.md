@@ -1,4 +1,4 @@
-# EVsSimulator
+# ev2gym
 A realistic V2X Simulation Environment for large scale EV charging optimization!
 
 <!-- Bullet points with all the benefits -->
@@ -37,7 +37,7 @@ Focused on **realistic** parameters and **fully customizable**:
 
 ## File Structure
 ```bash
-├── EVsSimulator
+├── ev2gym
 │   ├── __init__.py
 │   ├── baselines
 │   │   ├── __init__.py
@@ -50,7 +50,7 @@ Focused on **realistic** parameters and **fully customizable**:
 ## Citation
 If you use this code in your research, please cite it using the following BibTeX entry:
 ```bibtex
-@misc{EVsSimulator,
+@misc{ev2gym,
 
 }
 ```

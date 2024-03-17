@@ -1,6 +1,6 @@
 
 
-Welcome to EVsSimulator's documentation!
+Welcome to ev2gym's documentation!
 ========================================
 
 ==================
@@ -8,7 +8,7 @@ Welcome to EVsSimulator's documentation!
     :maxdepth: 2
     :caption: Models:
     
-    autoapi/EVsSimulator/rl_agent/index
+    autoapi/ev2gym/rl_agent/index
 
 Indices and tables
 ******************

@@ -1,0 +1,63 @@
+charging_network_topology: None
+charging_station:
+  max_charge_current: 56
+  max_discharge_current: -56
+  min_charge_current: 0
+  min_discharge_current: 0
+  phases: 3
+  voltage: 230
+day: 17
+demand_response:
+  event_capacity_percentage_mean: 20
+  event_capacity_percentage_std: 0
+  event_length_minutes_max: 60
+  event_length_minutes_min: 60
+  event_start_hour_mean: 17
+  event_start_hour_std: 0
+  events_per_day: 1
+  include: true
+  notification_of_event_minutes: 150
+discharge_price_factor: 1.2
+ev:
+  battery_capacity: 50
+  charge_efficiency: 1
+  desired_capacity: 40
+  discharge_efficiency: 1
+  ev_phases: 3
+  max_ac_charge_power: 22
+  max_dc_charge_power: 50
+  max_discharge_power: -22
+  min_ac_charge_power: 0
+  min_battery_capacity: 10
+  min_discharge_power: 0
+  min_time_of_stay: 180
+  transition_soc: 1
+heterogeneous_ev_specs: false
+hour: 0
+inflexible_loads:
+  forecast_mean: 100
+  forecast_std: 5
+  include: true
+  inflexible_loads_capacity_multiplier_mean: 1.1
+minute: 0
+month: 1
+number_of_charging_stations: 30
+number_of_ports_per_cs: 1
+number_of_transformers: 1
+power_setpoint_flexiblity: 20
+random_day: false
+scenario: public
+simulation_days: weekdays
+simulation_length: 96
+solar_power:
+  forecast_mean: 100
+  forecast_std: 5
+  include: true
+  solar_power_capacity_multiplier_mean: 3
+spawn_multiplier: 100
+timescale: 15
+tr_seed: -1
+transformer:
+  max_power: 400
+v2g_enabled: true
+year: 2022

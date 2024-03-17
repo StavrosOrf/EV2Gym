@@ -5,20 +5,20 @@ import pkg_resources
 
 import gym
 import numpy as np
-from EVsSimulator.ev_city import EVsSimulator
+from ev2gym.models.ev2gym_env import EV2Gym
 
 import torch
 import wandb
 import yaml
 
-from EVsSimulator.utilities.arg_parser import arg_parser
+from ev2gym.utilities.arg_parser import arg_parser
 
-from EVsSimulator.baselines.DDPG.ddpg import DDPG
-from EVsSimulator.baselines.DDPG.noise import OrnsteinUhlenbeckActionNoise
-from EVsSimulator.baselines.DDPG.replay_memory import ReplayMemory, Transition
+from ev2gym.baselines.DDPG.ddpg import DDPG
+from ev2gym.baselines.DDPG.noise import OrnsteinUhlenbeckActionNoise
+from ev2gym.baselines.DDPG.replay_memory import ReplayMemory, Transition
 
-from EVsSimulator.rl_agent.reward import SquaredTrackingErrorRewardWithPenalty, SquaredTrackingErrorReward
-from EVsSimulator.rl_agent.state import BusinessPSTwithMoreKnowledge
+from ev2gym.rl_agent.reward import SquaredTrackingErrorRewardWithPenalty, SquaredTrackingErrorReward
+from ev2gym.rl_agent.state import BusinessPSTwithMoreKnowledge
 
 
 # Libdom raises an error if this is not set to true on Mac OSX
@@ -58,10 +58,10 @@ if __name__ == "__main__":
 
     replay_path = None
 
-    gym.register(id=args.env, entry_point='gym_env.ev_city:EVsSimulator')
+    gym.register(id=args.env, entry_point='gym_env.ev_city:ev2gym')
 
     ###### Set the config file here ######
-    config_file = "EVsSimulator/example_config_files/BusinessPST_config.yaml"
+    config_file = "ev2gym/example_config_files/BusinessPST_config.yaml"
 
     ####### Set the reward function here #######
     reward_function = SquaredTrackingErrorReward
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     ####### Set the State function here #######
     state_function = BusinessPSTwithMoreKnowledge
 
-    env = EVsSimulator(config_file=config_file,
+    env = EV2Gym(config_file=config_file,
                        generate_rnd_game=True,
                        save_plots=False,
                        save_replay=False,
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         wandb.init(
             name=run_name,
             group=f'DDPG_{number_of_charging_stations}cs_{n_transformers}tr',
-            project='EVsSimulator',
+            project='ev2gym',
             config={"batch_size": args.batch_size,
                     "replay_size": args.replay_size,
                     "gamma": args.gamma,
@@ -242,7 +242,7 @@ if __name__ == "__main__":
                     save_plots = True
                 else:
                     save_plots = False
-                eval_env = EVsSimulator(config_file=config_file,
+                eval_env = EV2Gym(config_file=config_file,
                                         load_from_replay_path=eval_replay_path +
                                         eval_replay_files[test_cycle],
                                         save_replay=False,

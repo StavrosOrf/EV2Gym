@@ -11,8 +11,8 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
-from EVsSimulator.ev_city import EVsSimulator
-from EVsSimulator.models.ev import EV
+from ev2gym.models.ev2gym_env import EV2Gym
+from ev2gym.models.ev import EV
 import pandas as pd
 import tqdm as tqdm
 
@@ -355,8 +355,8 @@ def plot_arrival_and_departure_time(num_bins=7*96, timescale=15):
 
 
 def create_ev_replay_files(num_bins=7*96):
-    config_file = "../EVsSimulator/example_config_files/config.yaml"
-    env = EVsSimulator(config_file=config_file,
+    config_file = "../ev2gym/example_config_files/config.yaml"
+    env = EV2Gym(config_file=config_file,
                        empty_ports_at_end_of_simulation=False,
                        )
     evs = env.EVs_profiles

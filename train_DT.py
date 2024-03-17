@@ -9,13 +9,13 @@ import random
 import sys
 import yaml
 
-from EVsSimulator.baselines.DT.evaluation.evaluate_episodes import evaluate_episode, evaluate_episode_rtg
-from EVsSimulator.baselines.DT.models.decision_transformer import DecisionTransformer
-from EVsSimulator.baselines.DT.models.mlp_bc import MLPBCModel
-from EVsSimulator.baselines.DT.training.act_trainer import ActTrainer
-from EVsSimulator.baselines.DT.training.seq_trainer import SequenceTrainer
+from ev2gym.baselines.DT.evaluation.evaluate_episodes import evaluate_episode, evaluate_episode_rtg
+from ev2gym.baselines.DT.models.decision_transformer import DecisionTransformer
+from ev2gym.baselines.DT.models.mlp_bc import MLPBCModel
+from ev2gym.baselines.DT.training.act_trainer import ActTrainer
+from ev2gym.baselines.DT.training.seq_trainer import SequenceTrainer
 
-from EVsSimulator import ev_city
+from ev2gym.models import ev2gym_env
 
 
 def discount_cumsum(x, gamma):
@@ -71,7 +71,7 @@ def experiment(
 
     args.env = 'evcity-v1'
 
-    env = ev_city.EVsSimulator(config_file=args.config_file,
+    env = ev2gym_env.EV2Gym(config_file=args.config_file,
                          generate_rnd_game=True,
                          save_plots=False,
                          save_replay=False,
@@ -323,7 +323,7 @@ def experiment(
         wandb.init(
             name=exp_prefix,
             group=group_name,
-            project='EVsSimulator',
+            project='ev2gym',
             config=variant
         )
         # wandb.watch(model)  # wandb has some bug
