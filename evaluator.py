@@ -30,9 +30,9 @@ from ev2gym.rl_agent.reward import SquaredTrackingErrorReward
 from ev2gym.rl_agent.reward import profit_maximization, ProfitMax_TrPenalty_UserIncentives
 from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
 
-from ev2gym.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
-from ev2gym.vizuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
-from ev2gym.vizuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_prices
+from ev2gym.visuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
+from ev2gym.visuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
+from ev2gym.visuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_prices
 
 import gymnasium as gym
 import torch
