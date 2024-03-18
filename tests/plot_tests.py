@@ -4,10 +4,10 @@ import os
 import sys
 sys.path.append(os.getcwd())
 
-from ev2gym.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
-from ev2gym.vizuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
-from ev2gym.vizuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_prices
-from ev2gym.vizuals.evaluator_plot import plot_comparable_CS_Power
+from ev2gym.visuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
+from ev2gym.visuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
+from ev2gym.visuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_prices
+from ev2gym.visuals.evaluator_plot import plot_comparable_CS_Power
 
 from ev2gym.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
 from ev2gym.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
