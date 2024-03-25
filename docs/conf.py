@@ -13,11 +13,12 @@ import sys
 # sys.path.append(os.path.abspath('../ev2gym'))
 
 sys.path.insert(0, os.path.abspath(".."))
+sys.path.append(os.path.abspath("./ev2gym/"))
 
-project = 'EVs-Simulator'
+project = 'EV2Gym'
 copyright = '2024, Stavros Orfanoudakis'
 author = 'Stavros Orfanoudakis'
-release = '1/3/2024'
+release = '4/2024'
 
 source_suffix = ".rst"
 
@@ -44,15 +45,20 @@ language = 'English'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',"**.ipynb_checkpoints",
-                    "*.csv", "*.json", "*.txt", "*.yml", "*.yaml"]
+# exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',"**.ipynb_checkpoints",
+#                     "*.csv", "*.json", "*.txt", "*.yml", "*.yaml"]
 
 autodoc_default_options = {
     'members': True,
     'show-inheritance': True,
 }
 
-autoapi_dirs = ['../ev2gym/rl_agent']
+autoapi_dirs = ['../ev2gym/rl_agent',                
+                '../ev2gym/utilities',
+                '../ev2gym/visuals',
+                '../ev2gym/baselines',
+                '../ev2gym/models',
+                ]
 
 # -- Options for HTML output -------------------------------------------------
 
