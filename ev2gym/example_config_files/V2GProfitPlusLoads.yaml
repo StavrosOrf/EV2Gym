@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 55 #90 # in steps per simulation
+simulation_length: 85 #90 # in steps per simulation
 
 ##############################################################################
 # Date and Time
@@ -18,7 +18,7 @@ random_day: True # True or False
 
 # Simulation Starting Time
 # Hour and minute do not change after the environment has been reset
-hour: 7 # Simulation starting hour (24 hour format)
+hour: 5 # Simulation starting hour (24 hour format)
 minute: 0 # Simulation starting minute (0-59)
 
 # Simulate weekdays, weekends, or both

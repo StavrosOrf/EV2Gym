@@ -44,6 +44,7 @@ print(data.to_latex())
 #%%
 # Plot total capacity lost (battery degradation) for each algorithm as a histogram for each run
 data = pd.read_csv('C:/Users/stayr/Downloads/data_1.csv')
+
 print(data.columns)
 
 columns_to_keep = ['run','Algorithm','battery_degradation']
@@ -64,8 +65,9 @@ plt.show()
 
 #%%
 # data = pd.read_csv('data_V2GProfitPlusLoads.csv')
-data = pd.read_csv('../results/eval_10cs_1tr_V2GProfitPlusLoads_13_algos_20_exp_2024_03_10_797555/data.csv')
-data = pd.read_csv('C:/Users/stayr/Downloads/data_1.csv')
+# data = pd.read_csv('../results/eval_10cs_1tr_V2GProfitPlusLoads_13_algos_20_exp_2024_03_10_797555/data.csv')
+# data = pd.read_csv('C:/Users/stayr/Downloads/data_1.csv')
+data = pd.read_csv('../results/eval_10cs_1tr_V2GProfitPlusLoads_3_algos_50_exp_2024_03_18_116519/data.csv')
 
 columns_to_keep = ['Algorithm','total_profits',
        'total_energy_charged', 'total_energy_discharged',
@@ -91,11 +93,11 @@ data_grouped['average_user_satisfaction'] = data_grouped['average_user_satisfact
 data_grouped['total_transformer_overload'] = data_grouped['total_transformer_overload']\
        .apply(lambda x: f"${x['mean']:.0f}$ ±${x['std']:.0f}$", axis=1)
 data_grouped['battery_degradation'] = data_grouped['battery_degradation']\
-       .apply(lambda x: f"${x['mean']*10000:.2f}$ ±${x['std']*10000:.2f}$", axis=1)
+       .apply(lambda x: f"${x['mean']*1000:.2f}$ ±${x['std']*1000:.2f}$", axis=1)
 data_grouped['battery_degradation_calendar'] = data_grouped['battery_degradation_calendar']\
-       .apply(lambda x: f"${x['mean']*10000:.2f}$ ±${x['std']*10000:.2f}$", axis=1)
+       .apply(lambda x: f"${x['mean']*1000:.2f}$ ±${x['std']*1000:.2f}$", axis=1)
 data_grouped['battery_degradation_cycling'] = data_grouped['battery_degradation_cycling']\
-       .apply(lambda x: f"${x['mean']*10000:.2f}$ ±${x['std']*10000:.2f}$", axis=1)
+       .apply(lambda x: f"${x['mean']*1000:.2f}$ ±${x['std']*1000:.2f}$", axis=1)
 data_grouped['total_reward'] = data_grouped['total_reward']\
        .apply(lambda x: f"${x['mean']/1000:.1f}$ ±${x['std']/1000:.1f}$", axis=1)
 data_grouped['time'] = data_grouped['time']\
@@ -156,7 +158,7 @@ data_grouped.columns = ['Profits/Costs', 'Energy Charged',
 print(data_grouped)
 print(data_grouped.to_latex())
 
-e
+
 #%%
 
 data = pd.read_csv('data_PST.csv')

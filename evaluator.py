@@ -115,38 +115,38 @@ def evaluator():
     algorithms = [
         ChargeAsFastAsPossible,
         ChargeAsLateAsPossible,
-        PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
+        # PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
         # SAC,
         # TQC,
         # # TD3,
         # # ARS,
         # # RecurrentPPO,
-        # # RoundRobin,
-        eMPC_V2G,
-        # V2GProfitMaxLoadsOracle,
-        V2GProfitMaxOracleGB,
+        RoundRobin,
+        # eMPC_V2G,
+        # # V2GProfitMaxLoadsOracle,
+        # V2GProfitMaxOracleGB,
         # V2GProfitMaxOracle,
         # PowerTrackingErrorrMin
     ]
 
-    algorithms = [
-        # ChargeAsFastAsPossibleToDesiredCapacity,
-                'OCMF_V2G_10',
-                # 'OCMF_V2G_20',
-                'OCMF_V2G_30',
-                'OCMF_G2V_10',
-                # # 'OCMF_G2V_20',
-                'OCMF_G2V_30',
-                'eMPC_V2G_10',
-                # # 'eMPC_V2G_20',
-                'eMPC_V2G_30',
-                'eMPC_G2V_10',
-                'eMPC_G2V_30',
+    # algorithms = [
+    #     # ChargeAsFastAsPossibleToDesiredCapacity,
+    #             'OCMF_V2G_10',
+    #             # 'OCMF_V2G_20',
+    #             'OCMF_V2G_30',
+    #             'OCMF_G2V_10',
+    #             # # 'OCMF_G2V_20',
+    #             'OCMF_G2V_30',
+    #             'eMPC_V2G_10',
+    #             # # 'eMPC_V2G_20',
+    #             'eMPC_V2G_30',
+    #             'eMPC_G2V_10',
+    #             'eMPC_G2V_30',
                 
                 
-                #   eMPC_V2G,
-                #   eMPC_G2V,
-                ]
+    #             #   eMPC_V2G,
+    #             #   eMPC_G2V,
+    #             ]
 
     evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
         f'_{n_test_cycles}_exp_' +\
@@ -283,7 +283,7 @@ def evaluator():
                                             'battery_degradation_cycling': stats['battery_degradation_cycling'],
                                             'total_reward': sum(rewards),
                                             'time': time.time() - timer,
-                                            'time_gb': model.total_exec_time,
+                                            # 'time_gb': model.total_exec_time,
                                             }, index=[counter])
 
                     if counter == 1:
@@ -314,8 +314,7 @@ def evaluator():
 
     # results_grouped.to_csv('results_grouped.csv')
     # print(results_grouped[['tracking_error', 'energy_tracking_error']])
-    print(results_grouped[['total_transformer_overload',
-        'time_gb', 'time']])
+    print(results_grouped[['total_transformer_overload', 'time']])
     # input('Press Enter to continue')
     
     return
