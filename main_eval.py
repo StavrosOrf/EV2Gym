@@ -30,7 +30,7 @@ def eval():
 
     config_file = "ev2gym/example_config_files/V2G_MPC2.yaml"
     # config_file = "ev2gym/example_config_files/PublicPST.yaml"
-    # config_file = "ev2gym/example_config_files/BusinessPST.yaml"
+    config_file = "ev2gym/example_config_files/BusinessPST.yaml"
     # config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
     
 
@@ -41,7 +41,7 @@ def eval():
                        empty_ports_at_end_of_simulation=True,
                        save_plots=save_plots,
                     #    seed=42,
-                       #    render_mode = True,
+                        #   render_mode = True,
                        )
     
     # env = gym.make('EV2Gym-v1',
@@ -71,8 +71,8 @@ def eval():
     # agent = eMPC_G2V(env, control_horizon=15, verbose=True)
     # agent = RoundRobin(env, verbose=False)
     # agent = ChargeAsLateAsPossible(verbose=False)
-    # agent = ChargeAsFastAsPossible()
-    agent = ChargeAsFastAsPossibleToDesiredCapacity()
+    agent = ChargeAsFastAsPossible()
+    # agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 
     for t in range(env.simulation_length):        
@@ -80,7 +80,7 @@ def eval():
 
         new_state, reward, done, truncated, _ = env.step(actions)  # takes action
         rewards.append(reward)
-
+                
         if done:
             print(f'End of simulation at step {env.current_step}')
             break

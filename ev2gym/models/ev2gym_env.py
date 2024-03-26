@@ -493,6 +493,7 @@ class EV2Gym(gym.Env):
             if self.save_plots:
                 #save the env as a pickle file
                 with open(f"./results/{self.sim_name}/env.pkl", 'wb') as f:
+                    self.renderer = None
                     pickle.dump(self, f)
                 ev_city_plot(self)
 

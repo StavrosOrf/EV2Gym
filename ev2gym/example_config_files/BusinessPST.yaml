@@ -27,7 +27,7 @@ simulation_days: weekdays # weekdays, weekends, or both
 
 # EV Spawn Behavior
 scenario: public # public, private, or workplace
-spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn
+spawn_multiplier: 500 # 1 is default, the higher the number the more EVs spawn
 
 ##############################################################################
 # Prices
@@ -38,9 +38,9 @@ discharge_price_factor: 1.2 # how many times more abs(expensive/cheaper) it is t
 # Charging Network
 ##############################################################################
 v2g_enabled: True # True or False
-number_of_charging_stations: 3
-number_of_transformers: 1
-number_of_ports_per_cs: 1
+number_of_charging_stations: 15
+number_of_transformers: 3
+number_of_ports_per_cs: 2
 # Provide path if you want to load a specific charging topology,
 # else write None for a randomized one with the above parameters
 charging_network_topology: None #./config_files/charging_topology_10.json
@@ -56,6 +56,8 @@ power_setpoint_flexiblity: 20 # (in percentage +/- %)
 # Inflexible Loads, Solar Generation, and Demand Response
 ##############################################################################
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
+tr_seed: -1 # Seed for the transformer loads, -1 for random
+
 inflexible_loads:
   include: False # True or False
   inflexible_loads_capacity_multiplier_mean: 0.8 # 1 is default, the higher the number the more inflexible loads
@@ -94,7 +96,6 @@ heterogeneous_ev_specs: True #if False, each EV has the same specifications
 ##############################################################################
 # These values are used if not using a charging network topology file or 
 # if the EV specifications are not provided
-tr_seed: -1 # Seed for the transformer
 
 # Default Transformer model
 transformer:
