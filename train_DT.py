@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import numpy as np
 import torch
 import wandb
@@ -86,14 +86,14 @@ def experiment(
 
     #random trajectories
     if dataset == 'random':        
+        pass
         dataset_path = f'./trajectories/random_10_cs_1_tr_288_steps_5_timescale_15000_trajectories.pkl'
-    elif dataset == 'ddpg':
-        #DDPG semi-random trajectories
-        raise NotImplementedError("Dataset not found")
-        dataset_path = f'trajectories/randomly_1_cs_1_tr_static_prices_static_ev_spawn_rate_150_steps_5_timescale_1_score_threshold_1000000_trajectories.pkl'
+    elif dataset == 'RR':        
+        dataset_path = f'trajectories/PublicPST_RR_20_cs_1_tr_112_steps_15_timescale_2_trajectories.pkl'
     elif dataset == "optimal":        
+        pass
         # dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_1000000_trajectories.pkl'
-        dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_100000_trajectories.pkl'
+        dataset_path = f'trajectories/RR_20_cs_1_tr_288_steps_5_timescale_100000_trajectories.pkl'
     else:
         raise NotImplementedError("Dataset not found")
 

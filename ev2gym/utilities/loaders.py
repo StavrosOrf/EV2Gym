@@ -117,7 +117,7 @@ def generate_residential_inflexible_loads(env) -> np.ndarray:
 
     # add a date column to the dataframe
     data['date'] = pd.date_range(
-        start=dataset_starting_date, periods=data.shape[0], freq=f'{desired_timescale}T')
+        start=dataset_starting_date, periods=data.shape[0], freq=f'{desired_timescale}min')
 
     # find year of the data
     year = int(dataset_starting_date.split('-')[0])
@@ -183,7 +183,7 @@ def generate_pv_generation(env) -> np.ndarray:
 
     # add a date column to the dataframe
     data['date'] = pd.date_range(
-        start=dataset_starting_date, periods=data.shape[0], freq=f'{desired_timescale}T')
+        start=dataset_starting_date, periods=data.shape[0], freq=f'{desired_timescale}min')
 
     # find year of the data
     year = int(dataset_starting_date.split('-')[0])

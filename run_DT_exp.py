@@ -13,9 +13,9 @@ max_iters = 2000
 num_eval_episodes = 100
 
 counter = 0
-for K in [288]:
+for K in [50]:
     # for dataset in ['ddpg', 'random']:
-    for dataset in ["optimal"]:
+    for dataset in ["RR"]:
         for embed_dim in [512]:
             #   ' --device cuda:0' + str(counter % 2) + \
             for n_layer, n_head in [(3, 4)]: #(3, 1),
