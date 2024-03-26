@@ -5,7 +5,7 @@
 <img align="center" src="https://github.com/StavrosOrf/EV2Gym/assets/17108978/86e921ad-d711-4dbb-b7b9-c69dee20da11" width="55%"/>
 </div>
 
-[![Downloads](https://static.pepy.tech/badge/ev2gym)](https://pepy.tech/project/ev2gym) [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) [![PyPI](https://img.shields.io/pypi/v/ev2gym.svg)](https://pypi.org/project/finrl/) [![Documentation Status](https://readthedocs.org/projects/finrl/badge/?version=latest)](https://finrl.readthedocs.io/en/latest/?badge=latest) ![License](https://img.shields.io/github/license/AI4Finance-Foundation/finrl.svg?color=brightgreen)
+[![Downloads](https://static.pepy.tech/badge/ev2gym)](https://pepy.tech/project/ev2gym) [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) [![PyPI](https://img.shields.io/pypi/v/ev2gym.svg)](https://pypi.org/project/ev2gym/) [![Documentation Status](https://readthedocs.org/projects/finrl/badge/?version=latest)](https://finrl.readthedocs.io/en/latest/?badge=latest) ![License](https://img.shields.io/github/license/AI4Finance-Foundation/finrl.svg?color=brightgreen)
 ---
 
 Develop and evaluate **any type of smart charging algorithm**: from simple heuristics, Model Predictive Control, Mathematical Programming, to Reinforcement Learning!
