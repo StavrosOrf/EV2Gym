@@ -128,7 +128,7 @@ Focused on **realistic** parameters and **fully customizable**:
 
 
 <div align="center">
-<img align="center" src="https://github.com/StavrosOrf/EV2Gym/assets/17108978/8ca5bf11-6ed4-44f6-9faf-386382609af1" width="55%"/>
+<img align="center" src="https://github.com/StavrosOrf/EV2Gym/assets/17108978/d15d258c-b454-498c-ba7f-634d858df3a6" width="90%"/>
 </div>
 
 An EV2Gym simulation comprises three phases: the configuration phase, which initializes the models; the simulation phase, which spans $T$ steps, during which the state of models like EVs and charging stations is updated according to the decision-making algorithm; and finally, in the last phase, the simulator generates evaluation metrics for comparisons, produces replay files for reproducibility, and generates real-time renders for evaluation.
@@ -288,16 +288,11 @@ The file structure of the EV2Gym package is as follows:
 │   │   ├── plots.py
 │   │   ├── renderer.py
 │   ├── scripts/
-
-
-
-
-
 ```
 
 Class Diagram of the EV2Gym Environment:
 <div align="center">
--<img align="center" src="https://github.com/StavrosOrf/EV2Gym/assets/17108978/d15d258c-b454-498c-ba7f-634d858df3a6" width="55%"/>
+<img align="center" src="https://github.com/StavrosOrf/EV2Gym/assets/17108978/8ca5bf11-6ed4-44f6-9faf-386382609af1" width="55%"/>
 </div>
 
 ## Citing EV2Gym
