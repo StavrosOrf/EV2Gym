@@ -1,5 +1,8 @@
-# ev2gym
+<img src="https://github.com/StavrosOrf/EV2Gym/assets/17108978/86e921ad-d711-4dbb-b7b9-c69dee20da11" width="350" height="100">
+
 A realistic V2X Simulation Environment for large scale EV charging optimization!
+
+![EVsSimulator Environment](https://github.com/StavrosOrf/EV2Gym/assets/17108978/4695efa7-5c92-4118-9470-4cd16d262cf9)
 
 <!-- Bullet points with all the benefits -->
 ## Features
