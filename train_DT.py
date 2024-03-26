@@ -88,8 +88,10 @@ def experiment(
     if dataset == 'random':        
         pass
         dataset_path = f'./trajectories/random_10_cs_1_tr_288_steps_5_timescale_15000_trajectories.pkl'
-    elif dataset == 'RR':        
+    elif dataset == 'RR_20':        
         dataset_path = f'./trajectories/PublicPST_RR_20_cs_1_tr_112_steps_15_timescale_20_trajectories.pkl'
+    elif dataset == 'RR_100000':        
+        dataset_path = f'./trajectories/PublicPST_RR_20_cs_1_tr_112_steps_15_timescale_1000000_trajectories.pkl'
     elif dataset == "optimal":        
         pass
     

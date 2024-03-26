@@ -7,7 +7,7 @@ import time
 
 # run trai_DT.py in a tmux pane for each K and dataset
 
-batch_size = 32
+batch_size = 128
 num_steps_per_iter = 20000
 max_iters = 2000
 num_eval_episodes = 100
@@ -15,14 +15,14 @@ num_eval_episodes = 100
 counter = 0
 for K in [24,50]:
     # for dataset in ['ddpg', 'random']:
-    for dataset in ["RR"]:
-        for embed_dim in [512]:
+    for dataset in ["RR_20","RR_100000"]:
+        for embed_dim in [128, 512]:
             #   ' --device cuda:0' + str(counter % 2) + \
             for n_layer, n_head in [(3, 4)]: #(3, 1),
                 command = 'tmux new-session -d \; send-keys "python train_DT.py' + \
                     ' --dataset ' + dataset + \
                     ' --K ' + str(K) + \
-                    ' --device cuda:0' + \
+                    ' --device cuda:' + str(counter % 2) + \
                     ' --embed_dim ' + str(embed_dim) + \
                     ' --n_layer ' + str(n_layer) + \
                     ' --n_head ' + str(n_head) + \

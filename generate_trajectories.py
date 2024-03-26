@@ -4,6 +4,7 @@ import time
 import numpy as np
 import pickle
 import yaml
+from tqdm import tqdm 
 
 from ev2gym.models import ev2gym_env
 from ev2gym.utilities.arg_parser import arg_parser
@@ -47,8 +48,8 @@ if __name__ == "__main__":
         os.makedirs(save_folder_path)
 
     epoch = 0
-
-    for i in range(n_trajectories):
+    # use tqdm with a fancy bar
+    for i in tqdm(range(n_trajectories)):
 
         trajectory_i = {"observations": [],
                         "actions": [],
@@ -57,7 +58,7 @@ if __name__ == "__main__":
 
         epoch_return = 0
 
-        print(f'Trajectory: {i}')
+        # print(f'Trajectory: {i}')
         state, _ = env.reset()
         agent = RoundRobin(env)
         
@@ -85,7 +86,7 @@ if __name__ == "__main__":
 
         trajectories.append(trajectory_i)
 
-        if i % 10000 == 0:
+        if i % 100000 == 0:
             print(f'Saving trajectories to {save_folder_path+file_name}')
             f = open(save_folder_path+file_name, 'wb')
             # source, destination
