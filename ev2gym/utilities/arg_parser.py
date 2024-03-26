@@ -41,7 +41,7 @@ def arg_parser():
                         help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 
     # Generate trajectories specific arguments
-    parser.add_argument("--n_trajectories", default=2, type=int,
+    parser.add_argument("--n_trajectories", default=1000000, type=int,
                         help="Num. of trajectories to generate (default: 10)")
     
     #

@@ -34,7 +34,7 @@ class Trainer:
             train_losses.append(train_loss)
             if self.scheduler is not None:
                 self.scheduler.step()
-
+        
         logs['time/training'] = time.time() - train_start
 
         eval_start = time.time()
@@ -54,11 +54,11 @@ class Trainer:
             logs[k] = self.diagnostics[k]
 
         if print_logs:
-            print('=' * 80)
+            print('- - ' * 20)
             print(f'Iteration {iter_num}')
             for k, v in logs.items():
                 print(f'{k}: {v}')
-
+            print('=' * 80)
         return logs
 
     def train_step(self):

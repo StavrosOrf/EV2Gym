@@ -515,6 +515,14 @@ class EV2Gym(gym.Env):
             pickle.dump(replay, f)
 
         return replay.replay_path
+    
+    def set_save_plots(self, save_plots):
+        if save_plots:
+            os.makedirs("./results", exist_ok=True)
+            print(f"Creating directory: ./results/{self.sim_name}")
+            os.makedirs(f"./results/{self.sim_name}", exist_ok=True)
+            
+        self.save_plots = save_plots
 
     def _update_power_statistics(self, departing_evs):
         '''Updates the power statistics of the simulation'''

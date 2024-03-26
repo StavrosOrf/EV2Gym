@@ -89,11 +89,10 @@ def experiment(
         pass
         dataset_path = f'./trajectories/random_10_cs_1_tr_288_steps_5_timescale_15000_trajectories.pkl'
     elif dataset == 'RR':        
-        dataset_path = f'trajectories/PublicPST_RR_20_cs_1_tr_112_steps_15_timescale_2_trajectories.pkl'
+        dataset_path = f'./trajectories/PublicPST_RR_20_cs_1_tr_112_steps_15_timescale_20_trajectories.pkl'
     elif dataset == "optimal":        
         pass
-        # dataset_path = f'trajectories/optimal_10_cs_1_tr_288_steps_5_timescale_1000000_trajectories.pkl'
-        dataset_path = f'trajectories/RR_20_cs_1_tr_288_steps_5_timescale_100000_trajectories.pkl'
+    
     else:
         raise NotImplementedError("Dataset not found")
 
@@ -329,6 +328,9 @@ def experiment(
         # wandb.watch(model)  # wandb has some bug
 
     num_steps_per_iter = num_trajectories // variant['batch_size']
+    if num_steps_per_iter == 0:
+        num_steps_per_iter = variant['batch_size']
+    
     for iter in range(variant['max_iters']):
         outputs = trainer.train_iteration(
             num_steps=num_steps_per_iter, iter_num=iter+1, print_logs=True)
@@ -344,7 +346,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int,default=42)
 
     # medium, medium-replay, medium-expert, expert
-    parser.add_argument('--dataset', type=str, default='optimal')
+    parser.add_argument('--dataset', type=str, default='RR')
     # normal for standard setting, delayed for sparse
     parser.add_argument('--mode', type=str, default='normal')
     parser.add_argument('--K', type=int, default=24)
@@ -365,7 +367,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_steps_per_iter', type=int, default=1000)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--log_to_wandb', '-w', type=bool, default=True)
-    parser.add_argument('--config_file', type=str, default="config_files/config.yaml")
+    parser.add_argument('--config_file', type=str, default="ev2gym/example_config_files/PublicPST.yaml")
 
     args = parser.parse_args()
 

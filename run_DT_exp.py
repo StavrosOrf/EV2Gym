@@ -13,7 +13,7 @@ max_iters = 2000
 num_eval_episodes = 100
 
 counter = 0
-for K in [50]:
+for K in [24,50]:
     # for dataset in ['ddpg', 'random']:
     for dataset in ["RR"]:
         for embed_dim in [512]:
