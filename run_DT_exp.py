@@ -13,10 +13,10 @@ max_iters = 2000
 num_eval_episodes = 100
 
 counter = 0
-for K in [24,50]:
+for K in [1, 4, 8, 12, 24, 50, 100]:
     # for dataset in ['ddpg', 'random']:
-    for dataset in ["RR_20","RR_100000"]:
-        for embed_dim in [128, 512]:
+    for dataset in ["RR_100000"]: 
+        for embed_dim in [512]:
             #   ' --device cuda:0' + str(counter % 2) + \
             for n_layer, n_head in [(3, 4)]: #(3, 1),
                 command = 'tmux new-session -d \; send-keys "python train_DT.py' + \
@@ -43,5 +43,5 @@ for K in [24,50]:
                 os.system(command=command)
                 print(command)
                 # wait for 20 seconds before starting the next experiment
-                time.sleep(20)
+                time.sleep(60)
                 counter += 1

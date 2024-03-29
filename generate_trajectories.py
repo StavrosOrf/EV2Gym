@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     trajecotries_type = args.dataset
 
-    file_name = f"{problem}_{trajecotries_type}_{number_of_charging_stations}_cs_{n_transformers}_tr_{steps}_steps_{timescale}_timescale_{n_trajectories}_trajectories.pkl"
+    file_name = f"{problem}_{trajecotries_type}_{number_of_charging_stations}_cs_{n_transformers}_tr_{steps}_steps_{timescale}_timescale_{n_trajectories}_trajectories2.pkl"
     save_folder_path = f"./trajectories/"
     if not os.path.exists(save_folder_path):
         os.makedirs(save_folder_path)
