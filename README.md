@@ -40,7 +40,7 @@ for t in range(env.simulation_length):
     new_state, reward, done, truncated, stats = env.step(actions)  # takes action
 
 ```
-
+- ### For Reinforcement Learning:
 To train an RL agent, using the [StableBaselines3](https://stable-baselines3.readthedocs.io/en/master/) library, you can use the following code:
 ```python
 import gymnasium as gym
