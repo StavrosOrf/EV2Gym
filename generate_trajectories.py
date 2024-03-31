@@ -40,7 +40,7 @@ if __name__ == "__main__":
     # if args.dataset not in ["ddpg", "random", "optimal"]:
     #     raise ValueError("Dataset not supported")
 
-    trajecotries_type = args.dataset
+    trajecotries_type = "mixed-RR-Asap" #args.dataset
 
     file_name = f"{problem}_{trajecotries_type}_{number_of_charging_stations}_cs_{n_transformers}_tr_{steps}_steps_{timescale}_timescale_{n_trajectories}_trajectories2.pkl"
     save_folder_path = f"./trajectories/"
@@ -60,7 +60,10 @@ if __name__ == "__main__":
 
         # print(f'Trajectory: {i}')
         state, _ = env.reset()
-        agent = RoundRobin(env)
+        if i % 2 == 0:
+            agent = ChargeAsFastAsPossible(env)
+        else:
+            agent = RoundRobin(env)
         
         test_reward = 0
         while True:

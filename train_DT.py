@@ -92,8 +92,8 @@ def experiment(
         dataset_path = f'./trajectories/PublicPST_RR_20_cs_1_tr_112_steps_15_timescale_20_trajectories.pkl'
     elif dataset == 'RR_100000':        
         dataset_path = f'./trajectories/PublicPST_RR_20_cs_1_tr_112_steps_15_timescale_1000000_trajectories.pkl'
-    elif dataset == 'RR_200000':        
-        dataset_path = f'./trajectories/PublicPST_RR_20_cs_1_tr_112_steps_15_timescale_2000000_trajectories2.pkl'
+    elif dataset == 'mixed':        
+        dataset_path = f'./trajectories/PublicPST_mixed-RR-Asap_20_cs_1_tr_112_steps_15_timescale_200000_trajectories2.pkl'
         
     elif dataset == "optimal":        
         pass

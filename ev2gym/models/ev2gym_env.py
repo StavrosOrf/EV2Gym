@@ -301,7 +301,9 @@ class EV2Gym(gym.Env):
         return self._get_observation(), {}
 
     def init_statistic_variables(self):
-        
+        '''
+        Initializes the variables used for keeping simulation statistics
+        '''
         self.current_step = 0
         self.total_evs_spawned = 0
         self.total_reward = 0
