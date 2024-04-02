@@ -116,8 +116,3 @@ To train an RL agent, using the [StableBaselines3](https://stable-baselines3.rea
    autoapi/ev2gym/utilities/loaders/index.rst
    autoapi/ev2gym/utilities/utils/index.rst
 
-.. toctree::
-   :maxdepth: 1
-   
-   autoapi/index.rst
-
