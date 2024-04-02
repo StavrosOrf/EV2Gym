@@ -10,7 +10,8 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.6"
-
+  commands:
+    - pip install sphinx-autoapi==3.1.0a3
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
