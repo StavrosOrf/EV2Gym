@@ -5,14 +5,12 @@
 <img align="center" src="https://github.com/StavrosOrf/EV2Gym/assets/17108978/86e921ad-d711-4dbb-b7b9-c69dee20da11" width="55%"/>
 </div>
 
-[![Python 3.6](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://www.python.org/downloads/release/python-360/) [![PyPI](https://img.shields.io/pypi/v/ev2gym.svg)](https://pypi.org/project/ev2gym/) [![Documentation Status](https://readthedocs.org/projects/ev2gym/badge/?version=latest)](https://finrl.readthedocs.io/en/latest/?badge=latest) ![License](https://img.shields.io/github/license/AI4Finance-Foundation/finrl.svg?color=brightgreen)
+[![Python 3.6](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://www.python.org/downloads/release/python-360/) [![PyPI](https://img.shields.io/pypi/v/ev2gym.svg)](https://pypi.org/project/ev2gym/) [![Documentation Status](https://readthedocs.org/projects/ev2gym/badge/?version=latest)](https://ev2gym.readthedocs.io/en/latest/?badge=latest) ![License](https://img.shields.io/github/license/AI4Finance-Foundation/finrl.svg?color=brightgreen)
 ---
 
 Develop and evaluate **any type of smart charging algorithm**: from simple heuristics, Model Predictive Control, Mathematical Programming, to Reinforcement Learning!
 
 EV2Gym is **fully customizable** and easily **configurable**!
-
-**Documentation** can be found at: [link](https://ev2gym.readthedocs.io/en/latest/).
 
 The **Paper** can be found at: [link](https://ev2gym.readthedocs.io/en/latest/).
 
