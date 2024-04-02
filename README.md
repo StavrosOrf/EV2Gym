@@ -12,6 +12,10 @@ Develop and evaluate **any type of smart charging algorithm**: from simple heuri
 
 EV2Gym is **fully customizable** and easily **configurable**!
 
+**Documentation** can be found at: [link](https://ev2gym.readthedocs.io/en/latest/).
+
+The **Paper** can be found at: [link](https://ev2gym.readthedocs.io/en/latest/).
+
 ## Installation
 
 Install the package using pip:
@@ -19,7 +23,7 @@ Install the package using pip:
 pip install ev2gym
 ```
 
-Documentation can be found at: [link](https://ev2gym.readthedocs.io/en/latest/). Run the example code below to get started ...
+ Run the example code below to get started ...
 ```python
 from ev2gym.models.ev2gym_env import EV2Gym
 from ev2gym.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle
