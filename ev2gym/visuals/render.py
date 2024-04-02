@@ -7,12 +7,12 @@ import pkg_resources
 # Image URLs for graph nodes
 
 icons = {
-    "cpo": pkg_resources.resource_filename('ev2gym', "vizuals/icons/cpo.png"),
-    "transformer": pkg_resources.resource_filename('ev2gym', "vizuals/icons/transformer.png"),
-    "charger_1": pkg_resources.resource_filename('ev2gym', "vizuals/icons/charging-station_1_port.png"),
-    "charger_2": pkg_resources.resource_filename('ev2gym', "vizuals/icons/charging-station_2_ports.png"),
-    "charger_wallbox": pkg_resources.resource_filename('ev2gym', "vizuals/icons/charger_wallbox.png"),
-    "ev": pkg_resources.resource_filename('ev2gym', "vizuals/icons/ev.png")
+    "cpo": pkg_resources.resource_filename('ev2gym', "visuals/icons/cpo.png"),
+    "transformer": pkg_resources.resource_filename('ev2gym', "visuals/icons/transformer.png"),
+    "charger_1": pkg_resources.resource_filename('ev2gym', "visuals/icons/charging-station_1_port.png"),
+    "charger_2": pkg_resources.resource_filename('ev2gym', "visuals/icons/charging-station_2_ports.png"),
+    "charger_wallbox": pkg_resources.resource_filename('ev2gym', "visuals/icons/charger_wallbox.png"),
+    "ev": pkg_resources.resource_filename('ev2gym', "visuals/icons/ev.png")
 }
 
 
@@ -205,7 +205,7 @@ class Renderer():
 
         # add icon to the bottom of the figure
         image_path = pkg_resources.resource_filename(
-            'ev2gym', "vizuals/icons/logo.png")
+            'ev2gym', "visuals/icons/logo.png")
         icon = PIL.Image.open(image_path)
         icon = icon.resize((100, 50), PIL.Image.LANCZOS)
         self.fig.figimage(icon, 20, 20, alpha=1, zorder=1)
@@ -280,7 +280,8 @@ class Renderer():
             # append transformer current to node labels
             self.tr_labels_ax["transformer_" +
                               str(i)].set_text(str(round(self.env.transformers[i].current_amps /
-                                                         self.env.transformers[i].max_current*100, 0)) + "%")
+                                                         self.env.transformers[i].max_current[self.env.current_step-1]
+                                                         *100, 0)) + "%")
         # update ev nodes
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()

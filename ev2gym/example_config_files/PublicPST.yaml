@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 85 #90 # in steps per simulation
+simulation_length: 112 #90 # in steps per simulation
 
 ##############################################################################
 # Date and Time

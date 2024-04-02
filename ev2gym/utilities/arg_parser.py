@@ -33,19 +33,19 @@ def arg_parser():
                         help="Enable logging to wandb (default: True)")
 
     # Environment specific arguments
-    # parser.add_argument("--config_file", default="ev2gym/example_config_files/PublicPST.yaml",
-    parser.add_argument("--config_file", default="ev2gym/example_config_files/V2G_MPC.yaml",
+    parser.add_argument("--config_file", default="ev2gym/example_config_files/PublicPST.yaml",
+    # parser.add_argument("--config_file", default="ev2gym/example_config_files/V2G_MPC.yaml",
     # parser.add_argument("--config_file", default="ev2gym/example_config_files/V2GProfitPlusLoads.yaml",
                         help="Path to the config file (default: config_files/config.yaml)")
-    parser.add_argument("--n_test_cycles", default=1, type=int,
+    parser.add_argument("--n_test_cycles", default=50, type=int,
                         help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 
     # Generate trajectories specific arguments
-    parser.add_argument("--n_trajectories", default=20, type=int,
+    parser.add_argument("--n_trajectories", default=200_000, type=int,
                         help="Num. of trajectories to generate (default: 10)")
     
     #
-    parser.add_argument("--dataset", default="-", type=str)
+    parser.add_argument("--dataset", default="RR", type=str)
     parser.add_argument("--save_opt_trajectories", default=True, type=bool,
                         help="Save Optimal trajectories (default: False)")
     

@@ -24,7 +24,7 @@ def eval():
 
     verbose = True
     save_plots = True
-    
+
     replay_path = "./replay/replay_sim_2024_02_21_056441.pkl"
     replay_path = None
 
@@ -32,18 +32,17 @@ def eval():
     # config_file = "ev2gym/example_config_files/PublicPST.yaml"
     # config_file = "ev2gym/example_config_files/BusinessPST.yaml"
     # config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
-    
 
     env = EV2Gym(config_file=config_file,
-                       load_from_replay_path=replay_path,
-                       verbose=False,
-                       save_replay=True,
-                       empty_ports_at_end_of_simulation=True,
-                       save_plots=save_plots,
-                    #    seed=42,
-                       #    render_mode = True,
-                       )
-    
+                 load_from_replay_path=replay_path,
+                 verbose=False,
+                 save_replay=True,
+                 empty_ports_at_end_of_simulation=True,
+                 save_plots=save_plots,
+                 #    seed=42,
+                 #   render_mode = True,    
+                 )
+
     # env = gym.make('EV2Gym-v1',
     #                config_file=config_file,
     #                load_from_replay_path=replay_path,
@@ -54,12 +53,12 @@ def eval():
 
     state, _ = env.reset()
 
-    ev_profiles = env.EVs_profiles    
-    max_time_of_stay = max([ev.time_of_departure - ev.time_of_arrival 
+    ev_profiles = env.EVs_profiles
+    max_time_of_stay = max([ev.time_of_departure - ev.time_of_arrival
                             for ev in ev_profiles])
     min_time_of_stay = min([ev.time_of_departure - ev.time_of_arrival
                             for ev in ev_profiles])
-    
+
     print(f'Number of EVs: {len(ev_profiles)}')
     print(f'Max time of stay: {max_time_of_stay}')
     print(f'Min time of stay: {min_time_of_stay}')
@@ -68,29 +67,31 @@ def eval():
     # agent = OCMF_G2V(env, control_horizon=25, verbose=True)
     # agent = eMPC_V2G(env, control_horizon=25, verbose=True)
     # agent = V2GProfitMaxOracle(env,verbose=True)
-    # agent = eMPC_G2V(env, control_horizon=15, verbose=True)
+    # agent = PowerTrackingErrorrMin(new_replay_path)
+    agent = eMPC_G2V(env, control_horizon=15, verbose=False)
     # agent = RoundRobin(env, verbose=False)
     # agent = ChargeAsLateAsPossible(verbose=False)
     # agent = ChargeAsFastAsPossible()
-    agent = ChargeAsFastAsPossibleToDesiredCapacity()
+    # agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 
-    for t in range(env.simulation_length):        
+    for t in range(env.simulation_length):
         actions = agent.get_action(env)
 
-        new_state, reward, done, truncated, _ = env.step(actions)  # takes action
+        new_state, reward, done, truncated, _ = env.step(
+            actions)  # takes action
         rewards.append(reward)
 
         if done:
             print(f'End of simulation at step {env.current_step}')
             break
-    
+
     # exit()
     # Solve optimally
     # Power tracker optimizer
     # agent = PowerTrackingErrorrMin(replay_path=new_replay_path)
     # # Profit maximization optimizer
-    # # agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)    
+    # # agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)
     # # Simulate in the gym environment and get the rewards
 
     # env = ev2gym(config_file=config_file,
@@ -116,7 +117,8 @@ def eval():
     #     if done:
     #         break
 
+
 if __name__ == "__main__":
-    while True:
-        eval()
-        # exit()
+    # while True:
+    eval()
+    # exit()
