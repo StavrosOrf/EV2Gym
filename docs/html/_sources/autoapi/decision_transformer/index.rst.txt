@@ -1,0 +1,35 @@
+:orphan:
+
+:py:mod:`decision_transformer`
+==============================
+
+.. py:module:: decision_transformer
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   decision_transformer.DecisionTransformer
+
+
+
+
+.. py:class:: DecisionTransformer(state_dim, act_dim, hidden_size, max_length=None, max_ep_len=4096, action_tanh=True, **kwargs)
+
+
+   Bases: :py:obj:`ev2gym.baselines.DT.models.model.TrajectoryModel`
+
+   This model uses GPT to model (Return_1, state_1, action_1, Return_2, state_2, ...)
+
+   .. py:method:: forward(states, actions, rewards, returns_to_go, timesteps, attention_mask=None)
+
+
+   .. py:method:: get_action(states, actions, rewards, returns_to_go, timesteps, **kwargs)
+
+
+

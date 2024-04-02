@@ -1,0 +1,77 @@
+:orphan:
+
+:py:mod:`ev2gym.baselines.DDPG.nets`
+====================================
+
+.. py:module:: ev2gym.baselines.DDPG.nets
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.nets.Actor
+   ev2gym.baselines.DDPG.nets.Critic
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.nets.fan_in_uniform_init
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.nets.device
+   ev2gym.baselines.DDPG.nets.WEIGHTS_FINAL_INIT
+   ev2gym.baselines.DDPG.nets.BIAS_FINAL_INIT
+
+
+.. py:data:: device
+
+   
+
+.. py:data:: WEIGHTS_FINAL_INIT
+   :value: 0.003
+
+   
+
+.. py:data:: BIAS_FINAL_INIT
+   :value: 0.0003
+
+   
+
+.. py:function:: fan_in_uniform_init(tensor, fan_in=None)
+
+   Utility function for initializing actor and critic
+
+
+.. py:class:: Actor(hidden_size, num_inputs, action_space)
+
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   .. py:method:: forward(inputs)
+
+
+
+.. py:class:: Critic(hidden_size, num_inputs, action_space)
+
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   .. py:method:: forward(inputs, actions)
+
+
+

@@ -1,0 +1,31 @@
+:orphan:
+
+:py:mod:`trainer`
+=================
+
+.. py:module:: trainer
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   trainer.Trainer
+
+
+
+
+.. py:class:: Trainer(model, optimizer, batch_size, get_batch, loss_fn, scheduler=None, eval_fns=None)
+
+
+   .. py:method:: train_iteration(num_steps, iter_num=0, print_logs=False)
+
+
+   .. py:method:: train_step()
+
+
+

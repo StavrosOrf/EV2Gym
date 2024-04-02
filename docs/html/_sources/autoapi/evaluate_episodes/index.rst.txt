@@ -1,0 +1,28 @@
+:orphan:
+
+:py:mod:`evaluate_episodes`
+===========================
+
+.. py:module:: evaluate_episodes
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   evaluate_episodes.evaluate_episode
+   evaluate_episodes.evaluate_episode_rtg
+
+
+
+.. py:function:: evaluate_episode(env, state_dim, act_dim, model, max_ep_len=1000, device='cuda', target_return=None, mode='normal', state_mean=0.0, state_std=1.0)
+
+
+.. py:function:: evaluate_episode_rtg(exp_prefix, state_dim, act_dim, model, max_ep_len=1000, scale=1000.0, state_mean=0.0, state_std=1.0, device='cuda', target_return=None, mode='normal', n_test_episodes=10, config_file='config_files/config.yaml')
+
+

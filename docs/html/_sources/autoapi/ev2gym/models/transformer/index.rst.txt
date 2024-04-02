@@ -1,0 +1,106 @@
+:orphan:
+
+:py:mod:`ev2gym.models.transformer`
+===================================
+
+.. py:module:: ev2gym.models.transformer
+
+.. autoapi-nested-parse::
+
+   ===================================
+   Author: Stavros Orfanoudakis 2023
+   ===================================
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.models.transformer.Transformer
+
+
+
+
+.. py:class:: Transformer(id, env, max_power=100, cs_ids=[], inflexible_load=np.zeros(96), solar_power=np.zeros(96), simulation_length=96)
+
+
+   Transformer class for the ev_city environment
+
+
+
+   .. py:method:: generate_demand_response_events(env)
+
+      This function is used to generate demand response events using the configuration file
+      and by updating the transformer loading
+
+
+   .. py:method:: get_power_limits(step, horizon)
+
+      Get the power limits of the transformer for the next horizon steps.
+
+      If an event is happening, the power limits are updated accordingly
+      The control algorithm is aware of the event x steps before it happens
+
+
+
+   .. py:method:: get_load_pv_forecast(step, horizon)
+
+
+   .. py:method:: normalize_pv_generation(env)
+
+      Normalize the solar_power using the configuration file and teh max_power of the transformer
+
+
+   .. py:method:: generate_pv_generation_forecast(env)
+
+      This function is used to generate pv generation forecast using the configuration file
+
+
+   .. py:method:: normalize_inflexible_loads(env)
+
+      Check that infelxible_loads are lower than the max_power, if not, set them to the max_power
+
+
+   .. py:method:: generate_inflexible_loads_forecast(env)
+
+      This function is used to generate inflexible loads forecast using the configuration file
+
+
+   .. py:method:: reset(step)
+
+      Reset the current power of the transformer
+
+
+   .. py:method:: step(amps, power)
+
+      Update current power of the transformer
+
+
+   .. py:method:: is_overloaded()
+
+      Check if the transformer is overloaded
+
+      Returns:
+          - True if the transformer is overloaded
+          - False if the transformer is not overloaded
+
+
+   .. py:method:: get_how_overloaded()
+
+      Check how overloaded the transformer is
+
+      Returns:
+          - a amps value if the transformer is overloaded
+
+
+   .. py:method:: __str__()
+
+      Return str(self).
+
+
+

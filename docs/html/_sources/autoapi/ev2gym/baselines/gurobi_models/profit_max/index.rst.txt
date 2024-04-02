@@ -1,0 +1,49 @@
+:orphan:
+
+:py:mod:`ev2gym.baselines.gurobi_models.profit_max`
+===================================================
+
+.. py:module:: ev2gym.baselines.gurobi_models.profit_max
+
+.. autoapi-nested-parse::
+
+   ===================================
+   Author: Stavros Orfanoudakis 2023
+   ===================================
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.gurobi_models.profit_max.V2GProfitMaxOracleGB
+
+
+
+
+.. py:class:: V2GProfitMaxOracleGB(replay_path=None, **kwargs)
+
+
+   This file contains the EV_City_Math_Model class, which is used to solve the ev_city V2G problem optimally.
+
+   .. py:attribute:: algo_name
+      :value: 'Optimal (Offline)'
+
+      
+
+   .. py:method:: get_actions()
+
+      This function returns the actions of the EVs in the simulation normalized to [-1, 1]
+
+
+   .. py:method:: get_action(env, **kwargs)
+
+      This function returns the action for the current step of the environment.
+
+
+

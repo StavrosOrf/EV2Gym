@@ -1,0 +1,35 @@
+:orphan:
+
+:py:mod:`mlp_bc`
+================
+
+.. py:module:: mlp_bc
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mlp_bc.MLPBCModel
+
+
+
+
+.. py:class:: MLPBCModel(state_dim, act_dim, hidden_size, n_layer, dropout=0.1, max_length=1, **kwargs)
+
+
+   Bases: :py:obj:`ev2gym.baselines.DT.models.model.TrajectoryModel`
+
+   Simple MLP that predicts next action a from past states s.
+
+   .. py:method:: forward(states, actions, rewards, attention_mask=None, target_return=None)
+
+
+   .. py:method:: get_action(states, actions, rewards, **kwargs)
+
+
+

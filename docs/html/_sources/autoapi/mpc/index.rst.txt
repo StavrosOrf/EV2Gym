@@ -1,0 +1,91 @@
+:orphan:
+
+:py:mod:`mpc`
+=============
+
+.. py:module:: mpc
+
+.. autoapi-nested-parse::
+
+   This file contains the implementation of the MPC baseline for the profit and flexibility maximization problem.
+
+   Authors: Cesar Diaz-Londono, Stavros Orfanoudakis
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mpc.MPC
+
+
+
+
+.. py:class:: MPC(env, control_horizon=25, verbose=False, time_limit=200, output_flag=0, MIPGap=None, **kwargs)
+
+
+   Bases: :py:obj:`abc.ABC`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:method:: get_action(env)
+      :abstractmethod:
+
+
+   .. py:method:: update_tr_power(t)
+
+      This function updates the transformer power limits, loads and PV generation for the next control horizon based on forecasts.
+
+
+   .. py:method:: update_tr_power_oracle(t)
+
+      This function updates the transformer power limits, loads and PV generation for the next control horizon based on forecasts.
+
+
+   .. py:method:: reconstruct_state(t)
+
+      This function reconstructs the state of the environment using the historical data.
+
+
+   .. py:method:: calculate_XF_G2V(t)
+
+
+   .. py:method:: calculate_XF_V2G(t)
+
+
+   .. py:method:: v2g_station_models(t)
+
+      This function builds the station models for the V2G problem.
+
+
+   .. py:method:: g2v_station_models(t)
+
+
+   .. py:method:: calculate_InequalityConstraints(t)
+
+      This function calculates the inequality constraints for the optimization problem.
+      Au and bu are the inequality constraints.
+
+
+   .. py:method:: set_power_limits_V2G(t)
+
+      This function sets the power limits for the V2G problem.
+
+
+   .. py:method:: set_power_limits_G2V(t)
+
+      This function sets the power limits for the G2V problem.
+
+
+   .. py:method:: print_info(t)
+
+      This function prints the information of the optimization problem.
+
+
+

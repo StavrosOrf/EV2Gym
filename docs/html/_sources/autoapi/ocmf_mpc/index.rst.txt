@@ -1,0 +1,56 @@
+:orphan:
+
+:py:mod:`ocmf_mpc`
+==================
+
+.. py:module:: ocmf_mpc
+
+.. autoapi-nested-parse::
+
+   This file contains the implementation of the OCMF_V2G and OCMF_G2V MPC
+
+   Authors: Cesar Diaz-Londono, Stavros Orfanoudakis
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ocmf_mpc.OCMF_V2G
+   ocmf_mpc.OCMF_G2V
+
+
+
+
+.. py:class:: OCMF_V2G(env, control_horizon=10, verbose=False, **kwargs)
+
+
+   Bases: :py:obj:`ev2gym.baselines.mpc.mpc.MPC`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:method:: get_action(env)
+
+      This function computes the MPC actions for the economic problem including V2G.
+
+
+
+.. py:class:: OCMF_G2V(env, control_horizon=10, verbose=False, **kwargs)
+
+
+   Bases: :py:obj:`ev2gym.baselines.mpc.mpc.MPC`
+
+   This class implements the MPC for the G2V OCCF.
+
+   .. py:method:: get_action(env)
+
+      This function computes the MPC actions for the economic problem including G2V.
+
+
+

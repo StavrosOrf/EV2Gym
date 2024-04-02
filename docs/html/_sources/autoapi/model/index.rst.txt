@@ -1,0 +1,33 @@
+:orphan:
+
+:py:mod:`model`
+===============
+
+.. py:module:: model
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   model.TrajectoryModel
+
+
+
+
+.. py:class:: TrajectoryModel(state_dim, act_dim, max_length=None)
+
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   .. py:method:: forward(states, actions, rewards, masks=None, attention_mask=None)
+
+
+   .. py:method:: get_action(states, actions, rewards, **kwargs)
+
+
+

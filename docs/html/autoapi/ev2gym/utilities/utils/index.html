@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ev2gym.utilities.utils &mdash; EV2Gym 4/2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=e7704871"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            EV2Gym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/reward/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.reward</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">EV2Gym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities.utils</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/ev2gym/utilities/utils/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ev2gym.utilities.utils">
+<span id="ev2gym-utilities-utils"></span><h1><a class="reference internal" href="#module-ev2gym.utilities.utils" title="ev2gym.utilities.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities.utils</span></code></a><a class="headerlink" href="#module-ev2gym.utilities.utils" title="Link to this heading"></a></h1>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.utilities.utils.get_statistics" title="ev2gym.utilities.utils.get_statistics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_statistics</span></code></a>(env)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.utilities.utils.print_statistics" title="ev2gym.utilities.utils.print_statistics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_statistics</span></code></a>(env)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.utilities.utils.spawn_single_EV" title="ev2gym.utilities.utils.spawn_single_EV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spawn_single_EV</span></code></a>(env, scenario, cs_id, port, hour, ...)</p></td>
+<td><p>This function spawns a single EV and returns it</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.utilities.utils.EV_spawner" title="ev2gym.utilities.utils.EV_spawner"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EV_spawner</span></code></a>(env)</p></td>
+<td><p>This function spawns all the EVs of the current simulation and returns the list of EVs</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.utilities.utils.smooth_vector" title="ev2gym.utilities.utils.smooth_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">smooth_vector</span></code></a>(v)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.utilities.utils.median_smoothing" title="ev2gym.utilities.utils.median_smoothing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">median_smoothing</span></code></a>(v, window_size)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.utilities.utils.generate_power_setpoints" title="ev2gym.utilities.utils.generate_power_setpoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_power_setpoints</span></code></a>(env)</p></td>
+<td><p>This function generates the power setpoints for the entire simulation using</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.utilities.utils.calculate_charge_power_potential" title="ev2gym.utilities.utils.calculate_charge_power_potential"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_charge_power_potential</span></code></a>(env)</p></td>
+<td><p>This function calculates the total charge power potential of all currently parked EVs for the current time step</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.utils.get_statistics">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.utils.</span></span><span class="sig-name descname"><span class="pre">get_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.utils.get_statistics" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.utils.print_statistics">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.utils.</span></span><span class="sig-name descname"><span class="pre">print_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.utils.print_statistics" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.utils.spawn_single_EV">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.utils.</span></span><span class="sig-name descname"><span class="pre">spawn_single_EV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_time_of_stay_steps</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.utils.spawn_single_EV" title="Link to this definition"></a></dt>
+<dd><p>This function spawns a single EV and returns it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../../models/ev/index.html#ev2gym.models.ev.EV" title="ev2gym.models.ev.EV">ev2gym.models.ev.EV</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.utils.EV_spawner">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.utils.</span></span><span class="sig-name descname"><span class="pre">EV_spawner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.utils.EV_spawner" title="Link to this definition"></a></dt>
+<dd><p>This function spawns all the EVs of the current simulation and returns the list of EVs</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>EVs: list of EVs</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="../../models/ev/index.html#ev2gym.models.ev.EV" title="ev2gym.models.ev.EV">ev2gym.models.ev.EV</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.utils.smooth_vector">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.utils.</span></span><span class="sig-name descname"><span class="pre">smooth_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.utils.smooth_vector" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.utils.median_smoothing">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.utils.</span></span><span class="sig-name descname"><span class="pre">median_smoothing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.utils.median_smoothing" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.utils.generate_power_setpoints">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.utils.</span></span><span class="sig-name descname"><span class="pre">generate_power_setpoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.utils.generate_power_setpoints" title="Link to this definition"></a></dt>
+<dd><p>This function generates the power setpoints for the entire simulation using
+the list of EVs and the charging stations from the environment.</p>
+<p>It considers the ev SoC and teh steps required to fully charge the EVs.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>power_setpoints: np.ndarray</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.utils.calculate_charge_power_potential">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.utils.</span></span><span class="sig-name descname"><span class="pre">calculate_charge_power_potential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.utils.calculate_charge_power_potential" title="Link to this definition"></a></dt>
+<dd><p>This function calculates the total charge power potential of all currently parked EVs for the current time step</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Stavros Orfanoudakis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

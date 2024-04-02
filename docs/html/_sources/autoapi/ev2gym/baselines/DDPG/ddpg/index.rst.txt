@@ -1,0 +1,121 @@
+:orphan:
+
+:py:mod:`ev2gym.baselines.DDPG.ddpg`
+====================================
+
+.. py:module:: ev2gym.baselines.DDPG.ddpg
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.ddpg.DDPG
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.ddpg.soft_update
+   ev2gym.baselines.DDPG.ddpg.hard_update
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.ddpg.logger
+   ev2gym.baselines.DDPG.ddpg.device
+
+
+.. py:data:: logger
+
+   
+
+.. py:data:: device
+
+   
+
+.. py:function:: soft_update(target, source, tau)
+
+
+.. py:function:: hard_update(target, source)
+
+
+.. py:class:: DDPG(gamma, tau, hidden_size, num_inputs, action_space, checkpoint_dir=None)
+
+
+   Bases: :py:obj:`object`
+
+   .. py:method:: calc_action(state, action_noise=None)
+
+      Evaluates the action to perform in a given state
+
+      Arguments:
+          state:          State to perform the action on in the env. 
+                          Used to evaluate the action.
+          action_noise:   If not None, the noise to apply on the evaluated action
+
+
+   .. py:method:: update_params(batch)
+
+      Updates the parameters/networks of the agent according to the given batch.
+      This means we ...
+          1. Compute the targets
+          2. Update the Q-function/critic by one step of gradient descent
+          3. Update the policy/actor by one step of gradient ascent
+          4. Update the target networks through a soft update
+
+      Arguments:
+          batch:  Batch to perform the training of the parameters
+
+
+   .. py:method:: save_checkpoint(last_timestep, replay_buffer, run_name)
+
+      Saving the networks and all parameters to a file in 'checkpoint_dir'
+
+      Arguments:
+          last_timestep:  Last timestep in training before saving
+          replay_buffer:  Current replay buffer
+
+
+   .. py:method:: get_path_of_latest_file()
+
+      Returns the latest created file in 'checkpoint_dir'
+
+
+   .. py:method:: load_checkpoint(checkpoint_path=None)
+
+      Saving the networks and all parameters from a given path. If the given path is None
+      then the latest saved file in 'checkpoint_dir' will be used.
+
+      Arguments:
+          checkpoint_path:    File to load the model from
+
+
+
+   .. py:method:: set_eval()
+
+      Sets the model in evaluation mode
+
+
+
+   .. py:method:: set_train()
+
+      Sets the model in training mode
+
+
+
+   .. py:method:: get_network(name)
+
+
+

@@ -1,0 +1,17 @@
+:py:mod:`ev2gym.baselines`
+==========================
+
+.. py:module:: ev2gym.baselines
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   DDPG/index.rst
+   DT/index.rst
+   gurobi_models/index.rst
+
+

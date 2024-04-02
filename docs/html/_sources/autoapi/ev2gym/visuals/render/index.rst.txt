@@ -1,0 +1,42 @@
+:orphan:
+
+:py:mod:`ev2gym.visuals.render`
+===============================
+
+.. py:module:: ev2gym.visuals.render
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.visuals.render.Renderer
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.visuals.render.icons
+
+
+.. py:data:: icons
+
+   
+
+.. py:class:: Renderer(env)
+
+
+   Class for rendering the simulation environment
+
+   .. py:method:: render()
+
+
+

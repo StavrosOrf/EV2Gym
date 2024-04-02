@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ev2gym.models.ev &mdash; EV2Gym 4/2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=e7704871"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            EV2Gym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/reward/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.reward</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">EV2Gym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.models.ev</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/ev2gym/models/ev/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ev2gym.models.ev">
+<span id="ev2gym-models-ev"></span><h1><a class="reference internal" href="#module-ev2gym.models.ev" title="ev2gym.models.ev"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.models.ev</span></code></a><a class="headerlink" href="#module-ev2gym.models.ev" title="Link to this heading"></a></h1>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.models.ev.EV" title="ev2gym.models.ev.EV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EV</span></code></a></p></td>
+<td><p>This file contains the EV class, which is used to represent the EVs in the environment.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ev2gym.models.ev.</span></span><span class="sig-name descname"><span class="pre">EV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">battery_capacity_at_arrival</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_of_arrival</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_of_departure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desired_capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">battery_capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_battery_capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_ac_charge_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">22</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_ac_charge_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dc_charge_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_discharge_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-22</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_discharge_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ev_phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transition_soc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge_efficiency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discharge_efficiency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timescale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV" title="Link to this definition"></a></dt>
+<dd><p>This file contains the EV class, which is used to represent the EVs in the environment.
+The two-stage battery model was adapted from <a class="reference external" href="https://github.com/zach401/acnportal/blob/master/acnportal/acnsim/models/battery.py#L186">https://github.com/zach401/acnportal/blob/master/acnportal/acnsim/models/battery.py#L186</a></p>
+<dl class="simple">
+<dt>Attributes:</dt><dd><ul class="simple">
+<li><p>id: unique identifier of the EV (uniquep per charging station)</p></li>
+<li><p>location: the location of the EV (charging station id)</p></li>
+<li><p>battery_capacity_at_arrival: the battery capacity of the EV at arrival time in kWh</p></li>
+<li><p>time_of_arrival: the time of arrival of the EV in the charging station in simulation timesteps</p></li>
+<li><p>time_of_departure: the earliest time of departure of the EV in the charging station in simulation timesteps (if use_probabilistic_time_of_departure is False, then time_of_departure is equal to time_of_departure)</p></li>
+<li><p>desired_capacity: the desired capacity of the EV at departure time in kWh</p></li>
+<li><p>use_probabilistic_time_of_departure: whether the EV will use a probabilistic time of departure or not</p></li>
+<li><p>battery_capacity: the battery capacity of the EV in kWh</p></li>
+<li><p>min_desired_capacity: the minimum desired capacity of the EV in kWh to maximize battery life</p></li>
+<li><p>max_desired_capacity: the maximum desired capacity of the EV in kWh to maximize battery life</p></li>
+<li><p>charge_efficiency: the efficiency of the EV when charging</p></li>
+<li><p>discharge_efficiency: the efficiency of the EV when discharging</p></li>
+<li><p>timescale: the timescale of the simulation (useful for determining the charging speed)</p></li>
+</ul>
+</dd>
+<dt>Status variables:</dt><dd><ul class="simple">
+<li><p>current_capacity: the current battery capacity of the EV in kWh</p></li>
+<li><p>current_energy: the current power input of the EV in kW (positive for charging, negative for discharging)</p></li>
+<li><p>charging_cycles: the number of charging/discharging cycles of the EV (useful for determining battery life parameters)</p></li>
+<li><p>previous_power: the power input of the EV in the previous timestep in kW (positive for charging, negative for discharging)</p></li>
+</ul>
+</dd>
+<dt>Methods:</dt><dd><ul class="simple">
+<li><p>step: updates the EV status according to the actions taken by the EV charger</p></li>
+<li><p>_charge: charges the EV</p></li>
+<li><p>_discharge: discharges the EV</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV.reset" title="Link to this definition"></a></dt>
+<dd><p>The reset method is used to reset the EV's status to the initial state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AC'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV.step" title="Link to this definition"></a></dt>
+<dd><p>The step method is used to update the EV's status according to the actions taken by the EV charger.
+Inputs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>action: the power input in kW (positive for charging, negative for discharging)</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>Outputs:</dt><dd><ul class="simple">
+<li><p>self.current_energy: the current power input of the EV in kW (positive for charging, negative for discharging)</p></li>
+<li><p>self.actual_curent: the actual current input of the EV in A (positive for charging, negative for discharging)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV.my_ceil">
+<span class="sig-name descname"><span class="pre">my_ceil</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV.my_ceil" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV.is_departing">
+<span class="sig-name descname"><span class="pre">is_departing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV.is_departing" title="Link to this definition"></a></dt>
+<dd><p>The is_departing method is used to determine whether the EV is departing or not.
+Inputs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>timestep: the current timestep of the simulation</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>Outputs:</dt><dd><ul class="simple">
+<li><p>Returns the user satisfaction of the EV in departing else None</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[float, None]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV.get_user_satisfaction">
+<span class="sig-name descname"><span class="pre">get_user_satisfaction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV.get_user_satisfaction" title="Link to this definition"></a></dt>
+<dd><p>A function that returns the user satisfaction of the EV when departing.
+Outputs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Score: a value between 0 and 1</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV.get_soc">
+<span class="sig-name descname"><span class="pre">get_soc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV.get_soc" title="Link to this definition"></a></dt>
+<dd><p>A function that returns the state of charge of the EV.
+Outputs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>SoC: the state of charge of the EV in [0,1]</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV._charge">
+<span class="sig-name descname"><span class="pre">_charge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV._charge" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV._discharge">
+<span class="sig-name descname"><span class="pre">_discharge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV._discharge" title="Link to this definition"></a></dt>
+<dd><p>The _discharge method is used to discharge the EV's battery.
+Inputs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>power: the power input in kW (it is negative because of the discharge)</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev.EV.get_battery_degradation">
+<span class="sig-name descname"><span class="pre">get_battery_degradation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev.EV.get_battery_degradation" title="Link to this definition"></a></dt>
+<dd><p>A function that returns the capacity loss of the EV.</p>
+<p>Qacc := Accumulated battery cell throughput (Ah)
+Qsim := Battery cell throughput during simulation (Ah)
+Tacc := Battery age (days)
+Tsim := Simulation time (days)
+theta := Battery temperature (K)</p>
+<dl class="simple">
+<dt>Outputs:</dt><dd><ul class="simple">
+<li><p>Capacity loss: the capacity loss</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Stavros Orfanoudakis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

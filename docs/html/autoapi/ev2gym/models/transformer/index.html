@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ev2gym.models.transformer &mdash; EV2Gym 4/2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=e7704871"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            EV2Gym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/reward/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.reward</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">EV2Gym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.models.transformer</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/ev2gym/models/transformer/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ev2gym.models.transformer">
+<span id="ev2gym-models-transformer"></span><h1><a class="reference internal" href="#module-ev2gym.models.transformer" title="ev2gym.models.transformer"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.models.transformer</span></code></a><a class="headerlink" href="#module-ev2gym.models.transformer" title="Link to this heading"></a></h1>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.models.transformer.Transformer" title="ev2gym.models.transformer.Transformer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transformer</span></code></a></p></td>
+<td><p>Transformer class for the ev_city environment</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ev2gym.models.transformer.</span></span><span class="sig-name descname"><span class="pre">Transformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inflexible_load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">np.zeros(96)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solar_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">np.zeros(96)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">96</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer" title="Link to this definition"></a></dt>
+<dd><p>Transformer class for the ev_city environment</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.generate_demand_response_events">
+<span class="sig-name descname"><span class="pre">generate_demand_response_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.generate_demand_response_events" title="Link to this definition"></a></dt>
+<dd><p>This function is used to generate demand response events using the configuration file
+and by updating the transformer loading</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.get_power_limits">
+<span class="sig-name descname"><span class="pre">get_power_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.get_power_limits" title="Link to this definition"></a></dt>
+<dd><p>Get the power limits of the transformer for the next horizon steps.</p>
+<p>If an event is happening, the power limits are updated accordingly
+The control algorithm is aware of the event x steps before it happens</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.get_load_pv_forecast">
+<span class="sig-name descname"><span class="pre">get_load_pv_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.get_load_pv_forecast" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.normalize_pv_generation">
+<span class="sig-name descname"><span class="pre">normalize_pv_generation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.normalize_pv_generation" title="Link to this definition"></a></dt>
+<dd><p>Normalize the solar_power using the configuration file and teh max_power of the transformer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.generate_pv_generation_forecast">
+<span class="sig-name descname"><span class="pre">generate_pv_generation_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.generate_pv_generation_forecast" title="Link to this definition"></a></dt>
+<dd><p>This function is used to generate pv generation forecast using the configuration file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.normalize_inflexible_loads">
+<span class="sig-name descname"><span class="pre">normalize_inflexible_loads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.normalize_inflexible_loads" title="Link to this definition"></a></dt>
+<dd><p>Check that infelxible_loads are lower than the max_power, if not, set them to the max_power</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.generate_inflexible_loads_forecast">
+<span class="sig-name descname"><span class="pre">generate_inflexible_loads_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.generate_inflexible_loads_forecast" title="Link to this definition"></a></dt>
+<dd><p>This function is used to generate inflexible loads forecast using the configuration file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.reset" title="Link to this definition"></a></dt>
+<dd><p>Reset the current power of the transformer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.step" title="Link to this definition"></a></dt>
+<dd><p>Update current power of the transformer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.is_overloaded">
+<span class="sig-name descname"><span class="pre">is_overloaded</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.is_overloaded" title="Link to this definition"></a></dt>
+<dd><p>Check if the transformer is overloaded</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>True if the transformer is overloaded</p></li>
+<li><p>False if the transformer is not overloaded</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.get_how_overloaded">
+<span class="sig-name descname"><span class="pre">get_how_overloaded</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.get_how_overloaded" title="Link to this definition"></a></dt>
+<dd><p>Check how overloaded the transformer is</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>a amps value if the transformer is overloaded</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.transformer.Transformer.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.transformer.Transformer.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Stavros Orfanoudakis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

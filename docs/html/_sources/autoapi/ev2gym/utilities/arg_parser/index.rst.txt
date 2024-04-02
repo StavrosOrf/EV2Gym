@@ -1,0 +1,24 @@
+:orphan:
+
+:py:mod:`ev2gym.utilities.arg_parser`
+=====================================
+
+.. py:module:: ev2gym.utilities.arg_parser
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.utilities.arg_parser.arg_parser
+
+
+
+.. py:function:: arg_parser()
+
+

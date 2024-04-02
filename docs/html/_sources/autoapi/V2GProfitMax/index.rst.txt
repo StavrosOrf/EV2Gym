@@ -1,0 +1,67 @@
+:orphan:
+
+:py:mod:`V2GProfitMax`
+======================
+
+.. py:module:: V2GProfitMax
+
+.. autoapi-nested-parse::
+
+   This file contains the eMPC class, which is used to control the ev2gym environment using the eMPC algorithm.
+
+   Authors: Cesar Diaz-Londono, Stavros Orfanoudakis
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   V2GProfitMax.V2GProfitMaxOracle
+   V2GProfitMax.V2GProfitMaxLoadsOracle
+
+
+
+
+.. py:class:: V2GProfitMaxOracle(env, verbose=False, **kwargs)
+
+
+   Bases: :py:obj:`ev2gym.baselines.mpc.mpc.MPC`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:attribute:: algo_name
+      :value: 'Optimal (Offline)'
+
+      
+
+   .. py:method:: get_action(env)
+
+      This function computes the MPC actions for the economic problem including V2G.
+
+
+
+.. py:class:: V2GProfitMaxLoadsOracle(env, verbose=False, **kwargs)
+
+
+   Bases: :py:obj:`ev2gym.baselines.mpc.mpc.MPC`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:attribute:: algo_name
+      :value: 'Optimal (Offline)'
+
+      
+
+   .. py:method:: get_action(env)
+
+      This function computes the MPC actions for the economic problem including V2G.
+
+
+

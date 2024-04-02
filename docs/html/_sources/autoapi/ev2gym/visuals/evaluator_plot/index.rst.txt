@@ -1,0 +1,87 @@
+:orphan:
+
+:py:mod:`ev2gym.visuals.evaluator_plot`
+=======================================
+
+.. py:module:: ev2gym.visuals.evaluator_plot
+
+.. autoapi-nested-parse::
+
+   This file is used to plot the comparatigve results of the different algorithms.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.visuals.evaluator_plot.plot_total_power
+   ev2gym.visuals.evaluator_plot.plot_total_power_V2G
+   ev2gym.visuals.evaluator_plot.plot_comparable_EV_SoC
+   ev2gym.visuals.evaluator_plot.plot_comparable_EV_SoC_single
+   ev2gym.visuals.evaluator_plot.plot_comparable_CS_Power
+   ev2gym.visuals.evaluator_plot.plot_actual_power_vs_setpoint
+   ev2gym.visuals.evaluator_plot.plot_prices
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.visuals.evaluator_plot.marker_list
+   ev2gym.visuals.evaluator_plot.color_list
+   ev2gym.visuals.evaluator_plot.algorithm_names
+
+
+.. py:data:: marker_list
+   :value: ['.', 'x', 'o', 'v', 's', 'p', 'P', '*', 'h', 'H', '+', 'X', 'D', 'd', '|', '_']
+
+   
+
+.. py:data:: color_list
+   :value: ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a', 'b', 'g', 'r', 'c', 'm', 'y', 'k']
+
+   
+
+.. py:data:: algorithm_names
+   :value: ['Charge As Fast As Possible', 'OCCF V2G', 'OCCF G2V', 'eMPC V2G', 'eMPC G2V']
+
+   
+
+.. py:function:: plot_total_power(results_path, save_path=None, algorithm_names=None)
+
+
+.. py:function:: plot_total_power_V2G(results_path, save_path=None, algorithm_names=None)
+
+
+.. py:function:: plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None)
+
+   This function is used to plot the SoC of the EVs in the same plot
+
+
+.. py:function:: plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=None)
+
+   This function is used to plot the SoC of the EVs in the same plot
+
+
+.. py:function:: plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None)
+
+   This function is used to plot the SoC of the EVs in the same plot
+
+
+.. py:function:: plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=None)
+
+   This function is used to plot the actual power vs the setpoint power.
+   It plots the behavior of each algorithm in subplots vertically.
+
+
+.. py:function:: plot_prices(results_path, save_path=None, algorithm_names=None)
+
+

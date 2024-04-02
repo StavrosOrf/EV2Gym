@@ -1,0 +1,92 @@
+:orphan:
+
+:py:mod:`ev2gym.utilities.loaders`
+==================================
+
+.. py:module:: ev2gym.utilities.loaders
+
+.. autoapi-nested-parse::
+
+   This file contains the loaders for the EV City environment.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.utilities.loaders.load_ev_spawn_scenarios
+   ev2gym.utilities.loaders.load_power_setpoints
+   ev2gym.utilities.loaders.generate_residential_inflexible_loads
+   ev2gym.utilities.loaders.generate_pv_generation
+   ev2gym.utilities.loaders.load_transformers
+   ev2gym.utilities.loaders.load_ev_charger_profiles
+   ev2gym.utilities.loaders.load_ev_profiles
+   ev2gym.utilities.loaders.load_electricity_prices
+
+
+
+.. py:function:: load_ev_spawn_scenarios(env)
+
+   Loads the EV spawn scenarios of the simulation
+
+
+.. py:function:: load_power_setpoints(env)
+
+   Loads the power setpoints of the simulation based on the day-ahead prices
+
+
+.. py:function:: generate_residential_inflexible_loads(env)
+
+   This function loads the inflexible loads of each transformer
+   in the simulation.
+
+
+.. py:function:: generate_pv_generation(env)
+
+   This function loads the PV generation of each transformer by loading the data from a file
+   and then adding minor variations to the data
+
+
+.. py:function:: load_transformers(env)
+
+   Loads the transformers of the simulation
+   If load_from_replay_path is None, then the transformers are created randomly
+
+   Returns:
+       - transformers: a list of transformer objects
+
+
+.. py:function:: load_ev_charger_profiles(env)
+
+   Loads the EV charger profiles of the simulation
+   If load_from_replay_path is None, then the EV charger profiles are created randomly
+
+   Returns:
+       - ev_charger_profiles: a list of ev_charger_profile objects
+
+
+.. py:function:: load_ev_profiles(env)
+
+   Loads the EV profiles of the simulation
+   If load_from_replay_path is None, then the EV profiles are created randomly
+
+   Returns:
+       - ev_profiles: a list of ev_profile objects
+
+
+.. py:function:: load_electricity_prices(env)
+
+   Loads the electricity prices of the simulation
+   If load_from_replay_path is None, then the electricity prices are created randomly
+
+   Returns:
+       - charge_prices: a matrix of size (number of charging stations, simulation length) with the charge prices
+       - discharge_prices: a matrix of size (number of charging stations, simulation length) with the discharge prices
+
+

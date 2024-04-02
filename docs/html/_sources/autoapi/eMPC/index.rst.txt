@@ -1,0 +1,56 @@
+:orphan:
+
+:py:mod:`eMPC`
+==============
+
+.. py:module:: eMPC
+
+.. autoapi-nested-parse::
+
+   This file contains the eMPC class, which is used to control the ev2gym environment using the eMPC algorithm.
+
+   Authors: Cesar Diaz-Londono, Stavros Orfanoudakis
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   eMPC.eMPC_V2G
+   eMPC.eMPC_G2V
+
+
+
+
+.. py:class:: eMPC_V2G(env, control_horizon=10, verbose=False, **kwargs)
+
+
+   Bases: :py:obj:`ev2gym.baselines.mpc.mpc.MPC`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:method:: get_action(env)
+
+      This function computes the MPC actions for the economic problem including V2G.
+
+
+
+.. py:class:: eMPC_G2V(env, control_horizon=10, verbose=False, **kwargs)
+
+
+   Bases: :py:obj:`ev2gym.baselines.mpc.mpc.MPC`
+
+   This class implements the MPC for the G2V OCCF.
+
+   .. py:method:: get_action(env)
+
+      This function computes the MPC actions for the economic problem including G2V.
+
+
+

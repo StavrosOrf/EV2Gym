@@ -1,0 +1,15 @@
+:py:mod:`ev2gym.visuals`
+========================
+
+.. py:module:: ev2gym.visuals
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   icons/index.rst
+
+

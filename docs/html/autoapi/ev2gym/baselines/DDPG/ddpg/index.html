@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ev2gym.baselines.DDPG.ddpg &mdash; EV2Gym 4/2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../../_static/documentation_options.js?v=e7704871"></script>
+        <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            EV2Gym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rl_agent/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rl_agent/reward/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.reward</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utilities/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">EV2Gym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.baselines.DDPG.ddpg</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/ev2gym/baselines/DDPG/ddpg/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ev2gym.baselines.DDPG.ddpg">
+<span id="ev2gym-baselines-ddpg-ddpg"></span><h1><a class="reference internal" href="#module-ev2gym.baselines.DDPG.ddpg" title="ev2gym.baselines.DDPG.ddpg"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.baselines.DDPG.ddpg</span></code></a><a class="headerlink" href="#module-ev2gym.baselines.DDPG.ddpg" title="Link to this heading"></a></h1>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.baselines.DDPG.ddpg.DDPG" title="ev2gym.baselines.DDPG.ddpg.DDPG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DDPG</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.baselines.DDPG.ddpg.soft_update" title="ev2gym.baselines.DDPG.ddpg.soft_update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">soft_update</span></code></a>(target, source, tau)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.baselines.DDPG.ddpg.hard_update" title="ev2gym.baselines.DDPG.ddpg.hard_update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hard_update</span></code></a>(target, source)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.baselines.DDPG.ddpg.logger" title="ev2gym.baselines.DDPG.ddpg.logger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logger</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.baselines.DDPG.ddpg.device" title="ev2gym.baselines.DDPG.ddpg.device"><code class="xref py py-obj docutils literal notranslate"><span class="pre">device</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.logger">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.baselines.DDPG.ddpg.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.logger" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.device">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.baselines.DDPG.ddpg.</span></span><span class="sig-name descname"><span class="pre">device</span></span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.device" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.soft_update">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.baselines.DDPG.ddpg.</span></span><span class="sig-name descname"><span class="pre">soft_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.soft_update" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.hard_update">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.baselines.DDPG.ddpg.</span></span><span class="sig-name descname"><span class="pre">hard_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.hard_update" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.DDPG">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ev2gym.baselines.DDPG.ddpg.</span></span><span class="sig-name descname"><span class="pre">DDPG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.DDPG" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.DDPG.calc_action">
+<span class="sig-name descname"><span class="pre">calc_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.DDPG.calc_action" title="Link to this definition"></a></dt>
+<dd><p>Evaluates the action to perform in a given state</p>
+<dl>
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>state:          State to perform the action on in the env.</dt><dd><p>Used to evaluate the action.</p>
+</dd>
+</dl>
+<p>action_noise:   If not None, the noise to apply on the evaluated action</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.DDPG.update_params">
+<span class="sig-name descname"><span class="pre">update_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.DDPG.update_params" title="Link to this definition"></a></dt>
+<dd><p>Updates the parameters/networks of the agent according to the given batch.
+This means we ...</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Compute the targets</p></li>
+<li><p>Update the Q-function/critic by one step of gradient descent</p></li>
+<li><p>Update the policy/actor by one step of gradient ascent</p></li>
+<li><p>Update the target networks through a soft update</p></li>
+</ol>
+</div></blockquote>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>batch:  Batch to perform the training of the parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.DDPG.save_checkpoint">
+<span class="sig-name descname"><span class="pre">save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">last_timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_buffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.DDPG.save_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Saving the networks and all parameters to a file in 'checkpoint_dir'</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>last_timestep:  Last timestep in training before saving
+replay_buffer:  Current replay buffer</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.DDPG.get_path_of_latest_file">
+<span class="sig-name descname"><span class="pre">get_path_of_latest_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.DDPG.get_path_of_latest_file" title="Link to this definition"></a></dt>
+<dd><p>Returns the latest created file in 'checkpoint_dir'</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.DDPG.load_checkpoint">
+<span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.DDPG.load_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Saving the networks and all parameters from a given path. If the given path is None
+then the latest saved file in 'checkpoint_dir' will be used.</p>
+<dl class="simple">
+<dt>Arguments:</dt><dd><p>checkpoint_path:    File to load the model from</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.DDPG.set_eval">
+<span class="sig-name descname"><span class="pre">set_eval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.DDPG.set_eval" title="Link to this definition"></a></dt>
+<dd><p>Sets the model in evaluation mode</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.DDPG.set_train">
+<span class="sig-name descname"><span class="pre">set_train</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.DDPG.set_train" title="Link to this definition"></a></dt>
+<dd><p>Sets the model in training mode</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.ddpg.DDPG.get_network">
+<span class="sig-name descname"><span class="pre">get_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.ddpg.DDPG.get_network" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Stavros Orfanoudakis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

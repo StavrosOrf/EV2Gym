@@ -1,0 +1,79 @@
+:orphan:
+
+:py:mod:`ev2gym.baselines.DDPG.noise`
+=====================================
+
+.. py:module:: ev2gym.baselines.DDPG.noise
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.noise.OUNoise
+   ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise
+   ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.noise.ddpg_distance_metric
+
+
+
+.. py:class:: OUNoise(action_dimension, dt=0.01, mu=0, theta=0.15, sigma=0.2)
+
+
+   .. py:method:: reset()
+
+
+   .. py:method:: noise()
+
+
+
+.. py:class:: OrnsteinUhlenbeckActionNoise(mu, sigma, theta=0.15, dt=0.01, x0=None)
+
+
+   .. py:method:: noise()
+
+
+   .. py:method:: reset()
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+
+.. py:class:: AdaptiveParamNoiseSpec(initial_stddev=0.1, desired_action_stddev=0.2, adaptation_coefficient=1.01)
+
+
+   Bases: :py:obj:`object`
+
+   .. py:method:: adapt(distance)
+
+
+   .. py:method:: get_stats()
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+
+.. py:function:: ddpg_distance_metric(actions1, actions2)
+
+   Compute "distance" between actions taken by two policies at the same states
+   Expects numpy arrays
+
+

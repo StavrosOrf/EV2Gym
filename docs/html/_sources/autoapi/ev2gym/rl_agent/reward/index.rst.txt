@@ -1,0 +1,48 @@
+:orphan:
+
+:py:mod:`ev2gym.rl_agent.reward`
+================================
+
+.. py:module:: ev2gym.rl_agent.reward
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.rl_agent.reward.SquaredTrackingErrorReward
+   ev2gym.rl_agent.reward.SqTrError_TrPenalty_UserIncentives
+   ev2gym.rl_agent.reward.ProfitMax_TrPenalty_UserIncentives
+   ev2gym.rl_agent.reward.SquaredTrackingErrorRewardWithPenalty
+   ev2gym.rl_agent.reward.SimpleReward
+   ev2gym.rl_agent.reward.MinimizeTrackerSurplusWithChargeRewards
+   ev2gym.rl_agent.reward.profit_maximization
+
+
+
+.. py:function:: SquaredTrackingErrorReward(env, *args)
+
+
+.. py:function:: SqTrError_TrPenalty_UserIncentives(env, _, user_satisfaction_list, *args)
+
+
+.. py:function:: ProfitMax_TrPenalty_UserIncentives(env, total_costs, user_satisfaction_list, *args)
+
+
+.. py:function:: SquaredTrackingErrorRewardWithPenalty(env, *args)
+
+
+.. py:function:: SimpleReward(env, *args)
+
+
+.. py:function:: MinimizeTrackerSurplusWithChargeRewards(env, *args)
+
+
+.. py:function:: profit_maximization(env, total_costs, user_satisfaction_list, *args)
+
+

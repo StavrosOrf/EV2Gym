@@ -1,0 +1,63 @@
+:orphan:
+
+:py:mod:`ev2gym.models.grid`
+============================
+
+.. py:module:: ev2gym.models.grid
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.models.grid.Grid
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.models.grid.grid
+
+
+.. py:class:: Grid(charging_stations, seed=9, case='default')
+
+
+   .. py:method:: _get_grid_actions(actions)
+
+
+   .. py:method:: step(actions)
+
+
+   .. py:method:: get_grid_state()
+
+      TODO: return the grid state
+
+
+   .. py:method:: get_charging_stations_buses()
+
+
+   .. py:method:: get_bus_transformers()
+
+
+   .. py:method:: visualize_pf()
+
+
+   .. py:method:: get_overloaded_lines()
+
+
+   .. py:method:: get_overloaded_trafos(verbose=True)
+
+
+
+.. py:data:: grid
+
+   
+

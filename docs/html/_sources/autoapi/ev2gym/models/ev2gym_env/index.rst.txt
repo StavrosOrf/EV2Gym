@@ -1,0 +1,96 @@
+:orphan:
+
+:py:mod:`ev2gym.models.ev2gym_env`
+==================================
+
+.. py:module:: ev2gym.models.ev2gym_env
+
+.. autoapi-nested-parse::
+
+   This file contains the EVCity class, which is used to represent the environment of the city.
+   The environment is a gym environment and can be also used with the OpenAI gym standards and baselines.
+   The environment an also be used for standalone simulations without the gym environment.
+
+   ===================================
+   Author: Stavros Orfanoudakis 2023
+   ===================================
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.models.ev2gym_env.EV2Gym
+
+
+
+
+.. py:class:: EV2Gym(config_file=None, load_from_replay_path=None, replay_save_path='./replay/', generate_rnd_game=True, seed=None, save_replay=False, save_plots=False, state_function=PublicPST, reward_function=SquaredTrackingErrorReward, eval_mode='Normal', lightweight_plots=False, empty_ports_at_end_of_simulation=True, extra_sim_name=None, verbose=False, render_mode=None)
+
+
+   Bases: :py:obj:`gymnasium.Env`
+
+   .. py:method:: reset(seed=None, options=None, **kwargs)
+
+      Resets the environment to its initial state
+
+
+   .. py:method:: init_statistic_variables()
+
+
+   .. py:method:: step(actions, visualize=False)
+
+      '
+      Takes an action as input and returns the next state, reward, and whether the episode is done
+      Inputs:
+          - actions: is a vector of size "Sum of all ports of all charging stations taking values in [-1,1]"
+      Returns:
+          - observation: is a matrix with the complete observation space
+          - reward: is a scalar value representing the reward of the current step
+          - done: is a boolean value indicating whether the episode is done or not
+
+
+   .. py:method:: _check_termination(user_satisfaction_list, reward)
+
+      Checks if the episode is done or any constraint is violated
+
+
+   .. py:method:: render()
+
+      Renders the simulation
+
+
+   .. py:method:: _save_sim_replay()
+
+      Saves the simulation data in a pickle file
+
+
+   .. py:method:: _update_power_statistics(departing_evs)
+
+      Updates the power statistics of the simulation
+
+
+   .. py:method:: _step_date()
+
+      Steps the simulation date by one timestep
+
+
+   .. py:method:: _get_observation()
+
+
+   .. py:method:: set_reward_function(reward_function)
+
+      This function sets the reward function of the environment
+
+
+   .. py:method:: _calculate_reward(total_costs, user_satisfaction_list, invalid_action_punishment)
+
+      Calculates the reward for the current step
+
+
+

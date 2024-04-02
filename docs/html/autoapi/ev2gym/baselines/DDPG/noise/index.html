@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ev2gym.baselines.DDPG.noise &mdash; EV2Gym 4/2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../../_static/documentation_options.js?v=e7704871"></script>
+        <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            EV2Gym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rl_agent/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rl_agent/reward/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.reward</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utilities/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">EV2Gym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.baselines.DDPG.noise</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/ev2gym/baselines/DDPG/noise/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ev2gym.baselines.DDPG.noise">
+<span id="ev2gym-baselines-ddpg-noise"></span><h1><a class="reference internal" href="#module-ev2gym.baselines.DDPG.noise" title="ev2gym.baselines.DDPG.noise"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.baselines.DDPG.noise</span></code></a><a class="headerlink" href="#module-ev2gym.baselines.DDPG.noise" title="Link to this heading"></a></h1>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.baselines.DDPG.noise.OUNoise" title="ev2gym.baselines.DDPG.noise.OUNoise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OUNoise</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise" title="ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrnsteinUhlenbeckActionNoise</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec" title="ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AdaptiveParamNoiseSpec</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.baselines.DDPG.noise.ddpg_distance_metric" title="ev2gym.baselines.DDPG.noise.ddpg_distance_metric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ddpg_distance_metric</span></code></a>(actions1, actions2)</p></td>
+<td><p>Compute &quot;distance&quot; between actions taken by two policies at the same states</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.OUNoise">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ev2gym.baselines.DDPG.noise.</span></span><span class="sig-name descname"><span class="pre">OUNoise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_dimension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.OUNoise" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.OUNoise.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.OUNoise.reset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.OUNoise.noise">
+<span class="sig-name descname"><span class="pre">noise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.OUNoise.noise" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ev2gym.baselines.DDPG.noise.</span></span><span class="sig-name descname"><span class="pre">OrnsteinUhlenbeckActionNoise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise.noise">
+<span class="sig-name descname"><span class="pre">noise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise.noise" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise.reset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.OrnsteinUhlenbeckActionNoise.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ev2gym.baselines.DDPG.noise.</span></span><span class="sig-name descname"><span class="pre">AdaptiveParamNoiseSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_stddev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desired_action_stddev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptation_coefficient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec.adapt">
+<span class="sig-name descname"><span class="pre">adapt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec.adapt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec.get_stats">
+<span class="sig-name descname"><span class="pre">get_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec.get_stats" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.AdaptiveParamNoiseSpec.__repr__" title="Link to this definition"></a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.baselines.DDPG.noise.ddpg_distance_metric">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.baselines.DDPG.noise.</span></span><span class="sig-name descname"><span class="pre">ddpg_distance_metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.baselines.DDPG.noise.ddpg_distance_metric" title="Link to this definition"></a></dt>
+<dd><p>Compute &quot;distance&quot; between actions taken by two policies at the same states
+Expects numpy arrays</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Stavros Orfanoudakis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

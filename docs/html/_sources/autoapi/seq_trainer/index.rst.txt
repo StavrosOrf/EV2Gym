@@ -1,0 +1,30 @@
+:orphan:
+
+:py:mod:`seq_trainer`
+=====================
+
+.. py:module:: seq_trainer
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   seq_trainer.SequenceTrainer
+
+
+
+
+.. py:class:: SequenceTrainer(model, optimizer, batch_size, get_batch, loss_fn, scheduler=None, eval_fns=None)
+
+
+   Bases: :py:obj:`ev2gym.baselines.DT.training.trainer.Trainer`
+
+   .. py:method:: train_step()
+
+
+

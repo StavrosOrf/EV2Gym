@@ -1,0 +1,133 @@
+:orphan:
+
+:py:mod:`ev2gym.models.ev`
+==========================
+
+.. py:module:: ev2gym.models.ev
+
+.. autoapi-nested-parse::
+
+   ===================================
+   Author: Stavros Orfanoudakis 2023
+   ===================================
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.models.ev.EV
+
+
+
+
+.. py:class:: EV(id, location, battery_capacity_at_arrival, time_of_arrival, time_of_departure, desired_capacity=None, battery_capacity=50, min_battery_capacity=10, max_ac_charge_power=22, min_ac_charge_power=0, max_dc_charge_power=50, max_discharge_power=-22, min_discharge_power=0, ev_phases=3, transition_soc=0.8, charge_efficiency=1, discharge_efficiency=1, timescale=5)
+
+
+   This file contains the EV class, which is used to represent the EVs in the environment.
+   The two-stage battery model was adapted from https://github.com/zach401/acnportal/blob/master/acnportal/acnsim/models/battery.py#L186
+
+
+   Attributes:
+       - id: unique identifier of the EV (uniquep per charging station)
+       - location: the location of the EV (charging station id)
+       - battery_capacity_at_arrival: the battery capacity of the EV at arrival time in kWh
+       - time_of_arrival: the time of arrival of the EV in the charging station in simulation timesteps
+       - time_of_departure: the earliest time of departure of the EV in the charging station in simulation timesteps (if use_probabilistic_time_of_departure is False, then time_of_departure is equal to time_of_departure)
+       - desired_capacity: the desired capacity of the EV at departure time in kWh
+       - use_probabilistic_time_of_departure: whether the EV will use a probabilistic time of departure or not
+       - battery_capacity: the battery capacity of the EV in kWh
+       - min_desired_capacity: the minimum desired capacity of the EV in kWh to maximize battery life
+       - max_desired_capacity: the maximum desired capacity of the EV in kWh to maximize battery life
+       - charge_efficiency: the efficiency of the EV when charging
+       - discharge_efficiency: the efficiency of the EV when discharging        
+       - timescale: the timescale of the simulation (useful for determining the charging speed)
+
+   Status variables:
+       - current_capacity: the current battery capacity of the EV in kWh
+       - current_energy: the current power input of the EV in kW (positive for charging, negative for discharging)
+       - charging_cycles: the number of charging/discharging cycles of the EV (useful for determining battery life parameters)
+       - previous_power: the power input of the EV in the previous timestep in kW (positive for charging, negative for discharging)
+
+   Methods:
+       - step: updates the EV status according to the actions taken by the EV charger
+       - _charge: charges the EV
+       - _discharge: discharges the EV        
+
+
+   .. py:method:: reset()
+
+      The reset method is used to reset the EV's status to the initial state.
+
+
+   .. py:method:: step(amps, voltage, phases=1, type='AC')
+
+      The step method is used to update the EV's status according to the actions taken by the EV charger.
+      Inputs:
+          - action: the power input in kW (positive for charging, negative for discharging)
+      Outputs:
+          - self.current_energy: the current power input of the EV in kW (positive for charging, negative for discharging)
+          - self.actual_curent: the actual current input of the EV in A (positive for charging, negative for discharging)
+
+
+   .. py:method:: my_ceil(a, precision=2)
+
+
+   .. py:method:: is_departing(timestep)
+
+      The is_departing method is used to determine whether the EV is departing or not.
+      Inputs:
+          - timestep: the current timestep of the simulation
+      Outputs:
+          - Returns the user satisfaction of the EV in departing else None
+
+
+   .. py:method:: get_user_satisfaction()
+
+      A function that returns the user satisfaction of the EV when departing.
+      Outputs: 
+          - Score: a value between 0 and 1
+
+
+   .. py:method:: get_soc()
+
+      A function that returns the state of charge of the EV.
+      Outputs: 
+          - SoC: the state of charge of the EV in [0,1]
+
+
+   .. py:method:: __str__()
+
+      Return str(self).
+
+
+   .. py:method:: _charge(amps, voltage, phases=1)
+
+
+   .. py:method:: _discharge(amps, voltage, phases)
+
+      The _discharge method is used to discharge the EV's battery.
+      Inputs:
+          - power: the power input in kW (it is negative because of the discharge)
+
+
+   .. py:method:: get_battery_degradation()
+
+      A function that returns the capacity loss of the EV.
+
+      Qacc := Accumulated battery cell throughput (Ah)
+      Qsim := Battery cell throughput during simulation (Ah)        
+      Tacc := Battery age (days)
+      Tsim := Simulation time (days)
+      theta := Battery temperature (K)
+
+      Outputs: 
+          - Capacity loss: the capacity loss
+
+
+

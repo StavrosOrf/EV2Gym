@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ev2gym.models.ev_charger &mdash; EV2Gym 4/2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=e7704871"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            EV2Gym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/reward/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.reward</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">EV2Gym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.models.ev_charger</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/ev2gym/models/ev_charger/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ev2gym.models.ev_charger">
+<span id="ev2gym-models-ev-charger"></span><h1><a class="reference internal" href="#module-ev2gym.models.ev_charger" title="ev2gym.models.ev_charger"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.models.ev_charger</span></code></a><a class="headerlink" href="#module-ev2gym.models.ev_charger" title="Link to this heading"></a></h1>
+<section id="author-stavros-orfanoudakis-2023">
+<h2>Author: Stavros Orfanoudakis 2023<a class="headerlink" href="#author-stavros-orfanoudakis-2023" title="Link to this heading"></a></h2>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.models.ev_charger.EV_Charger" title="ev2gym.models.ev_charger.EV_Charger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EV_Charger</span></code></a></p></td>
+<td><p>Attributes:</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="ev2gym.models.ev_charger.EV_Charger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ev2gym.models.ev_charger.</span></span><span class="sig-name descname"><span class="pre">EV_Charger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected_bus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected_transformer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geo_location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_charge_current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_charge_current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">56</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_discharge_current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_discharge_current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-56</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">230</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_ports</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charger_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timescale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev_charger.EV_Charger" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Attributes:</dt><dd><ul class="simple">
+<li><p>id: unique identifier of the EV charger</p></li>
+<li><p>connected_bus: the bus to which the EV charger is connected</p></li>
+<li><p>connected_transformer: the transformer(s) to which the EV charger is connected</p></li>
+<li><p>geo_location: the geographical location of the EV charger</p></li>
+<li><p>n_ports: the number of ports of the EV charger</p></li>
+<li><p>charger_type: the type of the EV charger (typ1, type2, or DC)</p></li>
+<li><p>bi_directional: whether the EV charger can provide power to the grid or not</p></li>
+<li><p>timescale: the timescale of the simulation (useful for determining the charging speed)</p></li>
+<li><p>verbose: whether to print information about the EV charger or not</p></li>
+</ul>
+</dd>
+<dt>Status variables:</dt><dd><ul class="simple">
+<li><p>current_power_output: the current total power output of the EV charger (positive for draining energy from the grid, negative for providing energy to the grid)</p></li>
+<li><p>evs_connected: the list of EVs connected to the EV charger</p></li>
+<li><p>n_ev_connected: the current number of EVs connected to the EV charger</p></li>
+<li><p>current_step: the current simulation timestep</p></li>
+</ul>
+</dd>
+<dt>Statistics variables:</dt><dd><ul class="simple">
+<li><p>total_energy_charged: the total energy charged by the EV charger</p></li>
+<li><p>total_energy_discharged: the total energy discharged by the EV charger</p></li>
+<li><p>total_profits: the total profit of the EV charger</p></li>
+<li><p>total_evs_served: the total number of EVs served by the EV charger</p></li>
+<li><p>total_user_satisfaction: the total user satisfaction of the EV charger</p></li>
+</ul>
+</dd>
+<dt>Methods:</dt><dd><ul class="simple">
+<li><p>step: updates the EV charger status according to the actions taken by the EVs</p></li>
+<li><p>reset: resets the EV charger status to the initial state</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev_charger.EV_Charger.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge_price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discharge_price</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev_charger.EV_Charger.step" title="Link to this definition"></a></dt>
+<dd><p>Updates the EV charger status according to the actions taken by the EVs
+Inputs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>actions: a list of actions taken by the EVs connected to the EV charger in the format of (current) <a href="#id1"><span class="problematic" id="id2">*</span></a>n_ports positive for charging negative for discharging, default is to zer if no ev is connected</p></li>
+<li><p>charge_price: the price of charging per kWh in the current timestep</p></li>
+<li><p>discharge_price: the price of discharging per kWh in the current timestep</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>Outputs:</dt><dd><ul class="simple">
+<li><p>profit: the total profit + costs of charging and discharging in the current timestep</p></li>
+<li><p>user_satisfaction: a list of user satisfaction values for each EV connected to the EV charger in the current timestep</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev_charger.EV_Charger.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev_charger.EV_Charger.__str__" title="Link to this definition"></a></dt>
+<dd><p>Return str(self).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev_charger.EV_Charger.get_max_power">
+<span class="sig-name descname"><span class="pre">get_max_power</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev_charger.EV_Charger.get_max_power" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev_charger.EV_Charger.get_min_charge_power">
+<span class="sig-name descname"><span class="pre">get_min_charge_power</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev_charger.EV_Charger.get_min_charge_power" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev_charger.EV_Charger.get_min_power">
+<span class="sig-name descname"><span class="pre">get_min_power</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev_charger.EV_Charger.get_min_power" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev_charger.EV_Charger.get_avg_user_satisfaction">
+<span class="sig-name descname"><span class="pre">get_avg_user_satisfaction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev_charger.EV_Charger.get_avg_user_satisfaction" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev_charger.EV_Charger.spawn_ev">
+<span class="sig-name descname"><span class="pre">spawn_ev</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ev</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev_charger.EV_Charger.spawn_ev" title="Link to this definition"></a></dt>
+<dd><p>Adds an EV to the list of EVs connected to the EV charger
+Inputs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>ev: the EV to be added to the list of EVs connected to the EV charger</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev_charger.EV_Charger.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev_charger.EV_Charger.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the EV charger status to the initial state</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Stavros Orfanoudakis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

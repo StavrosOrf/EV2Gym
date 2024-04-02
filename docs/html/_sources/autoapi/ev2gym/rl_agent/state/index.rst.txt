@@ -1,0 +1,40 @@
+:orphan:
+
+:py:mod:`ev2gym.rl_agent.state`
+===============================
+
+.. py:module:: ev2gym.rl_agent.state
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.rl_agent.state.PublicPST
+   ev2gym.rl_agent.state.V2G_profit_max
+   ev2gym.rl_agent.state.V2G_profit_max_loads
+   ev2gym.rl_agent.state.BusinessPSTwithMoreKnowledge
+
+
+
+.. py:function:: PublicPST(env, *args)
+
+
+.. py:function:: V2G_profit_max(env, *args)
+
+
+.. py:function:: V2G_profit_max_loads(env, *args)
+
+   This is the state function for the V2GProfitMax scenario with loads
+
+
+.. py:function:: BusinessPSTwithMoreKnowledge(env, *args)
+
+   This state function is used for the business case scenario that requires more knowledge such as SoC and time of departure for each EV present.
+
+

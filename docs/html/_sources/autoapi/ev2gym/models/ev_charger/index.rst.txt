@@ -1,0 +1,103 @@
+:orphan:
+
+:py:mod:`ev2gym.models.ev_charger`
+==================================
+
+.. py:module:: ev2gym.models.ev_charger
+
+.. autoapi-nested-parse::
+
+   This file contains the EV_Charger class, which is used to represent the EV chargers in the environment.
+   ===================================
+   Author: Stavros Orfanoudakis 2023
+   ===================================
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.models.ev_charger.EV_Charger
+
+
+
+
+.. py:class:: EV_Charger(id, connected_bus, connected_transformer, geo_location=None, min_charge_current=0, max_charge_current=56, min_discharge_current=0, max_discharge_current=-56, voltage=230, n_ports=2, charger_type='AC', phases=3, timescale=5, verbose=False)
+
+
+   Attributes:
+       - id: unique identifier of the EV charger
+       - connected_bus: the bus to which the EV charger is connected
+       - connected_transformer: the transformer(s) to which the EV charger is connected
+       - geo_location: the geographical location of the EV charger                
+       - n_ports: the number of ports of the EV charger
+       - charger_type: the type of the EV charger (typ1, type2, or DC)
+       - bi_directional: whether the EV charger can provide power to the grid or not
+       - timescale: the timescale of the simulation (useful for determining the charging speed)
+       - verbose: whether to print information about the EV charger or not
+
+   Status variables:
+       - current_power_output: the current total power output of the EV charger (positive for draining energy from the grid, negative for providing energy to the grid)
+       - evs_connected: the list of EVs connected to the EV charger
+       - n_ev_connected: the current number of EVs connected to the EV charger
+       - current_step: the current simulation timestep
+
+   Statistics variables:
+       - total_energy_charged: the total energy charged by the EV charger  
+       - total_energy_discharged: the total energy discharged by the EV charger
+       - total_profits: the total profit of the EV charger
+       - total_evs_served: the total number of EVs served by the EV charger
+       - total_user_satisfaction: the total user satisfaction of the EV charger
+
+   Methods:
+       - step: updates the EV charger status according to the actions taken by the EVs
+       - reset: resets the EV charger status to the initial state      
+
+   .. py:method:: step(actions, charge_price, discharge_price)
+
+      Updates the EV charger status according to the actions taken by the EVs
+      Inputs:
+          - actions: a list of actions taken by the EVs connected to the EV charger in the format of (current) *n_ports positive for charging negative for discharging, default is to zer if no ev is connected        
+          - charge_price: the price of charging per kWh in the current timestep
+          - discharge_price: the price of discharging per kWh in the current timestep
+
+      Outputs:
+          - profit: the total profit + costs of charging and discharging in the current timestep
+          - user_satisfaction: a list of user satisfaction values for each EV connected to the EV charger in the current timestep
+
+
+   .. py:method:: __str__()
+
+      Return str(self).
+
+
+   .. py:method:: get_max_power()
+
+
+   .. py:method:: get_min_charge_power()
+
+
+   .. py:method:: get_min_power()
+
+
+   .. py:method:: get_avg_user_satisfaction()
+
+
+   .. py:method:: spawn_ev(ev)
+
+      Adds an EV to the list of EVs connected to the EV charger
+      Inputs:
+          - ev: the EV to be added to the list of EVs connected to the EV charger
+
+
+   .. py:method:: reset()
+
+      Resets the EV charger status to the initial state
+
+
+

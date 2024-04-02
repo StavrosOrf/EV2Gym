@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ev2gym.utilities.loaders &mdash; EV2Gym 4/2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=e7704871"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            EV2Gym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/reward/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.reward</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">EV2Gym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities.loaders</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/ev2gym/utilities/loaders/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ev2gym.utilities.loaders">
+<span id="ev2gym-utilities-loaders"></span><h1><a class="reference internal" href="#module-ev2gym.utilities.loaders" title="ev2gym.utilities.loaders"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities.loaders</span></code></a><a class="headerlink" href="#module-ev2gym.utilities.loaders" title="Link to this heading"></a></h1>
+<p>This file contains the loaders for the EV City environment.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.utilities.loaders.load_ev_spawn_scenarios" title="ev2gym.utilities.loaders.load_ev_spawn_scenarios"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_ev_spawn_scenarios</span></code></a>(env)</p></td>
+<td><p>Loads the EV spawn scenarios of the simulation</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.utilities.loaders.load_power_setpoints" title="ev2gym.utilities.loaders.load_power_setpoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_power_setpoints</span></code></a>(env)</p></td>
+<td><p>Loads the power setpoints of the simulation based on the day-ahead prices</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.utilities.loaders.generate_residential_inflexible_loads" title="ev2gym.utilities.loaders.generate_residential_inflexible_loads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_residential_inflexible_loads</span></code></a>(env)</p></td>
+<td><p>This function loads the inflexible loads of each transformer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.utilities.loaders.generate_pv_generation" title="ev2gym.utilities.loaders.generate_pv_generation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_pv_generation</span></code></a>(env)</p></td>
+<td><p>This function loads the PV generation of each transformer by loading the data from a file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.utilities.loaders.load_transformers" title="ev2gym.utilities.loaders.load_transformers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_transformers</span></code></a>(env)</p></td>
+<td><p>Loads the transformers of the simulation</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.utilities.loaders.load_ev_charger_profiles" title="ev2gym.utilities.loaders.load_ev_charger_profiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_ev_charger_profiles</span></code></a>(env)</p></td>
+<td><p>Loads the EV charger profiles of the simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.utilities.loaders.load_ev_profiles" title="ev2gym.utilities.loaders.load_ev_profiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_ev_profiles</span></code></a>(env)</p></td>
+<td><p>Loads the EV profiles of the simulation</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ev2gym.utilities.loaders.load_electricity_prices" title="ev2gym.utilities.loaders.load_electricity_prices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_electricity_prices</span></code></a>(env)</p></td>
+<td><p>Loads the electricity prices of the simulation</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.loaders.load_ev_spawn_scenarios">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.loaders.</span></span><span class="sig-name descname"><span class="pre">load_ev_spawn_scenarios</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.loaders.load_ev_spawn_scenarios" title="Link to this definition"></a></dt>
+<dd><p>Loads the EV spawn scenarios of the simulation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.loaders.load_power_setpoints">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.loaders.</span></span><span class="sig-name descname"><span class="pre">load_power_setpoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.loaders.load_power_setpoints" title="Link to this definition"></a></dt>
+<dd><p>Loads the power setpoints of the simulation based on the day-ahead prices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.loaders.generate_residential_inflexible_loads">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.loaders.</span></span><span class="sig-name descname"><span class="pre">generate_residential_inflexible_loads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.loaders.generate_residential_inflexible_loads" title="Link to this definition"></a></dt>
+<dd><p>This function loads the inflexible loads of each transformer
+in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.loaders.generate_pv_generation">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.loaders.</span></span><span class="sig-name descname"><span class="pre">generate_pv_generation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.loaders.generate_pv_generation" title="Link to this definition"></a></dt>
+<dd><p>This function loads the PV generation of each transformer by loading the data from a file
+and then adding minor variations to the data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.loaders.load_transformers">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.loaders.</span></span><span class="sig-name descname"><span class="pre">load_transformers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.loaders.load_transformers" title="Link to this definition"></a></dt>
+<dd><p>Loads the transformers of the simulation
+If load_from_replay_path is None, then the transformers are created randomly</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>transformers: a list of transformer objects</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="../../models/transformer/index.html#ev2gym.models.transformer.Transformer" title="ev2gym.models.transformer.Transformer">ev2gym.models.transformer.Transformer</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.loaders.load_ev_charger_profiles">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.loaders.</span></span><span class="sig-name descname"><span class="pre">load_ev_charger_profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.loaders.load_ev_charger_profiles" title="Link to this definition"></a></dt>
+<dd><p>Loads the EV charger profiles of the simulation
+If load_from_replay_path is None, then the EV charger profiles are created randomly</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ev_charger_profiles: a list of ev_charger_profile objects</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="../../models/ev_charger/index.html#ev2gym.models.ev_charger.EV_Charger" title="ev2gym.models.ev_charger.EV_Charger">ev2gym.models.ev_charger.EV_Charger</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.loaders.load_ev_profiles">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.loaders.</span></span><span class="sig-name descname"><span class="pre">load_ev_profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.loaders.load_ev_profiles" title="Link to this definition"></a></dt>
+<dd><p>Loads the EV profiles of the simulation
+If load_from_replay_path is None, then the EV profiles are created randomly</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ev_profiles: a list of ev_profile objects</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="../../models/ev/index.html#ev2gym.models.ev.EV" title="ev2gym.models.ev.EV">ev2gym.models.ev.EV</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ev2gym.utilities.loaders.load_electricity_prices">
+<span class="sig-prename descclassname"><span class="pre">ev2gym.utilities.loaders.</span></span><span class="sig-name descname"><span class="pre">load_electricity_prices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.utilities.loaders.load_electricity_prices" title="Link to this definition"></a></dt>
+<dd><p>Loads the electricity prices of the simulation
+If load_from_replay_path is None, then the electricity prices are created randomly</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>charge_prices: a matrix of size (number of charging stations, simulation length) with the charge prices</p></li>
+<li><p>discharge_prices: a matrix of size (number of charging stations, simulation length) with the discharge prices</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[numpy.ndarray, numpy.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Stavros Orfanoudakis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

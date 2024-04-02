@@ -1,0 +1,70 @@
+:orphan:
+
+:py:mod:`ev2gym.utilities.utils`
+================================
+
+.. py:module:: ev2gym.utilities.utils
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.utilities.utils.get_statistics
+   ev2gym.utilities.utils.print_statistics
+   ev2gym.utilities.utils.spawn_single_EV
+   ev2gym.utilities.utils.EV_spawner
+   ev2gym.utilities.utils.smooth_vector
+   ev2gym.utilities.utils.median_smoothing
+   ev2gym.utilities.utils.generate_power_setpoints
+   ev2gym.utilities.utils.calculate_charge_power_potential
+
+
+
+.. py:function:: get_statistics(env)
+
+
+.. py:function:: print_statistics(env)
+
+
+.. py:function:: spawn_single_EV(env, scenario, cs_id, port, hour, minute, step, min_time_of_stay_steps)
+
+   This function spawns a single EV and returns it
+
+
+.. py:function:: EV_spawner(env)
+
+   This function spawns all the EVs of the current simulation and returns the list of EVs
+
+   Returns:
+       EVs: list of EVs
+
+
+.. py:function:: smooth_vector(v)
+
+
+.. py:function:: median_smoothing(v, window_size)
+
+
+.. py:function:: generate_power_setpoints(env)
+
+   This function generates the power setpoints for the entire simulation using
+   the list of EVs and the charging stations from the environment.
+
+   It considers the ev SoC and teh steps required to fully charge the EVs.
+
+   Returns:
+       power_setpoints: np.ndarray
+
+
+
+.. py:function:: calculate_charge_power_potential(env)
+
+   This function calculates the total charge power potential of all currently parked EVs for the current time step     
+
+

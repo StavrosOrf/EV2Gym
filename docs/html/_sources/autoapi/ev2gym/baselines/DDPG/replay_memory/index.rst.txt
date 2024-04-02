@@ -1,0 +1,50 @@
+:orphan:
+
+:py:mod:`ev2gym.baselines.DDPG.replay_memory`
+=============================================
+
+.. py:module:: ev2gym.baselines.DDPG.replay_memory
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.replay_memory.ReplayMemory
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   ev2gym.baselines.DDPG.replay_memory.Transition
+
+
+.. py:data:: Transition
+
+   
+
+.. py:class:: ReplayMemory(capacity)
+
+
+   Bases: :py:obj:`object`
+
+   .. py:method:: push(*args)
+
+      Saves a transition.
+
+
+   .. py:method:: sample(batch_size)
+
+
+   .. py:method:: __len__()
+
+
+

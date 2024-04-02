@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ev2gym.models.ev2gym_env &mdash; EV2Gym 4/2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=e7704871"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            EV2Gym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/reward/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.reward</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.utilities</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rl_agent/state/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.rl_agent.state</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">EV2Gym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.models.ev2gym_env</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/ev2gym/models/ev2gym_env/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-ev2gym.models.ev2gym_env">
+<span id="ev2gym-models-ev2gym-env"></span><h1><a class="reference internal" href="#module-ev2gym.models.ev2gym_env" title="ev2gym.models.ev2gym_env"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ev2gym.models.ev2gym_env</span></code></a><a class="headerlink" href="#module-ev2gym.models.ev2gym_env" title="Link to this heading"></a></h1>
+<p>This file contains the EVCity class, which is used to represent the environment of the city.
+The environment is a gym environment and can be also used with the OpenAI gym standards and baselines.
+The environment an also be used for standalone simulations without the gym environment.</p>
+<section id="author-stavros-orfanoudakis-2023">
+<h2>Author: Stavros Orfanoudakis 2023<a class="headerlink" href="#author-stavros-orfanoudakis-2023" title="Link to this heading"></a></h2>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ev2gym.models.ev2gym_env.EV2Gym" title="ev2gym.models.ev2gym_env.EV2Gym"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EV2Gym</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ev2gym.models.ev2gym_env.</span></span><span class="sig-name descname"><span class="pre">EV2Gym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_from_replay_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./replay/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generate_rnd_game</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_replay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_plots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">PublicPST</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">SquaredTrackingErrorReward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Normal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lightweight_plots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_ports_at_end_of_simulation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_sim_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">gymnasium.Env</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the environment to its initial state</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym.init_statistic_variables">
+<span class="sig-name descname"><span class="pre">init_statistic_variables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym.init_statistic_variables" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visualize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym.step" title="Link to this definition"></a></dt>
+<dd><p>'
+Takes an action as input and returns the next state, reward, and whether the episode is done
+Inputs:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>actions: is a vector of size &quot;Sum of all ports of all charging stations taking values in [-1,1]&quot;</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>observation: is a matrix with the complete observation space</p></li>
+<li><p>reward: is a scalar value representing the reward of the current step</p></li>
+<li><p>done: is a boolean value indicating whether the episode is done or not</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym._check_termination">
+<span class="sig-name descname"><span class="pre">_check_termination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_satisfaction_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym._check_termination" title="Link to this definition"></a></dt>
+<dd><p>Checks if the episode is done or any constraint is violated</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym.render" title="Link to this definition"></a></dt>
+<dd><p>Renders the simulation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym._save_sim_replay">
+<span class="sig-name descname"><span class="pre">_save_sim_replay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym._save_sim_replay" title="Link to this definition"></a></dt>
+<dd><p>Saves the simulation data in a pickle file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym._update_power_statistics">
+<span class="sig-name descname"><span class="pre">_update_power_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">departing_evs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym._update_power_statistics" title="Link to this definition"></a></dt>
+<dd><p>Updates the power statistics of the simulation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym._step_date">
+<span class="sig-name descname"><span class="pre">_step_date</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym._step_date" title="Link to this definition"></a></dt>
+<dd><p>Steps the simulation date by one timestep</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym._get_observation">
+<span class="sig-name descname"><span class="pre">_get_observation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym._get_observation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym.set_reward_function">
+<span class="sig-name descname"><span class="pre">set_reward_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym.set_reward_function" title="Link to this definition"></a></dt>
+<dd><p>This function sets the reward function of the environment</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ev2gym.models.ev2gym_env.EV2Gym._calculate_reward">
+<span class="sig-name descname"><span class="pre">_calculate_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total_costs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_satisfaction_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invalid_action_punishment</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ev2gym.models.ev2gym_env.EV2Gym._calculate_reward" title="Link to this definition"></a></dt>
+<dd><p>Calculates the reward for the current step</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Stavros Orfanoudakis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
