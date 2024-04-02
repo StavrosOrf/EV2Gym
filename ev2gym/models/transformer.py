@@ -1,7 +1,5 @@
 '''
-===================================
-Author: Stavros Orfanoudakis 2023
-===================================
+This file contains the Transformer class which is used to model the transformer in the ev_city environment
 '''
 import numpy as np
 

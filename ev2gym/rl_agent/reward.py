@@ -1,11 +1,11 @@
-# This file contains the reward function for the RL agent
-# Users can create their own reward function here or in their own file using the same structure as below
+'''This file contains various example reward functions for the RL agent. Users can create their own reward function here or in their own file using the same structure as below
+'''
 
 import math
 
 def SquaredTrackingErrorReward(env,*args):
-    # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
-    # The reward is negative
+    '''This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
+    The reward is negative'''
     
     reward = - (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) -
         env.current_power_usage[env.current_step-1])**2
@@ -13,9 +13,9 @@ def SquaredTrackingErrorReward(env,*args):
     return reward
 
 def SqTrError_TrPenalty_UserIncentives(env, _, user_satisfaction_list, *args):
-    # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
-    # It penalizes transofrmers that are overloaded    
-    # The reward is negative
+    ''' This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
+    It penalizes transofrmers that are overloaded    
+    The reward is negative'''
     
     tr_max_limit = env.transformers[0].max_power[env.current_step-1]
     
@@ -31,9 +31,7 @@ def SqTrError_TrPenalty_UserIncentives(env, _, user_satisfaction_list, *args):
     return reward
 
 def ProfitMax_TrPenalty_UserIncentives(env, total_costs, user_satisfaction_list, *args):
-    # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
-    # It penalizes transofrmers that are overloaded    
-    # The reward is negative
+    
     reward = total_costs
     
     for tr in env.transformers:
@@ -45,10 +43,10 @@ def ProfitMax_TrPenalty_UserIncentives(env, total_costs, user_satisfaction_list,
     return reward
 
 def SquaredTrackingErrorRewardWithPenalty(env,*args):
-    # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
-    # The reward is negative
-    # If the EV is not charging, the reward is penalized
-    
+    ''' This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
+    The reward is negative
+    If the EV is not charging, the reward is penalized
+    '''
     if env.current_power_usage[env.current_step-1] == 0 and env.charge_power_potential[env.current_step-2] != 0:
         reward = - (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) -
             env.current_power_usage[env.current_step-1])**2 - 100
@@ -59,14 +57,14 @@ def SquaredTrackingErrorRewardWithPenalty(env,*args):
     return reward
 
 def SimpleReward(env,*args):
-    # This reward function does not consider the charge power potential
+    '''This reward function does not consider the charge power potential'''
     
     reward = - (env.power_setpoints[env.current_step-1] - env.current_power_usage[env.current_step-1])**2
     
     return reward
 
 def MinimizeTrackerSurplusWithChargeRewards(env,*args):
-    # This reward function minimizes the tracker surplus and gives a reward for charging
+    ''' This reward function minimizes the tracker surplus and gives a reward for charging '''
     
     reward = 0
     if env.power_setpoints[env.current_step-1] < env.current_power_usage[env.current_step-1]:
@@ -77,7 +75,7 @@ def MinimizeTrackerSurplusWithChargeRewards(env,*args):
     return reward
 
 def profit_maximization(env, total_costs, user_satisfaction_list, *args):
-    # This reward function is the profit maximization reward function
+    ''' This reward function is used for the profit maximization case '''
     
     reward = total_costs
     

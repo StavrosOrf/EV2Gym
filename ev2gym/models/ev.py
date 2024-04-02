@@ -1,7 +1,5 @@
 '''
-===================================
-Author: Stavros Orfanoudakis 2023
-===================================
+This file contains the EV class.
 '''
 
 import numpy as np
@@ -12,7 +10,7 @@ from typing import Tuple, Union
 
 class EV():
     '''
-    This file contains the EV class, which is used to represent the EVs in the environment.
+     which is used to represent the EVs in the environment.
     The two-stage battery model was adapted from https://github.com/zach401/acnportal/blob/master/acnportal/acnsim/models/battery.py#L186
 
 

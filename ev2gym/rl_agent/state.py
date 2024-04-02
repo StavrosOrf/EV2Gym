@@ -1,12 +1,12 @@
-# This file contains the state function for the RL agent
+'''  This file contains various example state functions for the RL agent '''
 import math
 import numpy as np
 
 
 def PublicPST(env, *args):
-    # This state function is the public power setpoints
-    # The state is the public power setpoints
-    # The state is a vector
+    '''This state function is the public power setpoints
+    The state is the public power setpoints
+    The state is a vector '''
 
     state = [
         (env.current_step/env.simulation_length),
@@ -63,7 +63,10 @@ def PublicPST(env, *args):
     return state
 
 def V2G_profit_max(env, *args):
-
+    '''
+    This is the state function for the V2GProfitMax scenario.
+    '''
+    
     state = [
         (env.current_step),        
     ]

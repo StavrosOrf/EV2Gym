@@ -2,10 +2,6 @@
 This file contains the EVCity class, which is used to represent the environment of the city.
 The environment is a gym environment and can be also used with the OpenAI gym standards and baselines.
 The environment an also be used for standalone simulations without the gym environment.
-
-===================================
-Author: Stavros Orfanoudakis 2023
-===================================
 '''
 
 import gymnasium as gym

@@ -1,8 +1,5 @@
 '''
 This file contains the EV_Charger class, which is used to represent the EV chargers in the environment.
-===================================
-Author: Stavros Orfanoudakis 2023
-===================================
 '''
 
 import numpy as np

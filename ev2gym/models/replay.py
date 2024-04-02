@@ -1,7 +1,5 @@
 '''
-===================================
-Author: Stavros Orfanoudakis 2023
-===================================
+This file is part of the ev2gym package. It is used to save the simulation data in a pickle file.
 '''
 
 import os

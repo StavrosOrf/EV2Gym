@@ -48,7 +48,7 @@ language = 'English'
 # exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',"**.ipynb_checkpoints",
 #                     "*.csv", "*.json", "*.txt", "*.yml", "*.yaml"]
 
-autodoc_default_options = {
+autoapi_options = {
     'members': True,
     'show-inheritance': True,
 }
@@ -58,6 +58,7 @@ autoapi_dirs = ['../ev2gym/rl_agent',
                 '../ev2gym/visuals',
                 '../ev2gym/baselines',
                 '../ev2gym/models',
+                '../ev2gym/example_config_files',
                 ]
 
 # -- Options for HTML output -------------------------------------------------
