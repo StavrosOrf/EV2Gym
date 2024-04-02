@@ -13,7 +13,7 @@ import sys
 # sys.path.append(os.path.abspath('../ev2gym'))
 
 sys.path.insert(0, os.path.abspath(".."))
-sys.path.append(os.path.abspath("../ev2gym/"))
+sys.path.insert(0, os.path.abspath("../ev2gym/"))
 
 project = 'EV2Gym'
 copyright = '2024, Stavros Orfanoudakis'
