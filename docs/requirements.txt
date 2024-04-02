@@ -1,1 +1,1 @@
-autoapi
+sphinx-autoapi
