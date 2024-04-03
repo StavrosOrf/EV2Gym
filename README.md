@@ -301,8 +301,12 @@ Class Diagram of the EV2Gym Environment:
 
 If you use this code in your research, please cite as:
 ```bibtex
-@misc{ev2gym,
-
+@misc{orfanoudakis2024ev2gym,
+      title={EV2Gym: A Flexible V2G Simulator for EV Smart Charging Research and Benchmarking}, 
+      author={Stavros Orfanoudakis and Cesar Diaz-Londono and Yunus E. Yılmaz and Peter Palensky and Pedro P. Vergara},
+      year={2024},
+      eprint={2404.01849},
+      archivePrefix={arXiv}
 }
 ```
 
