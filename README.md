@@ -12,7 +12,7 @@ Develop and evaluate **any type of smart charging algorithm**: from simple heuri
 
 EV2Gym is **fully customizable** and easily **configurable**!
 
-The **Paper** can be found at: [link](https://ev2gym.readthedocs.io/en/latest/).
+The **Paper** can be found at: [link](https://arxiv.org/abs/2404.01849).
 
 ## Installation
 
