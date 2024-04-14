@@ -8,10 +8,14 @@ from stable_baselines3.common.callbacks import EvalCallback
 from EVsSimulator.ev_city import EVsSimulator
 from EVsSimulator.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
 from EVsSimulator.rl_agent.reward import profit_maximization
+import torch as th
+import numpy as np
+import datetime
 
 from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwithMoreKnowledge
 
 import gymnasium as gym
+from stable_baselines3.common.noise import  OrnsteinUhlenbeckActionNoise
 import argparse
 import wandb
 from wandb.integration.sb3 import WandbCallback
@@ -47,10 +51,13 @@ if __name__ == "__main__":
 
     elif config_file == "EVsSimulator/example_config_files/BusinessPST.yaml":
         reward_function = SquaredTrackingErrorReward
+        reward_function_short ="STER"
         state_function = BusinessPSTwithMoreKnowledge
+        state_function_short = "BPST"
         group_name = f'{config["number_of_charging_stations"]}cs_BusinessPST'
 
-    run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
+    #run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
+    run_name += f'{algorithm}_{reward_function_short}_{state_function_short}'
 
     run = wandb.init(project='EVsSimulator',
                      sync_tensorboard=True,
@@ -62,6 +69,7 @@ if __name__ == "__main__":
     gym.envs.register(id='evs-v0', entry_point='EVsSimulator.ev_city:EVsSimulator',
                       kwargs={'config_file': config_file,
                               'verbose': False,
+ #                             'load_from_replay_path':'./replay/replay_sim_2024_03_02_995447.pkl', #activate to load from replay and experiment with 1 replay
                               'save_plots': False,
                               'generate_rnd_game': True,
                               'reward_function': reward_function,
@@ -80,13 +88,18 @@ if __name__ == "__main__":
                                  n_eval_episodes=10, deterministic=True,
                                  render=False)
 
+    
+    
     if algorithm == "ddpg":                             #Experimenting with different hyperparameters
         model = DDPG("MlpPolicy", env, verbose=1,
                     learning_rate = 1e-3,
-                    buffer_size = 1_000_000,  # 1e6
+                    buffer_size = 1_000_00,  # 1e6
                     learning_starts = 100,
-                    batch_size = 100,
-                    tau = 0.005,
+                    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(config['number_of_charging_stations']),
+                                            sigma=0.1 * np.ones(config['number_of_charging_stations'])),
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], qf=[64, 64])),
+                    batch_size = 64, #100
+                    tau = 0.001, #0.005
                     gamma = 0.99,                     
                      device=device, tensorboard_log="./logs/")
     elif algorithm == "td3":
@@ -116,16 +129,20 @@ if __name__ == "__main__":
     else:
         raise ValueError("Unknown algorithm")
 
-    model.learn(total_timesteps=1000,
+    model.learn(total_timesteps=1200000,
                 progress_bar=True,
                 callback=[
                     #WandbCallback(
-                    #    gradient_save_freq=100000,
+                    #    gradient_save_freq=240,
                     #    model_save_path=f"models/{run.id}",
                     #    verbose=2),
                     eval_callback])
-
-    model.save(f"./saved_models/{group_name}/{run_name}")
+    
+    model.save(f"./saved_models/{group_name}/{run_name}_{model.policy_kwargs['net_arch']['pi']}_"
+                f"{model.policy_kwargs['net_arch']['qf']}_{model.batch_size}_"
+                f'{datetime.datetime.now().strftime("%m_%d_%H_%M_%S")}')
+    
+    #model.save(f"./saved_models/{group_name}/{run_name + str(run.id)}")
 
     env = model.get_env()
     obs = env.reset()

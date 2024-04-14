@@ -168,6 +168,10 @@ class PowerTrackingErrorrMin():
             power_error[t] = (gp.quicksum(power_tr_ch[i, t] - power_tr_dis[i, t]
                               for i in range(self.n_transformers))
                               - power_setpoints[t])**2
+                
+            #power_error[t] = abs(gp.quicksum(power_tr_ch[i, t] - power_tr_dis[i, t]
+            #                  for i in range(self.n_transformers))
+            #                  - power_setpoints[t])
 
             # power_error[t] = gp.quicksum(power_tr_ch[i, t] - power_tr_dis[i, t]
             #                   for i in range(self.n_transformers))

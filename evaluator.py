@@ -29,7 +29,9 @@ from EVsSimulator.rl_agent.reward import profit_maximization
 
 from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwithMoreKnowledge
 
-from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC, plot_actual_power_vs_setpoint
+from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC, plot_actual_power_vs_setpoint, \
+                                                    plot_comparable_CS_Power, plot_comparable_EV_SoC_single, plot_prices
+                                                    
 
 import gymnasium as gym
 import torch
@@ -97,6 +99,9 @@ def generate_replay():
     )
     replay_path = f"replay/replay_{env.sim_name}.pkl"
 
+    #replay_path = f"replay/replay/{datetime.datetime.now().strftime('%Y%m%d_%H%M')}/replay_{env.sim_name}.pkl"
+
+
     for _ in range(env.simulation_length):
         actions = np.random.rand(env.number_of_ports) * -2 + 1
 
@@ -111,7 +116,7 @@ def generate_replay():
 
 # Algorithms to compare:
 algorithms = [
-    ChargeAsLateAsPossible,
+    #ChargeAsLateAsPossible,
     ChargeAsFastAsPossible,
     DDPG,
     #SAC,
@@ -129,7 +134,7 @@ algorithms = [
 
 evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
     f'_{n_test_cycles}_cycles_' +\
-    f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
+    f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")}'
 
 # make a directory for the evaluation
 save_path = f'./results/{evaluation_name}/'
@@ -163,7 +168,8 @@ for algorithm in algorithms:
             env = gym.make('evs-v0')
 
             load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
-                f"{algorithm.__name__.lower().lower()}_SquaredTrackingErrorReward_BusinessPSTwithMoreKnowledge"
+                        f"DDPG_112_STER_BPST_[128, 128]_[64, 64]_64_04_14_06_04_15"
+                        #f"{#algorithm.__name__.lower().lower()}_STER_BPST"
 
             model = algorithm.load(load_path, env, device=device)
             env = model.get_env()
@@ -247,7 +253,19 @@ results_grouped = results.groupby('Algorithm').agg(['mean', 'std'])
 # print(results_grouped.to_latex())
 
 
+'''
+min_difference_replay_file = find_min_difference_replay(results_path=save_path + 'plot_results_dict.pkl', 
+                                                        save_path=save_path, 
+                                                        algorithm_name="DDPG")
+
+plot_actual_power_vs_setpoint(results_path=min_difference_replay_file,
+                              save_path=save_path,
+                              algorithm_names=[algorithm.__name__ for algorithm in algorithms])
+'''
 # results_grouped.to_csv('results_grouped.csv')
+#find_min_difference_replay(results_path=save_path + 'plot_results_dict.pkl',
+#                            save_path=save_path,
+#                            algorithm_names=[algorithm.__name__ for algorithm in algorithms])
 
 plot_total_power(results_path=save_path + 'plot_results_dict.pkl',
                  save_path=save_path,
@@ -257,7 +275,27 @@ plot_comparable_EV_SoC(results_path=save_path + 'plot_results_dict.pkl',
                        save_path=save_path,
                        algorithm_names=[algorithm.__name__ for algorithm in algorithms])
 
-print(results_grouped[['tracking_error', 'energy_tracking_error']])
+
+plot_comparable_EV_SoC_single(results_path=save_path + 'plot_results_dict.pkl', 
+                                save_path=save_path, 
+                                algorithm_names=[algorithm.__name__ for algorithm in algorithms])
+
+plot_comparable_CS_Power(results_path=save_path + 'plot_results_dict.pkl',
+                            save_path=save_path,
+                            algorithm_names=[algorithm.__name__ for algorithm in algorithms])
+
+plot_prices(results_path=save_path + 'plot_results_dict.pkl',
+            save_path=save_path,
+            algorithm_names=[algorithm.__name__ for algorithm in algorithms])
+
+plot_actual_power_vs_setpoint(results_path=save_path + 'plot_results_dict.pkl',
+                              save_path=save_path,
+                              algorithm_names=[algorithm.__name__ for algorithm in algorithms])
+
+
+print(results_grouped[['tracking_error', 'energy_tracking_error', 'average_user_satisfaction']])
+print(results_grouped[['power_tracker_violation', 'total_energy_charged']])
+#, 'total_energy_charged', 'average_user_satisfaction'
 
 exit()
 

@@ -61,7 +61,7 @@ if __name__ == "__main__":
     gym.register(id=args.env, entry_point='gym_env.ev_city:EVsSimulator')
 
     ###### Set the config file here ######
-    config_file = "EVsSimulator/example_config_files/BusinessPST_config.yaml"
+    config_file = "EVsSimulator/example_config_files/BusinessPST.yaml"
 
     ####### Set the reward function here #######
     reward_function = SquaredTrackingErrorReward

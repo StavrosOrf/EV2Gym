@@ -121,13 +121,20 @@ def BusinessPSTwithMoreKnowledge(env, *args):
         #math.cos(env.sim_date.hour/12*2*math.pi),
     ]
 
+
     # the final state of each simulation
     if env.current_step < env.simulation_length:
         state.append(env.power_setpoints[env.current_step]) #/100
-        state.append(env.charge_power_potential[env.current_step]) #/100
+        #state.append(env.current_power_usage[env.current_step-1]) #/100
+    #    if env.current_step == 0:
+    #        state.append(env.current_power_usage[env.current_step]) #/100
+    #    else:
+    #        state.append(env.current_power_usage[env.current_step-1]) #/100
     else:
         state.append(env.power_setpoints[env.current_step-1]) #/100
-        state.append(env.charge_power_potential[env.current_step-1]) #/100   
+        #state.append(env.current_power_usage[env.current_step-1]) #/100
+    
+    state.append(env.current_power_usage[env.current_step-1]) #/100
 
     for tr in env.transformers:
         state.append(tr.max_current/100)
