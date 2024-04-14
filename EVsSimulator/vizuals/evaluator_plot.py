@@ -303,7 +303,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    plt.show()
+    #plt.show()
 
 def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
     '''
@@ -481,7 +481,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    plt.show() 
+    #plt.show() 
     
 
 def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None):
@@ -585,7 +585,7 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None)
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    plt.show()   
+    #plt.show()   
 
 '''
 def find_min_error_run(replay, algorithm_name='DDPG'):
@@ -689,7 +689,8 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
         
         if index == len(replay) // 2:
             plt.ylabel('Power (kW)', fontsize=22)               
-            
+
+        plt.xlabel('Time', fontsize=22)    
         plt.xlim([env.sim_starting_date, env.sim_date])
         plt.ylim([0, 1.1*(max(env.current_power_usage.max(), env.power_setpoints.max()))])
         
@@ -764,7 +765,194 @@ def plot_prices(results_path, save_path=None, algorithm_names=None):
     fig_name = f'{save_path}/Prices.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
-    plt.show()
+    #plt.show()
+
+
+def plot_energy_tracking_error(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin": "RoundRobin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    
+    # Plot 'energy_tracking_error' for each algorithm
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.plot(algorithm_results['run'], algorithm_results['energy_tracking_error'], marker='.' , label=special_names[algorithm_name])
+
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Energy Tracking Error (kWh)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'energy_tracking_error_plot.svg', format='svg', bbox_inches='tight')
+
+
+def plot_squared_power_tracking_error(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin": "RoundRobin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    
+    # Plot 'energy_tracking_error' for each algorithm
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.plot(algorithm_results['run'], algorithm_results['tracking_error'], marker='.', label=special_names[algorithm_name])
+
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Squared Tracking Error (kW$^2$)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'squared_tracking_error_plot.svg', format='svg', bbox_inches='tight')
+
+def plot_user_satisfaction(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin": "RoundRobin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    min_y = results['average_user_satisfaction'].min() * 3 / 4
+    
+    # Plot 'energy_tracking_error' for each algorithm
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.plot(algorithm_results['run'], algorithm_results['average_user_satisfaction'], marker='.' , label=special_names[algorithm_name])
+
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('User Satisfaction (%)', fontsize=14)
+    plt.ylim(min_y, 1.1)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'user_satisfaction.svg', format='svg', bbox_inches='tight')
+
+
+def plot_tracker_surplus(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin": "RoundRobin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    
+    # Plot 'energy_tracking_error' for each algorithm
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.plot(algorithm_results['run'], algorithm_results['power_tracker_violation'], marker='.', label=special_names[algorithm_name])
+
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Power Tracker Surplus (kW)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'tracker_surplus_plot.svg', format='svg', bbox_inches='tight')
+
+def plot_transformer_overload(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin": "RoundRobin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'energy_tracking_error' for each algorithm
+    bar_width = 1
+    for i, algorithm_name in enumerate(algorithm_names):
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.bar(algorithm_results['run'] + i * bar_width, algorithm_results['total_transformer_overload'], width=bar_width, label=special_names[algorithm_name])
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Transformer Overload (kW)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'transformer_overload.svg', format='svg', bbox_inches='tight')
 
 if __name__ == "__main__":
 

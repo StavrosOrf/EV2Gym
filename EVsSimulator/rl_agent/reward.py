@@ -7,10 +7,10 @@ def SquaredTrackingErrorReward(env,*args):
     # This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
     # The reward is negative
     
-    reward = -(env.power_setpoints[env.current_step-1] - env.current_power_usage[env.current_step-1])**2
+    #reward = -(env.power_setpoints[env.current_step-1] - env.current_power_usage[env.current_step-1])**2
     
-    #- (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) -
-    #    env.current_power_usage[env.current_step-1])**2
+    reward = - (min(env.power_setpoints[env.current_step-1], env.charge_power_potential[env.current_step-1]) -
+        env.current_power_usage[env.current_step-1])**2
         
     return reward
 
