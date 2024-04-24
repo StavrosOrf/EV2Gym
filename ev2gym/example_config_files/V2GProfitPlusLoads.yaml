@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 85 #90 # in steps per simulation
+simulation_length: 96 #90 # in steps per simulation
 
 ##############################################################################
 # Date and Time
@@ -26,7 +26,7 @@ simulation_days: weekdays # weekdays, weekends, or both
 
 # EV Spawn Behavior
 scenario: workplace # public, private, or workplace
-spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn
+spawn_multiplier: 10 # 1 is default, the higher the number the more EVs spawn
 
 ##############################################################################
 # Prices

@@ -2,6 +2,7 @@
 '''
 
 import math
+import numpy as np
 
 def SquaredTrackingErrorReward(env,*args):
     '''This reward function is the squared tracking error that uses the minimum of the power setpoints and the charge power potential
@@ -40,6 +41,25 @@ def ProfitMax_TrPenalty_UserIncentives(env, total_costs, user_satisfaction_list,
     for score in user_satisfaction_list:        
         reward -= 100 * math.exp(-10*score)
         
+    return reward
+
+def ProfitMax_TrPenalty_UserIncentives_BatteryDegr(env, total_costs, user_satisfaction_list, *args):
+    
+    reward = total_costs
+    
+    for tr in env.transformers:
+        reward -= 100 * tr.get_how_overloaded()                        
+    
+    for score in user_satisfaction_list:        
+        reward -= 150 * math.exp(-10*score)
+    
+    for ev in reversed(env.EVs):
+        if ev.time_of_departure < env.current_step-1:
+            d_cal, d_cyc = ev.get_battery_degradation()
+            reward -= 1000 * (d_cal + d_cyc) # takes values in 10e-1
+        else:
+            break
+                   
     return reward
 
 def SquaredTrackingErrorRewardWithPenalty(env,*args):

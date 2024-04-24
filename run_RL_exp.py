@@ -10,10 +10,11 @@ counter = 0
 for config in ['V2GProfitPlusLoads']:
     # for algorithm in ['ddpg', 'td3', 'sac','ppo', 'tqc','ars', 'rppo']:
     # for algorithm in ['ddpg']:
-    for algorithm in ['ddpg', 'td3', 'sac', 'a2c', 'ppo', 'tqc', 'trpo', 'ars', 'rppo']:
-        command = 'tmux new-session -d \; send-keys "python3 train_stable_baselines.py' + \
+    # for algorithm in ['ddpg', 'td3', 'sac', 'a2c', 'ppo', 'tqc', 'trpo', 'ars', 'rppo']:
+    for algorithm in ['tqc', 'sac']:
+        command = 'tmux new-session -d \; send-keys "/home/sorfanouda/anaconda3/envs/ev2gym/bin/python train_stable_baselines.py' + \
             ' --algorithm ' + algorithm + \
-            ' --device cuda:' + str(counter % 2) + \
+            ' --device cuda:0'+ \
             ' --config_file ev2gym/example_config_files/' + config + '.yaml' + \
             '" Enter'
         os.system(command=command)

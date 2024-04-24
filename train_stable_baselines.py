@@ -7,7 +7,7 @@ from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 
 from ev2gym.models.ev2gym_env import EV2Gym
 from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, ProfitMax_TrPenalty_UserIncentives
-from ev2gym.rl_agent.reward import profit_maximization
+from ev2gym.rl_agent.reward import profit_maximization, ProfitMax_TrPenalty_UserIncentives_BatteryDegr
 
 from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
 
@@ -25,8 +25,8 @@ if __name__ == "__main__":
     parser.add_argument('--device', type=str, default="cuda:0")
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
-                        # default="ev2gym/example_config_files/V2GProfitMax.yaml")
-    default="ev2gym/example_config_files/PublicPST.yaml")
+                        default="ev2gym/example_config_files/V2GProfitPlusLoads.yaml")
+    # default="ev2gym/example_config_files/PublicPST.yaml")
 
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
@@ -45,7 +45,7 @@ if __name__ == "__main__":
         state_function = PublicPST
         group_name = f'{config["number_of_charging_stations"]}cs_PublicPST'
     elif config_file == "ev2gym/example_config_files/V2GProfitPlusLoads.yaml":
-        reward_function = ProfitMax_TrPenalty_UserIncentives
+        reward_function = ProfitMax_TrPenalty_UserIncentives_BatteryDegr
         state_function = V2G_profit_max_loads
         group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitPlusLoads'
                 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                      save_code=True,
                      )
 
-    gym.envs.register(id='evs-v0', entry_point='ev2gym.ev_city:ev2gym',
+    gym.envs.register(id='evs-v0', entry_point='ev2gym.models.ev2gym_env:EV2Gym',
                       kwargs={'config_file': config_file,
                               'verbose': False,
                               'save_plots': False,
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         raise ValueError("Unknown algorithm")
 
     model.learn(total_timesteps=4_000_000,
-                progress_bar=True,
+                # progress_bar=True,
                 callback=[
                     WandbCallback(
                         gradient_save_freq=100000,
