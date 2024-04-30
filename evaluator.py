@@ -32,7 +32,13 @@ from EVsSimulator.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwi
 from EVsSimulator.vizuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC, plot_actual_power_vs_setpoint, \
                                                     plot_comparable_CS_Power, plot_comparable_EV_SoC_single, plot_prices, \
                                                     plot_energy_tracking_error, plot_squared_power_tracking_error, \
-                                                    plot_user_satisfaction, plot_tracker_surplus, plot_transformer_overload \
+                                                    plot_user_satisfaction, plot_tracker_surplus, plot_transformer_overload, \
+                                                    plot_energy_tracking_error_hist, plot_energy_tracking_error_boxplot, \
+                                                    plot_energy_tracking_error_bar, plot_squared_power_tracking_error_boxplot, \
+                                                    plot_user_satisfaction_boxplot, plot_tracker_surplus_boxplot, \
+                                                    plot_squared_power_tracking_error_bar, plot_user_satisfaction_bar, \
+                                                    plot_tracker_surplus_bar
+                                                    
                                                     
 
 import gymnasium as gym
@@ -170,7 +176,7 @@ for algorithm in algorithms:
             env = gym.make('evs-v0')
 
             load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
-                        f"DDPG_102_STER_BPST_[128, 128]_[64, 64]_64_04_11_20_54_49"
+                        f"DDPG_170_STER_BPST_[128, 128]_[64, 64]_64_04_24_20_46_51"
                         #f"{#algorithm.__name__.lower().lower()}_STER_BPST"
 
             model = algorithm.load(load_path, env, device=device)
@@ -293,7 +299,7 @@ plot_prices(results_path=save_path + 'plot_results_dict.pkl',
 plot_actual_power_vs_setpoint(results_path=save_path + 'plot_results_dict.pkl',
                               save_path=save_path,
                               algorithm_names=[algorithm.__name__ for algorithm in algorithms])
-
+'''
 plot_energy_tracking_error(save_path + 'data.csv', save_path)
 
 plot_squared_power_tracking_error(save_path + 'data.csv', save_path)
@@ -301,8 +307,26 @@ plot_squared_power_tracking_error(save_path + 'data.csv', save_path)
 plot_user_satisfaction(save_path + 'data.csv', save_path)
 
 plot_tracker_surplus(save_path + 'data.csv', save_path)
-
+'''
 plot_transformer_overload(save_path + 'data.csv', save_path)
+
+#plot_energy_tracking_error_hist(save_path + 'data.csv', save_path)
+
+plot_energy_tracking_error_boxplot(save_path + 'data.csv', save_path)
+
+plot_energy_tracking_error_bar(save_path + 'data.csv', save_path)
+
+plot_squared_power_tracking_error_boxplot(save_path + 'data.csv', save_path)
+
+plot_squared_power_tracking_error_bar(save_path + 'data.csv', save_path)
+
+plot_user_satisfaction_boxplot(save_path + 'data.csv', save_path)
+
+plot_user_satisfaction_bar(save_path + 'data.csv', save_path)
+
+plot_tracker_surplus_boxplot(save_path + 'data.csv', save_path)
+
+plot_tracker_surplus_bar(save_path + 'data.csv', save_path)
 
 print(results_grouped[['tracking_error', 'energy_tracking_error', 'average_user_satisfaction']])
 print(results_grouped[['power_tracker_violation', 'total_energy_charged']])
