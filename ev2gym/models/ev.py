@@ -110,12 +110,21 @@ class EV():
         The reset method is used to reset the EV's status to the initial state.
         '''
         self.current_capacity = self.battery_capacity_at_arrival
+        self.prev_capacity = self.current_capacity
         self.current_energy = 0
         self.actual_current = 0
         self.charging_cycles = 0
         self.previous_power = 0
         self.required_energy = self.battery_capacity - self.battery_capacity_at_arrival
+        self.total_energy_exchanged = 0
         self.c_lost = 0
+        
+        self.abs_total_energy_exchanged = 0
+        self.historic_soc = []
+        self.active_steps = []
+        
+        self.calendar_loss = 0
+        self.cyclic_loss = 0
 
     def step(self, amps, voltage, phases=1, type='AC') -> Tuple[float, float]:
         '''
