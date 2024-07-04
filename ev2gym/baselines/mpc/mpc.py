@@ -12,12 +12,13 @@ from abc import ABC, abstractmethod
 
 class MPC(ABC):
 
-    def __init__(self, env,
+    def __init__(self,
+                 env,
                  control_horizon=25,
                  verbose=False,
-                 time_limit = 200,
-                 output_flag = 0,
-                 MIPGap = None,
+                 time_limit=200,
+                 output_flag=0,
+                 MIPGap=None,
                  **kwargs):
         """
         Initialize the MPC baseline.
@@ -234,7 +235,7 @@ class MPC(ABC):
             self.tr_power_limit[i, :] = tr.max_power
             self.tr_pv[i, :] = tr.solar_power
             self.tr_loads[i, :] = tr.inflexible_load
-            
+
     def reconstruct_state(self, t):
         '''
         This function reconstructs the state of the environment using the historical data.
@@ -414,7 +415,7 @@ class MPC(ABC):
         print(f'Initial SoC: {self.Cx0}')
         print(f'Final SoC: {self.Cxf}')
         print(f'Arrival times: {self.arrival_times}')
-        print(f'Departure times: {self.departure_times}')        
-        
+        print(f'Departure times: {self.departure_times}')
+
         # print(f'x_init: {self.x_init}')
         # print(f'Desired Final: {self.x_final}')
