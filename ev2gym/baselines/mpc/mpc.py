@@ -17,7 +17,7 @@ class MPC(ABC):
                  control_horizon=25,
                  verbose=False,
                  time_limit=200,
-                 output_flag=0,
+                 output_flag=1,
                  MIPGap=None,
                  **kwargs):
         """
@@ -196,6 +196,14 @@ class MPC(ABC):
         if self.verbose:
             print(f'Prices: {self.ch_prices}')
             print(f' Discharge Prices: {self.disch_prices}')
+            
+            
+        # parameters for the MPC v2 model
+        
+        self.varch2 = 0
+        
+        self.d_cycHist_e2 = []
+        self.d_calHist_e2 = []
 
     @abstractmethod
     def get_action(self, env):
@@ -416,6 +424,7 @@ class MPC(ABC):
         print(f'Final SoC: {self.Cxf}')
         print(f'Arrival times: {self.arrival_times}')
         print(f'Departure times: {self.departure_times}')
+        print(f'P_max_MT: {self.p_max_MT}')
 
         # print(f'x_init: {self.x_init}')
-        # print(f'Desired Final: {self.x_final}')
+        print(f'Desired Final: {self.x_final}')
