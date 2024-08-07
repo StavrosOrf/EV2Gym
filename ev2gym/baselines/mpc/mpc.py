@@ -12,12 +12,13 @@ from abc import ABC, abstractmethod
 
 class MPC(ABC):
 
-    def __init__(self, env,
+    def __init__(self,
+                 env,
                  control_horizon=25,
                  verbose=False,
-                 time_limit = 200,
-                 output_flag = 0,
-                 MIPGap = None,
+                 time_limit=200,
+                 output_flag=0,
+                 MIPGap=None,
                  **kwargs):
         """
         Initialize the MPC baseline.
@@ -90,6 +91,11 @@ class MPC(ABC):
         # Matrix with minimum powers
         self.p_min_MT = np.zeros(
             (self.n_ports, self.simulation_length + self.control_horizon + 1))
+        
+        # the charger each EV is connected to
+        self.ev_locations = np.zeros(self.EV_number, dtype=int)
+        # The maximum battery capacity of each EV
+        self.ev_max_batt = np.zeros(self.EV_number, dtype=int)
 
         self.max_ch_power = np.zeros(self.n_ports)
         self.max_disch_power = np.zeros(self.n_ports)
@@ -118,6 +124,10 @@ class MPC(ABC):
                 self.departure_times[index] = EV.time_of_departure + 1
 
             ev_location = EV.location
+
+            self.ev_locations[index] = ev_location
+            self.ev_max_batt[index] = EV.battery_capacity
+            
             self.u[ev_location, self.arrival_times[index]:
                    self.departure_times[index]] = 1
             self.x_init[ev_location, self.arrival_times[index]:
@@ -196,6 +206,17 @@ class MPC(ABC):
             print(f'Prices: {self.ch_prices}')
             print(f' Discharge Prices: {self.disch_prices}')
 
+        # parameters for the MPC v2 model
+
+        self.varch2 = 0
+
+        self.d_cycHist_e2 = []
+        self.d_calHist_e2 = []
+        
+        self.Xhist_e2 = np.zeros((self.n_ports, self.simulation_length))
+        self.Uhist_e2 = np.zeros((self.n_ports, self.simulation_length))
+        self.Uhist_e2V = np.zeros((self.n_ports, self.simulation_length))
+
     @abstractmethod
     def get_action(self, env):
         pass
@@ -234,7 +255,7 @@ class MPC(ABC):
             self.tr_power_limit[i, :] = tr.max_power
             self.tr_pv[i, :] = tr.solar_power
             self.tr_loads[i, :] = tr.inflexible_load
-            
+
     def reconstruct_state(self, t):
         '''
         This function reconstructs the state of the environment using the historical data.
@@ -414,7 +435,8 @@ class MPC(ABC):
         print(f'Initial SoC: {self.Cx0}')
         print(f'Final SoC: {self.Cxf}')
         print(f'Arrival times: {self.arrival_times}')
-        print(f'Departure times: {self.departure_times}')        
-        
+        print(f'Departure times: {self.departure_times}')
+        print(f'P_max_MT: {self.p_max_MT}')
+
         # print(f'x_init: {self.x_init}')
-        # print(f'Desired Final: {self.x_final}')
+        print(f'Desired Final: {self.x_final}')
