@@ -131,50 +131,50 @@ class eMPC_V2G_v2(MPC):
                         -self.tr_power_limit[tr_index, :].max()),
                         name=f'constr5_{tr_index}_t{i}')
 
-            # Battery degradation modelling
-            T_event = (self.departure_times - self.arrival_times) * self.T / 24
+            # # Battery degradation modelling
+            # T_event = (self.departure_times - self.arrival_times) * self.T / 24
             
-            # Battery degradation parameters:
-            zeta_0 = 4.02e-4
-            zeta_1 = 2.04e-3
-            Qacc = 11160
-            epsilon_0 = 6.23e-6
-            epsilon_1 = 1.38e-6
-            epsilon_2 = 6976
-            theta = 28
-            T_tot = 730
+            # # Battery degradation parameters:
+            # zeta_0 = 4.02e-4
+            # zeta_1 = 2.04e-3
+            # Qacc = 11160
+            # epsilon_0 = 6.23e-6
+            # epsilon_1 = 1.38e-6
+            # epsilon_2 = 6976
+            # theta = 28
+            # T_tot = 730
             
-            for i in range(self.EV_number):
-                if self.arrival_times[i] >= t and self.departure_times[i] < t + h:  # Event within horizon h
-                    SOCav[i] = np.mean(SoC[(self.arrival_times[i] - t) * n + self.ev_locations[i]:(self.departure_times[i] - t) * n + self.ev_locations[i]])
-                    d_cal[i] = 0.75 * (epsilon_0 * SOCav[i] / self.ev_max_batt[i] - epsilon_1) * np.exp(-epsilon_2 / theta) * T_event[i] / (T_tot ** 0.25)
-                    d_cyc[i] = (zeta_0 + zeta_1 * np.mean(np.abs(SOCav[i] - SoC[(self.arrival_times[i] - t) * n + self.ev_locations[i]:(self.departure_times[i] - t) * n + self.ev_locations[i]])) / self.ev_max_batt[i]) * \
-                            np.sum(u[(self.arrival_times[i] - t) * n + self.ev_locations[i]::nb]) * self.T / np.sqrt(Qacc)
+            # for i in range(self.EV_number):
+            #     if self.arrival_times[i] >= t and self.departure_times[i] < t + h:  # Event within horizon h
+            #         SOCav[i] = np.mean(SoC[(self.arrival_times[i] - t) * n + self.ev_locations[i]:(self.departure_times[i] - t) * n + self.ev_locations[i]])
+            #         d_cal[i] = 0.75 * (epsilon_0 * SOCav[i] / self.ev_max_batt[i] - epsilon_1) * np.exp(-epsilon_2 / theta) * T_event[i] / (T_tot ** 0.25)
+            #         d_cyc[i] = (zeta_0 + zeta_1 * np.mean(np.abs(SOCav[i] - SoC[(self.arrival_times[i] - t) * n + self.ev_locations[i]:(self.departure_times[i] - t) * n + self.ev_locations[i]])) / self.ev_max_batt[i]) * \
+            #                 np.sum(u[(self.arrival_times[i] - t) * n + self.ev_locations[i]::nb]) * self.T / np.sqrt(Qacc)
                             
-                elif self.arrival_times[i] < t and self.departure_times[i] <= t + h - 1 and self.departure_times[i] > t:  # Event begins before t but ends within h
-                    SOCav[i] = np.mean(np.concatenate([Xhist_e[self.ev_locations[i], self.arrival_times[i]:], SoC[self.ev_locations[i]::n]]))
-                    d_cal[i] = 0.75 * (epsilon_0 * SOCav[i] / self.ev_max_batt[i] - epsilon_1) * np.exp(-epsilon_2 / theta) * T_event[i] / (T_tot ** 0.25)
-                    d_cyc[i] = (zeta_0 + zeta_1 * np.mean(np.abs(SOCav[i] - np.concatenate([Xhist_e[self.ev_locations[i], self.arrival_times[i]:], SoC[self.ev_locations[i]::n]])) / self.ev_max_batt[i])) * \
-                            np.sum(np.concatenate([Uhist_e2[self.ev_locations[i], self.arrival_times[i]:], Uhist_e2V[self.ev_locations[i], self.arrival_times[i]:], u[self.ev_locations[i]::nb]])) * self.T / np.sqrt(Qacc)
+            #     elif self.arrival_times[i] < t and self.departure_times[i] <= t + h - 1 and self.departure_times[i] > t:  # Event begins before t but ends within h
+            #         SOCav[i] = np.mean(np.concatenate([Xhist_e[self.ev_locations[i], self.arrival_times[i]:], SoC[self.ev_locations[i]::n]]))
+            #         d_cal[i] = 0.75 * (epsilon_0 * SOCav[i] / self.ev_max_batt[i] - epsilon_1) * np.exp(-epsilon_2 / theta) * T_event[i] / (T_tot ** 0.25)
+            #         d_cyc[i] = (zeta_0 + zeta_1 * np.mean(np.abs(SOCav[i] - np.concatenate([Xhist_e[self.ev_locations[i], self.arrival_times[i]:], SoC[self.ev_locations[i]::n]])) / self.ev_max_batt[i])) * \
+            #                 np.sum(np.concatenate([Uhist_e2[self.ev_locations[i], self.arrival_times[i]:], Uhist_e2V[self.ev_locations[i], self.arrival_times[i]:], u[self.ev_locations[i]::nb]])) * self.T / np.sqrt(Qacc)
                             
-                elif self.arrival_times[i] >= t and self.departure_times[i] > t + h and self.arrival_times[i] < t + h - 1:  # Event starts within h but ends after h
-                    SOCav[i] = np.mean(SoC[(self.arrival_times[i] - t) * n + self.ev_locations[i]:])
-                    T_event[i] = (t + h - self.arrival_times[i]) * self.T / 24
-                    d_cal[i] = 0.75 * (epsilon_0 * SOCav[i] / self.ev_max_batt[i] - epsilon_1) * np.exp(-epsilon_2 / theta) * T_event[i] / (T_tot ** 0.25)
-                    d_cyc[i] = (zeta_0 + zeta_1 * np.mean(np.abs(SOCav[i] - SoC[(self.arrival_times[i] - t) * n + self.ev_locations[i]:])) / self.ev_max_batt[i]) * \
-                            np.sum(u[(self.arrival_times[i] - t) * nb + self.ev_locations[i]::nb]) * self.T / np.sqrt(Qacc)
+            #     elif self.arrival_times[i] >= t and self.departure_times[i] > t + h and self.arrival_times[i] < t + h - 1:  # Event starts within h but ends after h
+            #         SOCav[i] = np.mean(SoC[(self.arrival_times[i] - t) * n + self.ev_locations[i]:])
+            #         T_event[i] = (t + h - self.arrival_times[i]) * self.T / 24
+            #         d_cal[i] = 0.75 * (epsilon_0 * SOCav[i] / self.ev_max_batt[i] - epsilon_1) * np.exp(-epsilon_2 / theta) * T_event[i] / (T_tot ** 0.25)
+            #         d_cyc[i] = (zeta_0 + zeta_1 * np.mean(np.abs(SOCav[i] - SoC[(self.arrival_times[i] - t) * n + self.ev_locations[i]:])) / self.ev_max_batt[i]) * \
+            #                 np.sum(u[(self.arrival_times[i] - t) * nb + self.ev_locations[i]::nb]) * self.T / np.sqrt(Qacc)
                             
-                elif self.arrival_times[i] < t and self.departure_times[i] > t + h:  # Event starts and ends outside h
-                    SOCav[i] = np.mean(np.concatenate([Xhist_e[self.ev_locations[i], self.arrival_times[i]:], SoC[self.ev_locations[i]::n]]))
-                    T_event[i] = (t + h - self.arrival_times[i]) * self.T / 24
-                    d_cal[i] = 0.75 * (epsilon_0 * SOCav[i] / self.ev_max_batt[i] - epsilon_1) * np.exp(-epsilon_2 / theta) * T_event[i] / (T_tot ** 0.25)
-                    d_cyc[i] = (zeta_0 + zeta_1 * np.mean(np.abs(SOCav[i] - np.concatenate([Xhist_e[self.ev_locations[i], self.arrival_times[i]:], SoC[self.ev_locations[i]::n]])) / self.ev_max_batt[i])) * \
-                            np.sum(np.concatenate([Uhist_e2[self.ev_locations[i], self.arrival_times[i]:], Uhist_e2V[self.ev_locations[i], self.arrival_times[i]:], u[self.ev_locations[i]::nb]])) * self.T / np.sqrt(Qacc)
+            #     elif self.arrival_times[i] < t and self.departure_times[i] > t + h:  # Event starts and ends outside h
+            #         SOCav[i] = np.mean(np.concatenate([Xhist_e[self.ev_locations[i], self.arrival_times[i]:], SoC[self.ev_locations[i]::n]]))
+            #         T_event[i] = (t + h - self.arrival_times[i]) * self.T / 24
+            #         d_cal[i] = 0.75 * (epsilon_0 * SOCav[i] / self.ev_max_batt[i] - epsilon_1) * np.exp(-epsilon_2 / theta) * T_event[i] / (T_tot ** 0.25)
+            #         d_cyc[i] = (zeta_0 + zeta_1 * np.mean(np.abs(SOCav[i] - np.concatenate([Xhist_e[self.ev_locations[i], self.arrival_times[i]:], SoC[self.ev_locations[i]::n]])) / self.ev_max_batt[i])) * \
+            #                 np.sum(np.concatenate([Uhist_e2[self.ev_locations[i], self.arrival_times[i]:], Uhist_e2V[self.ev_locations[i], self.arrival_times[i]:], u[self.ev_locations[i]::nb]])) * self.T / np.sqrt(Qacc)
                             
-                else:
-                    SOCav[i] = 0
-                    d_cyc[i] = 0
-                    d_cal[i] = 0
+            #     else:
+            #         SOCav[i] = 0
+            #         d_cyc[i] = 0
+            #         d_cal[i] = 0
             
 
             model.setObjective(f @ u, GRB.MINIMIZE)
