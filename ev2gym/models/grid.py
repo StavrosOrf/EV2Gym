@@ -3,6 +3,7 @@
 from pandapower.plotting.plotly import pf_res_plotly
 import pandapower as pp
 import numpy as np
+import time
 
 from pandapower.plotting.plotly.mapbox_plot import set_mapbox_token
 set_mapbox_token(
@@ -27,12 +28,16 @@ class Grid:
         for i in range(len(self.net.bus)):
             # Add a Storage Unit to each bus of the grid except the external grid bus
             if i not in self.net.ext_grid.bus.values:
-                pp.create_storage(self.net, bus=i, p_mw=0, max_e_mwh=1000,
+                pp.create_storage(self.net,
+                                  bus=i,
+                                  p_mw=0,
+                                  max_e_mwh=1000,
                                   q_mvar=0,  type="ChargingStation")
         # Initialize the charging stations conneted bus
         # get charging_stations random integers excluding the integers in self.net.ext_grid.bus.values
         self.charging_stations_buses = np.random.choice(
-            [i for i in range(len(self.net.bus)) if i not in self.net.ext_grid.bus.values], charging_stations, replace=True)
+            [i for i in range(len(self.net.bus)) if i not in self.net.ext_grid.bus.values],
+            charging_stations, replace=True)
 
     def _get_grid_actions(self,actions):
         # Transform ations to the format (number_of_ports,1) -> (bus, p_mw)
@@ -41,7 +46,7 @@ class Grid:
     
     def step(self, actions):
 
-        actions = _get_grid_actions(actions)
+        actions = self._get_grid_actions(actions)
 
         # reset CS actions
         for i in range(len(self.net.storage)):
@@ -77,7 +82,7 @@ class Grid:
             self.net.ext_grid.va_degree, std, (len(self.net.ext_grid)))
 
         # solve the power flow
-        pp.runpp(self.net, numba=False)
+        pp.runpp(self.net, numba=True)
     
     def get_grid_state(self):
         '''
@@ -114,16 +119,19 @@ class Grid:
 
 if __name__ == "__main__":
 
+    # this is how Grid2op does it https://github.com/rte-france/Grid2Op/blob/master/grid2op/Environment/baseEnv.py#L1093
+    
     grid = Grid(4)
 
-    timeslot_duration = 5  # minutes
-    simulation_duration = 3  # * timeslot_duration minutes
+    timeslot_duration = 15  # minutes
+    simulation_duration = 100  # * timeslot_duration minutes
 
     for simu_step in range(simulation_duration):
         print(f"Simulation step {simu_step}")
         actions = [(1, 0.5), (2, 0.1), (2, -0.2), (3, 0.1)]
         grid.step(actions)
-        # grid.visualize_pf()
+        grid.visualize_pf()
+        # time.sleep(2)
 
         # print information about the overaloading and the lines and the transformer from here
         # print(grid.get_overloaded_lines())
