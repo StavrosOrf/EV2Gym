@@ -32,10 +32,9 @@ def eval():
     replay_path = None
 
     # config_file = "ev2gym/example_config_files/V2G_MPC2.yaml"
-    config_file = "V2GProfitPlusLoads_test.yaml"
     # config_file = "ev2gym/example_config_files/PublicPST.yaml"
     # config_file = "ev2gym/example_config_files/BusinessPST.yaml"
-    # config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
+    config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
 
     env = EV2Gym(config_file=config_file,
                  load_from_replay_path=replay_path,
@@ -118,6 +117,6 @@ def eval():
 
 
 if __name__ == "__main__":
-    while True:
+    # while True:
         eval()
     # exit()

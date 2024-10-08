@@ -57,7 +57,7 @@ class Transformer():
             self.normalize_inflexible_loads(env)
             self.generate_inflexible_loads_forecast(env)
 
-        self.pv_generation_forecast = np.zeros(96)
+        self.pv_generation_forecast = np.zeros(env.simulation_length)
         if env.config['solar_power']['include']:
             self.normalize_pv_generation(env)
             self.generate_pv_generation_forecast(env)
@@ -170,8 +170,8 @@ class Transformer():
 
         load_forecast = self.inflexible_load_forecast[step:step+horizon]
         pv_forecast = self.pv_generation_forecast[step:step+horizon]
-        
-        if step < len(self.inflexible_load_forecast):                        
+
+        if step < len(self.inflexible_load_forecast):
             load_forecast[0] = self.inflexible_load[step]
             pv_forecast[0] = self.solar_power[step]
 
@@ -229,7 +229,7 @@ class Transformer():
                 elif self.inflexible_load[j] < self.min_power[j]:
                     self.inflexible_load[j] = self.min_power[j]
 
-        self.generate_inflexible_loads_forecast(env)
+        # self.generate_inflexible_loads_forecast(env)
 
     def generate_inflexible_loads_forecast(self, env) -> None:
         '''
