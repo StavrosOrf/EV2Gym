@@ -19,7 +19,7 @@ class EvCityReplay():
         if not os.path.exists('replay'):
             os.makedirs('replay')
 
-        self.stats = get_statistics(env)
+        self.stats = env.stats
 
         self.replay_path = env.replay_path + 'replay_' + env.sim_name + '.pkl'
         self.sim_name = env.sim_name + '_replay'

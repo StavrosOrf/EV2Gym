@@ -92,6 +92,23 @@ class EV_Charger:
         self.total_user_satisfaction = 0
 
         self.verbose = verbose
+        
+    def reset(self):
+        '''Resets the EV charger status to the initial state'''
+
+        # EV Charger status
+        self.current_power_output = 0
+        self.current_total_amps = 0
+        self.evs_connected = [None] * self.n_ports
+        self.n_evs_connected = 0
+        self.current_step = 0
+
+        # EV Charger Statistics
+        self.total_energy_charged = 0
+        self.total_energy_discharged = 0
+        self.total_profits = 0
+        self.total_evs_served = 0
+        self.total_user_satisfaction = 0
 
     def step(self, actions, charge_price, discharge_price):
         '''
@@ -253,6 +270,9 @@ class EV_Charger:
         ev.id = index
         self.evs_connected[index] = ev
         self.n_evs_connected += 1
+        
+        #calculate ev max energy, if charging as fast as possible
+        ev.calculate_max_energy_with_AFAP(self.get_max_power())
 
         if self.verbose:
             print(f'+ EV connected to Charger {self.id} at port {index}' +
@@ -261,19 +281,3 @@ class EV_Charger:
 
         return index
 
-    def reset(self):
-        '''Resets the EV charger status to the initial state'''
-
-        # EV Charger status
-        self.current_power_output = 0
-        self.current_total_amps = 0
-        self.evs_connected = [None] * self.n_ports
-        self.n_evs_connected = 0
-        self.current_step = 0
-
-        # EV Charger Statistics
-        self.total_energy_charged = 0
-        self.total_energy_discharged = 0
-        self.total_profits = 0
-        self.total_evs_served = 0
-        self.total_user_satisfaction = 0

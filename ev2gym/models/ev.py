@@ -47,7 +47,7 @@ class EV():
                  location,
                  battery_capacity_at_arrival,
                  time_of_arrival,
-                 time_of_departure,                 
+                 time_of_departure,
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
                  min_battery_capacity=10,  # kWh
@@ -55,21 +55,22 @@ class EV():
                  min_ac_charge_power=0,  # kW
                  max_dc_charge_power=50,  # kW
                  max_discharge_power=-22,  # kW
-                 min_discharge_power=0,  # kW                 
-                 ev_phases=3,                 
+                 min_discharge_power=0,  # kW
+                 ev_phases=3,
                  transition_soc=0.8,
+                 transition_soc_multiplier=1,
                  charge_efficiency=1,
-                 discharge_efficiency=1,                 
+                 discharge_efficiency=1,
                  timescale=5,
                  ):
 
         self.id = id
         self.location = location
-        self.timescale = timescale        
+        self.timescale = timescale
 
         # EV simulation characteristics
         self.time_of_arrival = time_of_arrival
-        self.time_of_departure = time_of_departure        
+        self.time_of_departure = time_of_departure
         self.desired_capacity = battery_capacity if desired_capacity is None else desired_capacity
         self.battery_capacity_at_arrival = battery_capacity_at_arrival  # kWh
 
@@ -81,11 +82,12 @@ class EV():
         self.max_discharge_power = max_discharge_power  # kW
         self.min_discharge_power = min_discharge_power  # kW
         self.max_dc_charge_power = max_dc_charge_power  # kW
-        self.transition_soc = transition_soc        
+        self.transition_soc = transition_soc
+        self.transition_soc_multiplier = transition_soc_multiplier
         self.ev_phases = ev_phases
 
         self.charge_efficiency = charge_efficiency
-        self.discharge_efficiency = discharge_efficiency        
+        self.discharge_efficiency = discharge_efficiency
 
         # EV status
         self.current_capacity = battery_capacity_at_arrival  # kWh
@@ -96,12 +98,13 @@ class EV():
         self.previous_power = 0
         self.required_energy = self.battery_capacity - self.battery_capacity_at_arrival
         self.total_energy_exchanged = 0
+        self.max_energy_AFAP = 0
 
-        # Baterry degradation        
+        # Baterry degradation
         self.abs_total_energy_exchanged = 0
         self.historic_soc = []
         self.active_steps = []
-        
+
         self.calendar_loss = 0
         self.cyclic_loss = 0
 
@@ -118,11 +121,12 @@ class EV():
         self.required_energy = self.battery_capacity - self.battery_capacity_at_arrival
         self.total_energy_exchanged = 0
         self.c_lost = 0
-        
+        self.max_energy_AFAP = 0
+
         self.abs_total_energy_exchanged = 0
         self.historic_soc = []
         self.active_steps = []
-        
+
         self.calendar_loss = 0
         self.cyclic_loss = 0
 
@@ -143,14 +147,13 @@ class EV():
             amps = 0
         elif amps < 0 and amps > self.min_discharge_power*1000/(voltage*math.sqrt(phases)):
             amps = 0
-            
+
         self.historic_soc.append(self.get_soc())
 
-        
         if amps == 0:
             self.current_energy = 0
             self.actual_current = 0
-            
+
             self.active_steps.append(0)
             return 0, 0
 
@@ -167,12 +170,13 @@ class EV():
 
         self.previous_power = self.current_energy
 
-        self.total_energy_exchanged += self.current_energy #* self.timescale / 60
-        self.abs_total_energy_exchanged += abs(self.current_energy) #* self.timescale / 60
-        
-        #round up to the nearest 0.01 the current capacity
+        self.total_energy_exchanged += self.current_energy  # * self.timescale / 60
+        # * self.timescale / 60
+        self.abs_total_energy_exchanged += abs(self.current_energy)
+
+        # round up to the nearest 0.01 the current capacity
         self.current_capacity = self.my_ceil(self.current_capacity, 2)
-        
+
         self.active_steps.append(1 if self.actual_current != 0 else 0)
         return self.current_energy, self.actual_current
 
@@ -199,7 +203,7 @@ class EV():
             - Score: a value between 0 and 1
         '''
 
-        if self.current_capacity < self.desired_capacity - 0.001:            
+        if self.current_capacity < self.desired_capacity - 0.001:
             return self.current_capacity / self.desired_capacity
         else:
             return 1
@@ -277,8 +281,9 @@ class EV():
             curr_soc = pilot_dsoc + self.get_soc()
             if curr_soc > 1:
                 curr_soc = 1
-        
+
         else:
+            
             # The pilot SoC rate of change has a new transition SoC at
             # which decreasing of max charging rate occurs.
             pilot_transition_soc = self.transition_soc + (
@@ -293,16 +298,27 @@ class EV():
                 # time period causes the battery to transition between
                 # charging regions.
                 if 1 <= (pilot_transition_soc - self.get_soc()) / pilot_dsoc:
-                    curr_soc = pilot_dsoc + self.get_soc()
+                    new_soc = pilot_dsoc + self.get_soc()
                 else:
-                    curr_soc = 1 + np.exp(
+                    new_soc = 1 + np.exp(
+                        self.transition_soc_multiplier *
                         (pilot_dsoc + self.get_soc() - pilot_transition_soc)
                         / (pilot_transition_soc - 1)
                     ) * (pilot_transition_soc - 1)
             else:
-                curr_soc = 1 + np.exp(pilot_dsoc / (pilot_transition_soc - 1)) * (
+                new_soc = 1 + np.exp(self.transition_soc_multiplier*pilot_dsoc / (pilot_transition_soc - 1)) * (
                     self.get_soc() - 1
                 )
+
+            if max_dsoc > pilot_dsoc:
+                dsoc_limit = pilot_dsoc
+            else:
+                dsoc_limit = max_dsoc
+                
+            if new_soc-self.get_soc() > dsoc_limit:
+                curr_soc = dsoc_limit + self.get_soc()
+            else:
+                curr_soc = new_soc
 
         dsoc = curr_soc - self.get_soc()
         self.prev_capacity = self.current_capacity
@@ -311,7 +327,8 @@ class EV():
         # For charging power and charging rate (current), we use the
         # the average over this time period.
         self.current_energy = dsoc * self.battery_capacity  # / (period / 60)
-        self.required_energy = self.required_energy - self.current_energy  # * period / 60
+        self.required_energy = self.required_energy - \
+            self.current_energy  # * period / 60
         return self.current_energy / (period / 60) * 1000 / voltage
 
     def _discharge(self, amps, voltage, phases) -> float:
@@ -323,27 +340,50 @@ class EV():
         assert (amps < 0)
 
         voltage = voltage * math.sqrt(phases)
-        
+
         given_power = (amps * voltage / 1000)
-        
+
         if abs(given_power/1000) > abs(self.max_discharge_power):
             given_power = self.max_discharge_power
 
-        given_energy = given_power * self.discharge_efficiency * self.timescale / 60        
+        given_energy = given_power * self.discharge_efficiency * self.timescale / 60
         if self.current_capacity + given_energy < self.min_battery_capacity:
-            self.current_energy = -(self.current_capacity - self.min_battery_capacity)
+            self.current_energy = - \
+                (self.current_capacity - self.min_battery_capacity)
             given_energy = self.current_energy
             self.prev_capacity = self.current_capacity
             self.current_capacity = self.min_battery_capacity
         else:
             self.current_energy = given_energy  # * 60 / self.timescale
             self.prev_capacity = self.current_capacity
-            self.current_capacity += given_energy        
-        
+            self.current_capacity += given_energy
+
         self.required_energy = self.required_energy + self.current_energy
 
         return given_energy*60/self.timescale * 1000 / voltage
-
+    
+    def calculate_max_energy_with_AFAP(self,
+                                       max_cs_power
+                                       ) -> None:                   
+        '''
+        The calculate_max_energy_with_AFAP method is used to calculate the maximum energy that the EV can receive
+        when charging as fast as possible (AFAP). This value is used to determine the user_satifaction metric of the EV.
+        '''
+        
+        if abs(max_cs_power) > abs(self.max_ac_charge_power):
+            max_power = self.max_ac_charge_power
+        else:
+            max_power = max_cs_power
+        
+        self.max_energy_AFAP = self.battery_capacity_at_arrival
+                
+        for _ in range(self.time_of_arrival, self.time_of_departure+1):
+            self.max_energy_AFAP += max_power * self.charge_efficiency * self.timescale / 60
+            self.max_energy_AFAP = self.my_ceil(self.max_energy_AFAP, 2)
+            if self.max_energy_AFAP > self.battery_capacity:
+                self.max_energy_AFAP = self.battery_capacity
+                break    
+        
     def get_battery_degradation(self) -> Tuple[float, float]:
         '''
         A function that returns the capacity loss of the EV.
@@ -379,14 +419,16 @@ class EV():
         T_acc = b_age
 
         # Simulation time in days
-        T_sim = (self.time_of_departure - self.time_of_arrival + 1)*self.timescale/ (60*24) # days
+        T_sim = (self.time_of_departure - self.time_of_arrival + 1) * \
+            self.timescale / (60*24)  # days
 
         theta = 298.15  # Kelvin
         k = 0.8263  # Volts
 
         v_min = 3.3324  # Volts
-        self.historic_soc.append(self.get_soc()) # Add the final soc to the historic soc
-        avg_soc = np.mean(self.historic_soc) 
+        # Add the final soc to the historic soc
+        self.historic_soc.append(self.get_soc())
+        avg_soc = np.mean(self.historic_soc)
         v_avg = v_min + k * avg_soc
 
         # alpha(v_avg)
@@ -394,18 +436,21 @@ class EV():
         d_cal = alpha * 0.75 * T_sim / (T_acc)**0.25
 
         # beta(v_avg, soc_avg)
-        # print(f'avg_soc: {avg_soc}')        
+        # print(f'avg_soc: {avg_soc}')
         self.active_steps.append(1)
-        
+
         # get historic soc that self.active_steps == 1
-        filtered_historic_soc = [soc for i, soc in enumerate(self.historic_soc) if self.active_steps[i] == 1]
+        filtered_historic_soc = [soc for i, soc in enumerate(
+            self.historic_soc) if self.active_steps[i] == 1]
         # print(f'filtered soc {filtered_historic_soc}')
-        avg_filtered_soc = np.mean(filtered_historic_soc) 
-        
-        delta_DoD = 2 * abs(avg_filtered_soc.repeat(len( filtered_historic_soc)) - filtered_historic_soc).mean()
+        avg_filtered_soc = np.mean(filtered_historic_soc)
+
+        delta_DoD = 2 * \
+            abs(avg_filtered_soc.repeat(len(filtered_historic_soc)) -
+                filtered_historic_soc).mean()
         # print(f'delta_DoD: {delta_DoD}')
         v_half_soc = v_min + k * 0.5
-        beta = z0 * (v_half_soc - z1)**2 + z2 + z3 * delta_DoD        
+        beta = z0 * (v_half_soc - z1)**2 + z2 + z3 * delta_DoD
 
         Q_sim = (self.abs_total_energy_exchanged / b_cap_kwh) * b_cap_ah
 
@@ -417,5 +462,5 @@ class EV():
 
         self.calendar_loss = d_cal
         self.cyclic_loss = d_cyc
-        
+
         return d_cal, d_cyc
