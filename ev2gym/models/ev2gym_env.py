@@ -55,7 +55,7 @@ class EV2Gym(gym.Env):
         # read yaml config file
         assert config_file is not None, "Please provide a config file!!!"
         self.config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
-        
+
         self.generate_rnd_game = generate_rnd_game
         self.load_from_replay_path = load_from_replay_path
         self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
@@ -84,12 +84,11 @@ class EV2Gym(gym.Env):
         # set random seed
         np.random.seed(self.seed)
         random.seed(self.seed)
-        
-        self.tr_seed = self.config['tr_seed']        
+
+        self.tr_seed = self.config['tr_seed']
         if self.tr_seed == -1:
-            self.tr_seed = self.seed            
+            self.tr_seed = self.seed
         self.tr_rng = np.random.default_rng(seed=self.tr_seed)
-                
 
         if load_from_replay_path is not None:
             with open(load_from_replay_path, 'rb') as file:
@@ -115,22 +114,53 @@ class EV2Gym(gym.Env):
             self.number_of_transformers = self.config['number_of_transformers']
             self.timescale = self.config['timescale']
             self.simulation_length = int(self.config['simulation_length'])
+            self.scenario = self.config['scenario']
             # Simulation time
 
-            self.sim_date = datetime.datetime(self.config['year'],
-                                              self.config['month'],
-                                              self.config['day'],
-                                              self.config['hour'],
-                                              self.config['minute'])
+            if self.config['random_day']:
+                if "random_hour" in self.config:
+                    if self.config["random_hour"]:
+                        self.config['hour'] = random.randint(5, 15)
+
+                self.sim_date = datetime.datetime(2022,
+                                                  1,
+                                                  1,
+                                                  self.config['hour'],
+                                                  self.config['minute'],
+                                                  ) + datetime.timedelta(days=random.randint(0, int(1.5*365)))
+
+                if self.scenario == 'workplace':
+                    # dont simulate weekends
+                    while self.sim_date.weekday() > 4:
+                        self.sim_date += datetime.timedelta(days=1)
+
+                if self.config['simulation_days'] == "weekdays":
+                    # dont simulate weekends
+                    while self.sim_date.weekday() > 4:
+                        self.sim_date += datetime.timedelta(days=1)
+                elif self.config['simulation_days'] == "weekends" and self.scenario != 'workplace':
+                    # simulate only weekends
+                    while self.sim_date.weekday() < 5:
+                        self.sim_date += datetime.timedelta(days=1)
+            else:
+
+                self.sim_date = datetime.datetime(self.config['year'],
+                                                  self.config['month'],
+                                                  self.config['day'],
+                                                  self.config['hour'],
+                                                  self.config['minute'])
+            self.replay = None
+            self.sim_name = f'sim_' + \
+                f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
             self.replay = None
             self.sim_name = f'sim_' + \
                 f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
 
-            self.scenario = self.config['scenario']
             self.heterogeneous_specs = self.config['heterogeneous_ev_specs']
 
         # Whether to simulate the grid or not (Future feature...)
         self.simulate_grid = False
+        self.stats = None
 
         if self.cs > 100:
             self.lightweight_plots = True
@@ -243,16 +273,17 @@ class EV2Gym(gym.Env):
         # set random seed
         np.random.seed(self.seed)
         random.seed(self.seed)
-        
+
         if self.tr_seed == -1:
-            self.tr_seed = self.seed            
+            self.tr_seed = self.seed
         self.tr_rng = np.random.default_rng(seed=self.tr_seed)
 
         self.current_step = 0
+        self.stats = None
         # Reset all charging stations
         for cs in self.charging_stations:
             cs.reset()
-            
+
         for tr in self.transformers:
             tr.reset(step=self.current_step)
 
@@ -260,6 +291,10 @@ class EV2Gym(gym.Env):
             self.sim_date = self.sim_starting_date
         else:
             # select random date in range
+
+            if "random_hour" in self.config:
+                if self.config["random_hour"]:
+                    self.config['hour'] = random.randint(5, 15)
 
             self.sim_date = datetime.datetime(2022,
                                               1,
@@ -489,14 +524,17 @@ class EV2Gym(gym.Env):
                 self._save_sim_replay()
 
             if self.save_plots:
-                #save the env as a pickle file
+                # save the env as a pickle file
                 with open(f"./results/{self.sim_name}/env.pkl", 'wb') as f:
                     self.renderer = None
                     pickle.dump(self, f)
                 ev_city_plot(self)
+                
+                
 
             self.done = True
-            return self._get_observation(), reward, True, truncated, get_statistics(self)
+            self.stats = get_statistics(self)
+            return self._get_observation(), reward, True, truncated, self.stats
         else:
             return self._get_observation(), reward, False, truncated, {'None': None}
 
@@ -513,13 +551,13 @@ class EV2Gym(gym.Env):
             pickle.dump(replay, f)
 
         return replay.replay_path
-    
+
     def set_save_plots(self, save_plots):
         if save_plots:
             os.makedirs("./results", exist_ok=True)
             print(f"Creating directory: ./results/{self.sim_name}")
             os.makedirs(f"./results/{self.sim_name}", exist_ok=True)
-            
+
         self.save_plots = save_plots
 
     def _update_power_statistics(self, departing_evs):
@@ -578,7 +616,8 @@ class EV2Gym(gym.Env):
     def _calculate_reward(self, total_costs, user_satisfaction_list, invalid_action_punishment):
         '''Calculates the reward for the current step'''
 
-        reward = self.reward_function(self, total_costs, user_satisfaction_list, invalid_action_punishment)
+        reward = self.reward_function(
+            self, total_costs, user_satisfaction_list, invalid_action_punishment)
         self.total_reward += reward
-        
+
         return reward

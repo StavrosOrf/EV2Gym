@@ -46,30 +46,18 @@ def get_statistics(env) -> Dict:
 
     # calculate total batery degradation
     battery_degradation = np.array(
-        [np.array(ev.get_battery_degradation()) for ev in env.EVs])
+        [np.array(ev.get_battery_degradation()).reshape(-1) for ev in env.EVs])
     if len(battery_degradation) == 0:
         battery_degradation = np.zeros((1, 2))
     battery_degradation_calendar = battery_degradation[:, 0].sum()
     battery_degradation_cycling = battery_degradation[:, 1].sum()
     battery_degradation = battery_degradation.sum()
-
-    # find the final battery capacity of evs
-    if env.eval_mode != "unstirred" and len(env.EVs) > 0 \
-            and env.replay is not None:
-
-        if env.replay.unstirred_EVs is None:
-            energy_user_satisfaction = np.array(-10000000)
-        else:
-            energy_user_satisfaction = np.zeros((len(env.EVs)))
-            for i, ev in enumerate(env.EVs):
-                e_actual = ev.current_capacity
-                e_max = env.replay.unstirred_EVs[i].current_capacity
-                # print(f'EV {i} actual: {e_actual:.2f} kWh, max: {e_max:.2f} kWh')
-                energy_user_satisfaction[i] = e_actual / e_max * 100
-
-        energy_user_satisfaction = energy_user_satisfaction.mean()
-    else:
-        energy_user_satisfaction = 100
+    
+    energy_user_satisfaction = np.zeros((len(env.EVs)))
+    for i, ev in enumerate(env.EVs):
+        e_actual = ev.current_capacity
+        e_max = ev.max_energy_AFAP
+        energy_user_satisfaction[i] = (e_actual / e_max) * 100
 
     stats = {'total_ev_served': total_ev_served,
              'total_profits': total_profits,
@@ -79,7 +67,9 @@ def get_statistics(env) -> Dict:
              'power_tracker_violation': power_tracker_violation,
              'tracking_error': tracking_error,
              'energy_tracking_error': energy_tracking_error,
-             'energy_user_satisfaction': energy_user_satisfaction,
+             'energy_user_satisfaction': np.mean(energy_user_satisfaction),
+             'std_energy_user_satisfaction': np.std(energy_user_satisfaction),
+             'min_energy_user_satisfaction': np.min(energy_user_satisfaction),
              'total_transformer_overload': total_transformer_overload,
              'battery_degradation': battery_degradation,
              'battery_degradation_calendar': battery_degradation_calendar,
@@ -101,7 +91,9 @@ def get_statistics(env) -> Dict:
 
 def print_statistics(env) -> None:
 
-    stats = get_statistics(env)
+    assert env.stats is not None, "No statistics available. Run the simulation first!"
+        
+    stats = env.stats
 
     total_ev_served = stats['total_ev_served']
     total_profits = stats['total_profits']
@@ -113,6 +105,9 @@ def print_statistics(env) -> None:
     energy_tracking_error = stats['energy_tracking_error']
     power_tracker_violation = stats['power_tracker_violation']
     energy_user_satisfaction = stats['energy_user_satisfaction']
+    std_energy_user_satisfaction = stats['std_energy_user_satisfaction']
+    min_energy_user_satisfaction = stats['min_energy_user_satisfaction']
+    
     total_transformer_overload = stats['total_transformer_overload']
     battery_degradation = stats['battery_degradation']
     battery_degradation_calendar = stats['battery_degradation_calendar']
@@ -133,14 +128,14 @@ def print_statistics(env) -> None:
     print(
         f'  - Power Tracking squared error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW')
     print(f' - Actual Energy Tracking error: {energy_tracking_error:.2f} kW')
-    print(f'  - Energy user satisfaction: {energy_user_satisfaction:.2f} %')
+    print(f'  - Mean energy user satisfaction: {energy_user_satisfaction:.2f} % | Min: {min_energy_user_satisfaction:.2f} %')
+    print(f'  - Std Energy user satisfaction: {std_energy_user_satisfaction:.2f} %')
     print(
         f'  - Total Battery degradation: {battery_degradation:.5f}% | Calendar: {battery_degradation_calendar:.5f}%, Cycling: {battery_degradation_cycling:.5f}%')
     print(
         f'  - Total transformer overload: {total_transformer_overload:.2f} kWh \n')
 
     print("==============================================================\n\n")
-
 
 def spawn_single_EV(env,
                     scenario,

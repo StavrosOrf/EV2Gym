@@ -58,7 +58,7 @@ if __name__ == "__main__":
                      save_code=True,
                      )
 
-    gym.envs.register(id='evs-v0', entry_point='ev2gym.ev_city:ev2gym',
+    gym.envs.register(id='evs-v0', entry_point='ev2gym.models.ev2gym_env:EV2Gym',
                       kwargs={'config_file': config_file,
                               'verbose': False,
                               'save_plots': False,
