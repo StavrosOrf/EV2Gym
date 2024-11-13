@@ -14,11 +14,41 @@ from ev2gym.models.ev_charger import EV_Charger
 from ev2gym.models.ev import EV
 from ev2gym.models.transformer import Transformer
 
-from ev2gym.utilities.utils import EV_spawner, generate_power_setpoints
+from ev2gym.utilities.utils import EV_spawner, generate_power_setpoints, EV_spawner_GF
 
 
 def load_ev_spawn_scenarios(env) -> None:
     '''Loads the EV spawn scenarios of the simulation'''
+
+    # Load the EV specs
+    if env.config['heterogeneous_ev_specs']:
+        
+        if "ev_specs_file" in env.config:
+            ev_specs_file = env.config['ev_specs_file']
+        else:            
+            ev_specs_file = pkg_resources.resource_filename(
+                'ev2gym', 'data/ev_specs.json')
+        
+        with open(ev_specs_file) as f:
+            env.ev_specs = json.load(f)
+
+        registrations = np.zeros(len(env.ev_specs.keys()))
+        for i, ev_name in enumerate(env.ev_specs.keys()):
+            # sum the total number of registrations
+            registrations[i] = env.ev_specs[ev_name]['number_of_registrations']
+
+        env.normalized_ev_registrations = registrations/registrations.sum()
+
+    if env.scenario == 'GF':
+        env.df_arrival = np.load('./GF_data/time_of_arrival.npy')  # weekdays
+        env.time_of_connection_vs_hour_weekday = np.load(
+            './GF_data/weekday_time_of_stay.npy')
+        env.time_of_connection_vs_hour_weekend = np.load(
+            './GF_data/weekend_time_of_stay.npy')
+        env.df_req_energy_weekday = np.load('./GF_data/weekday_volumeKWh.npy')
+        env.df_req_energy_weekend = np.load('./GF_data/weekend_volumeKWh.npy')
+
+        return
 
     df_arrival_week_file = pkg_resources.resource_filename(
         'ev2gym', 'data/distribution-of-arrival.csv')
@@ -35,9 +65,6 @@ def load_ev_spawn_scenarios(env) -> None:
         'ev2gym', 'data/mean-demand-per-arrival.csv')
     df_time_of_stay_vs_arrival_file = pkg_resources.resource_filename(
         'ev2gym', 'data/mean-session-length-per.csv')
-
-    ev_specs_file = pkg_resources.resource_filename(
-        'ev2gym', 'data/ev_specs.json')
 
     env.df_arrival_week = pd.read_csv(df_arrival_week_file)  # weekdays
     env.df_arrival_weekend = pd.read_csv(df_arrival_weekend_file)  # weekends
@@ -59,18 +86,6 @@ def load_ev_spawn_scenarios(env) -> None:
     env.df_time_of_stay_vs_arrival = env.df_time_of_stay_vs_arrival.fillna(0)
     env.df_time_of_stay_vs_arrival = env.df_time_of_stay_vs_arrival.rename(columns={'work': 'workplace',
                                                                                     'home': 'private'})
-
-    # Load the EV specs
-    if env.config['heterogeneous_ev_specs']:
-        with open(ev_specs_file) as f:
-            env.ev_specs = json.load(f)
-
-        registrations = np.zeros(len(env.ev_specs.keys()))
-        for i, ev_name in enumerate(env.ev_specs.keys()):
-            # sum the total number of registrations
-            registrations[i] = env.ev_specs[ev_name]['number_of_registrations_2023_nl']
-
-        env.normalized_ev_registrations = registrations/registrations.sum()
 
 
 def load_power_setpoints(env) -> np.ndarray:
@@ -354,11 +369,17 @@ def load_ev_profiles(env) -> List[EV]:
         - ev_profiles: a list of ev_profile objects'''
 
     if env.load_from_replay_path is None:
-        
+
+        if env.scenario == 'GF':
+            ev_profiles = EV_spawner_GF(env)
+            while len(ev_profiles) == 0:
+                ev_profiles = EV_spawner_GF(env)
+            return ev_profiles
+
         ev_profiles = EV_spawner(env)
         while len(ev_profiles) == 0:
             ev_profiles = EV_spawner(env)
-            
+
         return ev_profiles
     else:
         return env.replay.EVs

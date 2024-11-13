@@ -21,6 +21,7 @@ def get_statistics(env) -> Dict:
     average_user_satisfaction = np.array(
         [cs.get_avg_user_satisfaction() for cs in env.charging_stations
          if cs.total_evs_served > 0]).mean()
+
     # get transformer overload from env.tr_overload
     total_transformer_overload = np.array(env.tr_overload).sum()
 
@@ -52,12 +53,14 @@ def get_statistics(env) -> Dict:
     battery_degradation_calendar = battery_degradation[:, 0].sum()
     battery_degradation_cycling = battery_degradation[:, 1].sum()
     battery_degradation = battery_degradation.sum()
-    
+
+    total_steps_min_emergency_battery_capacity_violation = 0
     energy_user_satisfaction = np.zeros((len(env.EVs)))
     for i, ev in enumerate(env.EVs):
         e_actual = ev.current_capacity
         e_max = ev.max_energy_AFAP
         energy_user_satisfaction[i] = (e_actual / e_max) * 100
+        total_steps_min_emergency_battery_capacity_violation += ev.min_emergency_battery_capacity_metric
 
     stats = {'total_ev_served': total_ev_served,
              'total_profits': total_profits,
@@ -70,6 +73,7 @@ def get_statistics(env) -> Dict:
              'energy_user_satisfaction': np.mean(energy_user_satisfaction),
              'std_energy_user_satisfaction': np.std(energy_user_satisfaction),
              'min_energy_user_satisfaction': np.min(energy_user_satisfaction),
+             'total_steps_min_emergency_battery_capacity_violation': total_steps_min_emergency_battery_capacity_violation,
              'total_transformer_overload': total_transformer_overload,
              'battery_degradation': battery_degradation,
              'battery_degradation_calendar': battery_degradation_calendar,
@@ -92,7 +96,7 @@ def get_statistics(env) -> Dict:
 def print_statistics(env) -> None:
 
     assert env.stats is not None, "No statistics available. Run the simulation first!"
-        
+
     stats = env.stats
 
     total_ev_served = stats['total_ev_served']
@@ -107,7 +111,7 @@ def print_statistics(env) -> None:
     energy_user_satisfaction = stats['energy_user_satisfaction']
     std_energy_user_satisfaction = stats['std_energy_user_satisfaction']
     min_energy_user_satisfaction = stats['min_energy_user_satisfaction']
-    
+
     total_transformer_overload = stats['total_transformer_overload']
     battery_degradation = stats['battery_degradation']
     battery_degradation_calendar = stats['battery_degradation_calendar']
@@ -128,14 +132,17 @@ def print_statistics(env) -> None:
     print(
         f'  - Power Tracking squared error: {tracking_error:.2f}, Power Violation: {power_tracker_violation:.2f} kW')
     print(f' - Actual Energy Tracking error: {energy_tracking_error:.2f} kW')
-    print(f'  - Mean energy user satisfaction: {energy_user_satisfaction:.2f} % | Min: {min_energy_user_satisfaction:.2f} %')
-    print(f'  - Std Energy user satisfaction: {std_energy_user_satisfaction:.2f} %')
+    print(
+        f'  - Mean energy user satisfaction: {energy_user_satisfaction:.2f} % | Min: {min_energy_user_satisfaction:.2f} %')
+    print(
+        f'  - Std Energy user satisfaction: {std_energy_user_satisfaction:.2f} %')
     print(
         f'  - Total Battery degradation: {battery_degradation:.5f}% | Calendar: {battery_degradation_calendar:.5f}%, Cycling: {battery_degradation_cycling:.5f}%')
     print(
         f'  - Total transformer overload: {total_transformer_overload:.2f} kWh \n')
 
     print("==============================================================\n\n")
+
 
 def spawn_single_EV(env,
                     scenario,
@@ -184,12 +191,12 @@ def spawn_single_EV(env,
         initial_battery_capacity = np.random.randint(1, battery_capacity)
     else:
         initial_battery_capacity = battery_capacity - required_energy
-        
+
     if initial_battery_capacity > env.config["ev"]['desired_capacity']:
         initial_battery_capacity = np.random.randint(1, battery_capacity)
-        
-    if initial_battery_capacity < env.config["ev"]['min_battery_capacity']:
-        initial_battery_capacity = env.config["ev"]['min_battery_capacity']        
+
+    if initial_battery_capacity < env.config["ev"]['min_battery_capacity'] and battery_capacity > 2*env.config["ev"]['min_battery_capacity']:
+        initial_battery_capacity = env.config["ev"]['min_battery_capacity']
 
     # time of stay dependent on time of arrival
     time_of_stay_mean = env.df_time_of_stay_vs_arrival[(
@@ -214,24 +221,66 @@ def spawn_single_EV(env,
     if time_of_stay < min_time_of_stay_steps:
         time_of_stay = min_time_of_stay_steps
 
-    if env.empty_ports_at_end_of_simulation:        
+    if env.empty_ports_at_end_of_simulation:
         if time_of_stay + step + 4 >= env.simulation_length:
             return None
             time_of_stay = env.simulation_length - step - 4 - 2
 
+    if "transition_soc_multiplier" in env.config["ev"]:
+        transition_soc_multiplier = env.config["ev"]["transition_soc_multiplier"]
+    else:
+        transition_soc_multiplier = 1
+
+    min_emergency_battery_capacity = env.config["ev"]["min_emergency_battery_capacity"]
+
+    if min_emergency_battery_capacity > battery_capacity:
+        min_emergency_battery_capacity = 0.7*battery_capacity
+
     if env.heterogeneous_specs:
+
+        # get charge efficiency from env.ev_specs dict
+        # if there is key charge_efficiency_v
+        if "charge_efficiency_v" in env.ev_specs[sampled_ev]:
+            charge_efficiency_v = env.ev_specs[sampled_ev]["ch_efficiency"]
+            current_levels = env.ev_specs[sampled_ev]["ch_current"]
+            assert len(charge_efficiency_v) == len(current_levels)
+            assert all([0 <= x <= 100 for x in charge_efficiency_v])
+
+            # make a dict with charge leves kay and charge efficiency value
+            charge_efficiency = dict(zip(current_levels, charge_efficiency_v))
+
+            # extend the dictionary to take values from 0 amps to 100 amps
+            for i in range(0, 101):
+                if i not in charge_efficiency:
+                    # take the closest value
+                    charge_efficiency[i] = charge_efficiency[min(
+                        charge_efficiency, key=lambda x: abs(x-i))]
+
+            discharge_efficiency = charge_efficiency.copy()
+
+        else:
+            charge_efficiency = np.round(1 -
+                                         (np.random.rand()+0.00001)/20, 3)  # [0.95-1]
+            discharge_efficiency = np.round(1 -
+                                             (np.random.rand()+0.00001)/20, 3)  # [0.95-1]
+
         return EV(id=port,
                   location=cs_id,
                   battery_capacity_at_arrival=initial_battery_capacity,
                   max_ac_charge_power=env.ev_specs[sampled_ev]["max_ac_charge_power"],
                   max_dc_charge_power=env.ev_specs[sampled_ev]["max_dc_charge_power"],
-                  max_discharge_power=-env.ev_specs[sampled_ev]["max_dc_discharge_power"],
-                  discharge_efficiency=np.round(1 -
-                                                (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
-                  transition_soc=np.round(0.9 - \
+                  max_discharge_power=-
+                  env.ev_specs[sampled_ev]["max_dc_discharge_power"],
+                  min_emergency_battery_capacity=min_emergency_battery_capacity,
+                  charge_efficiency=charge_efficiency,
+                  discharge_efficiency=discharge_efficiency,
+
+                  transition_soc=np.round(0.9 -
                                           (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
+                  transition_soc_multiplier=transition_soc_multiplier,
                   battery_capacity=battery_capacity,
-                  desired_capacity=0.8*battery_capacity,
+                  desired_capacity=env.config["ev"]['desired_capacity'] * \
+                  battery_capacity,
                   time_of_arrival=step+1,
                   time_of_departure=int(
                       time_of_stay + step + 3),
@@ -243,7 +292,9 @@ def spawn_single_EV(env,
                   location=cs_id,
                   battery_capacity_at_arrival=initial_battery_capacity,
                   battery_capacity=battery_capacity,
-                  desired_capacity=env.config["ev"]['desired_capacity'],
+                  desired_capacity=env.config["ev"]['desired_capacity'] *
+                  battery_capacity,
+                  min_emergency_battery_capacity=min_emergency_battery_capacity,
                   max_ac_charge_power=env.config["ev"]['max_ac_charge_power'],
                   min_ac_charge_power=env.config["ev"]['min_ac_charge_power'],
                   max_dc_charge_power=env.config["ev"]['max_dc_charge_power'],
@@ -254,6 +305,134 @@ def spawn_single_EV(env,
                       time_of_stay + step + 3),
                   ev_phases=env.config["ev"]['ev_phases'],
                   transition_soc=env.config["ev"]['transition_soc'],
+                  transition_soc_multiplier=transition_soc_multiplier,
+                  charge_efficiency=env.config["ev"]['charge_efficiency'],
+                  discharge_efficiency=env.config["ev"]['discharge_efficiency'],
+                  timescale=env.timescale,
+                  )
+
+
+def spawn_single_EV_GF(env,
+                       day,
+                       cs_id,
+                       port,
+                       hour,
+                       minute,
+                       step,
+                       min_time_of_stay_steps
+                       ) -> EV:
+    '''
+    This function spawns a single EV and returns it
+    '''
+
+    # round minute to 30 or 0
+    if minute < 30:
+        minute = 0
+    else:
+        minute = 30
+
+    if day < 5:
+        size = env.df_req_energy_weekday.shape[1]
+        required_energy = 2 * \
+            np.random.choice(size, 1, p=env.df_req_energy_weekday[hour])
+        size = env.time_of_connection_vs_hour_weekday.shape[1]
+        time_of_stay = 10 * \
+            np.random.choice(
+                size, 1, p=env.time_of_connection_vs_hour_weekday[hour])
+    else:
+        size = env.df_req_energy_weekend.shape[1]
+        required_energy = 2 * \
+            np.random.choice(size, 1, p=env.df_req_energy_weekend[hour])
+        size = env.time_of_connection_vs_hour_weekend.shape[1]
+        time_of_stay = 10 * \
+            np.random.choice(
+                size, 1, p=env.time_of_connection_vs_hour_weekend[hour])
+
+    required_energy = float(required_energy)
+    time_of_stay = float(time_of_stay)
+
+    if required_energy < 2:
+        required_energy = np.random.randint(5, 10)
+
+    if env.heterogeneous_specs:
+        sampled_ev = np.random.choice(
+            list(env.ev_specs.keys()), p=env.normalized_ev_registrations)
+        battery_capacity = env.ev_specs[sampled_ev]["battery_capacity"]
+    else:
+        battery_capacity = env.config["ev"]["battery_capacity"]
+
+    if battery_capacity < required_energy:
+        initial_battery_capacity = np.random.randint(1, battery_capacity)
+    else:
+        initial_battery_capacity = battery_capacity - required_energy
+
+    if initial_battery_capacity > env.config["ev"]['desired_capacity']:
+        initial_battery_capacity = np.random.randint(1, battery_capacity)
+
+    if initial_battery_capacity < env.config["ev"]['min_battery_capacity'] and battery_capacity > 2*env.config["ev"]['min_battery_capacity']:
+        initial_battery_capacity = env.config["ev"]['min_battery_capacity']
+
+    # turn from minutes to steps
+    time_of_stay = time_of_stay // env.timescale + 1
+
+    if time_of_stay < min_time_of_stay_steps:
+        time_of_stay = min_time_of_stay_steps
+
+    if env.empty_ports_at_end_of_simulation:
+        if time_of_stay + step + 4 >= env.simulation_length:
+            return None
+            time_of_stay = env.simulation_length - step - 4 - 2
+    if initial_battery_capacity > battery_capacity:
+        print(f"Initial battery capacity: {initial_battery_capacity}")
+        print(f"Battery capacity: {battery_capacity}")
+        raise ValueError(
+            "Initial battery capacity cannot be higher than battery capacity!")
+
+    if "transition_soc_multiplier" in env.config["ev"]:
+        transition_soc_multiplier = env.config["ev"]["transition_soc_multiplier"]
+    else:
+        transition_soc_multiplier = 1
+
+    if env.heterogeneous_specs:
+        return EV(id=port,
+                  location=cs_id,
+                  battery_capacity_at_arrival=initial_battery_capacity,
+                  max_ac_charge_power=env.ev_specs[sampled_ev]["max_ac_charge_power"],
+                  max_dc_charge_power=env.ev_specs[sampled_ev]["max_dc_charge_power"],
+                  max_discharge_power=-
+                  env.ev_specs[sampled_ev]["max_dc_discharge_power"],
+                  discharge_efficiency=np.round(1 -
+                                                (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
+                  transition_soc=np.round(0.9 - \
+                                          (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
+                  transition_soc_multiplier=transition_soc_multiplier,
+                  battery_capacity=battery_capacity,
+                  desired_capacity=env.config["ev"]['desired_capacity'] * \
+                  battery_capacity,
+                  time_of_arrival=step+1,
+                  time_of_departure=int(
+                      time_of_stay + step + 3),
+                  ev_phases=3,
+                  timescale=env.timescale,
+                  )
+    else:
+        return EV(id=port,
+                  location=cs_id,
+                  battery_capacity_at_arrival=initial_battery_capacity,
+                  battery_capacity=battery_capacity,
+                  desired_capacity=env.config["ev"]['desired_capacity'] *
+                  battery_capacity,
+                  max_ac_charge_power=env.config["ev"]['max_ac_charge_power'],
+                  min_ac_charge_power=env.config["ev"]['min_ac_charge_power'],
+                  max_dc_charge_power=env.config["ev"]['max_dc_charge_power'],
+                  max_discharge_power=env.config["ev"]['max_discharge_power'],
+                  min_discharge_power=env.config["ev"]['min_discharge_power'],
+                  time_of_arrival=step+1,
+                  time_of_departure=int(
+                      time_of_stay + step + 3),
+                  ev_phases=env.config["ev"]['ev_phases'],
+                  transition_soc=env.config["ev"]['transition_soc'],
+                  transition_soc_multiplier=transition_soc_multiplier,
                   charge_efficiency=env.config["ev"]['charge_efficiency'],
                   discharge_efficiency=env.config["ev"]['discharge_efficiency'],
                   timescale=env.timescale,
@@ -272,8 +451,8 @@ def EV_spawner(env) -> List[EV]:
 
     occupancy_list = np.zeros((env.number_of_ports, env.simulation_length))
 
-    arrival_probabilities = np.random.rand(
-        env.number_of_ports, env.simulation_length)
+    arrival_probabilities = np.random.rand(env.number_of_ports,
+                                           env.simulation_length)
 
     scenario = env.scenario
     user_spawn_multiplier = env.config["spawn_multiplier"]
@@ -282,6 +461,10 @@ def EV_spawner(env) -> List[EV]:
     # Define minimum time of stay duration so that an EV can fully charge
     min_time_of_stay = env.config['ev']["min_time_of_stay"]
     min_time_of_stay_steps = min_time_of_stay // env.timescale
+
+    if env.simulation_length-min_time_of_stay_steps-1 < 0:
+        raise ValueError(
+            "Simulation length is too short for the minimum time of stay! Increase the simulation length or decrease the minimum time of stay.")
 
     for t in range(2, env.simulation_length-min_time_of_stay_steps-1):
         day = time.weekday()
@@ -318,21 +501,87 @@ def EV_spawner(env) -> List[EV]:
                         occupancy_list[counter, t-2] == 0:
                     # and there is an EV arriving
                     if arrival_probabilities[counter, t]*100 < tau * multiplier * (env.timescale/60) * user_spawn_multiplier:
-                        ev = spawn_single_EV(
-                            env=env,
-                            scenario=scenario,
-                            cs_id=cs.id,
-                            port=port,
-                            hour=hour,
-                            minute=minute,
-                            step=t,
-                            min_time_of_stay_steps=min_time_of_stay_steps)
+                        ev = spawn_single_EV(env=env,
+                                             scenario=scenario,
+                                             cs_id=cs.id,
+                                             port=port,
+                                             hour=hour,
+                                             minute=minute,
+                                             step=t,
+                                             min_time_of_stay_steps=min_time_of_stay_steps)
 
-                        if ev is not None:                        
+                        if ev is not None:
                             ev_list.append(ev)
-                            occupancy_list[counter, t +
-                                        1:ev.time_of_departure] = 1
 
+                            occupancy_list[counter, t +
+                                           1:ev.time_of_departure] = 1
+                counter += 1
+        # step the time
+        time = time + datetime.timedelta(minutes=env.timescale)
+
+    return ev_list
+
+
+def EV_spawner_GF(env) -> List[EV]:
+    '''
+    This function spawns all the EVs of the current simulation and returns the list of EVs
+
+    Returns:
+        EVs: list of EVs
+    '''
+
+    ev_list = []
+
+    occupancy_list = np.zeros((env.number_of_ports, env.simulation_length))
+
+    arrival_probabilities = np.random.rand(env.number_of_ports,
+                                           env.simulation_length)
+
+    user_spawn_multiplier = env.config["spawn_multiplier"]
+    time = env.sim_date
+
+    # Define minimum time of stay duration so that an EV can fully charge
+    min_time_of_stay = env.config['ev']["min_time_of_stay"]
+    min_time_of_stay_steps = min_time_of_stay // env.timescale
+
+    if env.simulation_length-min_time_of_stay_steps-1 < 0:
+        raise ValueError(
+            "Simulation length is too short for the minimum time of stay! Increase the simulation length or decrease the minimum time of stay.")
+
+    for t in range(2, env.simulation_length-min_time_of_stay_steps-1):
+        day = time.weekday()
+        hour = time.hour
+        minute = time.minute
+        # Divide by 10 because the spawn rate is in 10 minute intervals
+        i = hour*6 + minute//10
+
+        tau = env.df_arrival[day, i]
+        multiplier = 0.5
+
+        counter = 0
+        for cs in env.charging_stations:
+            for port in range(cs.n_ports):
+                # if port is empty
+                if occupancy_list[counter, t] == 0 and \
+                    occupancy_list[counter, t-1] == 0 and \
+                        occupancy_list[counter, t-2] == 0:
+                    # and there is an EV arriving
+                    # if arrival_probabilities[counter, t] < tau * multiplier * (env.timescale/60) * user_spawn_multiplier:
+                    if arrival_probabilities[counter, t] < tau * 100 * (env.timescale/60) * user_spawn_multiplier * multiplier:
+                        ev = spawn_single_EV_GF(env=env,
+                                                day=day,
+                                                cs_id=cs.id,
+                                                port=port,
+                                                hour=hour,
+                                                minute=minute,
+                                                step=t,
+                                                min_time_of_stay_steps=min_time_of_stay_steps)
+
+                        if ev is not None:
+                            ev_list.append(ev)
+
+                            occupancy_list[counter, t +
+                                           1:ev.time_of_departure] = 1
                 counter += 1
         # step the time
         time = time + datetime.timedelta(minutes=env.timescale)
@@ -408,7 +657,7 @@ def generate_power_setpoints(env) -> np.ndarray:
                 total_evs_spawned += 1
 
                 required_energy = ev.battery_capacity - ev.battery_capacity_at_arrival
-                required_energy *= required_energy_multiplier / 100
+                required_energy = required_energy * required_energy_multiplier / 100
                 min_power_limit = max(ev.min_ac_charge_power, min_cs_power)
                 max_power_limit = min(ev.max_ac_charge_power, max_cs_power)
 
@@ -458,7 +707,19 @@ def generate_power_setpoints(env) -> np.ndarray:
 
     # return smooth_vector(power_setpoints)
 
-    return median_smoothing(power_setpoints, 5)
+    # if env.timescale < 15:
+    #     power_setpoints = median_smoothing(power_setpoints, 5)
+    #     # make the setpoint have the same value for 15 minutes
+    #     new_setpoints = np.zeros(env.simulation_length)
+    #     for t in range(env.simulation_length):
+    #         # average of the setpoints for the next 15 minutes
+    #         new_setpoints[t] = np.mean(power_setpoints[t:t+15])
+
+    #     return new_setpoints
+    multiplier = int(15 / env.timescale)
+    if multiplier < 1:
+        multiplier = 1
+    return median_smoothing(power_setpoints, 5 * multiplier)
 
 
 def calculate_charge_power_potential(env) -> float:

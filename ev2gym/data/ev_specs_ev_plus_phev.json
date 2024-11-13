@@ -1,6 +1,6 @@
 {
     "Tesla Model 3": {
-        "number_of_registrations": 45545,
+        "number_of_registrations": 49955,
         "battery_capacity": 57.5,
         "ac_v2g": "no",
         "dc_v2g": "no",
@@ -11,7 +11,7 @@
         "max_dc_discharge_power": 0
     },
     "Kia Niro": {
-        "number_of_registrations": 23105,
+        "number_of_registrations": 27600,
         "battery_capacity": 64.8,
         "ac_v2g": "no",
         "dc_v2g": "no",
@@ -22,7 +22,7 @@
         "max_dc_discharge_power": 0
     },
     "Volkswagen ID.3": {
-        "number_of_registrations": 19950,
+        "number_of_registrations": 22095,
         "battery_capacity": 58,
         "ac_v2g": "no",
         "dc_v2g": "no",
@@ -33,7 +33,7 @@
         "max_dc_discharge_power": 0
     },
     "Hyundai Kona": {
-        "number_of_registrations": 17752,
+        "number_of_registrations": 19505,
         "battery_capacity": 64,
         "ac_v2g": "no",
         "dc_v2g": "no",
@@ -44,7 +44,7 @@
         "max_dc_discharge_power": 0
     },
     "Tesla Model Y": {
-        "number_of_registrations": 16186,
+        "number_of_registrations": 29964,
         "battery_capacity": 57.5,
         "ac_v2g": "no",
         "dc_v2g": "no",
@@ -55,7 +55,7 @@
         "max_dc_discharge_power": 0
     },
     "Skoda Enyaq": {
-        "number_of_registrations": 16165,
+        "number_of_registrations": 19472,
         "battery_capacity": 58,
         "ac_v2g": "no",
         "dc_v2g": "no",
@@ -65,8 +65,8 @@
         "max_ac_discharge_power": 0,
         "max_dc_discharge_power": 0
     },
-    "Peugeot 208": {
-        "number_of_registrations": 14017,
+    "Peugeot E-208": {
+        "number_of_registrations": 17099,
         "battery_capacity": 46.3,
         "ac_v2g": "no",
         "dc_v2g": "no",
@@ -77,7 +77,7 @@
         "max_dc_discharge_power": 0
     },
     "Renault Zoe": {
-        "number_of_registrations": 14008,
+        "number_of_registrations": 14740,
         "battery_capacity": 52,
         "ac_v2g": "no",
         "dc_v2g": "no",
@@ -88,7 +88,7 @@
         "max_dc_discharge_power": 0
     },
     "Volkswagen ID.4": {
-        "number_of_registrations": 13283,
+        "number_of_registrations": 15514,
         "battery_capacity": 77,
         "ac_v2g": "no",
         "dc_v2g": "yes",
@@ -97,17 +97,6 @@
         "avg_dc_charge_power": 120,
         "max_ac_discharge_power": 0,
         "max_dc_discharge_power": 10
-    },
-    "Volvo XC40": {
-        "number_of_registrations": 12520,
-        "battery_capacity": 66,
-        "ac_v2g": "no",
-        "dc_v2g": "no",
-        "max_ac_charge_power": 11,
-        "max_dc_charge_power": 135,
-        "avg_dc_charge_power": 85,
-        "max_ac_discharge_power": 0,
-        "max_dc_discharge_power": 0
     },
     "Nissan Leaf": {
         "number_of_registrations": 11977,
@@ -131,14 +120,113 @@
         "max_ac_discharge_power": 0,
         "max_dc_discharge_power": 0
     },
-    "Volkswagen Golf": {
-        "number_of_registrations": 10019,
-        "battery_capacity": 32,
+    "Mitsubishi Outlander":{
+        "number_of_registrations": 21639,
+        "battery_capacity": 9,
         "ac_v2g": "no",
         "dc_v2g": "no",
-        "max_ac_charge_power": 7.2,
+        "max_ac_charge_power": 3.7,
+        "max_dc_charge_power": 0,
+        "avg_dc_charge_power": 0,
+        "max_ac_discharge_power": 0,
+        "max_dc_discharge_power": 0
+    },
+    "Lynk and co 01":{
+        "number_of_registrations": 18585,
+        "battery_capacity": 17.6,
+        "ac_v2g": "no",
+        "dc_v2g": "no",
+        "max_ac_charge_power": 3.7,
+        "max_dc_charge_power": 0,
+        "avg_dc_charge_power": 0,
+        "max_ac_discharge_power": 0,
+        "max_dc_discharge_power": 0
+    },
+    "Ford Kuga":{
+        "number_of_registrations": 15959,
+        "battery_capacity": 12,
+        "ac_v2g": "no",
+        "dc_v2g": "no",
+        "max_ac_charge_power": 3.6,
+        "max_dc_charge_power": 0,
+        "avg_dc_charge_power": 0,
+        "max_ac_discharge_power": 0,
+        "max_dc_discharge_power": 0
+    },
+    "Volvo XC60":{
+        "number_of_registrations": 15077,
+        "battery_capacity": 8,
+        "ac_v2g": "no",
+        "dc_v2g": "no",
+        "max_ac_charge_power": 3.7,
+        "max_dc_charge_power": 0,
+        "avg_dc_charge_power": 0,
+        "max_ac_discharge_power": 0,
+        "max_dc_discharge_power": 0
+    },
+    "Volvo V60":{
+        "number_of_registrations": 14594,
+        "battery_capacity": 8,
+        "ac_v2g": "no",
+        "dc_v2g": "no",
+        "max_ac_charge_power": 3.7,
+        "max_dc_charge_power": 0,
+        "avg_dc_charge_power": 0,
+        "max_ac_discharge_power": 0,
+        "max_dc_discharge_power": 0
+    },
+    "Volvo XC40":{
+        "number_of_registrations": 14279,
+        "battery_capacity": 8.8,
+        "ac_v2g": "no",
+        "dc_v2g": "no",
+        "max_ac_charge_power": 3.7,
+        "max_dc_charge_power": 0,
+        "avg_dc_charge_power": 0,
+        "max_ac_discharge_power": 0,
+        "max_dc_discharge_power": 0
+    },
+    "Volkswagen Golf": {
+        "number_of_registrations": 13475,
+        "battery_capacity": 7.4,
+        "ac_v2g": "no",
+        "dc_v2g": "no",
+        "max_ac_charge_power": 3.7,
         "max_dc_charge_power": 40,
         "avg_dc_charge_power": 39,
+        "max_ac_discharge_power": 0,
+        "max_dc_discharge_power": 0
+    },
+    "Volvo XC90":{
+        "number_of_registrations": 12028,
+        "battery_capacity": 8,
+        "ac_v2g": "no",
+        "dc_v2g": "no",
+        "max_ac_charge_power": 3.7,
+        "max_dc_charge_power": 0,
+        "avg_dc_charge_power": 0,
+        "max_ac_discharge_power": 0,
+        "max_dc_discharge_power": 0
+    },
+    "BMW 3-serie":{
+        "number_of_registrations": 10642,
+        "battery_capacity": 6,
+        "ac_v2g": "no",
+        "dc_v2g": "no",
+        "max_ac_charge_power": 3.7,
+        "max_dc_charge_power": 0,
+        "avg_dc_charge_power": 0,
+        "max_ac_discharge_power": 0,
+        "max_dc_discharge_power": 0
+    },
+    "BMW X5":{
+        "number_of_registrations": 10039,
+        "battery_capacity": 7.5,
+        "ac_v2g": "no",
+        "dc_v2g": "no",
+        "max_ac_charge_power": 3.7,
+        "max_dc_charge_power": 0,
+        "avg_dc_charge_power": 0,
         "max_ac_discharge_power": 0,
         "max_dc_discharge_power": 0
     }

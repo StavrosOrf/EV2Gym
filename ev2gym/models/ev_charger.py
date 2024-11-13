@@ -280,4 +280,3 @@ class EV_Charger:
                   f' SoC {ev.get_soc()*100:.1f}%')
 
         return index
-

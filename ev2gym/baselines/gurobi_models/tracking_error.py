@@ -15,7 +15,7 @@ class PowerTrackingErrorrMin():
     '''
     This file contains the PowerTrackingErrorrMin class, which is used to solve the ev_city V2G problem optimally.
     '''
-    algo_name = 'Optimal (Offline)'        
+    algo_name = 'Optimal (Offline)'
     def __init__(self, replay_path=None, **kwargs):        
         
         replay = pickle.load(open(replay_path, 'rb'))
@@ -54,7 +54,7 @@ class PowerTrackingErrorrMin():
         # create model
         # print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
-        self.m.setParam('OutputFlag', 0)
+        # self.m.setParam('OutputFlag', 0)
         # self.m.setParam('MIPGap', 0.2)
 
         # energy of EVs t timeslot t

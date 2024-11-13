@@ -108,9 +108,16 @@ class MPC(ABC):
         for index, EV in enumerate(env.EVs_profiles):
 
             if index == 0:
-                # Assume all EVs have the same charging and discharging efficiency !!!
-                self.ch_eff = EV.charge_efficiency
-                self.disch_eff = EV.discharge_efficiency
+                # Assume all EVs have the same charging and discharging efficiency !!!                
+                if isinstance(EV.charge_efficiency, dict):
+                    # get the highest value of the dictionary
+                    key = max(EV.charge_efficiency, key=EV.charge_efficiency.get)                    
+                    self.ch_eff = EV.charge_efficiency[key]
+                    self.disch_eff = EV.discharge_efficiency[key]                    
+                else:
+                    self.ch_eff = EV.charge_efficiency
+                    self.disch_eff = EV.discharge_efficiency                
+                
                 self.min_SoC = EV.min_battery_capacity/EV.battery_capacity
 
             # Assume all EVs have the same characteristics !!!

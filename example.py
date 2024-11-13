@@ -31,7 +31,6 @@ def eval():
     replay_path = "./replay/replay_sim_2024_07_05_106720.pkl"
     replay_path = None
 
-    # config_file = "ev2gym/example_config_files/V2G_MPC2.yaml"
     # config_file = "ev2gym/example_config_files/PublicPST.yaml"
     # config_file = "ev2gym/example_config_files/BusinessPST.yaml"
     config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
@@ -65,10 +64,10 @@ def eval():
     # agent = V2GProfitMaxOracle(env,verbose=True)
     # agent = PowerTrackingErrorrMin(new_replay_path)
     # agent = eMPC_G2V(env, control_horizon=15, verbose=False)
-    # agent = eMPC_V2G_v2(env, control_horizon=10, verbose=False)        
+    agent = eMPC_V2G_v2(env, control_horizon=10, verbose=False)        
     # agent = RoundRobin(env, verbose=False)
     # agent = ChargeAsLateAsPossible(verbose=False)
-    agent = ChargeAsFastAsPossible()
+    # agent = ChargeAsFastAsPossible()
     # agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 
@@ -89,34 +88,34 @@ def eval():
     # Power tracker optimizer
     # agent = PowerTrackingErrorrMin(replay_path=new_replay_path)
     # # Profit maximization optimizer
-    # # agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)
+    agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)
     # # Simulate in the gym environment and get the rewards
 
-    # env = ev2gym(config_file=config_file,
-    #                    load_from_replay_path=new_replay_path,
-    #                    verbose=True,
-    #                    save_plots=True,
-    #                    )
-    # state, _ = env.reset()
-    # rewards_opt = []
+    env = EV2Gym(config_file=config_file,
+                       load_from_replay_path=new_replay_path,
+                       verbose=False,
+                       save_plots=True,
+                       )
+    state, _ = env.reset()
+    rewards_opt = []
 
-    # for t in range(env.simulation_length):
-    #     actions = agent.get_action(env)
-    #     if verbose:
-    #         print(f' OptimalActions: {actions}')
+    for t in range(env.simulation_length):
+        actions = agent.get_action(env)
+        # if verbose:
+        #     print(f' OptimalActions: {actions}')
 
-    #     new_state, reward, done, truncated, _ = env.step(
-    #         actions, visualize=True)  # takes action
-    #     rewards_opt.append(reward)
+        new_state, reward, done, truncated, stats = env.step(
+            actions, visualize=False)  # takes action
+        rewards_opt.append(reward)
+        
+        # if verbose:
+        #     print(f'Reward: {reward} \t Done: {done}')
 
-    #     if verbose:
-    #         print(f'Reward: {reward} \t Done: {done}')
-
-    #     if done:
-    #         break
+        if done:
+            print(stats)
+            break
 
 
 if __name__ == "__main__":
     # while True:
-        eval()
-    # exit()
+        eval()    

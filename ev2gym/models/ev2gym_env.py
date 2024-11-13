@@ -38,6 +38,7 @@ class EV2Gym(gym.Env):
                  save_plots=False,
                  state_function=PublicPST,
                  reward_function=SquaredTrackingErrorReward,
+                 cost_function=None,  # cost function to use in the simulation
                  eval_mode="Normal",  # eval mode can be "Normal", "Unstirred" or "Optimal" in order to save the correct statistics in the replay file
                  lightweight_plots=False,
                  # whether to empty the ports at the end of the simulation or not
@@ -50,7 +51,7 @@ class EV2Gym(gym.Env):
         super(EV2Gym, self).__init__()
 
         if verbose:
-            print(f'Initializing EVs-Simulator environment...')
+            print(f'Initializing EV2Gym environment...')
 
         # read yaml config file
         assert config_file is not None, "Please provide a config file!!!"
@@ -75,6 +76,7 @@ class EV2Gym(gym.Env):
 
         self.reward_function = reward_function
         self.state_function = state_function
+        self.cost_function = cost_function
 
         if seed is None:
             self.seed = np.random.randint(0, 1000000)
@@ -113,8 +115,8 @@ class EV2Gym(gym.Env):
             self.number_of_ports_per_cs = self.config['number_of_ports_per_cs']
             self.number_of_transformers = self.config['number_of_transformers']
             self.timescale = self.config['timescale']
-            self.simulation_length = int(self.config['simulation_length'])
             self.scenario = self.config['scenario']
+            self.simulation_length = int(self.config['simulation_length'])
             # Simulation time
 
             if self.config['random_day']:
@@ -152,18 +154,15 @@ class EV2Gym(gym.Env):
             self.replay = None
             self.sim_name = f'sim_' + \
                 f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
-            self.replay = None
-            self.sim_name = f'sim_' + \
-                f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
 
             self.heterogeneous_specs = self.config['heterogeneous_ev_specs']
 
         # Whether to simulate the grid or not (Future feature...)
         self.simulate_grid = False
-        self.stats = None
 
-        if self.cs > 100:
-            self.lightweight_plots = True
+        self.stats = None
+        # if self.cs > 100:
+        # self.lightweight_plots = True
         self.sim_starting_date = self.sim_date
 
         # Read the config.charging_network_topology json file and read the topology
@@ -487,14 +486,22 @@ class EV2Gym(gym.Env):
                                             user_satisfaction_list,
                                             total_invalid_action_punishment)
 
+        if self.cost_function is not None:
+            cost = self.cost_function(self,
+                                      total_costs,
+                                      user_satisfaction_list,
+                                      total_invalid_action_punishment)
+        else:
+            cost = None
+
         if visualize:
             visualize_step(self)
 
         self.render()
 
-        return self._check_termination(user_satisfaction_list, reward)
+        return self._check_termination(user_satisfaction_list, reward, cost)
 
-    def _check_termination(self, user_satisfaction_list, reward):
+    def _check_termination(self, user_satisfaction_list, reward, cost):
         '''Checks if the episode is done or any constraint is violated'''
         truncated = False
         # Check if the episode is done or any constraint is violated
@@ -529,14 +536,19 @@ class EV2Gym(gym.Env):
                     self.renderer = None
                     pickle.dump(self, f)
                 ev_city_plot(self)
-                
-                
 
             self.done = True
             self.stats = get_statistics(self)
-            return self._get_observation(), reward, True, truncated, self.stats
+
+            if self.cost_function is not None:
+                return self._get_observation(), reward, True, truncated, self.stats
+            else:
+                return self._get_observation(), reward, True, truncated, self.stats
         else:
-            return self._get_observation(), reward, False, truncated, {'None': None}
+            if self.cost_function is not None:
+                return self._get_observation(), reward, False, truncated, {'cost': cost}
+            else:
+                return self._get_observation(), reward, False, truncated, {'None': None}
 
     def render(self):
         '''Renders the simulation'''
@@ -606,6 +618,12 @@ class EV2Gym(gym.Env):
     def _get_observation(self):
 
         return self.state_function(self)
+
+    def set_cost_function(self, cost_function):
+        '''
+        This function sets the cost function of the environment
+        '''
+        self.cost_function = cost_function
 
     def set_reward_function(self, reward_function):
         '''

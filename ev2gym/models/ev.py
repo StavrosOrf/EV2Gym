@@ -51,6 +51,7 @@ class EV():
                  desired_capacity=None,  # kWh
                  battery_capacity=50,  # kWh
                  min_battery_capacity=10,  # kWh
+                 min_emergency_battery_capacity=25,  # kWh
                  max_ac_charge_power=22,  # kW
                  min_ac_charge_power=0,  # kW
                  max_dc_charge_power=50,  # kW
@@ -59,8 +60,8 @@ class EV():
                  ev_phases=3,
                  transition_soc=0.8,
                  transition_soc_multiplier=1,
-                 charge_efficiency=1,
-                 discharge_efficiency=1,
+                 charge_efficiency=1, # can be a list of charge efficiencies for different current levels
+                 discharge_efficiency=1, # can be a list of discharge efficiencies for different current levels
                  timescale=5,
                  ):
 
@@ -77,6 +78,7 @@ class EV():
         # EV technical characteristics
         self.battery_capacity = battery_capacity  # kWh
         self.min_battery_capacity = min_battery_capacity  # kWh
+        self.min_emergency_battery_capacity = min_emergency_battery_capacity  # kWh
         self.max_ac_charge_power = max_ac_charge_power  # kW
         self.min_ac_charge_power = min_ac_charge_power  # kW
         self.max_discharge_power = max_discharge_power  # kW
@@ -99,6 +101,8 @@ class EV():
         self.required_energy = self.battery_capacity - self.battery_capacity_at_arrival
         self.total_energy_exchanged = 0
         self.max_energy_AFAP = 0
+        # timesteps that the EV is discharged below the minimum emergency battery capacity
+        self.min_emergency_battery_capacity_metric = 0
 
         # Baterry degradation
         self.abs_total_energy_exchanged = 0
@@ -122,6 +126,7 @@ class EV():
         self.total_energy_exchanged = 0
         self.c_lost = 0
         self.max_energy_AFAP = 0
+        self.min_emergency_battery_capacity_metric = 0
 
         self.abs_total_energy_exchanged = 0
         self.historic_soc = []
@@ -208,6 +213,13 @@ class EV():
         else:
             return 1
 
+    def min_SoC_when_discharging_metric(self) -> float:
+        """
+        This metric monitors how often the EV is discharged below the minimum state of charge (SoC) threshold.        
+        It is calculated in every step of the simulation and is used to determine the EV's satisfaction metric.
+        """
+        return 1 if self.current_capacity >= self.min_emergency_battery_capacity else 0
+
     def get_soc(self) -> float:
         '''
         A function that returns the state of charge of the EV.
@@ -269,9 +281,17 @@ class EV():
         # All calculations are done in terms of battery SoC, so we
         # convert pilot signal and max power into pilot and max rate of
         # change of SoC.
-        pilot_dsoc = self.charge_efficiency * pilot * voltage / 1000 / \
+        
+        # if charge efficeincy is dict, then get the charge efficiency based on the current
+        # current level
+        if isinstance(self.charge_efficiency, dict):
+            charge_efficiency = self.charge_efficiency.get(np.round(amps), 1)/100
+        else:
+            charge_efficiency = self.charge_efficiency
+        
+        pilot_dsoc = charge_efficiency * pilot * voltage / 1000 / \
             self.battery_capacity / (60 / period)
-        max_dsoc = self.charge_efficiency * self.max_ac_charge_power / \
+        max_dsoc = charge_efficiency * self.max_ac_charge_power / \
             self.battery_capacity / (60 / period)
 
         if pilot_dsoc > max_dsoc:
@@ -283,7 +303,7 @@ class EV():
                 curr_soc = 1
 
         else:
-            
+
             # The pilot SoC rate of change has a new transition SoC at
             # which decreasing of max charging rate occurs.
             pilot_transition_soc = self.transition_soc + (
@@ -314,7 +334,7 @@ class EV():
                 dsoc_limit = pilot_dsoc
             else:
                 dsoc_limit = max_dsoc
-                
+
             if new_soc-self.get_soc() > dsoc_limit:
                 curr_soc = dsoc_limit + self.get_soc()
             else:
@@ -342,17 +362,32 @@ class EV():
         voltage = voltage * math.sqrt(phases)
 
         given_power = (amps * voltage / 1000)
+        prev_capacity = self.current_capacity
 
-        if abs(given_power/1000) > abs(self.max_discharge_power):
+        if abs(given_power) > abs(self.max_discharge_power):
             given_power = self.max_discharge_power
-
-        given_energy = given_power * self.discharge_efficiency * self.timescale / 60
+            
+        # if discharge efficeincy is dict, then get the discharge efficiency based on the current
+        # current level
+        if isinstance(self.charge_efficiency, dict):
+            discharge_efficiency = self.discharge_efficiency.get(np.abs(np.round(amps)), 1)/100            
+            assert discharge_efficiency > 0
+        else:
+            discharge_efficiency = self.discharge_efficiency
+        
+        given_energy = given_power * discharge_efficiency * self.timescale / 60
         if self.current_capacity + given_energy < self.min_battery_capacity:
-            self.current_energy = - \
-                (self.current_capacity - self.min_battery_capacity)
-            given_energy = self.current_energy
-            self.prev_capacity = self.current_capacity
-            self.current_capacity = self.min_battery_capacity
+            if self.current_capacity > self.min_battery_capacity:
+                self.current_energy = - \
+                    (self.current_capacity - self.min_battery_capacity)
+                given_energy = self.current_energy
+                self.prev_capacity = self.current_capacity
+                self.current_capacity = self.min_battery_capacity
+            else:
+                self.current_energy = 0
+                given_energy = 0
+                self.prev_capacity = self.current_capacity
+                self.current_capacity = self.min_battery_capacity
         else:
             self.current_energy = given_energy  # * 60 / self.timescale
             self.prev_capacity = self.current_capacity
@@ -360,30 +395,47 @@ class EV():
 
         self.required_energy = self.required_energy + self.current_energy
 
+        if prev_capacity > self.min_emergency_battery_capacity and self.current_capacity < self.min_emergency_battery_capacity:
+            self.min_emergency_battery_capacity_metric += 1        
+
+        assert given_energy <= 0
         return given_energy*60/self.timescale * 1000 / voltage
-    
+
     def calculate_max_energy_with_AFAP(self,
                                        max_cs_power
-                                       ) -> None:                   
+                                       ) -> None:
         '''
         The calculate_max_energy_with_AFAP method is used to calculate the maximum energy that the EV can receive
         when charging as fast as possible (AFAP). This value is used to determine the user_satifaction metric of the EV.
         '''
-        
+
         if abs(max_cs_power) > abs(self.max_ac_charge_power):
             max_power = self.max_ac_charge_power
         else:
             max_power = max_cs_power
-        
+
         self.max_energy_AFAP = self.battery_capacity_at_arrival
-                
+        
+        # if charge efficeincy is dict, then get the charge efficiency based on the current
+        if isinstance(self.charge_efficiency, dict):
+            # iterate over all values of charge efficiency and get the maximum
+            # charge efficiency
+            max_charge_efficiency = 0
+            for key, value in self.charge_efficiency.items():
+                if value > max_charge_efficiency:
+                    max_charge_efficiency = value
+            charge_efficiency = max_charge_efficiency/100                
+            
+        else:
+            charge_efficiency = self.charge_efficiency
+            
         for _ in range(self.time_of_arrival, self.time_of_departure+1):
-            self.max_energy_AFAP += max_power * self.charge_efficiency * self.timescale / 60
+            self.max_energy_AFAP += max_power * charge_efficiency * self.timescale / 60
             self.max_energy_AFAP = self.my_ceil(self.max_energy_AFAP, 2)
             if self.max_energy_AFAP > self.battery_capacity:
                 self.max_energy_AFAP = self.battery_capacity
-                break    
-        
+                break
+
     def get_battery_degradation(self) -> Tuple[float, float]:
         '''
         A function that returns the capacity loss of the EV.
