@@ -104,10 +104,10 @@ transformer:
 # Default Charging Station model
 charging_station:  
   min_charge_current: 0 # Amperes
-  max_charge_current: 32 # Amperes
+  max_charge_current: 16 # Amperes
   min_discharge_current: 0 # Amperes (actual value <=0)
-  max_discharge_current: -32 # Amperes (actual value <=0)
-  voltage: 230 # Volts
+  max_discharge_current: -16 # Amperes (actual value <=0)
+  voltage: 400 # Line-Line Voltage in Volts
   phases: 3 # 1,2, or 3
 
 # Default EV model

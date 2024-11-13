@@ -164,12 +164,12 @@ def ev_city_plot(env):
             colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+1))
 
             if env.config['inflexible_loads']['include']:
-                df['inflexible'] = env.tr_inflexible_loads[tr.id, :] * 1000 / 400
+                df['inflexible'] = env.tr_inflexible_loads[tr.id, :] * 1000 / tr.voltage
                 blue = np.array([0.529, 0.808, 0.922, 1])                
                 colors = np.insert(colors, 0, blue, axis=0)
                 
             if env.config['solar_power']['include']:
-                df['solar'] = env.tr_solar_power[tr.id, :] * 1000 / 400
+                df['solar'] = env.tr_solar_power[tr.id, :] * 1000 / tr.voltage
                 gold = np.array([1, 0.843, 0, 1])
                 colors = np.insert(colors, 0, gold, axis=0)
                 
