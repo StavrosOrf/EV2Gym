@@ -1,8 +1,3 @@
-'''
-===================================
-Author: Stavros Orfanoudakis 2023
-===================================
-'''
 
 import numpy as np
 import gurobipy as gp
@@ -10,64 +5,154 @@ from gurobipy import GRB
 from gurobipy import *
 import pickle
 
+import time
+
 
 class V2GProfitMaxOracleGB():
     '''
     This file contains the EV_City_Math_Model class, which is used to solve the ev_city V2G problem optimally.
     '''
-    algo_name = 'Optimal (Offline)' 
-    def __init__(self, replay_path=None, **kwargs):
 
-        replay = pickle.load(open(replay_path, 'rb'))
+    # Use type hints to specify the input and output dimensions of the model
+    def __init__(self,
+                 replay_path: str = None,
 
-        self.sim_length = replay.sim_length
-        self.n_cs = replay.n_cs
-        self.number_of_ports_per_cs = replay.max_n_ports
-        self.n_transformers = replay.n_transformers
-        self.timescale = replay.timescale
-        dt = replay.timescale / 60  # time step
+                 # General parameters
+                 # number of time steps in the simulation
+                 sim_length: int = 96,
+                 # number of charging stations in the simulation
+                 n_cs: int = 1,
+                 # you can assume it is one for your simulations
+                 max_n_ports: int = 1,
+                 # this you can assume it is the power_limiter for all your chargers of your charging problem
+                 n_transformers: int = 1,
+                 # time resolution in minutes
+                 timescale: int = 15,
+
+                 # Transformer (Aggregator) parameters
+                 # size(n_transformers,sim_length) transformer max current in amps
+                 tra_max_amps: np.ndarray = None,
+                 # size(n_transformers,sim_length) transformer min current in amps
+                 tra_min_amps: np.ndarray = None,
+
+
+                 # Charging station parameters
+                 # size(n_cs) an id of the transformer that the charging station is connected to
+                 cs_transformer: np.ndarray = None,
+                 # size(n_cs) max charge current in amps
+                 port_max_charge_current: np.ndarray = None,
+                 # size(n_cs) min charge current in amps
+                 port_min_charge_current: np.ndarray = None,
+                 # size(n_cs) max discharge current in amps (should be negative value or 0)
+                 port_max_discharge_current: np.ndarray = None,
+                 # size(n_cs) min discharge current in amps (should be negative value or 0)
+                 port_min_discharge_current: np.ndarray = None,
+                 # size(n_cs) voltage in volts of the charging station
+                 voltages: np.ndarray = None,
+                 # size(n_cs,sim_length) charge prices in €/kWh (should be negative value)
+                 charge_prices: np.ndarray = None,
+                 # size(n_cs,sim_length) discharge prices in €/kWh (should be positive value)
+                 discharge_prices: np.ndarray = None,
+                 # size(n_cs,sim_length) charging station charging efficiency, values in  (0-1)
+                 cs_ch_efficiency: np.ndarray = None,
+                 # size(n_cs,sim_length) charging station discharging efficiency, values in (0-1)
+                 cs_dis_efficiency: np.ndarray = None,
+
+                # EV parameters                
+                # size(number_of_ports_per_cs,n_cs,sim_length) max battery energy in kWh
+                ev_max_energy: np.ndarray = None,
+                # size(number_of_ports_per_cs,n_cs,sim_length) max charge power in kW
+                ev_max_ch_power: np.ndarray = None,
+                # size(number_of_ports_per_cs,n_cs,sim_length) max discharge power in kW (should be negative value)
+                ev_max_dis_power: np.ndarray = None,
+                # size(number_of_ports_per_cs,n_cs,sim_length) max energy at departure in kWh
+                ev_max_energy_at_departure: np.ndarray = None,
+                # size(number_of_ports_per_cs,n_cs,sim_length) 1 if port is occupied, 0 if port is empty
+                u: np.ndarray = None,
+                # size(number_of_ports_per_cs,n_cs,sim_length) energy at arrival in kWh
+                energy_at_arrival: np.ndarray = None,
+                # size(number_of_ports_per_cs,n_cs,sim_length) 1 if ev arrives, 0 if ev does not arrive
+                ev_arrival: np.ndarray = None,
+                # size(number_of_ports_per_cs,n_cs,sim_length) 1 if ev arrives, 0 if ev does not arrive
+                t_dep: np.ndarray = None
+                
+
+                 ):
+
         print(f'\nGurobi MIQP solver.')
         print('Loading data...')
 
-        tra_max_amps = replay.tra_max_amps
-        tra_min_amps = replay.tra_min_amps
-        cs_transformer = replay.cs_transformer
-        port_max_charge_current = replay.port_max_charge_current
-        port_min_charge_current = replay.port_min_charge_current
-        port_max_discharge_current = replay.port_max_discharge_current
-        port_min_discharge_current = replay.port_min_discharge_current
-        voltages = replay.voltages / 1000  # phases included in voltage
-        
-        # print dimensions of the data
-        
-        print(f'Number of charging stations: {self.n_cs}')
-        
-        
-        # phases = replay.phases
+        if replay_path is not None:
+            print("Solving using replay file")
+            replay = pickle.load(open(replay_path, 'rb'))
 
-        charge_prices = replay.charge_prices  # Charge prices are in €/kWh
-        discharge_prices = replay.discharge_prices  # Discharge prices are in €/kWh
+            self.sim_length = replay.sim_length
+            self.n_cs = replay.n_cs
+            self.number_of_ports_per_cs = replay.max_n_ports
+            self.n_transformers = replay.n_transformers
+            self.timescale = replay.timescale
+            dt = replay.timescale / 60  # time step
 
-        # power_setpoints = replay.power_setpoints
+            tra_max_amps = replay.tra_max_amps
+            tra_min_amps = replay.tra_min_amps
+            cs_transformer = replay.cs_transformer
+            port_max_charge_current = replay.port_max_charge_current
+            port_min_charge_current = replay.port_min_charge_current
+            port_max_discharge_current = replay.port_max_discharge_current
+            port_min_discharge_current = replay.port_min_discharge_current
+            voltages = replay.voltages / 1000  # phases included in voltage
+            
+            charge_prices = replay.charge_prices  # Charge prices are in €/kWh
+            discharge_prices = replay.discharge_prices  # Discharge prices are in €/kWh
+            cs_ch_efficiency = replay.cs_ch_efficiency
+            cs_dis_efficiency = replay.cs_dis_efficiency
+            
+            ev_max_energy = replay.ev_max_energy
+            ev_max_ch_power = replay.ev_max_ch_power 
+            ev_max_dis_power = replay.ev_max_dis_power  
+            ev_max_energy_at_departure = replay.max_energy_at_departure
+            u = replay.u
+            energy_at_arrival = replay.energy_at_arrival
+            ev_arrival = replay.ev_arrival
+            t_dep = replay.t_dep
 
-        cs_ch_efficiency = replay.cs_ch_efficiency
-        cs_dis_efficiency = replay.cs_dis_efficiency
+        else:
+            print("Solving using function arguments")
 
-        ev_max_energy = replay.ev_max_energy
-        
-        ev_max_ch_power = replay.ev_max_ch_power  # * self.dt
-        ev_max_dis_power = replay.ev_max_dis_power  # * self.dt
-        ev_max_energy_at_departure = replay.max_energy_at_departure
-        ev_des_energy = replay.ev_des_energy
-        u = replay.u
-        energy_at_arrival = replay.energy_at_arrival
-        ev_arrival = replay.ev_arrival
-        t_dep = replay.t_dep
-        
+            self.sim_length = sim_length
+            self.n_cs = n_cs
+            self.number_of_ports_per_cs = max_n_ports
+            self.n_transformers = n_transformers
+            self.timescale = timescale
+            dt = timescale / 60  # time step
+
+            tra_max_amps = tra_max_amps
+            tra_min_amps = tra_min_amps
+            cs_transformer = cs_transformer
+            port_max_charge_current = port_max_charge_current
+            port_min_charge_current = port_min_charge_current
+            port_max_discharge_current = port_max_discharge_current
+            port_min_discharge_current = port_min_discharge_current
+            voltages = voltages / 1000  # phases included in voltage
+
+            charge_prices = charge_prices  # Charge prices are in €/kWh
+            discharge_prices = discharge_prices
+            cs_ch_efficiency = cs_ch_efficiency
+            cs_dis_efficiency = cs_dis_efficiency
+            
+            ev_max_energy = ev_max_energy
+            ev_max_ch_power = ev_max_ch_power
+            ev_max_dis_power = ev_max_dis_power
+            ev_max_energy_at_departure = ev_max_energy_at_departure
+            u = u
+            energy_at_arrival = energy_at_arrival
+            ev_arrival = ev_arrival
+            t_dep = t_dep
+            
         # create model
         print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
-        # self.m.setParam('OutputFlag', 0)
+        self.m.setParam('OutputFlag', 0)
         # self.m.setParam('MIPGap', 0.01)
         # self.m.setParam('TimeLimit', 60)
 
@@ -128,8 +213,8 @@ class V2GProfitMaxOracleGB():
         current_tr_dis = self.m.addVars(self.n_transformers,
                                         self.sim_length,
                                         vtype=GRB.CONTINUOUS,
-                                        name='current_tr_dis')        
-        
+                                        name='current_tr_dis')
+
         power_cs_ch = self.m.addVars(self.n_cs,
                                      self.sim_length,
                                      vtype=GRB.CONTINUOUS,
@@ -141,8 +226,8 @@ class V2GProfitMaxOracleGB():
                                       name='power_cs_dis')
 
         costs = self.m.addVar(vtype=GRB.CONTINUOUS,
-                               name='total_soc')
-        # Constrains        
+                              name='total_soc')
+        # Constrains
         # transformer current and power variables
         for t in range(self.sim_length):
             for i in range(self.n_transformers):
@@ -153,12 +238,14 @@ class V2GProfitMaxOracleGB():
                                                                      for m in range(self.n_cs)
                                                                      if cs_transformer[m] == i))
 
-        costs = gp.quicksum(act_current_ev_ch[p, i, t] * voltages[i] * cs_ch_efficiency[i, t] * dt * charge_prices[i,t] +
-                            act_current_ev_dis[p, i, t] * voltages[i] * cs_dis_efficiency[i, t] * dt * discharge_prices[i,t]
+        costs = gp.quicksum(act_current_ev_ch[p, i, t] * voltages[i] * cs_ch_efficiency[i, t] * dt * charge_prices[i, t] +
+                            act_current_ev_dis[p, i, t] * voltages[i] *
+                            cs_dis_efficiency[i, t] *
+                            dt * discharge_prices[i, t]
                             for p in range(self.number_of_ports_per_cs)
                             for i in range(self.n_cs)
                             for t in range(self.sim_length))
-        
+
         self.m.addConstrs(power_cs_ch[i, t] == (current_cs_ch[i, t] * voltages[i])
                           for i in range(self.n_cs)
                           for t in range(self.sim_length))
@@ -287,16 +374,14 @@ class V2GProfitMaxOracleGB():
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)), name='ev_power_mode_2')
-        
+
         # time of departure of EVs
         for t in range(self.sim_length):
             for i in range(self.n_cs):
                 for p in range(self.number_of_ports_per_cs):
                     if t_dep[p, i, t] == 1:
                         # input(f'Energy at departure: {t_dep[p,i,t]}')
-                        self.m.addLConstr(energy[p, i, t] >= ev_max_energy_at_departure[p,i,t],
-                        # self.m.addLConstr(energy[p, i, t] >= ev_max_energy_at_departure[p,i,t],
-                                        #    ev_des_energy[p, i, t]),
+                        self.m.addLConstr(energy[p, i, t] >= ev_max_energy_at_departure[p, i, t],
                                           name=f'ev_departure_energy.{p}.{i}.{t}')
 
         self.m.setObjective(costs,
@@ -304,10 +389,10 @@ class V2GProfitMaxOracleGB():
 
         # print constraints
         self.m.write("model.lp")
-        print(f'Optimizing...')        
+        print(f'Optimizing...')
         self.m.params.NonConvex = 2
-        
-        self.m.optimize()        
+
+        self.m.optimize()
 
         self.act_current_ev_ch = act_current_ev_ch
         self.act_current_ev_dis = act_current_ev_dis
@@ -316,9 +401,7 @@ class V2GProfitMaxOracleGB():
 
         if self.m.status != GRB.Status.OPTIMAL:
             print(f'Optimization ended with status {self.m.status}')
-            # exit()
-        
-        self.get_actions()
+            exit()
 
     def get_actions(self):
         '''
@@ -340,11 +423,28 @@ class V2GProfitMaxOracleGB():
 
         return self.actions
 
-    def get_action(self, env, **kwargs):
-        '''
-        This function returns the action for the current step of the environment.
-        '''
 
-        step = env.current_step
+if __name__ == "__main__":
+    start_time = time.time()
+    replay_path = "replay_sim_2024_11_01_607878.pkl"
 
-        return self.actions[:, :, step].T.reshape(-1)
+    # Solve the optimization problem with the given replay file 
+    # or using the function arguments (if replay file is None)
+    # it is faster to pass the function arguments directly in your simulations
+    
+    agent = V2GProfitMaxOracleGB(replay_path)
+
+    # Get the actions of the EVs in the simulation for all time steps
+    actions = agent.get_actions()
+    # The actions are proportional to the maximum charge/discharge current of the charging station taking values in [-1, 1]
+    # For example, if the maximum charge current of the charging station is 32 A,
+    # and the action output is 0.5, then the charge current of the EV is 16 A.    
+    print(actions)
+    
+    
+    
+    # actions is a numpy array of shape
+    # (number_of_ports_per_cs, n_cs, sim_length)
+    print(actions.shape)
+    
+    print(f'Execution time for 96 steps (1-day) for one EV: {time.time() - start_time:.2f} seconds')

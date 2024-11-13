@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 112 #90 # in steps per simulation
+simulation_length: 96 #90 # in steps per simulation
 
 ##############################################################################
 # Date and Time
@@ -19,7 +19,7 @@ random_day: True # True or False
 
 # Simulation Starting Time
 # Hour and minute do not change after the environment has been reset
-hour: 5 # Simulation starting hour (24 hour format)
+hour: 0 # Simulation starting hour (24 hour format)
 minute: 0 # Simulation starting minute (0-59)
 
 # Simulate weekdays, weekends, or both
@@ -37,8 +37,8 @@ discharge_price_factor: 1.2 # how many times more abs(expensive/cheaper) it is t
 ##############################################################################
 # Charging Network
 ##############################################################################
-v2g_enabled: False # True or False
-number_of_charging_stations: 20
+v2g_enabled: True # True or False
+number_of_charging_stations: 1
 number_of_transformers: 1
 number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology,
@@ -99,14 +99,14 @@ heterogeneous_ev_specs: False #if False, each EV has the same specifications
 
 # Default Transformer model
 transformer:
-  max_power: 100 # in kW
+  max_power: 20 # in kW
 
 # Default Charging Station model
 charging_station:  
   min_charge_current: 0 # Amperes
-  max_charge_current: 56 # Amperes
+  max_charge_current: 40 # Amperes
   min_discharge_current: 0 # Amperes
-  max_discharge_current: -56 # Amperes
+  max_discharge_current: -40 # Amperes
   voltage: 230 # Volts
   phases: 3 # 1,2, or 3
    
@@ -115,13 +115,13 @@ ev:
   battery_capacity: 50 # in kWh
   min_battery_capacity: 10 # in kWh
   desired_capacity: 50 # in kWh
-  max_ac_charge_power: 22 # in kW
+  max_ac_charge_power: 11 # in kW
   min_ac_charge_power: 0 # in kW
   max_dc_charge_power: 50 # in kW
-  max_discharge_power: -22 # in kW
+  max_discharge_power: -11 # in kW
   min_discharge_power: 0 # in kW
   ev_phases: 3
   transition_soc: 1 # 0-1 (0% - 100%)
   charge_efficiency: 1 # 0-1 (0% - 100%)
   discharge_efficiency: 1 # 0-1 (0% - 100%)
-  min_time_of_stay: 120 # in minutes
+  min_time_of_stay: 420 # in minutes

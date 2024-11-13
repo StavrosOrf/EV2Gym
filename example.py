@@ -28,13 +28,13 @@ def eval():
     verbose = True
     save_plots = True
 
-    replay_path = "./replay/replay_sim_2024_07_05_106720.pkl"
-    replay_path = None
+    # replay_path = "./replay/replay_sim_2024_07_05_106720.pkl"
+    replay_path = "./replay/replay_sim_2024_11_01_607878.pkl"
 
     # config_file = "ev2gym/example_config_files/V2G_MPC2.yaml"
-    # config_file = "ev2gym/example_config_files/PublicPST.yaml"
+    config_file = "ev2gym/example_config_files/PublicPST.yaml"
     # config_file = "ev2gym/example_config_files/BusinessPST.yaml"
-    config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
+    # config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
 
     env = EV2Gym(config_file=config_file,
                  load_from_replay_path=replay_path,
@@ -44,7 +44,11 @@ def eval():
                  )
 
 
-    new_replay_path = f"replay/replay_{env.sim_name}.pkl"
+    if replay_path is None:
+        new_replay_path = f"replay/replay_{env.sim_name}.pkl"
+    else:
+        new_replay_path = replay_path
+    # new_replay_path = f"replay/replay_{env.sim_name}.pkl"
 
     state, _ = env.reset()
 
@@ -63,12 +67,13 @@ def eval():
     # agent = OCMF_G2V(env, control_horizon=25, verbose=True)
     # agent = eMPC_V2G(env, control_horizon=15, verbose=False)
     # agent = V2GProfitMaxOracle(env,verbose=True)
+    agent = V2GProfitMaxOracleGB(new_replay_path)
     # agent = PowerTrackingErrorrMin(new_replay_path)
     # agent = eMPC_G2V(env, control_horizon=15, verbose=False)
     # agent = eMPC_V2G_v2(env, control_horizon=10, verbose=False)        
     # agent = RoundRobin(env, verbose=False)
     # agent = ChargeAsLateAsPossible(verbose=False)
-    agent = ChargeAsFastAsPossible()
+    # agent = ChargeAsFastAsPossible()
     # agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 
