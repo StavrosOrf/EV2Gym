@@ -1,0 +1,7 @@
+pandas==2.0
+numpy==1.23
+matplotlib==3.7
+networkx==3.0
+gymnasium==0.29.0
+gurobipy
+pyyaml

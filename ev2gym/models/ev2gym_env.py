@@ -518,7 +518,7 @@ class EV2Gym(gym.Env):
                 the simulation might end up in infeasible problem
                 """
             if self.verbose:
-                print_statistics(self)
+                # print_statistics(self)
 
                 if any(tr.is_overloaded() for tr in self.transformers):
                     print(

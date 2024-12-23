@@ -25,7 +25,6 @@ def eval():
     Runs an evaluation of the ev2gym environment.
     """
 
-    verbose = True
     save_plots = True
 
     replay_path = "./replay/replay_sim_2024_07_05_106720.pkl"
@@ -86,9 +85,9 @@ def eval():
     # exit()
     # Solve optimally
     # Power tracker optimizer
-    # agent = PowerTrackingErrorrMin(replay_path=new_replay_path)
+    agent = PowerTrackingErrorrMin(replay_path=new_replay_path)
     # # Profit maximization optimizer
-    agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)
+    # agent = V2GProfitMaxOracleGB(replay_path=new_replay_path)
     # # Simulate in the gym environment and get the rewards
 
     env = EV2Gym(config_file=config_file,
