@@ -303,13 +303,16 @@ Class Diagram of the EV2Gym Environment:
 
 If you use this code in your research, please cite as:
 ```bibtex
-@misc{orfanoudakis2024ev2gym,
-      title={EV2Gym: A Flexible V2G Simulator for EV Smart Charging Research and Benchmarking}, 
-      author={Stavros Orfanoudakis and Cesar Diaz-Londono and Yunus E. Yılmaz and Peter Palensky and Pedro P. Vergara},
-      year={2024},
-      eprint={2404.01849},
-      archivePrefix={arXiv}
-}
+@ARTICLE{10803908,
+  author={Orfanoudakis, Stavros and Diaz-Londono, Cesar and Emre Yılmaz, Yunus and Palensky, Peter and Vergara, Pedro P.},
+  journal={IEEE Transactions on Intelligent Transportation Systems}, 
+  title={EV2Gym: A Flexible V2G Simulator for EV Smart Charging Research and Benchmarking}, 
+  year={2025},
+  volume={26},
+  number={2},
+  pages={2410-2421},
+  keywords={Vehicle-to-grid;Smart charging;Optimization;Benchmark testing;Batteries;Data models;Schedules;Reinforcement learning;Prediction algorithms;Power transformers;Electric vehicle optimization;gym environment;reinforcement learning;mathematical programming;model predictive control (MPC)},
+  doi={10.1109/TITS.2024.3510945}}
 ```
 
 ## License
