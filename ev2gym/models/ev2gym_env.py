@@ -217,6 +217,7 @@ class EV2Gym(gym.Env):
         self.EVs = []
 
         # Load Electricity prices for every charging station
+        self.price_data = None
         self.charge_prices, self.discharge_prices = load_electricity_prices(
             self)
 
@@ -408,7 +409,7 @@ class EV2Gym(gym.Env):
         total_costs = 0
         total_invalid_action_punishment = 0
         user_satisfaction_list = []
-        departing_evs = []
+        self.departing_evs = []
 
         self.current_ev_departed = 0
         self.current_ev_arrived = 0
@@ -427,7 +428,7 @@ class EV2Gym(gym.Env):
                 self.charge_prices[cs.id, self.current_step],
                 self.discharge_prices[cs.id, self.current_step])
 
-            departing_evs += ev
+            self.departing_evs += ev
 
             for u in user_satisfaction:
                 user_satisfaction_list.append(u)
@@ -464,7 +465,7 @@ class EV2Gym(gym.Env):
             elif ev.time_of_arrival > self.current_step + 1:
                 break
 
-        self._update_power_statistics(departing_evs)
+        self._update_power_statistics(self.departing_evs)
 
         self.current_step += 1
         self._step_date()
@@ -499,11 +500,18 @@ class EV2Gym(gym.Env):
 
         self.render()
 
-        return self._check_termination(user_satisfaction_list, reward, cost)
+        return self._check_termination(reward, cost)
 
-    def _check_termination(self, user_satisfaction_list, reward, cost):
+    def _check_termination(self, reward, cost):
         '''Checks if the episode is done or any constraint is violated'''
         truncated = False
+        action_mask = np.zeros(self.number_of_ports)
+        # action mask is 1 if an EV is connected to the port
+        for i, cs in enumerate(self.charging_stations):
+            for j in range(cs.n_ports):
+                if cs.evs_connected[j] is not None:
+                    action_mask[i*cs.n_ports + j] = 1
+
         # Check if the episode is done or any constraint is violated
         if self.current_step >= self.simulation_length or \
             (any(tr.is_overloaded() > 0 for tr in self.transformers)
@@ -517,8 +525,15 @@ class EV2Gym(gym.Env):
                 Carefull: if generate_rnd_game is True,
                 the simulation might end up in infeasible problem
                 """
+
+            self.done = True
+            self.stats = get_statistics(self)
+
+            self.stats['action_mask'] = action_mask
+            self.cost = cost
+
             if self.verbose:
-                # print_statistics(self)
+                print_statistics(self)
 
                 if any(tr.is_overloaded() for tr in self.transformers):
                     print(
@@ -537,18 +552,20 @@ class EV2Gym(gym.Env):
                     pickle.dump(self, f)
                 ev_city_plot(self)
 
-            self.done = True
-            self.stats = get_statistics(self)
-
             if self.cost_function is not None:
                 return self._get_observation(), reward, True, truncated, self.stats
             else:
                 return self._get_observation(), reward, True, truncated, self.stats
         else:
+            stats = {
+                'cost': cost,
+                'action_mask': action_mask,
+            }
+
             if self.cost_function is not None:
-                return self._get_observation(), reward, False, truncated, {'cost': cost}
+                return self._get_observation(), reward, False, truncated, stats
             else:
-                return self._get_observation(), reward, False, truncated, {'None': None}
+                return self._get_observation(), reward, False, truncated, stats
 
     def render(self):
         '''Renders the simulation'''
@@ -603,7 +620,7 @@ class EV2Gym(gym.Env):
                     self.port_energy_level[port, cs.id,
                                            self.current_step] = ev.current_capacity/ev.battery_capacity
 
-            for ev in departing_evs:
+            for ev in self.departing_evs:
                 if not self.lightweight_plots:
                     self.port_energy_level[ev.id, ev.location, self.current_step] = \
                         ev.current_capacity/ev.battery_capacity

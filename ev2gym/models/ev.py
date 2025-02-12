@@ -289,6 +289,9 @@ class EV():
         else:
             charge_efficiency = self.charge_efficiency
         
+        
+        assert charge_efficiency > 0, f'charge_efficiency: {charge_efficiency}'
+        
         pilot_dsoc = charge_efficiency * pilot * voltage / 1000 / \
             self.battery_capacity / (60 / period)
         max_dsoc = charge_efficiency * self.max_ac_charge_power / \

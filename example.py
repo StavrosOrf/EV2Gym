@@ -16,7 +16,6 @@ from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
 
 import numpy as np
 import matplotlib.pyplot as plt
-import pkg_resources
 import gymnasium as gym
 
 
@@ -82,7 +81,7 @@ def eval():
             print(f'End of simulation at step {env.current_step}')
             break
 
-    # exit()
+    return
     # Solve optimally
     # Power tracker optimizer
     agent = PowerTrackingErrorrMin(replay_path=new_replay_path)

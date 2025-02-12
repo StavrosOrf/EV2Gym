@@ -59,7 +59,7 @@ class Transformer():
             self.normalize_inflexible_loads(env)
             self.generate_inflexible_loads_forecast(env)
 
-        self.pv_generation_forecast = np.zeros(96)
+        self.pv_generation_forecast = np.zeros(env.simulation_length)
         if env.config['solar_power']['include']:
             self.normalize_pv_generation(env)
             self.generate_pv_generation_forecast(env)

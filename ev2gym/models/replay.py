@@ -44,23 +44,23 @@ class EvCityReplay():
         self.optimal_stats = None
         
         #save unstirred and optimal EVs and stats for evaluation
-        if env.eval_mode =="unstirred":
-            self.unstirred_EVs = env.EVs
-            self.unstirred_stats = self.stats
+        # if env.eval_mode =="unstirred":
+        #     self.unstirred_EVs = env.EVs
+        #     self.unstirred_stats = self.stats
         
-        elif env.eval_mode =="optimal":
+        if env.eval_mode =="optimal":
             self.optimal_EVs = env.EVs
             self.optimal_stats = self.stats
             
-            if env.load_from_replay_path is not None:            
-                self.unstirred_EVs = env.replay.unstirred_EVs
-                self.unstirred_stats = env.replay.unstirred_stats
-        else:
-            if env.load_from_replay_path is not None:            
-                self.unstirred_EVs = env.replay.unstirred_EVs
-                self.unstirred_stats = env.replay.unstirred_stats                    
-                self.optimal_EVs = env.replay.optimal_EVs
-                self.optimal_stats = env.replay.optimal_stats            
+        #     if env.load_from_replay_path is not None:            
+        #         self.unstirred_EVs = env.replay.unstirred_EVs
+        #         self.unstirred_stats = env.replay.unstirred_stats
+        # else:
+        #     if env.load_from_replay_path is not None:            
+        #         self.unstirred_EVs = env.replay.unstirred_EVs
+        #         self.unstirred_stats = env.replay.unstirred_stats                    
+        #         self.optimal_EVs = env.replay.optimal_EVs
+        #         self.optimal_stats = env.replay.optimal_stats            
     
         
         # self.transformer_amps  = env.transformer_amps
