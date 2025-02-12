@@ -240,8 +240,8 @@ def spawn_single_EV(env,
 
         # get charge efficiency from env.ev_specs dict
         # if there is key charge_efficiency_v
-        if "charge_efficiency_v" in env.ev_specs[sampled_ev]:
-            charge_efficiency_v = env.ev_specs[sampled_ev]["ch_efficiency"]
+        if "3ph_ch_efficiency" in env.ev_specs[sampled_ev]:
+            charge_efficiency_v = env.ev_specs[sampled_ev]["3ph_ch_efficiency"]
             current_levels = env.ev_specs[sampled_ev]["ch_current"]
             assert len(charge_efficiency_v) == len(current_levels)
             assert all([0 <= x <= 100 for x in charge_efficiency_v])
@@ -249,12 +249,13 @@ def spawn_single_EV(env,
             # make a dict with charge leves kay and charge efficiency value
             charge_efficiency = dict(zip(current_levels, charge_efficiency_v))
 
-            # extend the dictionary to take values from 0 amps to 100 amps
             for i in range(0, 101):
-                if i not in charge_efficiency:
-                    # take the closest value
-                    charge_efficiency[i] = charge_efficiency[min(
-                        charge_efficiency, key=lambda x: abs(x-i))]
+                if i not in charge_efficiency or charge_efficiency[i] == 0:
+                    nonzero_keys = [
+                        k for k, v in charge_efficiency.items() if v != 0]
+                    if nonzero_keys:
+                        closest = min(nonzero_keys, key=lambda x: abs(x - i))
+                        charge_efficiency[i] = charge_efficiency[closest]
 
             discharge_efficiency = charge_efficiency.copy()
 
@@ -262,7 +263,7 @@ def spawn_single_EV(env,
             charge_efficiency = np.round(1 -
                                          (np.random.rand()+0.00001)/20, 3)  # [0.95-1]
             discharge_efficiency = np.round(1 -
-                                             (np.random.rand()+0.00001)/20, 3)  # [0.95-1]
+                                            (np.random.rand()+0.00001)/20, 3)  # [0.95-1]
 
         return EV(id=port,
                   location=cs_id,
@@ -279,7 +280,7 @@ def spawn_single_EV(env,
                                           (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
                   transition_soc_multiplier=transition_soc_multiplier,
                   battery_capacity=battery_capacity,
-                  desired_capacity=env.config["ev"]['desired_capacity'] * \
+                  desired_capacity=env.config["ev"]['desired_capacity'] *
                   battery_capacity,
                   time_of_arrival=step+1,
                   time_of_departure=int(
@@ -403,11 +404,11 @@ def spawn_single_EV_GF(env,
                   env.ev_specs[sampled_ev]["max_dc_discharge_power"],
                   discharge_efficiency=np.round(1 -
                                                 (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
-                  transition_soc=np.round(0.9 - \
+                  transition_soc=np.round(0.9 -
                                           (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
                   transition_soc_multiplier=transition_soc_multiplier,
                   battery_capacity=battery_capacity,
-                  desired_capacity=env.config["ev"]['desired_capacity'] * \
+                  desired_capacity=env.config["ev"]['desired_capacity'] *
                   battery_capacity,
                   time_of_arrival=step+1,
                   time_of_departure=int(
