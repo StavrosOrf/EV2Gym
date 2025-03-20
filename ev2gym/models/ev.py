@@ -234,8 +234,8 @@ class EV():
             f't_stay: {self.time_of_arrival}-' + \
             f'{self.time_of_departure} |' + \
             f' {self.max_ac_charge_power}/' + \
-            f'{self.max_discharge_power} kWh|' + \
-            f' {self.battery_capacity} kW |'
+            f'{self.max_discharge_power} kW |' + \
+            f' {self.battery_capacity} kWh |'
 
     def _charge(self, amps, voltage, phases=1) -> float:
 
