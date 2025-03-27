@@ -1,9 +1,3 @@
-'''
-===================================
-Author: Stavros Orfanoudakis 2023
-===================================
-'''
-
 import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
@@ -15,8 +9,14 @@ class V2GProfitMaxOracleGB():
     '''
     This file contains the EV_City_Math_Model class, which is used to solve the ev_city V2G problem optimally.
     '''
-    algo_name = 'Optimal (Offline)' 
-    def __init__(self, replay_path=None, **kwargs):
+    algo_name = 'Optimal (Offline)'
+
+    def __init__(self,
+                 replay_path=None,
+                 timelimit=None,
+                 MIPGap=None,
+                 verbose=True,
+                 **kwargs):
 
         replay = pickle.load(open(replay_path, 'rb'))
 
@@ -26,7 +26,7 @@ class V2GProfitMaxOracleGB():
         self.n_transformers = replay.n_transformers
         self.timescale = replay.timescale
         dt = replay.timescale / 60  # time step
-        print(f'\nGurobi MIQP solver.')
+        print(f'\nGurobi MIQP solver for MO V2GPST.')
         print('Loading data...')
 
         tra_max_amps = replay.tra_max_amps
@@ -44,26 +44,32 @@ class V2GProfitMaxOracleGB():
 
         # power_setpoints = replay.power_setpoints
 
-        cs_ch_efficiency = replay.cs_ch_efficiency
-        cs_dis_efficiency = replay.cs_dis_efficiency
-
+        cs_ch_efficiency = replay.cs_ch_efficiency *  0.9
+        cs_dis_efficiency = replay.cs_dis_efficiency * 0.9
+        
         ev_max_energy = replay.ev_max_energy
         
         ev_max_ch_power = replay.ev_max_ch_power  # * self.dt
         ev_max_dis_power = replay.ev_max_dis_power  # * self.dt
         ev_max_energy_at_departure = replay.max_energy_at_departure
         ev_des_energy = replay.ev_des_energy
+        
         u = replay.u
         energy_at_arrival = replay.energy_at_arrival
         ev_arrival = replay.ev_arrival
         t_dep = replay.t_dep
-        
+
         # create model
         print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
-        # self.m.setParam('OutputFlag', 0)
-        self.m.setParam('MIPGap', 0.01)
-        self.m.setParam('TimeLimit', 60)
+        # if verbose:
+        #     self.m.setParam('OutputFlag', 1)
+        # else:
+        #     self.m.setParam('OutputFlag', 0)
+        if MIPGap is not None:
+            self.m.setParam('MIPGap', MIPGap)            
+        if timelimit is not None:
+            self.m.setParam('TimeLimit', timelimit)
 
         # energy of EVs t timeslot t
         energy = self.m.addVars(self.number_of_ports_per_cs,
@@ -71,6 +77,7 @@ class V2GProfitMaxOracleGB():
                                 self.sim_length,
                                 vtype=GRB.CONTINUOUS,
                                 name='energy')
+                
 
         current_ev_dis = self.m.addVars(self.number_of_ports_per_cs,
                                         self.n_cs,
@@ -122,8 +129,8 @@ class V2GProfitMaxOracleGB():
         current_tr_dis = self.m.addVars(self.n_transformers,
                                         self.sim_length,
                                         vtype=GRB.CONTINUOUS,
-                                        name='current_tr_dis')        
-        
+                                        name='current_tr_dis')
+
         power_cs_ch = self.m.addVars(self.n_cs,
                                      self.sim_length,
                                      vtype=GRB.CONTINUOUS,
@@ -134,9 +141,37 @@ class V2GProfitMaxOracleGB():
                                       vtype=GRB.CONTINUOUS,
                                       name='power_cs_dis')
 
+        # power_error = self.m.addVars(self.sim_length,
+        #                              vtype=GRB.CONTINUOUS,
+        #                              name='power_error')
+
+        total_power = self.m.addVars(self.sim_length,
+                                     vtype=GRB.CONTINUOUS,
+                                     name='total_power')
+
+        power_tr_ch = self.m.addVars(self.n_transformers,
+                                     self.sim_length,
+                                     vtype=GRB.CONTINUOUS,
+                                     name='power_tr_ch')
+
+        power_tr_dis = self.m.addVars(self.n_transformers,
+                                      self.sim_length,
+                                      vtype=GRB.CONTINUOUS,
+                                      name='power_tr_dis')
+
+        is_exceeding_limit = self.m.addVars(self.sim_length,
+                                            vtype=GRB.BINARY,
+                                            name='is_exceeding_limit')
+        
+        user_satisfaction = self.m.addVars(self.number_of_ports_per_cs,
+                                           self.n_cs,
+                                           self.sim_length,
+                                           vtype=GRB.CONTINUOUS,
+                                           name='user_satisfaction')
+
         costs = self.m.addVar(vtype=GRB.CONTINUOUS,
-                               name='total_soc')
-        # Constrains        
+                              name='total_soc')
+        # Constrains
         # transformer current and power variables
         for t in range(self.sim_length):
             for i in range(self.n_transformers):
@@ -147,12 +182,45 @@ class V2GProfitMaxOracleGB():
                                                                      for m in range(self.n_cs)
                                                                      if cs_transformer[m] == i))
 
-        costs = gp.quicksum(act_current_ev_ch[p, i, t] * voltages[i] * cs_ch_efficiency[i, t] * dt * charge_prices[i,t] +
-                            act_current_ev_dis[p, i, t] * voltages[i] * cs_dis_efficiency[i, t] * dt * discharge_prices[i,t]
+                self.m.addConstr(power_tr_ch[i, t] == gp.quicksum(power_cs_ch[m, t]
+                                                                  for m in range(self.n_cs)
+                                                                  if cs_transformer[m] == i),
+                                 name=f'power_tr_ch.{i}.{t}')
+                self.m.addConstr(power_tr_dis[i, t] == gp.quicksum(power_cs_dis[m, t]
+                                                                   for m in range(self.n_cs)
+                                                                   if cs_transformer[m] == i),
+                                 name=f'power_tr_dis.{i}.{t}')
+
+            self.m.addConstr(total_power[t] == gp.quicksum(power_tr_ch[i, t] - power_tr_dis[i, t]
+                                                           for i in range(self.n_transformers)),
+                             name=f'total_power.{t}')
+
+            # M = 1e8
+            # self.m.addConstr(power_error[t] >= total_power[t] - power_setpoints[t],
+            #                  name=f'power_error_max.{t}')
+            # self.m.addConstr(power_error[t] <= (total_power[t] - power_setpoints[t])* is_exceeding_limit[t],
+            #                  name=f'power_error_min.{t}')
+            # self.m.addConstr(power_error[t] <= 0,
+            #                     name=f'power_error_min2.{t}')
+            
+            # self.m.addConstr(power_error[t] <= M * is_exceeding_limit[t],
+            #                     name=f'power_error_max.{t}')
+            # self.m.addConstr(power_error[t] >= 1-M * (1-is_exceeding_limit[t]),
+            #                     name=f'power_error_max2.{t}')
+
+            # add contraint for aggregated power limit
+            # self.m.addConstr(total_power[t] <= power_setpoints[t],
+            #                  name=f'total_power_limit_max.{t}')
+
+
+        costs = gp.quicksum(act_current_ev_ch[p, i, t] * voltages[i] * cs_ch_efficiency[i, t] * dt * charge_prices[i, t] +
+                            act_current_ev_dis[p, i, t] * voltages[i] *
+                            cs_dis_efficiency[i, t] *
+                            dt * discharge_prices[i, t]
                             for p in range(self.number_of_ports_per_cs)
                             for i in range(self.n_cs)
                             for t in range(self.sim_length))
-        
+
         self.m.addConstrs(power_cs_ch[i, t] == (current_cs_ch[i, t] * voltages[i])
                           for i in range(self.n_cs)
                           for t in range(self.sim_length))
@@ -281,27 +349,35 @@ class V2GProfitMaxOracleGB():
                            for p in range(self.number_of_ports_per_cs)
                            for i in range(self.n_cs)
                            for t in range(self.sim_length)), name='ev_power_mode_2')
-        
+
         # time of departure of EVs
         for t in range(self.sim_length):
             for i in range(self.n_cs):
                 for p in range(self.number_of_ports_per_cs):
                     if t_dep[p, i, t] == 1:
-                        # input(f'Energy at departure: {t_dep[p,i,t]}')
-                        self.m.addLConstr(energy[p, i, t] >= ev_max_energy_at_departure[p,i,t],
-                        # self.m.addLConstr(energy[p, i, t] >= ev_max_energy_at_departure[p,i,t],
-                                        #    ev_des_energy[p, i, t]),
-                                          name=f'ev_departure_energy.{p}.{i}.{t}')
+                        
+                        
+                    #     self.m.addLConstr(energy[p, i, t] >= ev_max_energy_at_departure[p, i, t]-5,
+                    #                       name=f'ev_departure_energy.{p}.{i}.{t}')
+                        
+                        self.m.addConstr(user_satisfaction[p, i, t] == \
+                            (ev_des_energy[p, i, t] * ev_max_energy[p, i, t-1] - energy[p, i, t])**2,
+                            name=f'ev_user_satisfaction.{p}.{i}.{t}')
+                        
+                        
 
-        self.m.setObjective(costs,
+        # self.m.setObjective(costs - 0.01*power_error.sum(),
+        #                     GRB.MAXIMIZE)
+
+        self.m.setObjective(costs - 100 * user_satisfaction.sum(),
                             GRB.MAXIMIZE)
 
         # print constraints
-        # self.m.write("model.lp")
-        print(f'Optimizing...')        
+        self.m.write("model.lp")
+        print(f'Optimizing...')
         self.m.params.NonConvex = 2
-        
-        self.m.optimize()        
+
+        self.m.optimize()
 
         self.act_current_ev_ch = act_current_ev_ch
         self.act_current_ev_dis = act_current_ev_dis
@@ -311,7 +387,7 @@ class V2GProfitMaxOracleGB():
         if self.m.status != GRB.Status.OPTIMAL:
             print(f'Optimization ended with status {self.m.status}')
             # exit()
-        
+
         self.get_actions()
 
     def get_actions(self):
