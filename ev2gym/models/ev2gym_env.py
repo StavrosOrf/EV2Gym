@@ -222,7 +222,10 @@ class EV2Gym(gym.Env):
             self)
 
         # Load power setpoint of simulation
-        self.power_setpoints = load_power_setpoints(self)
+        # self.power_setpoints = load_power_setpoints(self)
+        self.power_setpoints = np.zeros([self.simulation_length])
+        
+        
         self.current_power_usage = np.zeros(self.simulation_length)
         self.charge_power_potential = np.zeros(self.simulation_length)
 
@@ -319,7 +322,8 @@ class EV2Gym(gym.Env):
 
         self.sim_starting_date = self.sim_date
         self.EVs_profiles = load_ev_profiles(self)
-        self.power_setpoints = load_power_setpoints(self)
+        # self.power_setpoints = load_power_setpoints(self)
+        self.power_setpoints = np.zeros([self.simulation_length])
         self.EVs = []
 
         # print(f'Simulation starting date: {self.sim_date}')
