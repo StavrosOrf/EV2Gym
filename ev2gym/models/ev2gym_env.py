@@ -213,7 +213,9 @@ class EV2Gym(gym.Env):
             load_ev_spawn_scenarios(self)
 
         # Spawn EVs
-        self.EVs_profiles = load_ev_profiles(self)
+        # print(f'Loading EV profiles...')
+        # self.EVs_profiles = load_ev_profiles(self)
+        # print(f'Number of EVs: {len(self.EVs_profiles)}')
         self.EVs = []
 
         # Load Electricity prices for every charging station
@@ -321,7 +323,10 @@ class EV2Gym(gym.Env):
                     self.sim_date += datetime.timedelta(days=1)
 
         self.sim_starting_date = self.sim_date
+        # print(f'Loading EV profiles... (reset function)')
         self.EVs_profiles = load_ev_profiles(self)
+        # print(f'Number of EVs: {len(self.EVs_profiles)}')
+        
         # self.power_setpoints = load_power_setpoints(self)
         self.power_setpoints = np.zeros([self.simulation_length])
         self.EVs = []
@@ -370,18 +375,18 @@ class EV2Gym(gym.Env):
         #                             self.simulation_length],
         #                            dtype=np.float16)
         if not self.lightweight_plots:
-            self.port_current = np.zeros([self.number_of_ports,
+            self.port_current = np.zeros([self.number_of_ports_per_cs,
                                           self.cs,
                                           self.simulation_length],
                                          dtype=np.float16,
                                          )
-            self.port_current_signal = np.zeros([self.number_of_ports,
+            self.port_current_signal = np.zeros([self.number_of_ports_per_cs,
                                                  self.cs,
                                                  self.simulation_length],
                                                 dtype=np.float16,
                                                 )
 
-            self.port_energy_level = np.zeros([self.number_of_ports,
+            self.port_energy_level = np.zeros([self.number_of_ports_per_cs,
                                                self.cs,
                                                self.simulation_length],
                                               dtype=np.float16)

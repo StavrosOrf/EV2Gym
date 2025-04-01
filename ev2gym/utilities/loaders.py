@@ -9,6 +9,7 @@ import datetime
 import pkg_resources
 import json
 from typing import List, Tuple
+import time
 
 from ev2gym.models.ev_charger import EV_Charger
 from ev2gym.models.ev import EV
@@ -375,9 +376,13 @@ def load_ev_profiles(env) -> List[EV]:
             while len(ev_profiles) == 0:
                 ev_profiles = EV_spawner_GF(env)
             return ev_profiles
-
+        
+        # print('Starting generating EV profiles...')
+        start_time = time.time()
         ev_profiles = EV_spawner(env)
-        while len(ev_profiles) == 0:
+        end_time = time.time()
+        # print(f'EV profiles loaded in {end_time - start_time} seconds')
+        while len(ev_profiles) == 0:            
             ev_profiles = EV_spawner(env)
 
         return ev_profiles
