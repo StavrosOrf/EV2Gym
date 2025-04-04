@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 35040 #90 # in steps per simulation
+simulation_length: 1000 #35040 #90 # in steps per simulation
 
 ##############################################################################
 # Date and Time
@@ -37,7 +37,7 @@ discharge_price_factor: 1 # how many times more abs(expensive/cheaper) it is to 
 # Charging Network
 ##############################################################################
 v2g_enabled: False # True or False
-number_of_charging_stations: 95
+number_of_charging_stations: 100
 number_of_transformers: 1
 number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology,
@@ -107,8 +107,8 @@ charging_station:
   max_charge_current: 16 # Amperes
   min_discharge_current: 0 # Amperes (actual value <=0)
   max_discharge_current: 0 # Amperes (actual value <=0)
-  voltage: 400 # Line-Line Voltage in Volts
-  phases: 3 # 1,2, or 3
+  voltage: 240 # Line-Line Voltage in Volts
+  phases: 1 # 1,2, or 3
 
 # Default EV model
 ev:

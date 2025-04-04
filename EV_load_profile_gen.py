@@ -127,7 +127,7 @@ if __name__ == "__main__":
     # exit
     
     if True:
-        number_of_scenarios = 100  # Number of scenarios to run in parallel
+        number_of_scenarios = 5  # Number of scenarios to run in parallel
         
         load_profiles_list = run_parallel_simulations(number_of_scenarios)
         
@@ -146,6 +146,10 @@ if __name__ == "__main__":
             
         print(f'List of load profiles shape: {load_profiles_list.shape}')
         
+        # plot the load profiles
+        # plt.figure(figsize=(10, 6))
+        # plt.plot(load_profiles_list[:1,:].T, alpha=0.5)
+
         # # Save the load profiles to a csv file    
         # df = pd.DataFrame(load_profiles_list)
         # df.to_csv('load_profiles.csv', index=False)
@@ -156,7 +160,15 @@ if __name__ == "__main__":
     load_profiles = np.load(f'load_profiles_{dt_string}.npz')['load_profiles_list']
     print(f'Loaded load profiles shape: {load_profiles.shape}')
     
+    #print how many steps passed amd how many EVs
+    print(f'Number of steps: {load_profiles.shape[0]}')
+    print(f'Number of EVs: {load_profiles.shape[1]}')
+    #print the first load profile
+    # print(f'First load profile: {load_profiles[0]}')
+
+
+
     #plot the load profiles
-    plt.figure(figsize=(10, 6))
-    plt.plot(load_profiles[:1,:].T, alpha=0.5)
-    plt.show()
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(load_profiles[:1,:].T, alpha=0.5)
+    # plt.show()
