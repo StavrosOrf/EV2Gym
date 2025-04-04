@@ -23,6 +23,9 @@ import time
 import datetime
 from typing import List, Dict
 import concurrent.futures
+# Save the load profiles to a csv file
+import pandas as pd
+import os
 
 from ev2gym.models.ev import EV
 
@@ -83,34 +86,39 @@ import time
 import concurrent.futures
 import copy
 
-import time
-import concurrent.futures
-import copy
-
-def run_simulation(config_file):
+def run_simulation(args):
+    simulation_id, config_file = args
+    
+    print(f'Running simulation {simulation_id}...')
     env = EV2Gym(config_file=config_file)
     env.reset()
     agent = ChargeAsFastAsPossible()
-
-    print(f'Running simulation...')
+    
     while True:
         actions = agent.get_action(env)
         _, _, done, _, _ = env.step(actions)
         if done:
             break
-    return env.port_energy_level
+    print(f'Simulation {simulation_id} completed.')
+    return env.cs_power
 
 def run_parallel_simulations(number_of_scenarios):
     timer_start = time.time()
     config_file = "ev2gym/example_config_files/residential.yaml"
 
     print(f'Starting parallel simulations with {number_of_scenarios} scenarios...')
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = executor.map(run_simulation,[config_file] * number_of_scenarios)
+
+    total_cores = os.cpu_count()
+    print(f'Total cores available: {total_cores}')
+    workers = max(1, total_cores - 1)
+    
+    with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
+        args = [(i, config_file) for i in range(1, number_of_scenarios + 1)]
+        results = executor.map(run_simulation, args)
         load_profiles_list = list(results)
 
     print(f'Total scenarios run: {len(load_profiles_list)}')
-    print(f'Total time taken: {time.time() - timer_start} seconds')
+    print(f'Total time taken: {time.time() - timer_start:.2f} seconds')
     return load_profiles_list
 
 
@@ -118,10 +126,37 @@ if __name__ == "__main__":
     # eval(number_of_scenarios=1)
     # exit
     
+    if True:
+        number_of_scenarios = 100  # Number of scenarios to run in parallel
+        
+        load_profiles_list = run_parallel_simulations(number_of_scenarios)
+        
+        print(f'List of load profiles: {len(load_profiles_list)}')    
+        #make into 2d array (-1, last dimension)
+        load_profiles_list = np.array(load_profiles_list)
+        #reduce floating point accuracy
+        load_profiles_list = np.round(load_profiles_list, 2)
+        # make into float8
+        load_profiles_list = load_profiles_list.astype(np.float16)    
+        load_profiles_list = np.reshape(load_profiles_list, (-1, load_profiles_list.shape[-1]))
+        
+        #save as zipped pickle file
+        dt_string = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        np.savez_compressed(f'load_profiles_{dt_string}.npz', load_profiles_list=load_profiles_list)
+            
+        print(f'List of load profiles shape: {load_profiles_list.shape}')
+        
+        # # Save the load profiles to a csv file    
+        # df = pd.DataFrame(load_profiles_list)
+        # df.to_csv('load_profiles.csv', index=False)
+        
+    # Load the load profiles from the npz file
+    #get datetime string
     
-    number_of_scenarios = 2  # Number of scenarios to run in parallel
+    load_profiles = np.load(f'load_profiles_{dt_string}.npz')['load_profiles_list']
+    print(f'Loaded load profiles shape: {load_profiles.shape}')
     
-    load_profiles_list = run_parallel_simulations(number_of_scenarios)
-    
-    print(f'List of load profiles: {len(load_profiles_list)}')
-    print(f'Load profiles: {load_profiles_list}')
+    #plot the load profiles
+    plt.figure(figsize=(10, 6))
+    plt.plot(load_profiles[:1,:].T, alpha=0.5)
+    plt.show()
