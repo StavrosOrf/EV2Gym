@@ -424,25 +424,31 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
 
             for port in range(cs.n_ports):
                 df[port] = env.port_energy_level[port, cs.id, :]
-
+                
+            #add the EV energy at arrival at the plot as anextra value            
+            # for i, (t_arr, t_dep) in enumerate(env.port_arrival[f'{cs.id}.{0}']):
+            #     print(f'EV {i} arrived at {t_arr}')
+            #     df[port].at[t_arr-1] = 15
+            print(df[port].values.T)
+            
             # Add another row with one datetime step to make the plot look better
             df.loc[df.index[-1] +
                    datetime.timedelta(minutes=env.timescale)] = df.iloc[-1]
-
+            # exit()
             for port in range(cs.n_ports):
                 for i, (t_arr, t_dep) in enumerate(env.port_arrival[f'{cs.id}.{port}']):
                     t_dep = t_dep + 1
                     if t_dep > len(df):
                         t_dep = len(df)
                     # x = df.index[t_arr:t_dep]
-                    y = df[port].values.T[t_arr:t_dep]
+                    y = df[port].values.T[t_arr-1:t_dep]
                     # fill y with 0 before and after to match the length of df
                     y = np.concatenate(
-                        [np.zeros(t_arr), y, np.zeros(len(df) - t_dep)])
-
+                        [np.zeros(t_arr-1), y, np.zeros(len(df) - t_dep)])
+                    
                     plt.step(df.index,
                              y,
-                             where='post',
+                             where='mid', #pre
                              color=color_list[index],
                              marker=marker_list[index],
                              alpha=0.8,

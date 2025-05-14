@@ -17,7 +17,7 @@ class MPC(ABC):
                  verbose=False,
                  time_limit = 200,
                  output_flag = 0,
-                 MIPGap = None,
+                 MIPGap = 0.01,
                  **kwargs):
         """
         Initialize the MPC baseline.

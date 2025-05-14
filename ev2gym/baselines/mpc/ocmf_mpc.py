@@ -143,11 +143,6 @@ class OCMF_V2G(MPC):
         model.params.TimeLimit = self.time_limit        
         model.optimize()
         self.total_exec_time += model.Runtime
-
-        if self.MIPGap is not None:
-            model.params.MIPGap = self.MIPGap
-        model.params.TimeLimit = self.time_limit        
-        model.optimize()
    
             
         if model.status == GRB.Status.INF_OR_UNBD or \

@@ -9,6 +9,7 @@ from ev2gym.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
 from ev2gym.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle
 
 from ev2gym.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
+from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleWithPowerLimit
 from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
 
 import numpy as np
@@ -22,20 +23,21 @@ def eval():
     Runs an evaluation of the ev2gym environment.
     """
 
-    verbose = True
+    verbose = False
     save_plots = True
 
     replay_path = "./replay/replay_sim_2024_02_21_056441.pkl"
     replay_path = None
 
-    config_file = "ev2gym/example_config_files/V2G_MPC2.yaml"
+    # config_file = "ev2gym/example_config_files/V2G_MPC2.yaml"
     # config_file = "ev2gym/example_config_files/PublicPST.yaml"
     # config_file = "ev2gym/example_config_files/BusinessPST.yaml"
+    config_file = "life_project.yaml"
     # config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
 
     env = EV2Gym(config_file=config_file,
                  load_from_replay_path=replay_path,
-                 verbose=False,
+                 verbose=verbose,
                  save_replay=True,
                  empty_ports_at_end_of_simulation=True,
                  save_plots=save_plots,
@@ -68,10 +70,11 @@ def eval():
     # agent = eMPC_V2G(env, control_horizon=25, verbose=True)
     # agent = V2GProfitMaxOracle(env,verbose=True)
     # agent = PowerTrackingErrorrMin(new_replay_path)
-    agent = eMPC_G2V(env, control_horizon=15, verbose=False)
+    # agent = eMPC_G2V(env, control_horizon=15, verbose=False)
     # agent = RoundRobin(env, verbose=False)
     # agent = ChargeAsLateAsPossible(verbose=False)
     # agent = ChargeAsFastAsPossible()
+    agent = ChargeAsFastAsPossibleWithPowerLimit(env=env,power_limit=300)
     # agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 
