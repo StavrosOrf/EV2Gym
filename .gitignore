@@ -174,7 +174,6 @@ trajectories/
 logs/
 eval_logs/
 results/
-models/
 plots/
 plot_results_dict.pkl
 results_grouped.csv

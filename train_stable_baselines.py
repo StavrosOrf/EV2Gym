@@ -14,19 +14,21 @@ from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_load
 import gymnasium as gym
 import argparse
 import wandb
-from wandb.integration.sb3 import WandbCallback
 import os
+os.environ["WANDB_SYMLINK_DISABLE"] = "true"
+from wandb.integration.sb3 import WandbCallback
 import yaml
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str, default="ddpg")
-    parser.add_argument('--device', type=str, default="cuda:0")
+    parser.add_argument('--algorithm', type=str, default="td3")
+    parser.add_argument('--train_steps', type=int, default=10_000)
+    parser.add_argument('--device', type=str, default="cpu")
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
                         # default="ev2gym/example_config_files/V2GProfitMax.yaml")
-    default="ev2gym/example_config_files/PublicPST.yaml")
+    default="ev2gym/example_config_files/V2G_MPC.yaml")
 
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
@@ -35,30 +37,22 @@ if __name__ == "__main__":
 
     config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
 
-    if config_file == "ev2gym/example_config_files/V2GProfitMax.yaml":
-        reward_function = profit_maximization
-        state_function = V2G_profit_max
-        group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitMax'
-
-    elif config_file == "ev2gym/example_config_files/PublicPST.yaml":
-        reward_function = SquaredTrackingErrorReward
-        state_function = PublicPST
-        group_name = f'{config["number_of_charging_stations"]}cs_PublicPST'
-    elif config_file == "ev2gym/example_config_files/V2GProfitPlusLoads.yaml":
+    if config_file == "ev2gym/example_config_files/V2G_MPC.yaml":
+        print("Using V2G_MPC config file")
         reward_function = ProfitMax_TrPenalty_UserIncentives
         state_function = V2G_profit_max_loads
         group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitPlusLoads'
                 
     run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
 
-    run = wandb.init(project='ev2gym',
+    run = wandb.init(project='MPC_paper',
                      sync_tensorboard=True,
                      group=group_name,
                      name=run_name,
                      save_code=True,
                      )
 
-    gym.envs.register(id='evs-v0', entry_point='ev2gym.ev_city:ev2gym',
+    gym.envs.register(id='evs-v0', entry_point='ev2gym.models.ev2gym_env:EV2Gym',
                       kwargs={'config_file': config_file,
                               'verbose': False,
                               'save_plots': False,
@@ -69,14 +63,19 @@ if __name__ == "__main__":
 
     env = gym.make('evs-v0')
 
-    eval_log_dir = "./eval_logs/"
+    eval_log_dir = "./eval_logs/" + group_name + "_" + run_name + "/"
+    save_path = f"./saved_models/{group_name}/{run_name}/"
+    
     os.makedirs(eval_log_dir, exist_ok=True)
     os.makedirs(f"./saved_models/{group_name}", exist_ok=True)
+    os.makedirs(save_path, exist_ok=True)
 
-    eval_callback = EvalCallback(env, best_model_save_path=eval_log_dir,
+    eval_callback = EvalCallback(env,
+                                 best_model_save_path=save_path,
                                  log_path=eval_log_dir,
-                                 eval_freq=config['simulation_length']*50,
-                                 n_eval_episodes=10, deterministic=True,
+                                 eval_freq=config['simulation_length']*25, #50
+                                 n_eval_episodes=50,
+                                 deterministic=True,
                                  render=False)
 
     if algorithm == "ddpg":
@@ -115,16 +114,12 @@ if __name__ == "__main__":
     else:
         raise ValueError("Unknown algorithm")
 
-    model.learn(total_timesteps=4_000_000,
+    model.learn(total_timesteps=parser.parse_args().train_steps,
                 progress_bar=True,
                 callback=[
                     WandbCallback(
-                        gradient_save_freq=100000,
-                        model_save_path=f"models/{run.id}",
                         verbose=2),
                     eval_callback])
-
-    model.save(f"./saved_models/{group_name}/{run_name}")
 
     env = model.get_env()
     obs = env.reset()

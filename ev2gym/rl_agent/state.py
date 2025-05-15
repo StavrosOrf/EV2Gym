@@ -147,7 +147,8 @@ def V2G_profit_max_loads(env, *args):
                     else:
                         state.append(np.zeros(2))
 
-    state = np.array(np.hstack(state))
+    # state = np.array(np.hstack(state))
+    state = np.array(np.hstack(state), dtype=np.float32)
 
     return state
     
