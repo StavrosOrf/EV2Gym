@@ -110,7 +110,6 @@ def evaluator():
 
         return replay_path
 
-
     # Algorithms to compare:
     algorithms = [
         ChargeAsFastAsPossible,
