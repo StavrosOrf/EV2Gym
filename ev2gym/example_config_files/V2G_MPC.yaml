@@ -17,7 +17,7 @@ demand_response:
   events_per_day: 1
   include: false
   notification_of_event_minutes: 15
-discharge_price_factor: 0.9
+discharge_price_factor: 1.2
 ev:
   battery_capacity: 50
   charge_efficiency: 1

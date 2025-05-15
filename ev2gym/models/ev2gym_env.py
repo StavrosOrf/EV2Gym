@@ -56,6 +56,8 @@ class EV2Gym(gym.Env):
         assert config_file is not None, "Please provide a config file!!!"
         self.config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
         
+        
+        self.price_data = None
         self.generate_rnd_game = generate_rnd_game
         self.load_from_replay_path = load_from_replay_path
         self.empty_ports_at_end_of_simulation = empty_ports_at_end_of_simulation
@@ -285,6 +287,9 @@ class EV2Gym(gym.Env):
                 while self.sim_date.weekday() < 5:
                     self.sim_date += datetime.timedelta(days=1)
 
+        self.charge_prices, self.discharge_prices = load_electricity_prices(
+            self)
+        
         self.sim_starting_date = self.sim_date
         self.EVs_profiles = load_ev_profiles(self)
         self.power_setpoints = load_power_setpoints(self)

@@ -22,8 +22,8 @@ import yaml
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str, default="td3")
-    parser.add_argument('--train_steps', type=int, default=10_000)
+    parser.add_argument('--algorithm', type=str, default="sac")
+    parser.add_argument('--train_steps', type=int, default=5_000_000)
     parser.add_argument('--device', type=str, default="cpu")
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
@@ -41,9 +41,9 @@ if __name__ == "__main__":
         print("Using V2G_MPC config file")
         reward_function = ProfitMax_TrPenalty_UserIncentives
         state_function = V2G_profit_max_loads
-        group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitPlusLoads'
+        group_name = f'{config["number_of_charging_stations"]}cs_V2G_MPC'
                 
-    run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
+    run_name += f'{algorithm}_MPC'
 
     run = wandb.init(project='MPC_paper',
                      sync_tensorboard=True,
@@ -69,6 +69,8 @@ if __name__ == "__main__":
     os.makedirs(eval_log_dir, exist_ok=True)
     os.makedirs(f"./saved_models/{group_name}", exist_ok=True)
     os.makedirs(save_path, exist_ok=True)
+    print(f"Saving models to {save_path}")
+    print(f"Saving eval logs to {eval_log_dir}")
 
     eval_callback = EvalCallback(env,
                                  best_model_save_path=save_path,
@@ -120,12 +122,15 @@ if __name__ == "__main__":
                     WandbCallback(
                         verbose=2),
                     eval_callback])
+    
+    # save the model
+    model.save(save_path + f"{run_name}_{algorithm}_last.pt")
 
     env = model.get_env()
     obs = env.reset()
 
     stats = []
-    for i in range(96*1000):
+    for i in range(96*100):
 
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = env.step(action)

@@ -200,3 +200,53 @@ class ChargeAsFastAsPossibleToDesiredCapacity():
                 counter += 1
 
         return action_list
+
+class ChargeAsLateAsPossibleToDesiredCapacity():
+    '''
+    This class contains the Charge As Late As Possible heuristic algorithm.
+    '''
+    algo_name = "Charge As Late As Possible To Desired Capacity"
+
+    def __init__(self, verbose=False, **kwargs):
+
+        self.verbose = verbose
+
+    def update_ev_buffer(self, env) -> List[int]:
+        '''
+        This function updates the EV buffer list with the EVs that are currently parked by adding or removing them.
+        '''
+        ev_buffer = []
+        counter = 0
+        # iterate over all ports
+        for cs in env.charging_stations:
+            for port in range(cs.n_ports):
+                if cs.evs_connected[port] is not None:
+                    
+                    desired_soc = cs.evs_connected[port].desired_capacity / cs.evs_connected[port].battery_capacity                    
+                    cs_max_power = cs.max_charge_current * \
+                        cs.voltage * math.sqrt(cs.phases) / 1000
+                    # find minimum steps required to charge the EV
+                    min_steps = math.ceil((desired_soc - cs.evs_connected[port].get_soc())
+                                          / (cs_max_power * env.timescale/60 / cs.evs_connected[port].battery_capacity))
+
+                    start_of_charging_step = cs.evs_connected[port].time_of_departure - min_steps
+                    if cs.evs_connected[port].get_soc() < desired_soc and start_of_charging_step <= env.current_step:
+                        ev_buffer.append(counter)
+
+                counter += 1
+
+        return ev_buffer
+
+    def get_action(self, env) -> np.ndarray:
+
+        # this function returns the action list based on the round robin algorithm
+
+        ev_buffer = self.update_ev_buffer(env)
+        # create action list
+        action_list = np.zeros(env.number_of_ports)
+
+        # set the action for the EVs to charge
+        for i, ev in enumerate(ev_buffer):
+            action_list[ev] = 1
+        
+        return action_list

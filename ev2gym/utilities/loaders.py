@@ -375,24 +375,34 @@ def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
     if env.load_from_replay_path is not None:
         return env.replay.charge_prices, env.replay.discharge_prices
 
-    # else load historical prices
-    file_path = pkg_resources.resource_filename(
-        'ev2gym', 'data/Netherlands_day-ahead-2015-2023.csv')
-    data = pd.read_csv(file_path, sep=',', header=0)
-    drop_columns = ['Country', 'Datetime (Local)']
-    data.drop(drop_columns, inplace=True, axis=1)
-    data['year'] = pd.DatetimeIndex(data['Datetime (UTC)']).year
-    data['month'] = pd.DatetimeIndex(data['Datetime (UTC)']).month
-    data['day'] = pd.DatetimeIndex(data['Datetime (UTC)']).day
-    data['hour'] = pd.DatetimeIndex(data['Datetime (UTC)']).hour
+    if env.price_data is None:
+        # else load historical prices
+        file_path = pkg_resources.resource_filename(
+            'ev2gym', 'data/Netherlands_day-ahead-2015-2023.csv')
+        env.price_data = pd.read_csv(file_path, sep=',', header=0)
+        # import polars as pl
+        # env.price_data = pl.read_csv(file_path).to_pandas()
+
+        drop_columns = ['Country', 'Datetime (Local)']
+
+        env.price_data.drop(drop_columns, inplace=True, axis=1)
+        env.price_data['year'] = pd.DatetimeIndex(
+            env.price_data['Datetime (UTC)']).year
+        env.price_data['month'] = pd.DatetimeIndex(
+            env.price_data['Datetime (UTC)']).month
+        env.price_data['day'] = pd.DatetimeIndex(
+            env.price_data['Datetime (UTC)']).day
+        env.price_data['hour'] = pd.DatetimeIndex(
+            env.price_data['Datetime (UTC)']).hour
 
     # assume charge and discharge prices are the same
     # assume prices are the same for all charging stations
 
+    data = env.price_data
     charge_prices = np.zeros((env.cs, env.simulation_length))
     discharge_prices = np.zeros((env.cs, env.simulation_length))
     # for every simulation step, take the price of the corresponding hour
-    sim_temp_date = env.sim_starting_date
+    sim_temp_date = env.sim_date
     for i in range(env.simulation_length):
 
         year = sim_temp_date.year
@@ -412,7 +422,7 @@ def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
             year = 2022
             if day > 28:
                 day -= 1
-            print("Debug:", year, month, day, hour)
+            # print("Debug:", year, month, day, hour)
             charge_prices[:, i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
                                             'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
             discharge_prices[:, i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),

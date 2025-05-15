@@ -14,7 +14,7 @@ from ev2gym.utilities.arg_parser import arg_parser
 from ev2gym.models import ev2gym_env
 
 from ev2gym.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
-from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
+from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity, ChargeAsLateAsPossibleToDesiredCapacity
 
 from ev2gym.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
 from ev2gym.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
@@ -48,11 +48,13 @@ def evaluator():
     timescale = config["timescale"]
     simulation_length = config["simulation_length"]
 
-    n_test_cycles = args.n_test_cycles
+    og_test_cycles = 2
+    n_test_cycles = og_test_cycles
 
     scenario = args.config_file.split("/")[-1].split(".")[0]
     eval_replay_path = f'./replay/{number_of_charging_stations}cs_{n_transformers}tr_{scenario}/'
     print(f'Looking for replay files in {eval_replay_path}')
+
     try:
         eval_replay_files = [f for f in os.listdir(
             eval_replay_path) if os.path.isfile(os.path.join(eval_replay_path, f))]
@@ -66,7 +68,7 @@ def evaluator():
         replays_exist = True
 
     except:
-        n_test_cycles = args.n_test_cycles
+        n_test_cycles = og_test_cycles
         replays_exist = False
 
     print(f'Number of test cycles: {n_test_cycles}')
@@ -80,8 +82,9 @@ def evaluator():
         state_function = PublicPST
 
     elif args.config_file == "ev2gym/example_config_files/V2G_MPC.yaml":
-        reward_function = profit_maximization
-        state_function = V2G_profit_max
+        print("Using V2G_MPC config file")
+        reward_function = ProfitMax_TrPenalty_UserIncentives
+        state_function = V2G_profit_max_loads
 
     elif args.config_file == "ev2gym/example_config_files/V2GProfitPlusLoads.yaml":
         reward_function = ProfitMax_TrPenalty_UserIncentives
@@ -147,6 +150,16 @@ def evaluator():
                 #   eMPC_G2V,
                 ]
 
+    algorithms = [
+        ChargeAsFastAsPossibleToDesiredCapacity,
+        ChargeAsLateAsPossibleToDesiredCapacity,
+        PPO,
+        SAC,
+        # 'eMPC_G2V_10',
+        # 'eMPC_V2G_10',
+            
+            ]
+    
     evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
         f'_{n_test_cycles}_exp_' +\
         f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
@@ -176,7 +189,7 @@ def evaluator():
                 replay_path = eval_replay_files[k]
 
             if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
-                gym.envs.register(id='evs-v0', entry_point='ev2gym.ev_city:ev2gym',
+                gym.envs.register(id='evs-v0', entry_point='ev2gym.models.ev2gym_env:EV2Gym',
                                 kwargs={'config_file': args.config_file,
                                         'generate_rnd_game': True,
                                         'state_function': state_function,
@@ -186,11 +199,10 @@ def evaluator():
                 env = gym.make('evs-v0')
 
                 if algorithm == RecurrentPPO:
-                    load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
+                    load_path = f'./saved_models/{number_of_charging_stations}cs_V2G_MPC/' + \
                         f"rppo_{reward_function.__name__}_{state_function.__name__}"
                 else:
-                    load_path = f'./saved_models/{number_of_charging_stations}cs_{scenario}/' + \
-                        f"{algorithm.__name__.lower()}_{reward_function.__name__}_{state_function.__name__}"
+                    load_path = f'./saved_models/{number_of_charging_stations}cs_V2G_MPC/{algorithm.__name__.lower()}_MPC/best_model.zip'
 
                 # initialize the timer
                 timer = time.time()
@@ -263,6 +275,13 @@ def evaluator():
                 rewards.append(reward)
 
                 if done:
+                    
+                    if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS,
+                                     ChargeAsFastAsPossibleToDesiredCapacity,
+                                     ChargeAsLateAsPossibleToDesiredCapacity]:
+                        total_exec_time = 0
+                    else:
+                        total_exec_time = model.total_exec_time
                     results_i = pd.DataFrame({'run': k,
                                             'Algorithm': algorithm.__name__,
                                             'control_horizon': h,
@@ -282,7 +301,7 @@ def evaluator():
                                             'battery_degradation_cycling': stats['battery_degradation_cycling'],
                                             'total_reward': sum(rewards),
                                             'time': time.time() - timer,
-                                            'time_gb': model.total_exec_time,
+                                            'time_gb': total_exec_time,
                                             }, index=[counter])
 
                     if counter == 1:
@@ -313,8 +332,13 @@ def evaluator():
 
     # results_grouped.to_csv('results_grouped.csv')
     # print(results_grouped[['tracking_error', 'energy_tracking_error']])
-    print(results_grouped[['total_transformer_overload',
-        'time_gb', 'time']])
+    print(results_grouped[['total_ev_served', 'total_profits',
+        'total_energy_charged', 'total_energy_discharged',
+        'average_user_satisfaction', 'total_transformer_overload',
+        'battery_degradation', 'battery_degradation_calendar',
+        'battery_degradation_cycling', 'total_reward', 'time_gb', 'time']])
+    # print(results_grouped[['total_transformer_overload',
+    #     'time_gb', 'time']])
     # input('Press Enter to continue')
     
     return
