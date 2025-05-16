@@ -4,7 +4,7 @@ import yaml
 import os
 import pickle
 from copy import deepcopy
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
@@ -37,10 +37,15 @@ from ev2gym.visuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_pr
 import gymnasium as gym
 import torch
 
+
 def evaluator():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     args = arg_parser()
+
+    args.config_file = 'ev2gym/example_config_files/V2G_MPC.yaml'
+    # args.config_file = 'ev2gym/example_config_files/V2G_MPC2.yaml'
+
     config = yaml.load(open(args.config_file, 'r'), Loader=yaml.FullLoader)
 
     number_of_charging_stations = config["number_of_charging_stations"]
@@ -48,7 +53,7 @@ def evaluator():
     timescale = config["timescale"]
     simulation_length = config["simulation_length"]
 
-    og_test_cycles = 2
+    og_test_cycles = 50
     n_test_cycles = og_test_cycles
 
     scenario = args.config_file.split("/")[-1].split(".")[0]
@@ -59,7 +64,8 @@ def evaluator():
         eval_replay_files = [f for f in os.listdir(
             eval_replay_path) if os.path.isfile(os.path.join(eval_replay_path, f))]
 
-        print(f'Found {len(eval_replay_files)} replay files in {eval_replay_path}')
+        print(
+            f'Found {len(eval_replay_files)} replay files in {eval_replay_path}')
         if n_test_cycles > len(eval_replay_files):
             n_test_cycles = len(eval_replay_files)
 
@@ -73,25 +79,9 @@ def evaluator():
 
     print(f'Number of test cycles: {n_test_cycles}')
 
-    if args.config_file == "ev2gym/example_config_files/V2GProfitMax.yaml":
-        reward_function = profit_maximization
-        state_function = V2G_profit_max
-
-    elif args.config_file == "ev2gym/example_config_files/PublicPST.yaml":
-        reward_function = SquaredTrackingErrorReward
-        state_function = PublicPST
-
-    elif args.config_file == "ev2gym/example_config_files/V2G_MPC.yaml":
-        print("Using V2G_MPC config file")
-        reward_function = ProfitMax_TrPenalty_UserIncentives
-        state_function = V2G_profit_max_loads
-
-    elif args.config_file == "ev2gym/example_config_files/V2GProfitPlusLoads.yaml":
-        reward_function = ProfitMax_TrPenalty_UserIncentives
-        state_function = V2G_profit_max_loads
-    else:
-        raise ValueError('Unknown config file')
-
+    print("Using V2G_MPC config file")
+    reward_function = ProfitMax_TrPenalty_UserIncentives
+    state_function = V2G_profit_max_loads
 
     def generate_replay(evaluation_name):
         env = ev2gym_env.EV2Gym(
@@ -133,40 +123,40 @@ def evaluator():
 
     algorithms = [
         # ChargeAsFastAsPossibleToDesiredCapacity,
-                'OCMF_V2G_10',
-                # 'OCMF_V2G_20',
-                'OCMF_V2G_30',
-                'OCMF_G2V_10',
-                # # 'OCMF_G2V_20',
-                'OCMF_G2V_30',
-                'eMPC_V2G_10',
-                # # 'eMPC_V2G_20',
-                'eMPC_V2G_30',
-                'eMPC_G2V_10',
-                'eMPC_G2V_30',
-                
-                
-                #   eMPC_V2G,
-                #   eMPC_G2V,
-                ]
+        'OCMF_V2G_10',
+        # 'OCMF_V2G_20',
+        'OCMF_V2G_30',
+        'OCMF_G2V_10',
+        # # 'OCMF_G2V_20',
+        'OCMF_G2V_30',
+        'eMPC_V2G_10',
+        # # 'eMPC_V2G_20',
+        'eMPC_V2G_30',
+        'eMPC_G2V_10',
+        'eMPC_G2V_30',
+        #   eMPC_V2G,
+        #   eMPC_G2V,
+    ]
 
     algorithms = [
         ChargeAsFastAsPossibleToDesiredCapacity,
         ChargeAsLateAsPossibleToDesiredCapacity,
         PPO,
-        SAC,
-        # 'eMPC_G2V_10',
+        SAC,        
+        'eMPC_G2V_10',
         # 'eMPC_V2G_10',
-            
-            ]
-    
+        # 'OCMF_G2V_10',
+        # 'OCMF_V2G_10',
+
+    ]
+
     evaluation_name = f'eval_{number_of_charging_stations}cs_{n_transformers}tr_{scenario}_{len(algorithms)}_algos' +\
         f'_{n_test_cycles}_exp_' +\
         f'{datetime.datetime.now().strftime("%Y_%m_%d_%f")}'
 
     # make a directory for the evaluation
     save_path = f'./results/{evaluation_name}/'
-    os.makedirs(save_path, exist_ok=True)        
+    os.makedirs(save_path, exist_ok=True)
     os.system(f'cp {args.config_file} {save_path}')
 
     if not replays_exist:
@@ -190,12 +180,12 @@ def evaluator():
 
             if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                 gym.envs.register(id='evs-v0', entry_point='ev2gym.models.ev2gym_env:EV2Gym',
-                                kwargs={'config_file': args.config_file,
-                                        'generate_rnd_game': True,
-                                        'state_function': state_function,
-                                        'reward_function': reward_function,
-                                        'load_from_replay_path': replay_path,
-                                        })
+                                  kwargs={'config_file': args.config_file,
+                                          'generate_rnd_game': True,
+                                          'state_function': state_function,
+                                          'reward_function': reward_function,
+                                          'load_from_replay_path': replay_path,
+                                          })
                 env = gym.make('evs-v0')
 
                 if algorithm == RecurrentPPO:
@@ -246,8 +236,8 @@ def evaluator():
 
                     else:
                         model = algorithm(env=env,
-                                        replay_path=replay_path,
-                                        verbose=False)
+                                          replay_path=replay_path,
+                                          verbose=False)
                 except Exception as error:
                     print(error)
                     print(
@@ -275,7 +265,7 @@ def evaluator():
                 rewards.append(reward)
 
                 if done:
-                    
+
                     if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS,
                                      ChargeAsFastAsPossibleToDesiredCapacity,
                                      ChargeAsLateAsPossibleToDesiredCapacity]:
@@ -283,26 +273,26 @@ def evaluator():
                     else:
                         total_exec_time = model.total_exec_time
                     results_i = pd.DataFrame({'run': k,
-                                            'Algorithm': algorithm.__name__,
-                                            'control_horizon': h,
-                                            'discharge_price_factor': config['discharge_price_factor'],
-                                            'total_ev_served': stats['total_ev_served'],
-                                            'total_profits': stats['total_profits'],
-                                            'total_energy_charged': stats['total_energy_charged'],
-                                            'total_energy_discharged': stats['total_energy_discharged'],
-                                            'average_user_satisfaction': stats['average_user_satisfaction'],
-                                            'power_tracker_violation': stats['power_tracker_violation'],
-                                            'tracking_error': stats['tracking_error'],
-                                            'energy_tracking_error': stats['energy_tracking_error'],
-                                            'energy_user_satisfaction': stats['energy_user_satisfaction'],
-                                            'total_transformer_overload': stats['total_transformer_overload'],
-                                            'battery_degradation': stats['battery_degradation'],
-                                            'battery_degradation_calendar': stats['battery_degradation_calendar'],
-                                            'battery_degradation_cycling': stats['battery_degradation_cycling'],
-                                            'total_reward': sum(rewards),
-                                            'time': time.time() - timer,
-                                            'time_gb': total_exec_time,
-                                            }, index=[counter])
+                                              'Algorithm': algorithm.__name__,
+                                              'control_horizon': h,
+                                              'discharge_price_factor': config['discharge_price_factor'],
+                                              'total_ev_served': stats['total_ev_served'],
+                                              'total_profits': stats['total_profits'],
+                                              'total_energy_charged': stats['total_energy_charged'],
+                                              'total_energy_discharged': stats['total_energy_discharged'],
+                                              'average_user_satisfaction': stats['average_user_satisfaction'],
+                                              'power_tracker_violation': stats['power_tracker_violation'],
+                                              'tracking_error': stats['tracking_error'],
+                                              'energy_tracking_error': stats['energy_tracking_error'],
+                                              'energy_user_satisfaction': stats['energy_user_satisfaction'],
+                                              'total_transformer_overload': stats['total_transformer_overload'],
+                                              'battery_degradation': stats['battery_degradation'],
+                                              'battery_degradation_calendar': stats['battery_degradation_calendar'],
+                                              'battery_degradation_cycling': stats['battery_degradation_cycling'],
+                                              'total_reward': sum(rewards),
+                                              'time': time.time() - timer,
+                                              'time_gb': total_exec_time,
+                                              }, index=[counter])
 
                     if counter == 1:
                         results = results_i
@@ -333,15 +323,15 @@ def evaluator():
     # results_grouped.to_csv('results_grouped.csv')
     # print(results_grouped[['tracking_error', 'energy_tracking_error']])
     print(results_grouped[['total_ev_served', 'total_profits',
-        'total_energy_charged', 'total_energy_discharged',
-        'average_user_satisfaction', 'total_transformer_overload',
-        'battery_degradation', 'battery_degradation_calendar',
-        'battery_degradation_cycling', 'total_reward', 'time_gb', 'time']])
+                           'total_energy_charged', 'total_energy_discharged',
+                           'average_user_satisfaction', 'total_transformer_overload',
+                           'battery_degradation', 'battery_degradation_calendar',
+                           'battery_degradation_cycling', 'total_reward', 'time_gb', 'time']])
     # print(results_grouped[['total_transformer_overload',
     #     'time_gb', 'time']])
     # input('Press Enter to continue')
-    
-    return
+
+    # return
 
     algorithm_names = []
     for algorithm in algorithms:
@@ -351,31 +341,30 @@ def evaluator():
         else:
             algorithm_names.append(algorithm.__name__)
 
-
     plot_total_power(results_path=save_path + 'plot_results_dict.pkl',
-                    save_path=save_path,
-                    algorithm_names=algorithm_names)
+                     save_path=save_path,
+                     algorithm_names=algorithm_names)
 
     plot_comparable_EV_SoC(results_path=save_path + 'plot_results_dict.pkl',
-                        save_path=save_path,
-                        algorithm_names=algorithm_names)
+                           save_path=save_path,
+                           algorithm_names=algorithm_names)
 
     plot_actual_power_vs_setpoint(results_path=save_path + 'plot_results_dict.pkl',
-                                save_path=save_path,
-                                algorithm_names=algorithm_names)
+                                  save_path=save_path,
+                                  algorithm_names=algorithm_names)
 
     plot_total_power_V2G(results_path=save_path + 'plot_results_dict.pkl',
-                        save_path=save_path,
-                        algorithm_names=algorithm_names)
+                         save_path=save_path,
+                         algorithm_names=algorithm_names)
 
     plot_comparable_EV_SoC_single(results_path=save_path + 'plot_results_dict.pkl',
-                                save_path=save_path,
-                                algorithm_names=algorithm_names)
+                                  save_path=save_path,
+                                  algorithm_names=algorithm_names)
 
     plot_prices(results_path=save_path + 'plot_results_dict.pkl',
                 save_path=save_path,
                 algorithm_names=algorithm_names)
 
+
 if __name__ == "__main__":
     evaluator()
-    

@@ -39,7 +39,8 @@ for path in paths:
 
     # drop rows where control horizon = -1
     data_og = data_og[data_og['control_horizon'] != -1]
-    data_og = data_og[data_og['control_horizon'] != 30]
+    data_og = data_og[data_og['control_horizon'] != 10]
+    # data_og = data_og[data_og['control_horizon'] != 30]
 
     # data_og['Algorithm'] = data_og['Algorithm'] + \
     #     data_og['control_horizon'].astype(str)
@@ -105,7 +106,8 @@ plt.rcParams["font.family"] = "serif"
 #                  hue="Algorithm",
 #                  data=results)
 # use catplots and connect the means sorted by cs_number
-
+#close the previous plot
+plt.figure(figsize=(5.5, 5))
 ax = sns.catplot(x="cs_number",
                  y="time",
                  hue="Algorithm",
@@ -121,6 +123,14 @@ ax = sns.catplot(x="cs_number",
                  alpha=0.7,
                  legend_out=False,)
 
+#add horizontal line at y=0.001
+for a in ax.axes.flat:
+    a.axhline(y=0.001, color='m', linestyle='--', label='RL',linewidth=3, alpha=0.5)
+    a.axhline(y=0.0001, color='#17becf', linestyle='-.', label='Rule-Based',linewidth=3, alpha=0.5)
+
+
+#set xlim
+ax.set(xlim=(3, 62))
 
 # logarithmic scale
 # ax.set(yscale="log")
@@ -133,8 +143,8 @@ ax.set(xticks=order_list,
        xticklabels=order_list)
 
 # increase font size of legend
-plt.legend(fontsize=22)
-# ax._legend.remove()
+# plt.legend(fontsize=22)
+ax._legend.remove()
 
 ax.set(yticks=np.arange(0, 13, step=3),
        yticklabels=np.arange(0, 13, step=3))
@@ -143,14 +153,16 @@ ax.set(yticks=np.arange(0, 13, step=3),
 ax.set_xticklabels(fontsize=22)
 ax.set_yticklabels(fontsize=22)
 ax.set_xlabels("Charging Stations", fontsize=22)
-# ax.set_ylabels(" ", fontsize=22)
+ax.set_ylabels(" ", fontsize=22)
 ax.set_ylabels("Execution Time (s)", fontsize=22)
 
 # ax = ax.set_axis_labels("Charging Stations", "Execution time (s)")
 # move legend inside the plot
-
+plt.tight_layout()
 plt.show()
 exit()
+plt.figure(figsize=(3, 5))
+
 # use catplot to plot profits
 ax = sns.catplot(x="cs_number",
                  y="total_profits",
@@ -163,5 +175,12 @@ ax = sns.catplot(x="cs_number",
                  legend_out=False,)
 # set labels
 ax = ax.set_axis_labels("Charging Stations", "Profit")
+
+#add horizontal line at y=0.001
+for a in ax.axes.flat:
+    a.axhline(y=0.001, color='m', linestyle='--', label='RL',linewidth=3, alpha=0.5)
+    a.axhline(y=0.0001, color='#17becf', linestyle='-.', label='Rule-Based',linewidth=3, alpha=0.5)
+#set xlim
+ax.set(xlim=(3, 62))
 
 plt.show()

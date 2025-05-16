@@ -150,7 +150,7 @@ class ChargeAsFastAsPossible():
     This class contains the Charge As Fast As Possible heuristic algorithm.
     '''
     algo_name = "Charge As Fast As Possible"
-    
+
     def __init__(self, verbose=False, **kwargs):
         self.verbose = verbose
 
@@ -201,6 +201,7 @@ class ChargeAsFastAsPossibleToDesiredCapacity():
 
         return action_list
 
+
 class ChargeAsLateAsPossibleToDesiredCapacity():
     '''
     This class contains the Charge As Late As Possible heuristic algorithm.
@@ -216,13 +217,15 @@ class ChargeAsLateAsPossibleToDesiredCapacity():
         This function updates the EV buffer list with the EVs that are currently parked by adding or removing them.
         '''
         ev_buffer = []
+        ev_action_list = []
         counter = 0
         # iterate over all ports
         for cs in env.charging_stations:
             for port in range(cs.n_ports):
                 if cs.evs_connected[port] is not None:
-                    
-                    desired_soc = cs.evs_connected[port].desired_capacity / cs.evs_connected[port].battery_capacity                    
+
+                    desired_soc = cs.evs_connected[port].desired_capacity / \
+                        cs.evs_connected[port].battery_capacity
                     cs_max_power = cs.max_charge_current * \
                         cs.voltage * math.sqrt(cs.phases) / 1000
                     # find minimum steps required to charge the EV
@@ -233,20 +236,27 @@ class ChargeAsLateAsPossibleToDesiredCapacity():
                     if cs.evs_connected[port].get_soc() < desired_soc and start_of_charging_step <= env.current_step:
                         ev_buffer.append(counter)
 
+                        min_step = (
+                            desired_soc - cs.evs_connected[port].get_soc()) / (cs_max_power * env.timescale/60 / cs.evs_connected[port].battery_capacity)
+                        if min_step < 1:
+                            ev_action_list.append(min_step)
+                        else:
+                            ev_action_list.append(1)
+
                 counter += 1
 
-        return ev_buffer
+        return ev_buffer, ev_action_list
 
     def get_action(self, env) -> np.ndarray:
 
         # this function returns the action list based on the round robin algorithm
 
-        ev_buffer = self.update_ev_buffer(env)
+        ev_buffer, ev_action_list = self.update_ev_buffer(env)
         # create action list
         action_list = np.zeros(env.number_of_ports)
 
         # set the action for the EVs to charge
         for i, ev in enumerate(ev_buffer):
-            action_list[ev] = 1
-        
+            action_list[ev] = ev_action_list[i]
+
         return action_list

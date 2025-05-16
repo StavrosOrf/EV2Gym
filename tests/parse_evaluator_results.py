@@ -2,7 +2,7 @@
 import pandas as pd
 
 
-data = pd.read_csv('./results/eval_10cs_1tr_V2G_MPC_4_algos_2_exp_2025_05_15_243325/data.csv')
+data = pd.read_csv('./results/eval_10cs_1tr_V2G_MPC_4_algos_50_exp_2025_05_16_284706/data.csv')
 
 
 print(data.shape)
@@ -55,9 +55,9 @@ data_grouped = data.groupby('Algorithm').agg(['mean', 'std'])
 
 # create new columns with the mean and std of the total_energy_charged combined as a string
 data_grouped['total_energy_charged'] = data_grouped['total_energy_charged']\
-    .apply(lambda x: f"${x['mean']/1000:.1f}$ ±${x['std']/1000:.1f}$", axis=1)
+    .apply(lambda x: f"${x['mean']:.1f}$ ±${x['std']:.1f}$", axis=1)
 data_grouped['total_energy_discharged'] = data_grouped['total_energy_discharged']\
-    .apply(lambda x: f"${x['mean']/1000:.2f}$ ±${x['std']/1000:.2f}$", axis=1)
+    .apply(lambda x: f"${x['mean']:.2f}$ ±${x['std']:.2f}$", axis=1)
 data_grouped['average_user_satisfaction'] = data_grouped['average_user_satisfaction']\
     .apply(lambda x: f"${x['mean']*100:.1f}$ ±${x['std']*100:.1f}$", axis=1)
 data_grouped['total_profits'] = data_grouped['total_profits']\
@@ -113,6 +113,8 @@ print(data_grouped)
 # rename algorithm names with shorter names
 data_grouped.index = data_grouped.index.str.replace(
     'ChargeAsFastAsPossibleToDesiredCapacity', 'AFAP')
+data_grouped.index = data_grouped.index.str.replace(
+    'ChargeAsLateAsPossibleToDesiredCapacity', 'ALAP')
 # data_grouped.index = data_grouped.index.str.replace(
 #     'QT', 'Q-DT')
 # data_grouped.index = data_grouped.index.str.replace('eMPC_G2V', 'MB-TD3')
@@ -123,9 +125,11 @@ data_grouped.index = data_grouped.index.str.replace(
 
 # change order of rows
 data_grouped = data_grouped.reindex(['AFAP',
+                                   'ALAP',	
                                      'PPO',
-                                     'eMPC_G2V',
-                                     'eMPC_V2G',
+                                     'SAC',
+                                   #   'eMPC_G2V',
+                                   #   'eMPC_V2G',
                                      ])
 
 

@@ -18,30 +18,31 @@ import os
 os.environ["WANDB_SYMLINK_DISABLE"] = "true"
 from wandb.integration.sb3 import WandbCallback
 import yaml
+import torch
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str, default="sac")
+    parser.add_argument('--algorithm', type=str, default="ppo")
     parser.add_argument('--train_steps', type=int, default=5_000_000)
-    parser.add_argument('--device', type=str, default="cpu")
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
                         # default="ev2gym/example_config_files/V2GProfitMax.yaml")
-    default="ev2gym/example_config_files/V2G_MPC.yaml")
+    default="ev2gym/example_config_files/V2G_MPC2.yaml")
+    
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     algorithm = parser.parse_args().algorithm
-    device = parser.parse_args().device
     run_name = parser.parse_args().run_name
     config_file = parser.parse_args().config_file
 
     config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
 
-    if config_file == "ev2gym/example_config_files/V2G_MPC.yaml":
-        print("Using V2G_MPC config file")
-        reward_function = ProfitMax_TrPenalty_UserIncentives
-        state_function = V2G_profit_max_loads
-        group_name = f'{config["number_of_charging_stations"]}cs_V2G_MPC'
+    # if config_file == "ev2gym/example_config_files/V2G_MPC.yaml":
+    print("Using V2G_MPC config file")
+    reward_function = ProfitMax_TrPenalty_UserIncentives
+    state_function = V2G_profit_max_loads
+    group_name = f'{config["number_of_charging_stations"]}cs_V2G_MPC'
                 
     run_name += f'{algorithm}_MPC'
 
