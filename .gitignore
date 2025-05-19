@@ -177,3 +177,6 @@ results/
 plots/
 plot_results_dict.pkl
 results_grouped.csv
+
+*.pdf
+*.png
