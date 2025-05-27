@@ -189,18 +189,18 @@ def BusinessPSTwithMoreKnowledge(env, *args):
                                       #EV.min_ac_charge_power*1000 /
                                       #(cs.voltage*math.sqrt(cs.phases)),
                                       EV.time_of_arrival / env.simulation_length,  # time of arrival
-                                      EV.etime_of_departure / env.simulation_length,  # time of departure
+                                      EV.time_of_departure / env.simulation_length,  # time of departure
                                       EV.get_soc(),  # soc
-                                      #(EV.etime_of_departure - env.current_step) \
+                                      #(EV.time_of_departure - env.current_step) \
                                       #  / env.simulation_length, #remaining time
                                       #(env.current_step-EV.time_of_arrival) \
                                       #  / env.simulation_length,  # time stayed
-                                      #(EV.etime_of_departure - \
+                                      #(EV.time_of_departure - \
                                       # EV.time_of_arrival) / env.simulation_length, # total staying time
                                       #(((EV.battery_capacity - EV.battery_capacity_at_arrival) /
-                                      #  (EV.etime_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed
+                                      #  (EV.time_of_departure - EV.time_of_arrival)) / EV.max_ac_charge_power),  # average charging speed
                                       #(((EV.battery_capacity - EV.battery_capacity_at_arrival) / EV.battery_capacity)) \
-                                      #  / ((EV.etime_of_departure - env.current_step + 1) / env.simulation_length),   #charging priority
+                                      #  / ((EV.time_of_departure - env.current_step + 1) / env.simulation_length),   #charging priority
                                       #EV.required_power / EV.battery_capacity,  # required energy
                                       ])
                     else:
@@ -211,3 +211,5 @@ def BusinessPSTwithMoreKnowledge(env, *args):
     np.set_printoptions(suppress=True)
 
     return state
+
+

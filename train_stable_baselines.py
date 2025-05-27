@@ -3,11 +3,15 @@
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.noise import  OrnsteinUhlenbeckActionNoise
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 
 from ev2gym.models.ev2gym_env import EV2Gym
 from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, ProfitMax_TrPenalty_UserIncentives
 from ev2gym.rl_agent.reward import profit_maximization
+
+from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwithMoreKnowledge
+from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
 
 from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
 
@@ -15,6 +19,9 @@ import gymnasium as gym
 import argparse
 import wandb
 from wandb.integration.sb3 import WandbCallback
+import numpy as np
+import torch as th
+
 import os
 import yaml
 
@@ -23,11 +30,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--algorithm', type=str, default="ddpg")
     parser.add_argument('--device', type=str, default="cuda:0")
-    parser.add_argument('--train_steps', type=int, default=2_000) 
+    parser.add_argument('--train_steps', type=int, default=200_000)
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
-                        # default="ev2gym/example_config_files/V2GProfitMax.yaml")
-    default="ev2gym/example_config_files/PublicPST.yaml")
+                        default="ev2gym/example_config_files/BusinessPST.yaml")
 
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
@@ -35,21 +41,17 @@ if __name__ == "__main__":
     config_file = parser.parse_args().config_file
 
     config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
-
-    if config_file == "ev2gym/example_config_files/V2GProfitMax.yaml":
-        reward_function = profit_maximization
-        state_function = V2G_profit_max
-        group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitMax'
-
-    elif config_file == "ev2gym/example_config_files/PublicPST.yaml":
+       
+    if config_file == "ev2gym/example_config_files/BusinessPST.yaml":
         reward_function = SquaredTrackingErrorReward
-        state_function = PublicPST
-        group_name = f'{config["number_of_charging_stations"]}cs_PublicPST'
-    elif config_file == "ev2gym/example_config_files/V2GProfitPlusLoads.yaml":
-        reward_function = ProfitMax_TrPenalty_UserIncentives
-        state_function = V2G_profit_max_loads
-        group_name = f'{config["number_of_charging_stations"]}cs_V2GProfitPlusLoads'
-                
+        reward_function_short ="STER"
+        state_function = BusinessPSTwithMoreKnowledge
+        state_function_short = "BPST"
+        group_name = f'{config["number_of_charging_stations"]}cs_APEN_PST'
+
+    #run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
+    run_name += f'{algorithm}_{reward_function_short}_{state_function_short}'
+
     run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
 
     run = wandb.init(project='ev2gym',
@@ -72,7 +74,7 @@ if __name__ == "__main__":
 
     eval_log_dir = "./eval_logs/" + group_name + "_" + run_name + "/"
     save_path = f"./saved_models/{group_name}/{run_name}/"
-    
+
     os.makedirs(eval_log_dir, exist_ok=True)
     os.makedirs(f"./saved_models/{group_name}", exist_ok=True)
     os.makedirs(save_path, exist_ok=True)
@@ -80,16 +82,20 @@ if __name__ == "__main__":
     eval_callback = EvalCallback(env, best_model_save_path=eval_log_dir,
                                  log_path=eval_log_dir,
                                  eval_freq=config['simulation_length']*50,
-                                 n_eval_episodes=10, deterministic=True,
+                                 n_eval_episodes=10,
+                                 deterministic=True,
                                  render=False)
 
     if algorithm == "ddpg":
         model = DDPG("MlpPolicy", env, verbose=1,
                     learning_rate = 1e-3,
-                    buffer_size = 1_000_000,  # 1e6
+                    buffer_size = 1_000_00,  # 1e6
                     learning_starts = 100,
-                    batch_size = 100,
-                    tau = 0.005,
+                    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(config['number_of_charging_stations']),
+                                            sigma=0.1 * np.ones(config['number_of_charging_stations'])),
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], qf=[64, 64])),
+                    batch_size = 64, #100
+                    tau = 0.001, #0.005
                     gamma = 0.99,                     
                      device=device, tensorboard_log="./logs/")
     elif algorithm == "td3":
@@ -126,8 +132,8 @@ if __name__ == "__main__":
                         verbose=2),
                     eval_callback])
     # model.save(f"./saved_models/{group_name}/{run_name}.last")
-    print(f'Finished training {algorithm} algorithm, {run_name} saving model at ./saved_models/{group_name}/{run_name}')   
-   
+    print(
+        f'Finished training {algorithm} algorithm, {run_name} saving model at ./saved_models/{group_name}/{run_name}')
 
     model.save(f"./saved_models/{group_name}/{run_name}")
 
