@@ -23,6 +23,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--algorithm', type=str, default="ddpg")
     parser.add_argument('--device', type=str, default="cuda:0")
+    parser.add_argument('--train_steps', type=int, default=2_000) 
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
                         # default="ev2gym/example_config_files/V2GProfitMax.yaml")
@@ -69,9 +70,12 @@ if __name__ == "__main__":
 
     env = gym.make('evs-v0')
 
-    eval_log_dir = "./eval_logs/"
+    eval_log_dir = "./eval_logs/" + group_name + "_" + run_name + "/"
+    save_path = f"./saved_models/{group_name}/{run_name}/"
+    
     os.makedirs(eval_log_dir, exist_ok=True)
     os.makedirs(f"./saved_models/{group_name}", exist_ok=True)
+    os.makedirs(save_path, exist_ok=True)
 
     eval_callback = EvalCallback(env, best_model_save_path=eval_log_dir,
                                  log_path=eval_log_dir,
@@ -115,14 +119,15 @@ if __name__ == "__main__":
     else:
         raise ValueError("Unknown algorithm")
 
-    model.learn(total_timesteps=4_000_000,
+    model.learn(total_timesteps=parser.parse_args().train_steps,
                 progress_bar=True,
                 callback=[
                     WandbCallback(
-                        gradient_save_freq=100000,
-                        model_save_path=f"models/{run.id}",
                         verbose=2),
                     eval_callback])
+    # model.save(f"./saved_models/{group_name}/{run_name}.last")
+    print(f'Finished training {algorithm} algorithm, {run_name} saving model at ./saved_models/{group_name}/{run_name}')   
+   
 
     model.save(f"./saved_models/{group_name}/{run_name}")
 
@@ -130,7 +135,7 @@ if __name__ == "__main__":
     obs = env.reset()
 
     stats = []
-    for i in range(96*1000):
+    for i in range(96*100):
 
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = env.step(action)
