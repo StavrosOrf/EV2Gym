@@ -21,6 +21,9 @@ def get_statistics(env) -> Dict:
     average_user_satisfaction = np.array(
         [cs.get_avg_user_satisfaction() for cs in env.charging_stations
          if cs.total_evs_served > 0]).mean()
+    
+    customer_euro_per_kwh = env.config["customer_kwh_price"]    
+    customer_profits = total_energy_charged * customer_euro_per_kwh
 
     # get transformer overload from env.tr_overload
     total_transformer_overload = np.array(env.tr_overload).sum()
@@ -64,6 +67,7 @@ def get_statistics(env) -> Dict:
 
     stats = {'total_ev_served': total_ev_served,
              'total_profits': total_profits,
+             'profits_from_customers': customer_profits,
              'total_energy_charged': total_energy_charged,
              'total_energy_discharged': total_energy_discharged,
              'average_user_satisfaction': average_user_satisfaction,

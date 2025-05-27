@@ -334,6 +334,7 @@ def evaluator():
                                                       'discharge_price_factor': config['discharge_price_factor'],
                                                       'total_ev_served': stats['total_ev_served'],
                                                       'total_profits': stats['total_profits'],
+                                                      'profits_from_customers': stats['profits_from_customers'],
                                                       'total_energy_charged': stats['total_energy_charged'],
                                                       'total_energy_discharged': stats['total_energy_discharged'],
                                                       'average_user_satisfaction': stats['average_user_satisfaction'],
@@ -417,12 +418,9 @@ def evaluator():
         by=('tracking_error', 'mean'), ascending=True)
     
     print(results_grouped[['tracking_error',
-                           'energy_user_satisfaction',
-                           'min_energy_user_satisfaction'
+                           'average_user_satisfaction',
+                           'profits_from_customers'
                            ]])
-    #    ]])
-    #    'average_user_satisfaction']])
-    # input('Press Enter to continue')
     
     with gzip.open(save_path + 'plot_results_dict.pkl.gz', 'wb') as f:
         pickle.dump(plot_results_dict, f)
