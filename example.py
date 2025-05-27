@@ -5,14 +5,14 @@ from ev2gym.models.ev2gym_env import EV2Gym
 from ev2gym.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
 from ev2gym.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
 from ev2gym.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
-from ev2gym.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
-
 from ev2gym.baselines.mpc.eMPC_v2 import eMPC_V2G_v2, eMPC_G2V_v2
+
+from ev2gym.rl_agent.action_wrappers import BinaryAction, ThreeStep_Action, Rescale_RepairLayer
 
 from ev2gym.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle
 
 from ev2gym.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
-from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity
+from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity, RandomAgent
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,9 +29,9 @@ def eval():
     replay_path = "./replay/replay_sim_2024_07_05_106720.pkl"
     replay_path = None
 
-    # config_file = "ev2gym/example_config_files/PublicPST.yaml"
+    config_file = "ev2gym/example_config_files/PublicPST.yaml"
     # config_file = "ev2gym/example_config_files/BusinessPST.yaml"
-    config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
+    # config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
 
     env = EV2Gym(config_file=config_file,
                  load_from_replay_path=replay_path,
@@ -40,22 +40,10 @@ def eval():
                  save_plots=save_plots,
                  )
 
-
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"
 
     state, _ = env.reset()
 
-    ev_profiles = env.EVs_profiles
-    max_time_of_stay = max([ev.time_of_departure - ev.time_of_arrival
-                            for ev in ev_profiles])
-    min_time_of_stay = min([ev.time_of_departure - ev.time_of_arrival
-                            for ev in ev_profiles])
-
-    print(f'Number of EVs: {len(ev_profiles)}')
-    print(f'Max time of stay: {max_time_of_stay}')
-    print(f'Min time of stay: {min_time_of_stay}')
-    
-    # exit()
     # agent = OCMF_V2G(env, control_horizon=30, verbose=True)
     # agent = OCMF_G2V(env, control_horizon=25, verbose=True)
     # agent = eMPC_V2G(env, control_horizon=15, verbose=False)
@@ -65,7 +53,8 @@ def eval():
     # agent = eMPC_V2G_v2(env, control_horizon=10, verbose=False)        
     # agent = RoundRobin(env, verbose=False)
     # agent = ChargeAsLateAsPossible(verbose=False)
-    agent = ChargeAsFastAsPossible()
+    # agent = ChargeAsFastAsPossible()
+    agent = RandomAgent(verbose=False)
     # agent = ChargeAsFastAsPossibleToDesiredCapacity()
     rewards = []
 
