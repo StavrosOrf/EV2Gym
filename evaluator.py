@@ -36,15 +36,20 @@ from ev2gym.visuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_pr
 
 import gymnasium as gym
 import torch
-
+import random
 
 def evaluator():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     args = arg_parser()
+    
+    #set seed
+    seed = 464
+    np.random.seed(seed)
+    random.seed(seed)
 
-    args.config_file = 'ev2gym/example_config_files/V2G_MPC.yaml'
-    # args.config_file = 'ev2gym/example_config_files/V2G_MPC2.yaml'
+    # args.config_file = 'ev2gym/example_config_files/V2G_MPC.yaml'
+    args.config_file = 'ev2gym/example_config_files/V2G_MPC2.yaml'
 
     config = yaml.load(open(args.config_file, 'r'), Loader=yaml.FullLoader)
 
@@ -53,7 +58,7 @@ def evaluator():
     timescale = config["timescale"]
     simulation_length = config["simulation_length"]
 
-    og_test_cycles = 50
+    og_test_cycles = 1
     n_test_cycles = og_test_cycles
 
     scenario = args.config_file.split("/")[-1].split(".")[0]
@@ -105,38 +110,38 @@ def evaluator():
 
     # Algorithms to compare:
     algorithms = [
-        ChargeAsFastAsPossible,
-        ChargeAsLateAsPossible,
-        PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
-        # SAC,
-        # TQC,
-        # # TD3,
-        # # ARS,
-        # # RecurrentPPO,
-        # # RoundRobin,
-        eMPC_V2G,
-        # V2GProfitMaxLoadsOracle,
-        V2GProfitMaxOracleGB,
+        ChargeAsFastAsPossibleToDesiredCapacity,
+        ChargeAsLateAsPossibleToDesiredCapacity,
+        # PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO,
+        # # SAC,
+        # # TQC,
+        # # # TD3,
+        # # # ARS,
+        # # # RecurrentPPO,
+        # # # RoundRobin,
+        # eMPC_V2G,
+        # # V2GProfitMaxLoadsOracle,
+        # V2GProfitMaxOracleGB,
         # V2GProfitMaxOracle,
         # PowerTrackingErrorrMin
     ]
 
-    algorithms = [
-        # ChargeAsFastAsPossibleToDesiredCapacity,
-        'OCMF_V2G_10',
-        # 'OCMF_V2G_20',
-        'OCMF_V2G_30',
-        'OCMF_G2V_10',
-        # # 'OCMF_G2V_20',
-        'OCMF_G2V_30',
-        'eMPC_V2G_10',
-        # # 'eMPC_V2G_20',
-        'eMPC_V2G_30',
-        'eMPC_G2V_10',
-        'eMPC_G2V_30',
-        #   eMPC_V2G,
-        #   eMPC_G2V,
-    ]
+    # algorithms = [
+    #     # ChargeAsFastAsPossibleToDesiredCapacity,
+    #     'OCMF_V2G_10',
+    #     # 'OCMF_V2G_20',
+    #     'OCMF_V2G_30',
+    #     'OCMF_G2V_10',
+    #     # # 'OCMF_G2V_20',
+    #     'OCMF_G2V_30',
+    #     'eMPC_V2G_10',
+    #     # # 'eMPC_V2G_20',
+    #     'eMPC_V2G_30',
+    #     'eMPC_G2V_10',
+    #     'eMPC_G2V_30',
+    #     #   eMPC_V2G,
+    #     #   eMPC_G2V,
+    # ]
 
     algorithms = [
         ChargeAsFastAsPossibleToDesiredCapacity,
@@ -341,29 +346,29 @@ def evaluator():
         else:
             algorithm_names.append(algorithm.__name__)
 
-    plot_total_power(results_path=save_path + 'plot_results_dict.pkl',
-                     save_path=save_path,
-                     algorithm_names=algorithm_names)
+    # plot_total_power(results_path=save_path + 'plot_results_dict.pkl',
+    #                  save_path=save_path,
+    #                  algorithm_names=algorithm_names)
 
-    plot_comparable_EV_SoC(results_path=save_path + 'plot_results_dict.pkl',
-                           save_path=save_path,
-                           algorithm_names=algorithm_names)
+    # plot_comparable_EV_SoC(results_path=save_path + 'plot_results_dict.pkl',
+    #                        save_path=save_path,
+    #                        algorithm_names=algorithm_names)
 
-    plot_actual_power_vs_setpoint(results_path=save_path + 'plot_results_dict.pkl',
-                                  save_path=save_path,
-                                  algorithm_names=algorithm_names)
+    # plot_actual_power_vs_setpoint(results_path=save_path + 'plot_results_dict.pkl',
+    #                               save_path=save_path,
+    #                               algorithm_names=algorithm_names)
 
     plot_total_power_V2G(results_path=save_path + 'plot_results_dict.pkl',
                          save_path=save_path,
                          algorithm_names=algorithm_names)
 
-    plot_comparable_EV_SoC_single(results_path=save_path + 'plot_results_dict.pkl',
-                                  save_path=save_path,
-                                  algorithm_names=algorithm_names)
+    # plot_comparable_EV_SoC_single(results_path=save_path + 'plot_results_dict.pkl',
+    #                               save_path=save_path,
+    #                               algorithm_names=algorithm_names)
 
-    plot_prices(results_path=save_path + 'plot_results_dict.pkl',
-                save_path=save_path,
-                algorithm_names=algorithm_names)
+    # plot_prices(results_path=save_path + 'plot_results_dict.pkl',
+    #             save_path=save_path,
+    #             algorithm_names=algorithm_names)
 
 
 if __name__ == "__main__":

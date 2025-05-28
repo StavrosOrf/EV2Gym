@@ -163,10 +163,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None, alg
     # Load the env pickle files
     # import dill
     with open(results_path, 'rb') as f:
-        replay = pickle.load(f)
-        # replay = dill.load(f)
-    
-    
+        replay = pickle.load(f)        
 
     plt.close('all')
     plt.clf() 
@@ -178,9 +175,7 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None, alg
     ax.spines['bottom'].set_visible(False)
     
     ax.spines['left'].set_linewidth(2)
-    # ax.spines['bottom'].set_linewidth(2)           
-    
-    
+    # ax.spines['bottom'].set_linewidth(2)                   
    
     light_blue = np.array([0.529, 0.808, 0.922, 1])
     gold = np.array([1, 0.843, 0, 1])
@@ -189,10 +184,11 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None, alg
     color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
     # print(color_list)
     # color_list[5] = "#473ec0" # maek to rgb
-    color_list[4] = [0.274, 0.235, 0.749, 1]
+    if len(color_list) > 4:
+        color_list[4] = [0.274, 0.235, 0.749, 1]
 
     for index, key in enumerate(replay.keys()):        
-
+        print(f'Plotting {key}... {index}')
         env = replay[key]
 
         # if algo_range==[2,3]:
@@ -320,19 +316,24 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None, alg
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
                fancybox=True, shadow=True, ncol=2, fontsize=16)    
     
-    ncol = 2 if len(algo_range) > 2 else 1
-    legend_number = len(algo_range)
-    
-    handles, labels = plt.gca().get_legend_handles_labels()
-    plt.legend(handles[-legend_number:], labels[-legend_number:], loc='upper center',
-            bbox_to_anchor=(0.5, -0.1), fancybox=True,
-            shadow=True, ncol=ncol, fontsize=16)
+    if algo_range is None:
+        print('No algorithm range specified, using all algorithms.')
+        ncol = 2
+    else:
+        ncol = 2 if len(algo_range) > 2 else 1
+        legend_number = len(algo_range)    
+        handles, labels = plt.gca().get_legend_handles_labels()
+        plt.legend(handles[-legend_number:], labels[-legend_number:], loc='upper center',
+                bbox_to_anchor=(0.5, -0.1), fancybox=True,
+                shadow=True, ncol=ncol, fontsize=16)
 
+    algo_range = 'None'
     fig_name = f'{save_path}/Transformer_Aggregated_Power{algo_range}.pdf'
     # fig_name = f'{save_path}/Transformer_Aggregated_Power_legend.pdf'
         
     plt.savefig(fig_name, format='pdf',
                 dpi=60, bbox_inches='tight')
+    plt.show()
     
     print(f'Figure saved at {fig_name}')
 
