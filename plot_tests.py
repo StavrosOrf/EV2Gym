@@ -66,8 +66,8 @@ algorithm_names[1] = "As Late As Possible"
 
 algo_ranges = [
     [0, 1],  # Heuristic
-    # [2, 3],  # RL
-    # [4, 5, 6, 7],  # MPC
+    [2, 3],  # RL
+    [4, 5, 6, 7],  # MPC
 ]
 
 for algo_range in algo_ranges:

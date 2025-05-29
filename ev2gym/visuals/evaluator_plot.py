@@ -15,7 +15,7 @@ from ev2gym.models.ev2gym_env import EV2Gym
 marker_list = ['.', 'x', 'o', 'v', 's', 'p',
                'P', '*', 'h', 'H', '+', 'X', 'D', 'd', '|', '_']
 linestyle = ['-', '--', '-.', ':',]
-cs_to_plot = 13
+cs_to_plot = 11
 
 # color_list = ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a']
 
@@ -467,7 +467,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
         color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
         color_list[4] = [0.274, 0.235, 0.749, 1]
         
-        counter = 0
+        counter = 1
 
         for cs in env.charging_stations:   
             if counter != cs_to_plot:
@@ -563,6 +563,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
     fig_name = f'{save_path}/EV_Energy_Level_single_{algo_range}.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
+    print(f'Figure saved at {fig_name}')
 
     # plt.show() 
     
