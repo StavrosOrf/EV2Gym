@@ -31,7 +31,8 @@ sys.path.append(os.getcwd())
 
 # Total power
 # env_path = "E:/GitHub/ev2gym/results/eval_30cs_1tr_V2G_MPC2_5_algos_1_exp_2024_03_16_207848/plot_results_dict.pkl"
-env_path = "./results/eval_30cs_1tr_V2G_MPC2_8_algos_1_exp_2025_05_16_381534/plot_results_dict.pkl"
+# env_path = "./results/eval_30cs_1tr_V2G_MPC2_8_algos_1_exp_2025_05_16_381534/plot_results_dict.pkl"
+env_path = "./results/eval_30cs_1tr_V2G_MPC2_8_algos_1_exp_2025_05_29_114907/plot_results_dict.pkl"
 
 
 # env_path = "E:/GitHub/ev2gym/results/eval_30cs_1tr_V2G_MPC2_5_algos_1_exp_2024_03_14_995836/plot_results_dict.pkl"
@@ -65,8 +66,8 @@ algorithm_names[1] = "As Late As Possible"
 
 algo_ranges = [
     [0, 1],  # Heuristic
-    [2, 3],  # RL
-    [4, 5, 6, 7],  # MPC
+    # [2, 3],  # RL
+    # [4, 5, 6, 7],  # MPC
 ]
 
 for algo_range in algo_ranges:
@@ -77,18 +78,18 @@ for algo_range in algo_ranges:
     #                     algo_range=algo_range,
     #                     )
     
-    # plot_comparable_EV_SoC_single(results_path=env_path,
-    #                             save_path=save_path,
-    #                             algorithm_names=algorithm_names,
-    #                             algo_range=algo_range,
-    #                             )
+    plot_comparable_EV_SoC_single(results_path=env_path,
+                                save_path=save_path,
+                                algorithm_names=algorithm_names,
+                                algo_range=algo_range,
+                                )
 
-    # plot_comparable_CS_Power(results_path=env_path,
-    #                         save_path=save_path,
-    #                         algorithm_names=algorithm_names,
-    #                         algo_range=algo_range,
-    #                         )
+    plot_comparable_CS_Power(results_path=env_path,
+                            save_path=save_path,
+                            algorithm_names=algorithm_names,
+                            algo_range=algo_range,
+                            )
     
-    plot_prices(results_path=env_path,
-                save_path=save_path,
-                algorithm_names=algorithm_names)
+    # plot_prices(results_path=env_path,
+    #             save_path=save_path,
+    #             algorithm_names=algorithm_names)

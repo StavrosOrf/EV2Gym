@@ -23,8 +23,8 @@ import torch
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str, default="ppo")
-    parser.add_argument('--train_steps', type=int, default=5_000_000)
+    parser.add_argument('--algorithm', type=str, default="sac")
+    parser.add_argument('--train_steps', type=int, default=250_000)
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
                         # default="ev2gym/example_config_files/V2GProfitMax.yaml")

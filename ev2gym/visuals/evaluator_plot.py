@@ -14,6 +14,8 @@ from ev2gym.models.ev2gym_env import EV2Gym
 
 marker_list = ['.', 'x', 'o', 'v', 's', 'p',
                'P', '*', 'h', 'H', '+', 'X', 'D', 'd', '|', '_']
+linestyle = ['-', '--', '-.', ':',]
+cs_to_plot = 13
 
 # color_list = ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a']
 
@@ -293,13 +295,17 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None, alg
 
             df['total'] = df.sum(axis=1)
 
+            
             # plot total and use different color and linestyle for each algorithm
             plt.step(df.index, df['total'],
                      color=color_list[index],
                      where='post',
-                     linestyle='-',
+                    #  linestyle='--',
+                     linestyle= linestyle[index % len(linestyle)],
                      linewidth=1,
                      marker=marker_list[index],
+                     markersize=3,        # ← overall marker size (in points)
+                     markeredgewidth=1,   # ← thickness of the marker’s edge
                      label=algorithm_names[index])
 
             counter += 1
@@ -320,20 +326,27 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None, alg
         print('No algorithm range specified, using all algorithms.')
         ncol = 2
     else:
-        ncol = 2 if len(algo_range) > 2 else 1
-        legend_number = len(algo_range)    
+        ncol = 4
+        legend_number = 4   
         handles, labels = plt.gca().get_legend_handles_labels()
-        plt.legend(handles[-legend_number:], labels[-legend_number:], loc='upper center',
+        plt.legend(handles[:legend_number], labels[:legend_number], loc='upper center',
                 bbox_to_anchor=(0.5, -0.1), fancybox=True,
                 shadow=True, ncol=ncol, fontsize=16)
+        
+        # ncol = 2 if len(algo_range) > 2 else 1
+        # legend_number = len(algo_range)    
+        # handles, labels = plt.gca().get_legend_handles_labels()
+        # plt.legend(handles[-legend_number:], labels[-legend_number:], loc='upper center',
+        #         bbox_to_anchor=(0.5, -0.1), fancybox=True,
+        #         shadow=True, ncol=ncol, fontsize=16)
 
-    algo_range = 'None'
-    fig_name = f'{save_path}/Transformer_Aggregated_Power{algo_range}.pdf'
+    # fig_name = f'{save_path}/Transformer_Aggregated_Power{algo_range}.pdf'
+    fig_name = f'{save_path}/Transformer_Aggregated_Power_names.pdf'
     # fig_name = f'{save_path}/Transformer_Aggregated_Power_legend.pdf'
         
     plt.savefig(fig_name, format='pdf',
                 dpi=60, bbox_inches='tight')
-    plt.show()
+    # plt.show()
     
     print(f'Figure saved at {fig_name}')
 
@@ -439,14 +452,6 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
         if index not in algo_range:
             continue
 
-        # if algo_range==[2,3]:
-        #     date_range = pd.date_range(start=env.sim_starting_date,
-        #                            end=env.sim_starting_date +
-        #                            (env.simulation_length) *
-        #                            datetime.timedelta(
-        #                                minutes=env.timescale),
-        #                            freq=f'{env.timescale}min')
-        # else:
         date_range = pd.date_range(start=env.sim_starting_date,
                                     end=env.sim_starting_date +
                                     (env.simulation_length - 1) *
@@ -463,7 +468,7 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
         color_list[4] = [0.274, 0.235, 0.749, 1]
         
         counter = 0
-        cs_to_plot = 10
+
         for cs in env.charging_stations:   
             if counter != cs_to_plot:
                 counter += 1
@@ -485,8 +490,8 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
             for port in range(cs.n_ports):
                 for i, (t_arr, t_dep) in enumerate(env.port_arrival[f'{cs.id}.{port}']):
                     
-                    if t_arr >= 40:
-                        continue
+                    # if t_arr >= 40:
+                    #     continue
                     
                     t_dep = t_dep + 1
                     if t_dep > len(df):
@@ -502,6 +507,9 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
                              where='post',
                              color=color_list[index],
                              marker=marker_list[index],
+                             linestyle= linestyle[index % len(linestyle)],
+                             markersize=3,        # ← overall marker size (in points)
+                            markeredgewidth=1,   # ← thickness of the marker’s edge
                              alpha=0.8,
                              label=algorithm_names[index])
 
@@ -598,9 +606,9 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None,
         color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
         color_list[4] = [0.274, 0.235, 0.749, 1]
         
-        counter = 1
+        counter = 1        
         for cs in env.charging_stations:   
-            if counter != 10:
+            if counter != cs_to_plot:
                 counter += 1
                 continue
             
@@ -620,8 +628,8 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None,
             for port in range(cs.n_ports):
                 for i, (t_arr, t_dep) in enumerate(env.port_arrival[f'{cs.id}.{port}']):
                     
-                    if t_arr >= 40:
-                        continue
+                    # if t_arr >= 40:
+                    #     continue
                     
                     t_dep = t_dep + 1
                     if t_dep > len(df):
@@ -637,6 +645,9 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None,
                              where='post',
                              color=color_list[index],
                              marker=marker_list[index],
+                             linestyle= linestyle[index % len(linestyle)],
+                             markersize=3,        # ← overall marker size (in points)
+                             markeredgewidth=1,   # ← thickness of the marker’s edge
                              alpha=0.8,
                              label=algorithm_names[index])
 

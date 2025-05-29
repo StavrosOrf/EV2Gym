@@ -18,6 +18,8 @@ from ev2gym.baselines.heuristics import ChargeAsFastAsPossibleToDesiredCapacity,
 
 from ev2gym.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
 from ev2gym.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
+from ev2gym.baselines.mpc.eMPC_v2 import eMPC_V2G_v2, eMPC_G2V_v2
+from ev2gym.baselines.mpc.ocmf_mpc_v2 import OCMF_V2G_v2, OCMF_G2V_v2
 from ev2gym.baselines.mpc.V2GProfitMax import V2GProfitMaxOracle, V2GProfitMaxLoadsOracle
 
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
@@ -148,10 +150,10 @@ def evaluator():
         ChargeAsLateAsPossibleToDesiredCapacity,
         PPO,
         SAC,        
-        'eMPC_G2V_10',
-        # 'eMPC_V2G_10',
-        # 'OCMF_G2V_10',
-        # 'OCMF_V2G_10',
+        'eMPC_G2V_15',
+        'eMPC_V2G_15',
+        'OCMF_G2V_15',
+        'OCMF_V2G_15',
 
     ]
 
@@ -197,7 +199,10 @@ def evaluator():
                     load_path = f'./saved_models/{number_of_charging_stations}cs_V2G_MPC/' + \
                         f"rppo_{reward_function.__name__}_{state_function.__name__}"
                 else:
-                    load_path = f'./saved_models/{number_of_charging_stations}cs_V2G_MPC/{algorithm.__name__.lower()}_MPC/best_model.zip'
+                    if algorithm == SAC:
+                        load_path = f'./saved_models/{number_of_charging_stations}cs_V2G_MPC/{algorithm.__name__.lower()}_MPC/best_model.zip'
+                    else:
+                        load_path = f'./saved_models/{number_of_charging_stations}cs_V2G_MPC/{algorithm.__name__.lower()}_MPC/last.zip'
 
                 # initialize the timer
                 timer = time.time()
@@ -227,14 +232,14 @@ def evaluator():
                             print(
                                 f'Algorithm: {algorithm} with control horizon {h}')
                             if algorithm == 'OCMF_V2G':
-                                model = OCMF_V2G(env=env, control_horizon=h)
+                                model = OCMF_V2G_v2(env=env, control_horizon=h)
                                 algorithm = OCMF_V2G
                             elif algorithm == 'OCMF_G2V':
                                 model = OCMF_G2V(env=env, control_horizon=h)
                                 algorithm = OCMF_G2V
                             elif algorithm == 'eMPC_V2G':
-                                model = eMPC_V2G(env=env, control_horizon=h)
-                                algorithm = eMPC_V2G
+                                model = eMPC_V2G_v2(env=env, control_horizon=h)
+                                algorithm = eMPC_V2G_v2
                             elif algorithm == 'eMPC_G2V':
                                 model = eMPC_G2V(env=env, control_horizon=h)
                                 algorithm = eMPC_G2V
@@ -327,7 +332,7 @@ def evaluator():
 
     # results_grouped.to_csv('results_grouped.csv')
     # print(results_grouped[['tracking_error', 'energy_tracking_error']])
-    print(results_grouped[['total_ev_served', 'total_profits',
+    print(results_grouped[['total_profits',
                            'total_energy_charged', 'total_energy_discharged',
                            'average_user_satisfaction', 'total_transformer_overload',
                            'battery_degradation', 'battery_degradation_calendar',
@@ -344,7 +349,10 @@ def evaluator():
         if hasattr(algorithm, 'algo_name'):
             algorithm_names.append(algorithm.algo_name)
         else:
-            algorithm_names.append(algorithm.__name__)
+            if type(algorithm) == str:
+                algorithm_names.append(algorithm.split('_')[0])
+            else:
+                algorithm_names.append(algorithm.__name__)
 
     # plot_total_power(results_path=save_path + 'plot_results_dict.pkl',
     #                  save_path=save_path,
