@@ -11,6 +11,7 @@ import datetime
 import os
 from ev2gym.models.ev2gym_env import EV2Gym
 
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 
 marker_list = ['.', 'x', 'o', 'v', 's', 'p',
                'P', '*', 'h', 'H', '+', 'X', 'D', 'd', '|', '_']
@@ -318,6 +319,8 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None, alg
             #    rotation=45,
                fontsize=15)
     plt.yticks(fontsize=16)
+    # plt.ylim([-250,
+    #           env.transformers[0].max_power.max() + 5])
     # put legend under the plot
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
                fancybox=True, shadow=True, ncol=2, fontsize=16)    
@@ -326,27 +329,136 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None, alg
         print('No algorithm range specified, using all algorithms.')
         ncol = 2
     else:
-        ncol = 4
-        legend_number = 4   
+        # ncol = 4
+        # legend_number = 4   
+        # handles, labels = plt.gca().get_legend_handles_labels()
+        # plt.legend(handles[:legend_number], labels[:legend_number], loc='upper center',
+        #         bbox_to_anchor=(0.5, -0.1), fancybox=True,
+        #         shadow=True, ncol=ncol, fontsize=16)
+        
+        ncol = 2 if len(algo_range) > 2 else 1
+        legend_number = len(algo_range)    
         handles, labels = plt.gca().get_legend_handles_labels()
-        plt.legend(handles[:legend_number], labels[:legend_number], loc='upper center',
+        plt.legend(handles[-legend_number:], labels[-legend_number:], loc='upper center',
                 bbox_to_anchor=(0.5, -0.1), fancybox=True,
                 shadow=True, ncol=ncol, fontsize=16)
         
-        # ncol = 2 if len(algo_range) > 2 else 1
-        # legend_number = len(algo_range)    
-        # handles, labels = plt.gca().get_legend_handles_labels()
-        # plt.legend(handles[-legend_number:], labels[-legend_number:], loc='upper center',
-        #         bbox_to_anchor=(0.5, -0.1), fancybox=True,
-        #         shadow=True, ncol=ncol, fontsize=16)
+    ###############################################
+    ###############################################
+    ###############################################
+    ax_main = fig.axes[0]
+    axins = inset_axes(ax_main, width="40%", height="35%", loc='lower right',
+                    bbox_to_anchor=(0.0, 0.15, 1, 0.8),
+                    bbox_transform=ax_main.transAxes)
+    
+    for idx, key in enumerate(replay.keys()):
+        env = replay[key]
+        # rebuild full time index
+        dr = pd.date_range(start=env.sim_starting_date,
+                        end=env.sim_starting_date +
+                            (env.simulation_length - 1) * datetime.timedelta(minutes=env.timescale),
+                        freq=f'{env.timescale}min')
+        # build df just like main
+        dfz = pd.DataFrame(index=dr)
+        if env.config['inflexible_loads']['include']:
+            dfz['inflexible'] = env.tr_inflexible_loads[tr.id, :]
+        if env.config['solar_power']['include']:
+            dfz['solar'] = env.tr_solar_power[tr.id, :]
+        for cs in tr.cs_ids:
+            dfz[cs] = env.cs_power[cs, :]
+        dfz['total'] = dfz.sum(axis=1)
+        max_p = tr.max_power.max()
 
-    # fig_name = f'{save_path}/Transformer_Aggregated_Power{algo_range}.pdf'
-    fig_name = f'{save_path}/Transformer_Aggregated_Power_names.pdf'
+        # mask to zoom window
+        mask = ((dfz.index.time >= datetime.time(16, 0)) &
+                (dfz.index.time <= datetime.time(19, 0)))
+        
+        axins.step(
+            dfz.index[mask],
+            [max_p] * mask.sum(),
+            where='post',
+            color='r',
+            linestyle='--',
+            linewidth=0.5)
+
+        # plot inflexible loads
+        if env.config['inflexible_loads']['include']:
+            axins.fill_between(dfz.index[mask],
+                            0,
+                            dfz['inflexible'][mask],
+                            step='post',
+                            alpha=0.3,
+                            color=light_blue,
+                            linestyle='--',
+                            linewidth=1)
+
+        # plot solar on top
+        if env.config['solar_power']['include']:
+            axins.fill_between(dfz.index[mask],
+                            dfz['inflexible'][mask],
+                            dfz['inflexible'][mask] + dfz['solar'][mask],
+                            step='post',
+                            alpha=0.8,
+                            color=gold,
+                            linestyle='--',
+                            linewidth=1)
+
+        # plot demand response event region
+        if env.config['demand_response']['include']:
+            axins.fill_between(dfz.index[mask],
+                            max_p,
+                            tr.max_power[mask],
+                            step='post',
+                            alpha=0.7,
+                            color='r',
+                            hatch='xx',
+                            linestyle='--',
+                            linewidth=1)
+            
+        if algo_range is not None:
+            if idx not in algo_range:
+                continue
+
+        # now the total
+        axins.step(dfz.index[mask], dfz['total'][mask],
+                where='post',
+                color=color_list[idx],
+                linestyle=linestyle[idx % len(linestyle)],
+                marker=marker_list[idx],                
+                markeredgewidth=3,   # ← thickness of the marker’s edge
+                markersize=3,
+                label=None)
+
+    # set inset limits & ticks
+    start_zoom = env.sim_starting_date.replace(hour=16, minute=0)
+    end_zoom   = env.sim_starting_date.replace(hour=19, minute=0)
+    axins.set_xlim(start_zoom, end_zoom)
+    axins.set_ylim(325, 425)
+    axins.set_xticks([start_zoom,
+                    start_zoom + pd.Timedelta(hours=1),
+                    start_zoom + pd.Timedelta(hours=2),
+                    end_zoom])
+    axins.set_xticklabels(['16:00','17:00','18:00','19:00'], fontsize=11)
+    axins.tick_params(axis='y', labelsize=11)
+
+    # draw the connecting box on the main axes
+    mark_inset(ax_main, axins, loc1=2, loc2=1, fc="none", ec="black", lw=1.5,zorder=10)
+
+    fig_name = f'{save_path}/Transformer_Aggregated_Power{algo_range}.pdf'
+    # fig_name = f'{save_path}/Transformer_Aggregated_Power_names.pdf'
     # fig_name = f'{save_path}/Transformer_Aggregated_Power_legend.pdf'
         
     plt.savefig(fig_name, format='pdf',
                 dpi=60, bbox_inches='tight')
+    #save png too
+    fig_name = f'{save_path}/Transformer_Aggregated_Power{algo_range}.png'
+    plt.savefig(fig_name, format='png',
+                dpi=60, bbox_inches='tight')
     # plt.show()
+    
+    ###############################################
+    ###############################################
+    ###############################################
     
     print(f'Figure saved at {fig_name}')
 

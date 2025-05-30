@@ -72,23 +72,23 @@ algo_ranges = [
 
 for algo_range in algo_ranges:
 
-    # plot_total_power_V2G(results_path=env_path,
-    #                     save_path=save_path,
-    #                     algorithm_names=algorithm_names,
-    #                     algo_range=algo_range,
-    #                     )
+    plot_total_power_V2G(results_path=env_path,
+                        save_path=save_path,
+                        algorithm_names=algorithm_names,
+                        algo_range=algo_range,
+                        )
     
-    plot_comparable_EV_SoC_single(results_path=env_path,
-                                save_path=save_path,
-                                algorithm_names=algorithm_names,
-                                algo_range=algo_range,
-                                )
+    # plot_comparable_EV_SoC_single(results_path=env_path,
+    #                             save_path=save_path,
+    #                             algorithm_names=algorithm_names,
+    #                             algo_range=algo_range,
+    #                             )
 
-    plot_comparable_CS_Power(results_path=env_path,
-                            save_path=save_path,
-                            algorithm_names=algorithm_names,
-                            algo_range=algo_range,
-                            )
+    # plot_comparable_CS_Power(results_path=env_path,
+    #                         save_path=save_path,
+    #                         algorithm_names=algorithm_names,
+    #                         algo_range=algo_range,
+    #                         )
     
     # plot_prices(results_path=env_path,
     #             save_path=save_path,
