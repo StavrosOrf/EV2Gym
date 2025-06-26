@@ -21,13 +21,13 @@ import yaml
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str, default="ddpg")
+    parser.add_argument('--algorithm', type=str, default="ppo")
     parser.add_argument('--device', type=str, default="cuda:0")
-    parser.add_argument('--train_steps', type=int, default=2_000) 
+    parser.add_argument('--train_steps', type=int, default=20_000) 
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
                         # default="ev2gym/example_config_files/V2GProfitMax.yaml")
-    default="ev2gym/example_config_files/PublicPST.yaml")
+    default="ev2gym/example_config_files/V2GProfitPlusLoads.yaml")
 
     algorithm = parser.parse_args().algorithm
     device = parser.parse_args().device
@@ -76,12 +76,15 @@ if __name__ == "__main__":
     os.makedirs(eval_log_dir, exist_ok=True)
     os.makedirs(f"./saved_models/{group_name}", exist_ok=True)
     os.makedirs(save_path, exist_ok=True)
+    
+    print(f'Model will be saved at: {save_path}')
 
-    eval_callback = EvalCallback(env, best_model_save_path=eval_log_dir,
+    eval_callback = EvalCallback(env,
+                                 best_model_save_path=save_path,
                                  log_path=eval_log_dir,
-                                 eval_freq=config['simulation_length']*50,
-                                 n_eval_episodes=10, deterministic=True,
-                                 render=False)
+                                 eval_freq=config['simulation_length']*30,
+                                 n_eval_episodes=50,
+                                 deterministic=True)
 
     if algorithm == "ddpg":
         model = DDPG("MlpPolicy", env, verbose=1,
@@ -126,10 +129,12 @@ if __name__ == "__main__":
                         verbose=2),
                     eval_callback])
     # model.save(f"./saved_models/{group_name}/{run_name}.last")
-    print(f'Finished training {algorithm} algorithm, {run_name} saving model at ./saved_models/{group_name}/{run_name}')   
-   
+    print(f'Finished training {algorithm} algorithm, {run_name} saving model at {save_path}_last.pt')
 
-    model.save(f"./saved_models/{group_name}/{run_name}")
+    model.save(f"{save_path}/last_model.zip")    
+    
+    #load the best model
+    model = model.load(f"{save_path}/best_model.zip", env=env)
 
     env = model.get_env()
     obs = env.reset()
