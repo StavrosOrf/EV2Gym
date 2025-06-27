@@ -54,7 +54,7 @@ class PowerTrackingErrorrMin():
         # create model
         # print('Creating Gurobi model...')
         self.m = gp.Model("ev_city")
-        # self.m.setParam('OutputFlag', 0)
+        self.m.setParam('OutputFlag', 0)
         # self.m.setParam('MIPGap', 0.2)
 
         # energy of EVs t timeslot t

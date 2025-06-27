@@ -643,7 +643,7 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
             plt.ylabel('Power (kW)', fontsize=22)
 
         plt.xlim([env.sim_starting_date, env.sim_date])
-        plt.ylim([0, 1.1*env.current_power_usage.max()])
+        # plt.ylim([0, 1.1*env.current_power_usage.max()])
 
     # Put the legend under the plot in a separate axis
     plt.legend(['Actual Power', 'Setpoint'], loc='upper center',
