@@ -92,14 +92,23 @@ if __name__ == "__main__":
                     buffer_size = 1_000_00,  # 1e6
                     learning_starts = 100,
                     action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(config['number_of_charging_stations']),
-                                            sigma=0.1 * np.ones(config['number_of_charging_stations'])),
+                                            sigma=0.2 * np.ones(config['number_of_charging_stations'])),
                     policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], qf=[64, 64])),
                     batch_size = 64, #100
-                    tau = 0.001, #0.005
+                    tau = 0.0005, #0.005
                     gamma = 0.99,                     
                      device=device, tensorboard_log="./logs/")
     elif algorithm == "td3":
         model = TD3("MlpPolicy", env, verbose=1,
+                    learning_rate = 1e-3,
+                    buffer_size = 1_000_00,  # 1e6
+                    learning_starts = 100,
+                    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(config['number_of_charging_stations']),
+                                            sigma=0.2 * np.ones(config['number_of_charging_stations'])),
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], qf=[64, 64])),
+                    batch_size = 64, #100
+                    tau = 0.0005, #0.005
+                    gamma = 0.99,
                     device=device, tensorboard_log="./logs/")
     elif algorithm == "sac":
         model = SAC("MlpPolicy", env, verbose=1,

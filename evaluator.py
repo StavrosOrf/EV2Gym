@@ -56,7 +56,7 @@ def evaluator():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     ############# Simulation Parameters #################
-    n_test_cycles = 1
+    n_test_cycles = 10
     SAVE_EV_PROFILES = False
 
     # values in [0-1] probability of communication failure
@@ -81,7 +81,9 @@ def evaluator():
         ChargeAsFastAsPossible,
         # ChargeAsLateAsPossible,
       
-        # here put the paths to the saved RL models
+        "ddpgoldparam_SL",
+        "td3oldparam_SL",
+        #  here put the paths to the saved RL models
         # "TD3-114002",
         
         #adding the _SL suffix to the algorithm name 
@@ -224,7 +226,7 @@ def evaluator():
                                                           })
                                 env = gym.make('evs-v0')
 
-                                load_path = f'./eval_models/{algorithm}/best_model.zip'
+                                load_path = f'./eval_models/{algorithm}/td3oldparam.zip'
 
                                 # initialize the timer
                                 timer = time.time()
