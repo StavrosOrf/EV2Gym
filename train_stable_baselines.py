@@ -30,7 +30,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--algorithm', type=str, default="ddpg")
     parser.add_argument('--device', type=str, default="cuda:0")
-    parser.add_argument('--train_steps', type=int, default=200_000)
+    parser.add_argument('--train_steps', type=int, default=20_000)
+    parser.add_argument('--seed', type=int, default=9)
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
                         default="ev2gym/example_config_files/BusinessPST.yaml")
@@ -48,11 +49,14 @@ if __name__ == "__main__":
         state_function = BusinessPSTwithMoreKnowledge
         state_function_short = "BPST"
         group_name = f'{config["number_of_charging_stations"]}cs_APEN_PST'
+        
+    #seed sb3
+    th.manual_seed(parser.parse_args().seed)
+    np.random.seed(parser.parse_args().seed)    
 
     #run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
-    run_name += f'{algorithm}_{reward_function_short}_{state_function_short}'
-
-    run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
+    run_name += f'{algorithm}_{reward_function_short}_{state_function_short}_seed={parser.parse_args().seed}'
+    # run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
 
     run = wandb.init(project='ev2gym',
                      sync_tensorboard=True,
@@ -79,10 +83,11 @@ if __name__ == "__main__":
     os.makedirs(f"./saved_models/{group_name}", exist_ok=True)
     os.makedirs(save_path, exist_ok=True)
 
-    eval_callback = EvalCallback(env, best_model_save_path=eval_log_dir,
+    eval_callback = EvalCallback(env,
+                                 best_model_save_path=save_path,
                                  log_path=eval_log_dir,
                                  eval_freq=config['simulation_length']*50,
-                                 n_eval_episodes=10,
+                                 n_eval_episodes=100,
                                  deterministic=True,
                                  render=False)
 
@@ -144,7 +149,10 @@ if __name__ == "__main__":
     print(
         f'Finished training {algorithm} algorithm, {run_name} saving model at ./saved_models/{group_name}/{run_name}')
 
-    model.save(f"./saved_models/{group_name}/{run_name}")
+    model.save(f"./saved_models/{group_name}/{run_name}/final.zip")
+    
+    #load the model
+    model = model.load(f"./saved_models/{group_name}/{run_name}/best_model.zip", env=env)
 
     env = model.get_env()
     obs = env.reset()
