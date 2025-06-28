@@ -5,10 +5,11 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.noise import  OrnsteinUhlenbeckActionNoise
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
+from ev2gym.rl_agent.action_wrappers import Rescale_RepairLayer
 
 from ev2gym.models.ev2gym_env import EV2Gym
-from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, ProfitMax_TrPenalty_UserIncentives
-from ev2gym.rl_agent.reward import profit_maximization
+from ev2gym.rl_agent.reward import ProfitMax_TrPenalty_UserIncentives
+from ev2gym.rl_agent.reward import profit_maximization, SimpleReward
 
 from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwithMoreKnowledge
 from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
@@ -44,8 +45,8 @@ if __name__ == "__main__":
     config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
        
     if config_file == "ev2gym/example_config_files/BusinessPST.yaml":
-        reward_function = SquaredTrackingErrorReward
-        reward_function_short ="STER"
+        reward_function = SimpleReward
+        reward_function_short ="S"
         state_function = BusinessPSTwithMoreKnowledge
         state_function_short = "BPST"
         group_name = f'{config["number_of_charging_stations"]}cs_APEN_PST'
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     np.random.seed(parser.parse_args().seed)    
 
     #run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
-    run_name += f'{algorithm}_{reward_function_short}_{state_function_short}_seed={parser.parse_args().seed}'
+    run_name += f'{algorithm}_RepairL_{reward_function_short}_{state_function_short}_seed={parser.parse_args().seed}'
     # run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
 
     run = wandb.init(project='ev2gym',
@@ -67,14 +68,17 @@ if __name__ == "__main__":
 
     gym.envs.register(id='evs-v0', entry_point='ev2gym.models.ev2gym_env:EV2Gym',
                       kwargs={'config_file': config_file,
-                              'verbose': False,
-                              'save_plots': False,
-                              'generate_rnd_game': True,
                               'reward_function': reward_function,
                               'state_function': state_function,
                               })
 
     env = gym.make('evs-v0')
+    
+    
+    # TODO: check ############################################################
+    # try to train with repair layer too, I am curious if there is a reward function that can achieve good results with the repair layer during training
+    env = Rescale_RepairLayer(env=env)
+    # TODO: check ############################################################
 
     eval_log_dir = "./eval_logs/" + group_name + "_" + run_name + "/"
     save_path = f"./saved_models/{group_name}/{run_name}/"

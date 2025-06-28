@@ -14,7 +14,7 @@ from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
 
 from ev2gym.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
 from ev2gym.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
-from ev2gym.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible
+from ev2gym.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible, RoundRobin_GF_off_allowed
 
 from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwithMoreKnowledge
 from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
@@ -52,16 +52,15 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 random.seed(seed)
 
-
 def evaluator():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     ############# Simulation Parameters #################
-    n_test_cycles = 100
+    n_test_cycles = 5 # try 50+ for better results
     SAVE_EV_PROFILES = False
     seed = 9
-    
-    #seed
+
+    # seed
     np.random.seed(seed)
     torch.manual_seed(seed)
     random.seed(seed)
@@ -70,7 +69,7 @@ def evaluator():
 
     if "PST" in config_file:
         state_function_Normal = BusinessPSTwithMoreKnowledge
-        reward_function = SquaredTrackingErrorReward
+        reward_function = SimpleReward
     else:
         raise ValueError(f'Unknown config file {config_file}')
 
@@ -82,14 +81,15 @@ def evaluator():
 
         "./saved_models/10cs_APEN_PST/ddpg_STER_BPST_seed=9",
         "./saved_models/10cs_APEN_PST/ddpg_STER_BPST_seed=9_SL",
-        "./saved_models/10cs_APEN_PST/td3_STER_BPST_seed=9",
+        "./saved_models/10cs_APEN_PST/td3_S_BPST_seed=9",
+        "./saved_models/10cs_APEN_PST/td3_S_BPST_seed=9_SL",
         #  here put the paths to the saved RL models
         # "TD3-114002",
 
         # adding the _SL suffix to the algorithm name
         # "TD3-114002_SL",
 
-        RoundRobin,
+        RoundRobin_GF_off_allowed,
         PowerTrackingErrorrMin
     ]
 
@@ -110,12 +110,10 @@ def evaluator():
     timescale = config["timescale"]
     simulation_length = config["simulation_length"]
 
-    scenario = config_file.split("/")[-1].split(".")[0]    
-    
+    scenario = config_file.split("/")[-1].split(".")[0]
+
     eval_replay_path = f'./replay/{config["number_of_charging_stations"]}cs_APEN_PST/'
 
-    
-    
     print(f'Looking for replay files in {eval_replay_path}')
     try:
         eval_replay_files = [f for f in os.listdir(
@@ -143,7 +141,6 @@ def evaluator():
 
     def generate_replay(evaluation_name):
         env = EV2Gym(config_file=config_file,
-                     generate_rnd_game=True,
                      save_replay=True,
                      replay_save_path=f"{evaluation_name}/",
                      )
@@ -170,7 +167,6 @@ def evaluator():
     save_path = f'./results/{evaluation_name}/'
     os.makedirs(save_path, exist_ok=True)
     os.system(f'cp {config_file} {save_path}')
-    
 
     if not replays_exist:
         eval_replay_files = [generate_replay(
@@ -207,8 +203,7 @@ def evaluator():
                          reward_function=reward_function,
                          )
 
-            if isinstance(algorithm, str) and 'SL' in algorithm:
-                print(f'Using SL version of {algorithm}')
+            if isinstance(algorithm, str) and 'SL' in algorithm:                
                 env = Rescale_RepairLayer(env=env)
 
             # initialize the timer
@@ -220,12 +215,17 @@ def evaluator():
 
                     gym.envs.register(id='evs-v0', entry_point='ev2gym.models.ev2gym_env:EV2Gym',
                                       kwargs={'config_file': config_file,
-                                              'generate_rnd_game': True,
                                               'state_function': state_function_Normal,
                                               'reward_function': reward_function,
                                               'load_from_replay_path': replay_path,
                                               })
                     env = gym.make('evs-v0')
+                    
+                    # Apply Rescale_RepairLayer before loading the model if needed
+                    if isinstance(algorithm, str) and 'SL' in algorithm:
+                        print(f'Applying SL wrapper before loading model for {algorithm}')
+                        env = Rescale_RepairLayer(env=env)
+
 
                     # load_path = f'./eval_models/{algorithm}/td3oldparam.zip'
                     # if 'SL' in algorithm: remove this
@@ -285,6 +285,7 @@ def evaluator():
                                                                             optimize_memory_usage=model.replay_buffer.optimize_memory_usage)
 
                     env = model.get_env()
+                    
                     state = env.reset()
 
                 else:
@@ -392,7 +393,7 @@ def evaluator():
     results['algorithm_version'] = results['algorithm_version'].astype(str).replace(
         "<class 'ev2gym.baselines.heuristics.ChargeAsFastAsPossible'>", 'ChargeAsFastAsPossible')
     results['algorithm_version'] = results['algorithm_version'].astype(str).replace(
-        "<class 'ev2gym.baselines.heuristics.RoundRobin_GF_off_allowed'>", 'RoundRobin_GF_off_allowed')
+        "<class 'ev2gym.baselines.heuristics.RoundRobin_GF_off_allowed'>", 'RoundRobin')
     results['algorithm_version'] = results['algorithm_version'].astype(str).replace(
         "<class 'ev2gym.baselines.heuristics.RoundRobin_GF'>", 'RoundRobin_GF')
     results['algorithm_version'] = results['algorithm_version'].astype(str).replace(
@@ -412,12 +413,14 @@ def evaluator():
     # results = results.drop(columns=drop_columns)
 
     # Select only numeric columns for aggregation (exclude categorical columns)
-    numeric_columns = results.select_dtypes(include=[np.number]).columns.tolist()
+    numeric_columns = results.select_dtypes(
+        include=[np.number]).columns.tolist()
     # Remove 'run' from numeric columns as it's just an index
     if 'run' in numeric_columns:
         numeric_columns.remove('run')
-    
-    results_grouped = results.groupby('Algorithm')[numeric_columns].agg(['mean', 'std'])
+
+    results_grouped = results.groupby(
+        'Algorithm')[numeric_columns].agg(['mean', 'std'])
 
     # print columns of the results
     # print(results_grouped.columns)
@@ -438,7 +441,7 @@ def evaluator():
     print(results_grouped[['total_reward',
                            'tracking_error',
                            'average_user_satisfaction',
-                        #    'profits_from_customers'
+                           #    'profits_from_customers'
                            ]])
 
     with gzip.open(save_path + 'plot_results_dict.pkl.gz', 'wb') as f:
