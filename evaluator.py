@@ -250,7 +250,7 @@ def evaluator():
                 ################# Evaluation ##############################
                 if algorithm in [PPO, A2C, DDPG, SAC, TD3, TQC, TRPO, ARS, RecurrentPPO]:
                     action, _ = model.predict(state, deterministic=True)
-                    obs, reward, done, stats = env.step(action)
+                    state, reward, done, stats = env.step(action)
                     if i == simulation_length - 2:
                         saved_env = deepcopy(env.get_attr('env')[0])
 
