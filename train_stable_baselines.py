@@ -31,7 +31,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--algorithm', type=str, default="td3")
     parser.add_argument('--device', type=str, default="cuda:0")
-    parser.add_argument('--train_steps', type=int, default=200_000)
+    parser.add_argument('--train_steps', type=int, default=60000)
     parser.add_argument('--seed', type=int, default=9)
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
@@ -45,8 +45,8 @@ if __name__ == "__main__":
     config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
        
     if config_file == "ev2gym/example_config_files/BusinessPST.yaml":
-        reward_function = SimpleReward
-        reward_function_short ="S"
+        reward_function = SquaredTrackingErrorReward
+        reward_function_short ="STER"
         state_function = BusinessPSTwithMoreKnowledge
         state_function_short = "BPST"
         group_name = f'{config["number_of_charging_stations"]}cs_APEN_PST'
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     
     # TODO: check ############################################################
     # try to train with repair layer too, I am curious if there is a reward function that can achieve good results with the repair layer during training
-    env = Rescale_RepairLayer(env=env)
+    #env = Rescale_RepairLayer(env=env)
     # TODO: check ############################################################
 
     eval_log_dir = "./eval_logs/" + group_name + "_" + run_name + "/"

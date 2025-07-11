@@ -11,6 +11,10 @@ from ev2gym.baselines.gurobi_models.tracking_error import PowerTrackingErrorrMin
 
 from sb3_contrib import TQC, TRPO, ARS, RecurrentPPO
 from stable_baselines3 import PPO, A2C, DDPG, SAC, TD3
+from stable_baselines3.common.noise import  OrnsteinUhlenbeckActionNoise
+import torch as th
+
+
 
 from ev2gym.baselines.mpc.eMPC import eMPC_V2G, eMPC_G2V
 from ev2gym.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
@@ -47,16 +51,16 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # from DT.load_model import load_DT_model
 
 # set seeds
-seed = 6
-np.random.seed(seed)
-torch.manual_seed(seed)
-random.seed(seed)
+# seed = 6
+# np.random.seed(seed)
+# torch.manual_seed(seed)
+# random.seed(seed)
 
 def evaluator():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     ############# Simulation Parameters #################
-    n_test_cycles = 5 # try 50+ for better results
+    n_test_cycles = 100 # try 50+ for better results
     SAVE_EV_PROFILES = False
     seed = 9
 
@@ -69,7 +73,7 @@ def evaluator():
 
     if "PST" in config_file:
         state_function_Normal = BusinessPSTwithMoreKnowledge
-        reward_function = SimpleReward
+        reward_function = SquaredTrackingErrorReward
     else:
         raise ValueError(f'Unknown config file {config_file}')
 
@@ -79,10 +83,13 @@ def evaluator():
         ChargeAsFastAsPossible,
         # ChargeAsLateAsPossible,
 
-        "./saved_models/10cs_APEN_PST/ddpg_STER_BPST_seed=9",
-        "./saved_models/10cs_APEN_PST/ddpg_STER_BPST_seed=9_SL",
-        "./saved_models/10cs_APEN_PST/td3_S_BPST_seed=9",
-        "./saved_models/10cs_APEN_PST/td3_S_BPST_seed=9_SL",
+        "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9",
+        "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9_SL",
+        #"./saved_models/10cs_APEN_PST/ddpg_RepairL_S_BPST_seed=9",
+        #"./saved_models/10cs_APEN_PST/td3_RepairL_S_BPST_seed=9",
+        #"./saved_models/10cs_APEN_PST/td3_RepairL_S_BPST_seed=9",
+        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9",
+        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9_SL",
         #  here put the paths to the saved RL models
         # "TD3-114002",
 
@@ -248,8 +255,19 @@ def evaluator():
                         sb3_algo = A2C
                         algorithm_name = 'A2C'
                     elif 'ddpg' in algorithm:
-                        sb3_algo = DDPG
+                        sb3_algo = DDPG("MlpPolicy", env, verbose=1,
+                    learning_rate = 1e-3,
+                    buffer_size = 1_000_00,  # 1e6
+                    learning_starts = 100,
+                    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(config['number_of_charging_stations']),
+                                            sigma=0.2 * np.ones(config['number_of_charging_stations'])),
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], qf=[64, 64])),
+                    batch_size = 64, #100
+                    tau = 0.0005, #0.005
+                    gamma = 0.99,                     
+                     device=device, tensorboard_log="./logs/")
                         algorithm_name = 'DDPG'
+
                     elif 'tqc' in algorithm:
                         sb3_algo = TQC
                         algorithm_name = 'TQC'
@@ -263,7 +281,17 @@ def evaluator():
                         sb3_algo = SAC
                         algorithm_name = 'SAC'
                     elif 'td3' in algorithm:
-                        sb3_algo = TD3
+                        sb3_algo = TD3("MlpPolicy", env, verbose=1,
+                    learning_rate = 1e-3,
+                    buffer_size = 1_000_00,  # 1e6
+                    learning_starts = 100,
+                    action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(config['number_of_charging_stations']),
+                                            sigma=0.2 * np.ones(config['number_of_charging_stations'])),
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], qf=[64, 64])),
+                    batch_size = 64, #100
+                    tau = 0.0005, #0.005
+                    gamma = 0.99,
+                    device=device, tensorboard_log="./logs/")
                         algorithm_name = 'TD3'
                     else:
                         raise ValueError(
@@ -277,12 +305,12 @@ def evaluator():
                                           device=device)
                     # set replay buffer to None
 
-                    if 'tqc' in algorithm or 'ddpg' in algorithm:
-                        model.replay_buffer = model.replay_buffer.__class__(1,
-                                                                            model.observation_space,
-                                                                            model.action_space,
-                                                                            device=model.device,
-                                                                            optimize_memory_usage=model.replay_buffer.optimize_memory_usage)
+                    # if 'tqc' in algorithm or 'ddpg' in algorithm:
+                    #     model.replay_buffer = model.replay_buffer.__class__(1,
+                    #                                                         model.observation_space,
+                    #                                                         model.action_space,
+                    #                                                         device=model.device,
+                    #                                                         optimize_memory_usage=model.replay_buffer.optimize_memory_usage) 
 
                     env = model.get_env()
                     
@@ -312,7 +340,7 @@ def evaluator():
                     if any(algo in algorithm for algo in ['ppo', 'a2c', 'ddpg', 'tqc', 'trpo', 'ars', 'rppo', 'td3', 'sac']):
                         action, _ = model.predict(
                             state, deterministic=True)
-                        obs, reward, done, stats = env.step(action)
+                        state, reward, done, stats = env.step(action)
 
                         if i == simulation_length - 2:
                             saved_env = deepcopy(
@@ -440,8 +468,10 @@ def evaluator():
 
     print(results_grouped[['total_reward',
                            'tracking_error',
-                           'average_user_satisfaction',
-                           #    'profits_from_customers'
+                            'energy_tracking_error',
+                            'average_user_satisfaction',
+                            #'profits_from_customers',
+                            #'total_profits',
                            ]])
 
     with gzip.open(save_path + 'plot_results_dict.pkl.gz', 'wb') as f:
