@@ -82,14 +82,21 @@ def evaluator():
     algorithms = [
         ChargeAsFastAsPossible,
         # ChargeAsLateAsPossible,
+        
+        ####
+        "./saved_models/10cs_APEN_PST/td3_RepairL_USER_BPST_seed=9",
+        "./saved_models/10cs_APEN_PST/td3_RepairL_USER_BPST_seed=9_SL",
+        './saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9',
+        './saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9_SL',
+        ###
 
-        "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9",
-        "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9_SL",
+        # "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9",
+        # "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9_SL",
         #"./saved_models/10cs_APEN_PST/ddpg_RepairL_S_BPST_seed=9",
         #"./saved_models/10cs_APEN_PST/td3_RepairL_S_BPST_seed=9",
         #"./saved_models/10cs_APEN_PST/td3_RepairL_S_BPST_seed=9",
-        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9",
-        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9_SL",
+        # "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9",
+        # "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9_SL",
         #  here put the paths to the saved RL models
         # "TD3-114002",
 
@@ -299,6 +306,9 @@ def evaluator():
 
                     if 'SL' in algorithm:
                         algorithm_name += '_SL'
+
+                    if 'USER' in algorithm:
+                        algorithm_name += '_USER'
 
                     model = sb3_algo.load(load_path,
                                           env,
