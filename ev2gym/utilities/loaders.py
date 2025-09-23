@@ -411,14 +411,15 @@ def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
         drop_columns = ['Country', 'Datetime (Local)']
 
         env.price_data.drop(drop_columns, inplace=True, axis=1)
-        env.price_data['year'] = pd.DatetimeIndex(
-            env.price_data['Datetime (UTC)']).year
-        env.price_data['month'] = pd.DatetimeIndex(
-            env.price_data['Datetime (UTC)']).month
-        env.price_data['day'] = pd.DatetimeIndex(
-            env.price_data['Datetime (UTC)']).day
-        env.price_data['hour'] = pd.DatetimeIndex(
-            env.price_data['Datetime (UTC)']).hour
+        env.price_data['Datetime (UTC)'] = pd.to_datetime(
+            env.price_data['Datetime (UTC)'], 
+            format='mixed', 
+            dayfirst=True
+        )
+        env.price_data['year'] = env.price_data['Datetime (UTC)'].dt.year
+        env.price_data['month'] = env.price_data['Datetime (UTC)'].dt.month
+        env.price_data['day'] = env.price_data['Datetime (UTC)'].dt.day
+        env.price_data['hour'] = env.price_data['Datetime (UTC)'].dt.hour
 
     # assume charge and discharge prices are the same
     # assume prices are the same for all charging stations
