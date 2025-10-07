@@ -29,9 +29,9 @@ import yaml
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str, default="td3")
+    parser.add_argument('--algorithm', type=str, default="sac")
     parser.add_argument('--device', type=str, default="cuda:0")
-    parser.add_argument('--train_steps', type=int, default=60000)
+    parser.add_argument('--train_steps', type=int, default=1200000)
     parser.add_argument('--seed', type=int, default=9)
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
@@ -121,24 +121,62 @@ if __name__ == "__main__":
                     device=device, tensorboard_log="./logs/")
     elif algorithm == "sac":
         model = SAC("MlpPolicy", env, verbose=1,
+                    learning_rate = 1e-3,
+                    buffer_size = 1_000_00,  # 1e6
+                    learning_starts = 100,
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], qf=[64, 64])),
+                    batch_size = 64,
+                    tau = 0.0005,
+                    gamma = 0.99,
                     device=device, tensorboard_log="./logs/")
     elif algorithm == "a2c":
         model = A2C("MlpPolicy", env, verbose=1,
+                    learning_rate = 1e-3,
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], vf=[64, 64])),
+                    gamma = 0.99,
                     device=device, tensorboard_log="./logs/")
     elif algorithm == "ppo":
         model = PPO("MlpPolicy", env, verbose=1,
+                    learning_rate = 3e-4,  # Standard PPO learning rate
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], vf=[64, 64])),
+                    batch_size = 64,
+                    gamma = 0.99,
+                    n_steps = 960,    # 20 full episodes (20 × 48 steps)
+                    n_epochs = 10,    # Standard epochs for substantial training
+                    clip_range = 0.2, # Standard PPO clipping
+                    ent_coef = 0.01,  # Encourage exploration
                     device=device, tensorboard_log="./logs/")
     elif algorithm == "tqc":
         model = TQC("MlpPolicy", env, verbose=1,
+                    learning_rate = 1e-3,
+                    buffer_size = 1_000_00,  # 1e6
+                    learning_starts = 100,
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], qf=[64, 64])),
+                    batch_size = 64,
+                    tau = 0.0005,
+                    gamma = 0.99,
                     device=device, tensorboard_log="./logs/")
     elif algorithm == "trpo":
         model = TRPO("MlpPolicy", env, verbose=1,
+                     learning_rate = 1e-3,
+                     policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], vf=[64, 64])),
+                     batch_size = 64,
+                     gamma = 0.99,
+                     n_steps = 2048,  # TRPO-specific: steps per rollout
                      device=device, tensorboard_log="./logs/")
     elif algorithm == "ars":
         model = ARS("MlpPolicy", env, verbose=1,
+                    learning_rate = 1e-3,
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=[128, 128]),
                     device=device, tensorboard_log="./logs/")
     elif algorithm == "rppo":
         model = RecurrentPPO("MlpLstmPolicy", env, verbose=1,
+                             learning_rate = 1e-3,
+                             policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], vf=[64, 64])),
+                             batch_size = 64,
+                             gamma = 0.99,
+                             n_steps = 2048,  # RecurrentPPO-specific: steps per rollout
+                             n_epochs = 10,   # RecurrentPPO-specific: optimization epochs per rollout
                              device=device, tensorboard_log="./logs/")
     else:
         raise ValueError("Unknown algorithm")

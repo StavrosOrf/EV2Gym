@@ -83,20 +83,25 @@ def evaluator():
         ChargeAsFastAsPossible,
         # ChargeAsLateAsPossible,
 
-        "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9",
-        "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9_SL",
+        "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9",           #ddpg
+        "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9_SL",        #ddpg_SL
+        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9",            #td3
+        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9_SL",         #td3_SL
+        "./saved_models/10cs_APEN_PST/ppo_RepairL_STER_BPST_seed=9",             #ppo
+        "./saved_models/10cs_APEN_PST/ppo_RepairL_STER_BPST_seed=9_SL",          #ppo_SL
+        "./saved_models/10cs_APEN_PST/sac_RepairL_STER_BPST_seed=9",             #sac
+        "./saved_models/10cs_APEN_PST/sac_RepairL_STER_BPST_seed=9_SL",          #sac_SL
+
         #"./saved_models/10cs_APEN_PST/ddpg_RepairL_S_BPST_seed=9",
         #"./saved_models/10cs_APEN_PST/td3_RepairL_S_BPST_seed=9",
         #"./saved_models/10cs_APEN_PST/td3_RepairL_S_BPST_seed=9",
-        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9",
-        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9_SL",
         #  here put the paths to the saved RL models
         # "TD3-114002",
 
         # adding the _SL suffix to the algorithm name
         # "TD3-114002_SL",
 
-        RoundRobin_GF_off_allowed,
+        #RoundRobin_GF_off_allowed,
         PowerTrackingErrorrMin
     ]
 
@@ -249,7 +254,16 @@ def evaluator():
                     if 'rppo' in algorithm:
                         sb3_algo = RecurrentPPO
                     elif 'ppo' in algorithm:
-                        sb3_algo = PPO
+                        sb3_algo = PPO("MlpPolicy", env, verbose=1,
+                    learning_rate = 3e-4,  # Standard PPO learning rate
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], vf=[64, 64])),
+                    batch_size = 64,
+                    gamma = 0.99,
+                    n_steps = 960,    # 20 full episodes (20 × 48 steps)
+                    n_epochs = 10,    # Standard epochs for substantial training
+                    clip_range = 0.2, # Standard PPO clipping
+                    ent_coef = 0.01,  # Encourage exploration
+                    device=device, tensorboard_log="./logs/")
                         algorithm_name = 'PPO'
                     elif 'a2c' in algorithm:
                         sb3_algo = A2C
@@ -278,7 +292,15 @@ def evaluator():
                         sb3_algo = ARS
                         algorithm_name = 'ARS'
                     elif 'sac' in algorithm:
-                        sb3_algo = SAC
+                        sb3_algo = SAC("MlpPolicy", env, verbose=1,
+                    learning_rate = 1e-3,
+                    buffer_size = 1_000_00,  # 1e6
+                    learning_starts = 100,
+                    policy_kwargs = dict(activation_fn=th.nn.Sigmoid, net_arch=dict(pi=[128, 128], qf=[64, 64])),
+                    batch_size = 64,
+                    tau = 0.0005,
+                    gamma = 0.99,
+                    device=device, tensorboard_log="./logs/")
                         algorithm_name = 'SAC'
                     elif 'td3' in algorithm:
                         sb3_algo = TD3("MlpPolicy", env, verbose=1,
