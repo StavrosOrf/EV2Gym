@@ -85,7 +85,55 @@ def profit_maximization(env, total_costs, user_satisfaction_list, *args):
     
     return reward
 
+def User_sat_reward(env, total_costs, user_satisfaction_list, *args):
+    ''' This reward function is used for the user satisfaction case '''
+    
+    user_costs = 0
+    verbose = False
+    
+    linear = False
+    if linear:
+        cost_multiplier = 0.1
+    else:
+        cost_multiplier = 0.05
+        
+    for cs in env.charging_stations:
+        for ev in cs.evs_connected:
+            if ev is not None:
+                min_steps_to_full = (ev.desired_capacity - ev.current_capacity) / \
+                    (ev.max_ac_charge_power/(60/env.timescale))
+                
+                
+                departing_step = ev.time_of_departure - env.current_step
+                
+                cost = 0
+                if min_steps_to_full > departing_step:                    
+                    min_capacity_at_time = ev.desired_capacity - ((departing_step+1) * ev.max_ac_charge_power/(60/env.timescale))
+                    
+                    if linear:
+                        cost = cost_multiplier*(min_capacity_at_time - ev.current_capacity)
+                    else:
+                        cost = cost_multiplier*(min_capacity_at_time - ev.current_capacity)**2
+                        
+                    user_costs += - cost
+                
+                if verbose:
+                    if min_steps_to_full > departing_step:                    
+                        print(f'-!EV: {min_capacity_at_time} | {ev.current_capacity} | {ev.desired_capacity} | {min_steps_to_full:.3f} | {departing_step} | cost {(cost):.3f}') 
+                    else:
+                        print(f'- EV: {ev.current_capacity} | {ev.desired_capacity} | {min_steps_to_full:.3f} | {departing_step} | cost {(cost):.3f}')
+                
+    for ev in env.departing_evs:
+        if ev.desired_capacity > ev.current_capacity:            
+            if verbose:
+                print(f'!!! EV: {ev.current_capacity} | {ev.desired_capacity} | costs: {-cost_multiplier*(ev.desired_capacity - ev.current_capacity)**2}')
+                
+            if linear:
+                user_costs += -cost_multiplier * (ev.desired_capacity - ev.current_capacity)
+            else:
+                user_costs += -cost_multiplier * (ev.desired_capacity - ev.current_capacity)**2
 
+    return user_costs
 
 # Previous reward functions for testing
 #############################################################################################################

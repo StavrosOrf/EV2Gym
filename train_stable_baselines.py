@@ -12,7 +12,7 @@ from ev2gym.rl_agent.reward import ProfitMax_TrPenalty_UserIncentives
 from ev2gym.rl_agent.reward import profit_maximization, SimpleReward
 
 from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwithMoreKnowledge
-from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
+from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives, User_sat_reward
 
 from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, V2G_profit_max_loads
 
@@ -25,13 +25,14 @@ import torch as th
 
 import os
 import yaml
+import datetime
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str, default="sac")
+    parser.add_argument('--algorithm', type=str, default="td3")
     parser.add_argument('--device', type=str, default="cuda:0")
-    parser.add_argument('--train_steps', type=int, default=1200000)
+    parser.add_argument('--train_steps', type=int, default=600000)
     parser.add_argument('--seed', type=int, default=9)
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,
@@ -54,6 +55,9 @@ if __name__ == "__main__":
     #seed sb3
     th.manual_seed(parser.parse_args().seed)
     np.random.seed(parser.parse_args().seed)    
+
+    # Create timestamp for unique run names
+    # timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
     #run_name += f'{algorithm}_{reward_function.__name__}_{state_function.__name__}'
     run_name += f'{algorithm}_RepairL_{reward_function_short}_{state_function_short}_seed={parser.parse_args().seed}'

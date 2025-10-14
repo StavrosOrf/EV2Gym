@@ -100,7 +100,7 @@ ev_specs_file: ./ev2gym/data/ev_specs_v2g_enabled2024.json # path to the file wi
 
 # Default Transformer model
 transformer:
-  max_power: 60 # in kW
+  max_power: 120 # in kW
 
 # Default Charging Station model
 charging_station:  

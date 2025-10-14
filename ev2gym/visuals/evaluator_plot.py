@@ -720,6 +720,685 @@ def plot_prices(results_path, save_path=None, algorithm_names=None):
     plt.show()
 
 
+def plot_energy_tracking_error(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    
+    # Plot 'energy_tracking_error' for each algorithm
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.plot(algorithm_results['run'], algorithm_results['energy_tracking_error'], marker='.' , label=special_names[algorithm_name])
+
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Energy Tracking Error (kWh)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'energy_tracking_error_plot.svg', format='svg', bbox_inches='tight')
+
+
+def plot_energy_tracking_error_hist(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'energy_tracking_error' for each algorithm
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.hist(algorithm_results['energy_tracking_error'], label=special_names[algorithm_name], alpha=0.5)
+
+    plt.xlabel('Energy Tracking Error (kWh)', fontsize=14)
+    plt.ylabel('Frequency', fontsize=14)
+    plt.legend(loc='upper right',
+               fancybox=True, shadow=True, ncol=1, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'energy_tracking_error_histogram.svg', format='svg', bbox_inches='tight')
+
+
+def plot_energy_tracking_error_boxplot(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Define colors for each algorithm
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']    # Create the plot
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'energy_tracking_error' for each algorithm
+    data = []
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        data.append(algorithm_results['energy_tracking_error'])
+
+    box_plot = plt.boxplot(data, labels=[special_names[name] for name in algorithm_names], patch_artist=True)
+
+    for patch, color in zip(box_plot['boxes'], colors):
+        patch.set_facecolor(color)
+
+    plt.xlabel('Algorithm', fontsize=14)
+    plt.ylabel('Energy Tracking Error (kWh)', fontsize=14)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'energy_tracking_error_boxplot.svg', format='svg', bbox_inches='tight')
+
+
+def plot_energy_tracking_error_bar(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+    
+    # Define colors for each algorithm
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'energy_tracking_error' for each algorithm
+    bar_width = 0.3
+    for i, algorithm_name in enumerate(algorithm_names):
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.bar(algorithm_results['run'] + i * bar_width, algorithm_results['energy_tracking_error'], width=bar_width, label=special_names[algorithm_name], color=colors[i])
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Energy Tracking Error (kWh)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'energy_tracking_error_bar_plot.svg', format='svg', bbox_inches='tight')
+
+def plot_squared_power_tracking_error(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    #colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']    # Create the plot
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    
+    # Plot 'energy_tracking_error' for each algorithm
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.plot(algorithm_results['run'], algorithm_results['tracking_error'], marker='.', label=special_names[algorithm_name])
+
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Squared Tracking Error (kW$^2$)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'squared_tracking_error_plot.svg', format='svg', bbox_inches='tight')
+
+def plot_user_satisfaction(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    min_y = results['average_user_satisfaction'].min() * 3 / 4
+    
+    # Plot 'energy_tracking_error' for each algorithm
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.plot(algorithm_results['run'], algorithm_results['average_user_satisfaction'], marker='.' , label=special_names[algorithm_name])
+
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('User Satisfaction (%)', fontsize=14)
+    plt.ylim(min_y, 1.1)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'user_satisfaction.svg', format='svg', bbox_inches='tight')
+
+
+def plot_tracker_surplus(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    
+    # Plot 'energy_tracking_error' for each algorithm
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.plot(algorithm_results['run'], algorithm_results['power_tracker_violation'], marker='.', label=special_names[algorithm_name])
+
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Power Tracker Surplus (kW)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'tracker_surplus_plot.svg', format='svg', bbox_inches='tight')
+
+def plot_transformer_overload(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'energy_tracking_error' for each algorithm
+    bar_width = 1
+    for i, algorithm_name in enumerate(algorithm_names):
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.bar(algorithm_results['run'] + i * bar_width, algorithm_results['total_transformer_overload'], width=bar_width, label=special_names[algorithm_name])
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Transformer Overload (kW)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'transformer_overload.svg', format='svg', bbox_inches='tight')
+
+
+def plot_transformer_overload_boxplot(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Define colors for each algorithm
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']    # Create the plot
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'total_transformer_overload' for each algorithm
+    data = []
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        data.append(algorithm_results['total_transformer_overload'])
+
+    box_plot = plt.boxplot(data, labels=[special_names[name] for name in algorithm_names], patch_artist=True)
+
+    for patch, color in zip(box_plot['boxes'], colors):
+        patch.set_facecolor(color)
+
+    plt.xlabel('Algorithm', fontsize=14)
+    plt.ylabel('Transformer Overload (kW)', fontsize=14)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'transformer_overload_boxplot.svg', format='svg', bbox_inches='tight')
+
+
+def plot_transformer_overload_boxplot_no_cafap(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Filter out CAFAP algorithm
+    results = results[results['Algorithm'] != 'ChargeAsFastAsPossible']
+
+    # Get the unique algorithm names (excluding CAFAP)
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Define colors for each algorithm (6 algorithms)
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'total_transformer_overload' for each algorithm
+    data = []
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        data.append(algorithm_results['total_transformer_overload'])
+
+    box_plot = plt.boxplot(data, labels=[special_names[name] for name in algorithm_names], patch_artist=True)
+
+    for patch, color in zip(box_plot['boxes'], colors):
+        patch.set_facecolor(color)
+
+    plt.xlabel('Algorithm', fontsize=14)
+    plt.ylabel('Transformer Overload (kW)', fontsize=14)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'transformer_overload_boxplot_no_cafap.svg', format='svg', bbox_inches='tight')
+
+
+def plot_squared_power_tracking_error_boxplot(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Define colors for each algorithm
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']    # Create the plot
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'tracking_error' for each algorithm
+    data = []
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        data.append(algorithm_results['tracking_error'])
+
+    box_plot = plt.boxplot(data, labels=[special_names[name] for name in algorithm_names], patch_artist=True)
+
+    for patch, color in zip(box_plot['boxes'], colors):
+        patch.set_facecolor(color)
+
+    plt.xlabel('Algorithm', fontsize=14)
+    plt.ylabel('Squared Tracking Error (kW$^2$)', fontsize=14)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'squared_tracking_error_boxplot.svg', format='svg', bbox_inches='tight')
+
+def plot_user_satisfaction_boxplot(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Define colors for each algorithm
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']    # Create the plot
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'average_user_satisfaction' for each algorithm
+    data = []
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        data.append(algorithm_results['average_user_satisfaction'])
+
+    box_plot = plt.boxplot(data, labels=[special_names[name] for name in algorithm_names], patch_artist=True)
+
+    for patch, color in zip(box_plot['boxes'], colors):
+        patch.set_facecolor(color)
+
+    plt.xlabel('Algorithm', fontsize=14)
+    plt.ylabel('User Satisfaction (%)', fontsize=14)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'user_satisfaction_boxplot.svg', format='svg', bbox_inches='tight')
+
+def plot_tracker_surplus_boxplot(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Define colors for each algorithm
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']    # Create the plot
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'power_tracker_violation' for each algorithm
+    data = []
+    for algorithm_name in algorithm_names:
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        data.append(algorithm_results['power_tracker_violation'])
+
+    box_plot = plt.boxplot(data, labels=[special_names[name] for name in algorithm_names], patch_artist=True)
+
+    for patch, color in zip(box_plot['boxes'], colors):
+        patch.set_facecolor(color)
+
+    plt.xlabel('Algorithm', fontsize=14)
+    plt.ylabel('Power Tracker Surplus (kW)', fontsize=14)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'tracker_surplus_boxplot.svg', format='svg', bbox_inches='tight')
+
+def plot_squared_power_tracking_error_bar(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Define colors for each algorithm
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c']
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'tracking_error' for each algorithm
+    bar_width = 0.3
+    for i, algorithm_name in enumerate(algorithm_names):
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.bar(algorithm_results['run'] + i * bar_width, algorithm_results['tracking_error'], width=bar_width, label=special_names[algorithm_name], color=colors[i])
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Squared Tracking Error (kW$^2$)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'squared_tracking_error_plot_bar.svg', format='svg', bbox_inches='tight')
+
+def plot_user_satisfaction_bar(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+    
+    # Define colors for each algorithm
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c']
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    min_y = results['average_user_satisfaction'].min() * 3 / 4
+
+    # Plot 'average_user_satisfaction' for each algorithm
+    bar_width = 0.3
+    for i, algorithm_name in enumerate(algorithm_names):
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.bar(algorithm_results['run'] + i * bar_width, algorithm_results['average_user_satisfaction'], width=bar_width, label=special_names[algorithm_name], color=colors[i])
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('User Satisfaction (%)', fontsize=14)
+    plt.ylim(min_y, 1.1)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'user_satisfaction_bar.svg', format='svg', bbox_inches='tight')
+
+
+def plot_tracker_surplus_bar(csv_file, save_path):
+    # Read the csv file
+    results = pd.read_csv(csv_file)
+
+    # Get the unique algorithm names
+    algorithm_names = results['Algorithm'].unique()
+
+    special_names = {
+        "DDPG": "DDPG",
+        "TD3": "TD3",
+        "DDPG_SL": "DDPG-SL",
+        "TD3_SL": "TD3-SL",
+        "ChargeAsLateAsPossible": "ChargeAsLateAsPossible",
+        "PowerTrackingErrorrMin": "Optimal (Offline)",
+        "ChargeAsFastAsPossible": "CAFAP",
+        "RoundRobin_GF_off_allowed": "Round Robin" }
+
+    # Define colors for each algorithm
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c']
+
+    # Create the plot
+    plt.figure(figsize=(12, 4))
+
+    # Plot 'power_tracker_violation' for each algorithm
+    bar_width = 0.3
+    for i, algorithm_name in enumerate(algorithm_names):
+        algorithm_results = results[results['Algorithm'] == algorithm_name]
+        plt.bar(algorithm_results['run'] + i * bar_width, algorithm_results['power_tracker_violation'], width=bar_width, label=special_names[algorithm_name], color=colors[i])
+
+    plt.xlabel('Replays', fontsize=14)
+    plt.ylabel('Power Tracker Surplus (kW)', fontsize=14)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),
+               fancybox=True, shadow=True, ncol=3, fontsize=12)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # Save the plot as an SVG file
+    plt.savefig(save_path + 'tracker_surplus_plot_bar.svg', format='svg', bbox_inches='tight')
+
 if __name__ == "__main__":
 
     plot_total_power_V2G(results_path='E:/GitHub\ev2gym/results/eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_03_727260/plot_results_dict.pkl',

@@ -1,9 +1,13 @@
 import gymnasium as gym
 
-from ev2gym.visuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_prices
-from ev2gym.visuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint
+from ev2gym.visuals.evaluator_plot import plot_comparable_EV_SoC_single, plot_energy_tracking_error_bar, plot_prices, plot_transformer_overload_boxplot, plot_transformer_overload_boxplot_no_cafap
+from ev2gym.visuals.evaluator_plot import plot_total_power_V2G, plot_actual_power_vs_setpoint, plot_squared_power_tracking_error_bar
 from ev2gym.visuals.evaluator_plot import plot_total_power, plot_comparable_EV_SoC
-from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SimpleReward
+from ev2gym.visuals.evaluator_plot import plot_transformer_overload, plot_energy_tracking_error_hist
+from ev2gym.visuals.evaluator_plot import plot_energy_tracking_error_boxplot, plot_squared_power_tracking_error_boxplot
+from ev2gym.visuals.evaluator_plot import plot_user_satisfaction_boxplot, plot_tracker_surplus_boxplot
+from ev2gym.visuals.evaluator_plot import plot_user_satisfaction_bar, plot_tracker_surplus_bar
+from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SimpleReward, User_sat_reward
 from ev2gym.rl_agent.action_wrappers import Rescale_RepairLayer
 
 from ev2gym.baselines.gurobi_models.profit_max import V2GProfitMaxOracleGB
@@ -21,7 +25,7 @@ from ev2gym.baselines.mpc.ocmf_mpc import OCMF_V2G, OCMF_G2V
 from ev2gym.baselines.heuristics import RoundRobin, ChargeAsLateAsPossible, ChargeAsFastAsPossible, RoundRobin_GF_off_allowed
 
 from ev2gym.rl_agent.state import V2G_profit_max, PublicPST, BusinessPSTwithMoreKnowledge
-from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives
+from ev2gym.rl_agent.reward import SquaredTrackingErrorReward, SqTrError_TrPenalty_UserIncentives, User_sat_reward
 
 from ev2gym.models.ev2gym_env import EV2Gym
 import yaml
@@ -87,10 +91,10 @@ def evaluator():
         "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9_SL",        #ddpg_SL
         "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9",            #td3
         "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9_SL",         #td3_SL
-        "./saved_models/10cs_APEN_PST/ppo_RepairL_STER_BPST_seed=9",             #ppo
-        "./saved_models/10cs_APEN_PST/ppo_RepairL_STER_BPST_seed=9_SL",          #ppo_SL
-        "./saved_models/10cs_APEN_PST/sac_RepairL_STER_BPST_seed=9",             #sac
-        "./saved_models/10cs_APEN_PST/sac_RepairL_STER_BPST_seed=9_SL",          #sac_SL
+        #"./saved_models/10cs_APEN_PST/ppo_RepairL_STER_BPST_seed=9",             #ppo
+        #"./saved_models/10cs_APEN_PST/ppo_RepairL_STER_BPST_seed=9_SL",          #ppo_SL
+        #"./saved_models/10cs_APEN_PST/sac_RepairL_STER_BPST_seed=9",             #sac
+        #"./saved_models/10cs_APEN_PST/sac_RepairL_STER_BPST_seed=9_SL",          #sac_SL
 
         #"./saved_models/10cs_APEN_PST/ddpg_RepairL_S_BPST_seed=9",
         #"./saved_models/10cs_APEN_PST/td3_RepairL_S_BPST_seed=9",
@@ -101,7 +105,7 @@ def evaluator():
         # adding the _SL suffix to the algorithm name
         # "TD3-114002_SL",
 
-        #RoundRobin_GF_off_allowed,
+        RoundRobin_GF_off_allowed,
         PowerTrackingErrorrMin
     ]
 
@@ -492,7 +496,7 @@ def evaluator():
                            'tracking_error',
                             'energy_tracking_error',
                             'average_user_satisfaction',
-                            #'profits_from_customers',
+                            'profits_from_customers',
                             #'total_profits',
                            ]])
 
@@ -520,6 +524,30 @@ def evaluator():
     plot_actual_power_vs_setpoint(results_path=save_path + 'plot_results_dict.pkl.gz',
                                   save_path=save_path,
                                   algorithm_names=algorithm_names)
+    
+    #plot_transformer_overload(save_path + 'data.csv', save_path)
+
+    plot_transformer_overload_boxplot(save_path + 'data.csv', save_path)
+
+    plot_transformer_overload_boxplot_no_cafap(save_path + 'data.csv', save_path)
+
+#plot_energy_tracking_error_hist(save_path + 'data.csv', save_path)
+
+    plot_energy_tracking_error_boxplot(save_path + 'data.csv', save_path)
+
+    #plot_energy_tracking_error_bar(save_path + 'data.csv', save_path)
+
+    plot_squared_power_tracking_error_boxplot(save_path + 'data.csv', save_path)
+
+    #plot_squared_power_tracking_error_bar(save_path + 'data.csv', save_path)
+
+    plot_user_satisfaction_boxplot(save_path + 'data.csv', save_path)
+
+    #plot_user_satisfaction_bar(save_path + 'data.csv', save_path)
+
+    plot_tracker_surplus_boxplot(save_path + 'data.csv', save_path)
+
+    #plot_tracker_surplus_bar(save_path + 'data.csv', save_path)
 
     # plot_total_power(results_path=save_path + 'plot_results_dict.pkl',
     #                  save_path=save_path,
