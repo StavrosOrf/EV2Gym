@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 50 #90 # in steps per simulation
+simulation_length: 96 #90 # in steps per simulation
 
 ##############################################################################
 # Date and Time
@@ -15,6 +15,7 @@ month: 1 # 1-12
 day: 17 # 1-31
 # Whether to get a random date every time the environment is reset
 random_day: True # True or False
+random_hour: False # True or False
 
 # Simulation Starting Time
 # Hour and minute do not change after the environment has been reset
@@ -34,25 +35,40 @@ spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn. Pl
 discharge_price_factor: 1 # how many times more abs(expensive/cheaper) it is to discharge than to charge. Are similar, discharging cost could be a bit higher.
 
 ##############################################################################
-# Charging Network
+# Distribution Network Settings
 ##############################################################################
-v2g_enabled: False # True or False
-number_of_charging_stations: 2
-number_of_transformers: 1
+v2g_enabled: True # True or False
+number_of_charging_stations: 150 # Play somewhere 5-20
+number_of_transformers: -1
 number_of_ports_per_cs: 1
-# Provide path if you want to load a specific charging topology,
+# Provide path if you want to load a specific charging topology
+# *(where chargers are located and what are their characteristics),
 # else write None for a randomized one with the above parameters
 charging_network_topology: None #./config_files/charging_topology_10.json
+
+simulate_grid: True # True or False
+network_info: 
+  vm_pu: 1.0 # Voltage magnitude in per unit
+  s_base: 1000 # Base power in kVA
+  load_multiplier: 1 # Load multiplier for the grid
+  pv_scale: 80 # Percentage% of maximum PV power with respect to the total load of the bus
+  bus_info_file: './ev2gym/data/network_data/node_34/Nodes_34.csv'
+  branch_info_file: './ev2gym/data/network_data/node_34/Lines_34.csv'
+  # bus_info_file: './ev2gym/data/network_data/node_123/Nodes_123.csv'
+  # branch_info_file: './ev2gym/data/network_data/node_123/Lines_123.csv'
+
+pf_solver: 'Laurent' # 'Laurent' or 'PandaPower'
 
 ##############################################################################
 # Power Setpoints Settings
 ##############################################################################
 # How much the power setpoints can vary in percentage compared to the nominal power
 # The higher the number the easier it is to meet the power setpoints, the opposite for negative numbers
-power_setpoint_flexiblity: 10 # (in percentage +/- %)
+power_setpoint_enabled: True # True or False
+power_setpoint_flexiblity: 80 # (in percentage +/- %)
 
 ##############################################################################
-# Inflexible Loads, Solar Generation, and Demand Response
+# Inflexible Loads, Solar Generation, and Demand Response (Not compatible with simulate_grid = True)
 ##############################################################################
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 tr_seed: -1 # seed for the random number generator of transformer loads(-1 for random seed)
@@ -87,9 +103,9 @@ demand_response:
 ##############################################################################
 # EV Specifications
 ##############################################################################
-heterogeneous_ev_specs: True #if False, each EV has the same specifications
+heterogeneous_ev_specs: False #if False, each EV has the same specifications
 # such as battery capacity, charging rate, etc.
-ev_specs_file: ./ev2gym/data/ev_specs_ev_plus_phev.json # path to the file with the EV specifications
+ev_specs_file: ./ev2gym/data/ev_specs_v2g_enabled2024.json # path to the file with the EV specifications
 
 ##############################################################################
 # Default Model values
@@ -99,25 +115,25 @@ ev_specs_file: ./ev2gym/data/ev_specs_ev_plus_phev.json # path to the file with 
 
 # Default Transformer model
 transformer:
-  max_power: 100 # in kW
+  max_power: 200 # in kW
 
 # Default Charging Station model
 charging_station:  
   min_charge_current: 0 # Amperes
-  max_charge_current: 16 # Amperes
+  max_charge_current: 32 # Amperes
   min_discharge_current: 0 # Amperes (actual value <=0)
-  max_discharge_current: -16 # Amperes (actual value <=0)
-  voltage: 400 # Line-Line Voltage in Volts
+  max_discharge_current: -32 # Amperes (actual value <=0)
+  voltage: 400 # Volts
   phases: 3 # 1,2, or 3
 
 # Default EV model
 ev:
   #The following values are used if "heterogeneous_ev_specs = False"
-  battery_capacity: 50 # in kWh
-  max_ac_charge_power: 11 # in kW
+  battery_capacity: 70 # in kWh
+  max_ac_charge_power: 22 # in kW
   min_ac_charge_power: 0 # in kW
   max_dc_charge_power: 50 # in kW
-  max_discharge_power: -11 # in kW
+  max_discharge_power: -22 # in kW
   min_discharge_power: 0 # in kW
   ev_phases: 3  
   charge_efficiency: 1 # 0-1 (0% - 100%)
@@ -125,9 +141,9 @@ ev:
   transition_soc: 1 # 0-1 (0% - 100%)
 
   #The following values are also used if "heterogeneous_ev_specs = True"
-  min_battery_capacity: 5 # in kWh
-  min_time_of_stay: 60 # in minutes
-  min_emergency_battery_capacity: 25 # in kWh
-  desired_capacity: 1 # in (0-1) (0% - 100%)
+  min_battery_capacity: 15 # in kWh
+  min_time_of_stay: 200 # in minutes
+  min_emergency_battery_capacity: 15 # in kWh
+  desired_capacity: 1 # in (0-1) (0% - 100%) #Keep at 100% for now
   #if trasition_soc is < 1, the curve of the line is affected by:
-  transition_soc_multiplier: 5 # default 1 (the higher the number the shorter the effect of CCCV region)
+  transition_soc_multiplier: 50 # default 1 (the higher the number the shorter the effect of CCCV region)
