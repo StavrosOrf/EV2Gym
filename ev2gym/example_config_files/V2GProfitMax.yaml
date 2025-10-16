@@ -15,6 +15,7 @@ month: 1 # 1-12
 day: 17 # 1-31
 # Whether to get a random date every time the environment is reset
 random_day: True # True or False
+random_hour: False # True or False
 
 # Simulation Starting Time
 # Hour and minute do not change after the environment has been reset
@@ -33,23 +34,39 @@ spawn_multiplier: 5 # 1 is default, the higher the number the more EVs spawn. Pl
 ##############################################################################
 discharge_price_factor: 1 # how many times more abs(expensive/cheaper) it is to discharge than to charge. Are similar, discharging cost could be a bit higher.
 
+
 ##############################################################################
-# Charging Network
+# Distribution Network Settings
 ##############################################################################
 v2g_enabled: True # True or False
-number_of_charging_stations: 25
-number_of_transformers: 1
+number_of_charging_stations: 25 # Play somewhere 5-20
+number_of_transformers: 1 # if simulate_grid is True then this value is overwritten by the topology file
 number_of_ports_per_cs: 1
-# Provide path if you want to load a specific charging topology,
+# Provide path if you want to load a specific charging topology
+# *(where chargers are located and what are their characteristics),
 # else write None for a randomized one with the above parameters
 charging_network_topology: None #./config_files/charging_topology_10.json
+
+simulate_grid: False # True or False
+network_info: 
+  vm_pu: 1.0 # Voltage magnitude in per unit
+  s_base: 1000 # Base power in kVA
+  load_multiplier: 1 # Load multiplier for the grid
+  pv_scale: 80 # Percentage% of maximum PV power with respect to the total load of the bus
+  bus_info_file: './ev2gym/data/network_data/node_34/Nodes_34.csv'
+  branch_info_file: './ev2gym/data/network_data/node_34/Lines_34.csv'
+  # bus_info_file: './ev2gym/data/network_data/node_123/Nodes_123.csv'
+  # branch_info_file: './ev2gym/data/network_data/node_123/Lines_123.csv'
+
+pf_solver: 'Laurent' # 'Laurent' or 'PandaPower'
 
 ##############################################################################
 # Power Setpoints Settings
 ##############################################################################
-# How much the power setpoints can vary in percentage compared to the nominal power
+# How much the total power setpoints can vary in percentage compared to the nominal power
 # The higher the number the easier it is to meet the power setpoints, the opposite for negative numbers
-power_setpoint_flexiblity: 10 # (in percentage +/- %)
+power_setpoint_enabled: False # True or False
+power_setpoint_flexiblity: 80 # (in percentage +/- %)
 
 ##############################################################################
 # Inflexible Loads, Solar Generation, and Demand Response
@@ -57,6 +74,7 @@ power_setpoint_flexiblity: 10 # (in percentage +/- %)
 # Whether to include inflexible loads in the transformer power limit, such as residential loads
 tr_seed: -1 # seed for the random number generator of transformer loads(-1 for random seed)
 
+# !!! If simulate_grid is True, the following settings are ignored and the loads and solar power are taken from the grid model
 inflexible_loads: # Offices, homes
   include: False # True or False
   inflexible_loads_capacity_multiplier_mean: 1 # 1 is default, the higher the number the more inflexible loads
@@ -125,9 +143,9 @@ ev:
   transition_soc: 1 # 0-1 (0% - 100%)
 
   #The following values are also used if "heterogeneous_ev_specs = True"
-  min_battery_capacity: 15 # in kWh
+  min_battery_capacity: 5 # in kWh
   min_time_of_stay: 180 # in minutes
-  min_emergency_battery_capacity: 25 # in kWh
+  min_emergency_battery_capacity: 25 # in kWh # a value that is monitore but not enforced!
   desired_capacity: 1 # in (0-1) (0% - 100%)
   #if trasition_soc is < 1, the curve of the line is affected by:
   transition_soc_multiplier: 5 # default 1 (the higher the number the shorter the effect of CCCV region)

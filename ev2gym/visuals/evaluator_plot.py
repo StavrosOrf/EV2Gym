@@ -3,6 +3,7 @@ This file is used to plot the comparatigve results of the different algorithms.
 '''
 
 import pickle
+import gzip
 import math
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,6 +32,177 @@ algorithm_names = [
 ]
 
 
+def plot_grid_metrics(results_path, save_path=None, algorithm_names=None):
+
+    plt.close('all')
+    # Plot the total power of the CPO
+    plt.figure(figsize=(16, 12))
+
+    # Load the env pickle files
+    with gzip.open(results_path, 'rb') as f:
+        replay = pickle.load(f)
+
+
+     # Create a color cycle (one color per algorithm)
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+    # If algorithm_names not provided, use the keys from replay.
+    if algorithm_names is None:
+        algorithm_names = list(replay.keys())
+    else:
+        algorithm_names = list(algorithm_names)
+
+    # Assume all env objects share the same simulation parameters.
+    first_key = next(iter(replay))
+    env_first = replay[first_key]
+    number_of_nodes = env_first.grid.node_num
+    sim_starting_date = env_first.sim_starting_date
+    sim_date = env_first.sim_date
+    timescale = env_first.timescale
+    simulation_length = env_first.simulation_length
+
+    # Create date ranges
+    date_range = pd.date_range(
+        start=sim_starting_date,
+        end=sim_starting_date + datetime.timedelta(minutes=timescale * (simulation_length - 1)),
+        freq=f'{timescale}min'
+    )
+    date_range_print = pd.date_range(start=sim_starting_date, end=sim_date, periods=10)
+
+    # Determine subplot grid dimensions
+    dim_x = int(np.ceil(np.sqrt(number_of_nodes)))
+    dim_y = int(np.ceil(number_of_nodes / dim_x))
+
+    # Create the figure
+    plt.figure(figsize=(16, 12))
+
+    # Loop over each node and create a subplot
+    for node in range(number_of_nodes):
+        ax = plt.subplot(dim_x, dim_y, node + 1)
+
+        # For each algorithm, plot its data on this node's subplot with a unique color.
+        for index, key in enumerate(replay.keys()):
+            env = replay[key]
+            # Choose label and color for this algorithm
+            label = algorithm_names[index]  # if names were provided, otherwise keys are used.
+            color = colors[index % len(colors)]
+            
+            # Plot the total active power (node_active_power + node_ev_power) as a step plot
+            ax.step(
+                date_range,
+                env.node_active_power[node, :] + env.node_ev_power[node, :],
+                label=label,
+                where='post',
+                linewidth=0.5,
+                color=color
+            )
+            # If you wish to also plot the individual components, you could uncomment these:
+            # ax.step(date_range, env.node_active_power[node, :], label=f'{label} - Node Active Power', where='post', linewidth=0.8, color=color)
+            # ax.step(date_range, env.node_ev_power[node, :], label=f'{label} - EV Active Power', where='post', linewidth=0.8, color=color)
+
+        ax.set_title(f'Node {node}', fontsize=8)
+        if node % dim_x == 0:
+            ax.set_ylabel('Power (kW)')
+        ax.set_xlim([sim_starting_date, sim_date])
+        ax.set_xticks(date_range_print)
+        ax.set_xticklabels([f'{d.hour:02d}:{d.minute:02d}' for d in date_range_print], fontsize=4)
+        ax.grid(True, which='minor', axis='both')
+        ax.grid(True, which='major', axis='both')
+
+        # Only add a legend in the first subplot (or adjust as desired)
+        if node == 0:
+            ax.legend(fontsize=8)
+
+    plt.tight_layout()
+    fig_name = f'{save_path}/grid_power.png'
+    plt.savefig(fig_name, format='png', dpi=120, bbox_inches='tight')
+
+    plt.close('all')
+    plt.figure(figsize=(16, 12))
+    plt.rcParams['font.family'] = ['serif']
+
+    # Load the results (a dictionary with one env per algorithm)
+    with gzip.open(results_path, 'rb') as f:
+        replay = pickle.load(f)
+
+    # Use the first algorithm's env to extract common simulation parameters
+    first_key = next(iter(replay))
+    env_first = replay[first_key]
+    number_of_nodes = env_first.grid.node_num
+    sim_starting_date = env_first.sim_starting_date
+    sim_date = env_first.sim_date
+    timescale = env_first.timescale
+    simulation_length = env_first.simulation_length
+
+    # Create the full date range used for plotting
+    date_range = pd.date_range(
+        start=sim_starting_date,
+        end=sim_starting_date + datetime.timedelta(minutes=timescale * (simulation_length - 1)),
+        freq=f'{timescale}min'
+    )
+    date_range_print = pd.date_range(start=sim_starting_date, end=sim_date, periods=10)
+
+    # Define subplot grid dimensions (near-square layout)
+    dim_x = int(np.ceil(np.sqrt(number_of_nodes)))
+    dim_y = int(np.ceil(number_of_nodes / dim_x))
+
+    # Get the default color cycle so that each algorithm gets a unique color.
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+    # Use provided algorithm names or default to the replay keys.
+    if algorithm_names is None:
+        algorithm_names = list(replay.keys())
+    else:
+        algorithm_names = list(algorithm_names)
+
+    # Loop over nodes (each subplot shows one node's voltage curves from all algorithms)
+    for node in range(number_of_nodes):
+        ax = plt.subplot(dim_x, dim_y, node + 1)
+        
+        # For each algorithm, plot the voltage for this node in a different color.
+        for index, key in enumerate(replay.keys()):
+            env = replay[key]
+            label = algorithm_names[index]
+            color = colors[index % len(colors)]
+            ax.step(
+                date_range,
+                env.node_voltage[node, :],
+                label=label,
+                where='post',
+                linewidth=0.5,
+                color=color,
+                alpha=0.8
+            )
+        
+        # Plot voltage limits (same for all algorithms)
+        ax.plot(date_range, [0.95] * len(date_range), 'r--',linewidth=0.5)
+        # ax.plot(date_range, [1.05] * len(date_range), 'r--',linewidth=0.5)
+        
+        #set ylim
+        ax.set_ylim([0.92, 1.02])
+
+        ax.set_title(f'Node {node}', fontsize=6)
+        if node % dim_x == 0:
+            ax.set_ylabel('V(pu)')
+        ax.set_xlim([sim_starting_date, sim_date])
+        ax.set_xticks(date_range_print)
+        ax.set_xticklabels([f'{d.hour:02d}:{d.minute:02d}' for d in date_range_print], fontsize=4)
+        ax.tick_params(axis='y', labelsize=4)
+        
+        # Only add a legend to the first subplot (or adjust as needed)
+        if node == 0:
+            ax.legend(fontsize=5)
+            
+        ax.grid(True, which='minor', axis='both')
+        ax.grid(True, which='major', axis='both')
+
+    plt.tight_layout()
+    fig_name = f'{save_path}/grid_voltage.png'
+    plt.savefig(fig_name, format='png', dpi=200, bbox_inches='tight')
+    fig_name = f'{save_path}/grid_voltage.pdf'
+    plt.savefig(fig_name, format='pdf', dpi=200, bbox_inches='tight')
+
+
 def plot_total_power(results_path, save_path=None, algorithm_names=None):
 
     # Load the env pickle files
@@ -42,7 +214,7 @@ def plot_total_power(results_path, save_path=None, algorithm_names=None):
     light_blue = np.array([0.529, 0.808, 0.922, 1])
     gold = np.array([1, 0.843, 0, 1])
 
-    for index, key in enumerate(replay.keys()):        
+    for index, key in enumerate(replay.keys()):
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -167,19 +339,19 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.spines['bottom'].set_visible(False)
-    
+
     ax.spines['left'].set_linewidth(2)
-    # ax.spines['bottom'].set_linewidth(2)           
-    
+    # ax.spines['bottom'].set_linewidth(2)
+
     plt.rc('font', family='serif')
-   
+
     light_blue = np.array([0.529, 0.808, 0.922, 1])
     gold = np.array([1, 0.843, 0, 1])
-    
+
     color_list_map = plt.cm.get_cmap('Set1', len(replay.keys()))
     color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
 
-    for index, key in enumerate(replay.keys()):        
+    for index, key in enumerate(replay.keys()):
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -254,9 +426,9 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
                          linestyle='--',
                          linewidth=2,
                          alpha=0.7,
-                        #  label='Transf. Limit'
+                         #  label='Transf. Limit'
                          )
-                
+
                 plt.step(df.index,
                          #  tr.max_power
                          [tr.max_power.max()] * len(df.index),
@@ -281,25 +453,26 @@ def plot_total_power_V2G(results_path, save_path=None, algorithm_names=None):
                      label=algorithm_names[index])
 
             counter += 1
-    
+
     plt.ylabel(f'Power (kW)', fontsize=28)
     plt.xlim([env.sim_starting_date, env.sim_date])
     plt.xticks(ticks=date_range_print,
                labels=[
                    f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
-            #    rotation=45,
+               #    rotation=45,
                fontsize=28)
     plt.yticks(fontsize=28)
     # put legend under the plot
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
-               fancybox=True, shadow=True, ncol=3, fontsize=24)    
+               fancybox=True, shadow=True, ncol=3, fontsize=24)
 
     fig_name = f'{save_path}/Transformer_Aggregated_Power_Prices.png'
-    
+
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
     plt.show()
+
 
 def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
     '''
@@ -313,7 +486,7 @@ def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
     plt.figure(figsize=(10, 7))
     plt.rc('font', family='serif')
 
-    for index, key in enumerate(replay.keys()):        
+    for index, key in enumerate(replay.keys()):
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -329,8 +502,8 @@ def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
         counter = 1
         dim_x = int(np.ceil(np.sqrt(env.cs)))
         dim_y = int(np.ceil(env.cs/dim_x))
-        for cs in env.charging_stations:            
-            
+        for cs in env.charging_stations:
+
             plt.subplot(dim_x, dim_y, counter)
             df = pd.DataFrame([], index=date_range)
 
@@ -377,7 +550,7 @@ def plot_comparable_EV_SoC(results_path, save_path=None, algorithm_names=None):
     fig_name = f'{save_path}/EV_Energy_Level.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
-    
+
 
 def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=None):
     '''
@@ -392,12 +565,12 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
     plt.rc('font', family='serif')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    
+
     ax.spines['left'].set_linewidth(2)
     ax.spines['bottom'].set_linewidth(2)
 
     plt.grid(True, which='major', axis='both')
-    for index, key in enumerate(replay.keys()):        
+    for index, key in enumerate(replay.keys()):
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -412,13 +585,13 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
 
         color_list_map = plt.cm.get_cmap('Set1', len(replay.keys()))
         color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
-        
+
         counter = 1
-        for cs in env.charging_stations:   
+        for cs in env.charging_stations:
             if counter != 1:
                 counter += 1
                 continue
-            
+
             # plt.subplot(1, 2, counter)
             df = pd.DataFrame([], index=date_range)
 
@@ -449,22 +622,23 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
                              label=algorithm_names[index])
 
             # plt.title(f'Charging Station {cs.id + 1}', fontsize=24)
-            
+
             if counter == 1:
                 plt.ylabel('SoC', fontsize=28)
                 plt.yticks(np.arange(0, 1.1, 0.2),
                            fontsize=28)
-                    
+
             else:
                 plt.yticks(fontsize=28)
                 plt.yticks(np.arange(0, 1.1, 0.1),
-                            labels=[' ' for d in np.arange(0, 1.1, 0.1)])            
-            
+                           labels=[' ' for d in np.arange(0, 1.1, 0.1)])
+
             plt.ylim([0.1, 1.09])
             plt.xlim([env.sim_starting_date, env.sim_date])
             plt.xticks(ticks=date_range_print,
-                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
-                    #    rotation=45,
+                       labels=[
+                           f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                       #    rotation=45,
                        fontsize=28)
             counter += 1
 
@@ -477,8 +651,8 @@ def plot_comparable_EV_SoC_single(results_path, save_path=None, algorithm_names=
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    plt.show() 
-    
+    plt.show()
+
 
 def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None):
     '''
@@ -493,12 +667,12 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None)
     plt.rc('font', family='serif')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    
+
     ax.spines['left'].set_linewidth(2)
     ax.spines['bottom'].set_linewidth(2)
 
     plt.grid(True, which='major', axis='both')
-    for index, key in enumerate(replay.keys()):        
+    for index, key in enumerate(replay.keys()):
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -513,22 +687,22 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None)
 
         color_list_map = plt.cm.get_cmap('Set1', len(replay.keys()))
         color_list = color_list_map(np.linspace(0, 1, len(replay.keys())))
-        
+
         counter = 1
-        for cs in env.charging_stations:   
+        for cs in env.charging_stations:
             if counter != 1:
                 counter += 1
                 continue
-            
+
             # plt.subplot(1, 2, counter)
             df = pd.DataFrame([], index=date_range)
 
             for port in range(cs.n_ports):
                 df[port] = env.port_current[port, cs.id, :]
-            
-            #multiply df[port] by the voltage to get the power
+
+            # multiply df[port] by the voltage to get the power
             df = df * cs.voltage * math.sqrt(cs.phases) / 1000
-            
+
             # Add another row with one datetime step to make the plot look better
             df.loc[df.index[-1] +
                    datetime.timedelta(minutes=env.timescale)] = df.iloc[-1]
@@ -553,22 +727,23 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None)
                              label=algorithm_names[index])
 
             # plt.title(f'Charging Station {cs.id + 1}', fontsize=24)
-            
+
             if counter == 1:
                 plt.ylabel('Power (kW)', fontsize=28)
-                plt.yticks([-22,-11,0,11,22],
+                plt.yticks([-22, -11, 0, 11, 22],
                            fontsize=28)
-                    
+
             else:
                 plt.yticks(fontsize=28)
                 # plt.yticks(np.arange(0, 1.1, 0.1),
-                #             labels=[' ' for d in np.arange(0, 1.1, 0.1)])            
-            
+                #             labels=[' ' for d in np.arange(0, 1.1, 0.1)])
+
             # plt.ylim([0.1, 1.09])
             plt.xlim([env.sim_starting_date, env.sim_date])
             plt.xticks(ticks=date_range_print,
-                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
-                    #    rotation=45,
+                       labels=[
+                           f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                       #    rotation=45,
                        fontsize=28)
             counter += 1
 
@@ -581,24 +756,23 @@ def plot_comparable_CS_Power(results_path, save_path=None, algorithm_names=None)
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
 
-    plt.show()   
+    plt.show()
 
 
 def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=None):
-    
     '''
     This function is used to plot the actual power vs the setpoint power.
     It plots the behavior of each algorithm in subplots vertically.
     '''
-    
+
     with open(results_path, 'rb') as f:
         replay = pickle.load(f)
 
     plt.close('all')
     plt.figure(figsize=(7, 11))
-    plt.rc('font', family='serif')    
+    plt.rc('font', family='serif')
 
-    for index, key in enumerate(replay.keys()):        
+    for index, key in enumerate(replay.keys()):
         env = replay[key]
 
         date_range = pd.date_range(start=env.sim_starting_date,
@@ -611,47 +785,49 @@ def plot_actual_power_vs_setpoint(results_path, save_path=None, algorithm_names=
                                          end=env.sim_date,
                                          periods=7)
 
-        #plot the actual power vs the setpoint power for each algorithm in subplots                
+        # plot the actual power vs the setpoint power for each algorithm in subplots
         plt.subplot(len(replay), 1, index+1)
         plt.grid(True, which='major', axis='both')
-        
-        actual_power = env.current_power_usage        
-        setpoints = env.power_setpoints                
+
+        actual_power = env.current_power_usage
+        setpoints = env.power_setpoints
 
         plt.step(date_range, actual_power.T, alpha=0.9, color='#00429d')
         plt.step(date_range, setpoints.T, alpha=1, color='#93003a')
-        
+
         plt.axhline(0, color='black', lw=2)
         plt.title(f'{algorithm_names[index]}', fontsize=22)
-        
+
         plt.yticks(fontsize=22)
-        
+
         if index == len(replay) - 1:
             plt.xticks(ticks=date_range_print,
-                       labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
-                    #    rotation=45,
+                       labels=[
+                           f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                       #    rotation=45,
                        fontsize=22)
             # plt.xlabel('Time', fontsize=28)
         else:
             plt.xticks(ticks=date_range_print,
                        labels=[' ' for d in date_range_print])
-        
+
         if index == len(replay) // 2:
-            plt.ylabel('Power (kW)', fontsize=22)               
-            
+            plt.ylabel('Power (kW)', fontsize=22)
+
         plt.xlim([env.sim_starting_date, env.sim_date])
         plt.ylim([0, 1.1*env.current_power_usage.max()])
-        
-    # Put the legend under the plot in a separate axis           
+
+    # Put the legend under the plot in a separate axis
     plt.legend(['Actual Power', 'Setpoint'], loc='upper center',
                bbox_to_anchor=(0.5, -0.5),
                fancybox=True, shadow=True, ncol=2, fontsize=22)
-        
+
     plt.tight_layout()
     fig_name = f'{save_path}/Actual_vs_Setpoint_Power.png'
     plt.savefig(fig_name, format='png',
-                dpi=60, bbox_inches='tight')    
-    
+                dpi=60, bbox_inches='tight')
+
+
 def plot_prices(results_path, save_path=None, algorithm_names=None):
     with open(results_path, 'rb') as f:
         replay = pickle.load(f)
@@ -659,65 +835,58 @@ def plot_prices(results_path, save_path=None, algorithm_names=None):
     plt.close('all')
     plt.figure(figsize=(7, 11))
     plt.rc('font', family='serif')
-    
+
     keys = list(replay.keys())
     env = replay[keys[0]]
-    
+
     date_range = pd.date_range(start=env.sim_starting_date,
-                                 end=env.sim_starting_date +
-                                 (env.simulation_length - 1) *
-                                 datetime.timedelta(
-                                      minutes=env.timescale),
-                                 freq=f'{env.timescale}min')
+                               end=env.sim_starting_date +
+                               (env.simulation_length - 1) *
+                               datetime.timedelta(
+                                   minutes=env.timescale),
+                               freq=f'{env.timescale}min')
     date_range_print = pd.date_range(start=env.sim_starting_date,
                                      end=env.sim_date,
                                      periods=7)
-    
+
     plt.close('all')
     fig, ax = plt.subplots()
-    
+
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.spines['left'].set_linewidth(2)
     ax.spines['bottom'].set_linewidth(2)
-    
-    plt.grid(True, which='major', axis='both')    
+
+    plt.grid(True, which='major', axis='both')
     plt.rc('font', family='serif')
-    
+
     charge_prices = env.charge_prices[0, :]
     discharge_prices = env.discharge_prices[0, :]
-    
-    plt.step(date_range, -charge_prices, alpha=0.9, color='#00429d',label='Charge Prices')
-    plt.step(date_range, discharge_prices, alpha=1, color='#93003a', label='Discharge Prices')
-    
+
+    plt.step(date_range, -charge_prices, alpha=0.9,
+             color='#00429d', label='Charge Prices')
+    plt.step(date_range, discharge_prices, alpha=1,
+             color='#93003a', label='Discharge Prices')
+
     plt.xlim([env.sim_starting_date, env.sim_date])
     # plt.ylim()
-    # plt.axhline(0, color='black', lw=2)    
+    # plt.axhline(0, color='black', lw=2)
     y_ticks = np.arange(0.150, 0.351, 0.05)
-    plt.yticks(y_ticks,fontsize=28)
+    plt.yticks(y_ticks, fontsize=28)
 
     plt.ylim([0.12, 0.35])
     plt.xticks(ticks=date_range_print,
                labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
-            #    rotation=45,
+               #    rotation=45,
                fontsize=28)
     plt.ylabel('Price (€/kWh)', fontsize=28)
-    
+
     plt.legend(fontsize=28)
-    
-    #show grid lines
-    
-    
+
+    # show grid lines
+
     # plt.tight_layout()
     fig_name = f'{save_path}/Prices.png'
     plt.savefig(fig_name, format='png',
                 dpi=60, bbox_inches='tight')
     plt.show()
-
-if __name__ == "__main__":
-
-    plot_total_power_V2G(results_path='E:/GitHub\ev2gym/results/eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_03_727260/plot_results_dict.pkl',
-                     save_path='E:\GitHub\ev2gym\results\eval_5cs_1tr_V2G_MPC_5_algos_1_exp_2024_03_03_727260',
-                     algorithm_names=['Charge As Fast As Possible', 'OCCF V2G', 'OCCF G2V', 'eMPC V2G', 'eMPC G2V'])
-    # plot_comparable_EV_SoC(results_path='plot_results_dict.pkl')
-    pass

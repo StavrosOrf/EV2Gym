@@ -30,14 +30,15 @@ def eval():
     replay_path = None
 
     config_file = "ev2gym/example_config_files/PublicPST.yaml"
-    # config_file = "ev2gym/example_config_files/BusinessPST.yaml"
-    # config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
+    config_file = "ev2gym/example_config_files/V2GProfitMax.yaml"
+    config_file = "ev2gym/example_config_files/V2GProfitPlusLoads.yaml"
+    config_file = "ev2gym/example_config_files/V2Ggrid.yaml"
 
     env = EV2Gym(config_file=config_file,
                  load_from_replay_path=replay_path,
                  verbose=False,
                  save_replay=True,
-                 save_plots=save_plots,
+                 save_plots=save_plots,      
                  )
 
     new_replay_path = f"replay/replay_{env.sim_name}.pkl"

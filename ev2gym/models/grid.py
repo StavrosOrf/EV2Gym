@@ -1,147 +1,199 @@
-# This file implements functions that simulate the grid of the simulations using PandaPower
-#### NOT used yet, it is in development phase!!!!!!!!!!!!!!
-from pandapower.plotting.plotly import pf_res_plotly
-import pandapower as pp
+'''
+The following code is based on the implementation of https://github.com/ShengrenHou/RL-ADN
+
+Cite as:
+Shengren Hou, Shuyi Gao, Weijie Xia, Edgar Mauricio Salazar Duque, Peter Palensky, Pedro P. Vergara,
+RL-ADN: A high-performance Deep Reinforcement Learning environment for optimal Energy Storage Systems dispatch in active distribution networks, Energy and AI,
+Volume 19, 2025, 100457, ISSN 2666-5468, https://doi.org/10.1016/j.egyai.2024.100457
+'''
+
+import copy as cp
 import numpy as np
+import pandapower as pp
+import pandas as pd
+import pickle
+import time
 
-from pandapower.plotting.plotly.mapbox_plot import set_mapbox_token
-set_mapbox_token(
-    'pk.eyJ1Ijoic29yZmFub3VkYWtpcyIsImEiOiJjbGs2ejQycGcwM3dwM21ydDd2dGc1dG1oIn0.dJ9E-1u53SZfDH0xgVaBkw')
+from ev2gym.models.grid_utility.grid_tensor import GridTensor
+from ev2gym.models.grid_utility.grid_utils import create_pandapower_net
+from ev2gym.models.data_augment import DataGenerator, get_pv_load
+
+import pkg_resources
 
 
-class Grid:
+class PowerGrid():
+    """
+        Custom Environment for Power Network Management.
 
-    def __init__(self, charging_stations, seed=9, case="default"):
+        The environment simulates a power network, and the agent's task is to
+        manage this network by controlling the batteries attached to various nodes.
 
-        self.charging_stations = charging_stations
-        # Load the grid case
-        if case == "default":
-            self.net = pp.networks.create_cigre_network_mv(with_der='pv_wind')
+        """
+
+    def __init__(self,
+                 env_config,
+                 env,
+                 pv_profile=None
+                 ) -> None:
+
+        self.config = env_config
+        self.env = env
+
+        self.algorithm = self.config['pf_solver']
+        self.network_info = self.config['network_info']
+        self.s_base = self.network_info['s_base']
+
+        network_bus_info = pd.read_csv(self.network_info['bus_info_file'])
+        self.node_num = len((network_bus_info.NODES))
+
+        # Conditional initialization of the distribution network based on the chosen algorithm
+        if self.algorithm == "Laurent":
+            # Logic for initializing with GridTensor
+            self.net = GridTensor(self.network_info['bus_info_file'],
+                                  self.network_info['branch_info_file'])
+            self.net.Q_file = np.zeros(self.node_num-1)
+            self.dense_Ybus = self.net._make_y_bus().toarray()
+
+        elif self.algorithm == "PandaPower":
+            # Logic for initializing with PandaPower
+            self.net = create_pandapower_net(self.network_info)
         else:
-            raise NotImplementedError
+            raise ValueError(
+                "Invalid algorithm choice. Please choose 'Laurent' or 'PandaPower'.")
 
-        self.seed = seed
-        np.random.seed(seed)
+        assert self.config['timescale'] == 15, "Only 15 minutes timescale is supported with the simulate_grid=True !!!"
 
-        # Initialize the Charging Stations
-        for i in range(len(self.net.bus)):
-            # Add a Storage Unit to each bus of the grid except the external grid bus
-            if i not in self.net.ext_grid.bus.values:
-                pp.create_storage(self.net, bus=i, p_mw=0, max_e_mwh=1000,
-                                  q_mvar=0,  type="ChargingStation")
-        # Initialize the charging stations conneted bus
-        # get charging_stations random integers excluding the integers in self.net.ext_grid.bus.values
-        self.charging_stations_buses = np.random.choice(
-            [i for i in range(len(self.net.bus)) if i not in self.net.ext_grid.bus.values], charging_stations, replace=True)
+        data_generator = pkg_resources.resource_filename(
+            'ev2gym', 'data/augmentor.pkl')
 
-    def _get_grid_actions(self,actions):
-        # Transform ations to the format (number_of_ports,1) -> (bus, p_mw)
+        with open(data_generator, "rb") as f:
+            self.data_generator = CustomUnpickler(f).load()
 
-        return actions
-    
-    def step(self, actions):
+        # self.episode_length: int = 24 * 60 / self.data_manager.time_interval
+        self.episode_length = self.config['simulation_length']
 
-        actions = _get_grid_actions(actions)
+        self.pv_profile = pv_profile
 
-        # reset CS actions
-        for i in range(len(self.net.storage)):
-            self.net.storage.p_mw[i] = 0
+        # self.reset(date, None, None)
 
-        # actions are in the format (bus, p_mw)
-        assert (len(actions) == self.charging_stations)
-        for action in actions:
-            self.net.storage.p_mw[action[0]] += action[1]
+    def reset(self, date, load_data, pv_data) -> np.ndarray:
+        """
+        Reset the environment to its initial state and return the initial state.
+        """
 
-        std = 0.1
-        # TODO: replace with REAL load profiles
-        self.net.load.p_mw = np.random.normal(
-            self.net.load.p_mw, std, (len(self.net.load)))
-        self.net.load.q_mvar = np.random.normal(
-            self.net.load.q_mvar, std, (len(self.net.load)))
+        hour = date.hour
+        minute = date.minute
+        time_slot = hour * 4 + minute // 15
+        self.current_step = 0
 
-        # TODO: replace with REAL static generation (pv, wind) profiles
-        self.net.sgen.p_mw = np.random.normal(
-            self.net.sgen.p_mw, std, (len(self.net.sgen)))
-        # self.net.sgen.q_mvar = np.random.normal(self.net.sgen.q_mvar, std, (len(self.net.sgen)))
+        if load_data is not None:
+            self.load_data = load_data
+            self.pv_data = pv_data
+        else:
+            self.load_data = self.data_generator.sample_data(n_buses=self.node_num,
+                                                             n_steps=self.episode_length + 24,
+                                                             start_day=date.weekday(),
+                                                             start_step=time_slot,
+                                                             )
+            # normalize active power profile data from 0 to 1
+            self.load_data = (self.load_data - self.load_data.min()) / \
+                (self.load_data.max() - self.load_data.min())
 
-        # TODO: replace with REAL generation profiles
-        self.net.gen.p_mw = np.random.normal(
-            self.net.gen.p_mw, std, (len(self.net.gen)))
-        self.net.gen.vm_pu = np.random.normal(
-            self.net.gen.vm_pu, std, (len(self.net.gen)))
+            self.load_data = self.load_data * self.net.p_values * self.network_info['load_multiplier']
+            self.load_data = self.load_data.round(1)
 
-        # TODO: replace with REAL ext_grid profile
-        self.net.ext_grid.vm_pu = np.random.normal(
-            self.net.ext_grid.vm_pu, std, (len(self.net.ext_grid)))
-        self.net.ext_grid.va_degree = np.random.normal(
-            self.net.ext_grid.va_degree, std, (len(self.net.ext_grid)))
+            self.pv_data = get_pv_load(self.pv_profile,
+                                       self.env)
+            self.pv_data = self.pv_data * self.net.p_values * self.network_info['pv_scale']/100
+            self.pv_data = self.pv_data.round(1)
 
-        # solve the power flow
-        pp.runpp(self.net, numba=False)
-    
-    def get_grid_state(self):
-        '''
-        TODO: return the grid state
-        '''
-        pass
+        self.active_power = self.load_data[self.current_step,
+                                           1:self.node_num].reshape(1, -1)
 
-    def get_charging_stations_buses(self):
-        return self.charging_stations_buses
+        self.reactive_power = self.active_power * self.net.pf
+        self.reactive_power = self.reactive_power.round(1)
+        self.active_power -= self.pv_data[self.current_step,
+                                          1:self.node_num].reshape(1, -1)
 
-    # TODO: this functino returns all the related transformers to the buses of the charging stations,
-    #  it will help in the future to get the transformer loading objectives
-    def get_bus_transformers(self):
-        # return (n_charging_stations) with calues from the set {n_transformers}
-        return None
+        return self.active_power, self.reactive_power
 
-    def visualize_pf(self):
+    def step(self, actions: np.ndarray) -> tuple:
+        self.active_power += actions
 
-        # visualize the grid using plotly
-        # pp.plotting.plotly.simple_plotly(net)
-        pf_res_plotly(self.net)
-        # simple plot of net
-        # pp.plotting.simple_plot(self.net, plot_loads=True, plot_sgens=True)
+        self.solution = self.net.run_pf(active_power=self.active_power,
+                                        reactive_power=self.reactive_power
+                                        )
 
-    def get_overloaded_lines(self):
-        return self.net.res_line[self.net.res_line.loading_percent > 100]
+        v = self.solution["v"]
+        v_totall = np.insert(v, 0, 1)
+        vm_pu_after_control = cp.deepcopy(abs(v_totall))
 
-    def get_overloaded_trafos(self, verbose=True):
-        if verbose:
-            print(
-                f'Traffo loading percent:\n {self.net.res_trafo.loading_percent}')
-        return self.net.res_trafo[self.net.res_trafo.loading_percent > 100]
+        self.current_step += 1
+
+        active_power = cp.copy(self.load_data[self.current_step, :])
+        pv_data = cp.copy(self.pv_data[self.current_step, :])
+
+        self.active_power = (active_power)[1:self.node_num].reshape(1, -1)
+        self.reactive_power = self.active_power * self.net.pf
+        self.reactive_power = self.reactive_power.round(1)
+        self.active_power -= (pv_data)[1:self.node_num].reshape(1, -1)
+
+        return self.active_power, self.reactive_power, vm_pu_after_control
 
 
-if __name__ == "__main__":
+class CustomUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == "__main__":
+            module = "ev2gym.models.data_augment"
+        return super().find_class(module, name)
 
-    grid = Grid(4)
 
-    timeslot_duration = 5  # minutes
-    simulation_duration = 3  # * timeslot_duration minutes
+def power_flow_tensor_constant_power(K,
+                                     L,
+                                     S,
+                                     v0,
+                                     ts,
+                                     nb,
+                                     iterations,
+                                     tolerance
+                                     ):
+    """
+    Performs the tensor-based power flow calculation for constant power loads.
 
-    for simu_step in range(simulation_duration):
-        print(f"Simulation step {simu_step}")
-        actions = [(1, 0.5), (2, 0.1), (2, -0.2), (3, 0.1)]
-        grid.step(actions)
-        # grid.visualize_pf()
+    Parameters:
+    K (np.ndarray): Matrix K.
+    L (np.ndarray): Matrix L.
+    S (np.ndarray): Power values.
+    v0 (np.ndarray): Initial voltage values.
+    ts (int): Number of time steps.
+    nb (int): Number of buses.
+    iterations (int): Maximum number of iterations.
+    tolerance (float): Convergence tolerance.
 
-        # print information about the overaloading and the lines and the transformer from here
-        # print(grid.get_overloaded_lines())
-        grid.get_overloaded_trafos(verbose=False)
+    Returns:
+    tuple: Tuple containing the final voltage values and the number of iterations performed.
+    """
+    iteration = 0
+    tol = np.inf
+    S = S.T
+    v0 = v0.T
 
-    # Get informatino about the overaloading and the lines and the transformer from here
-    # print(net.res_line)
-    # print(net.res_trafo)
-    # print(net.res_trafo.loading_percent.round(3).astype(str))
-    # # visualize the grid using plotly
-    # pp.plotting.plotly.simple_plotly(net)
+    LAMBDA = np.zeros((nb - 1, ts)).astype(np.complex128)
+    Z = np.zeros((nb - 1, ts)).astype(np.complex128)
+    voltage_k = np.zeros((nb - 1, ts)).astype(np.complex128)
 
-    # net = grid.net
-    # print(
-    #     f'Overloaded lines: {net.res_line[net.res_line.loading_percent > 100]}')
-    # pp.plotting.to_html(net, "./test.html")
+    while iteration < iterations and tol >= tolerance:
 
-    # pf_res_plotly(net)
+        # Hadamard product ( (nb-1) x ts)
+        LAMBDA = np.conj(S * (1 / (v0)))  # + epsilon
+        Z = K @ LAMBDA  # Matrix ( (nb-1) x ts )
+        # This is a broadcasted sum dim => ( (nb-1) x ts  +  (nb-1) x 1 => (nb-1) x ts )
+        voltage_k = Z + L
+        tol = np.max(np.abs(np.abs(voltage_k) - np.abs(v0)))
+        v0 = voltage_k
+        iteration += 1
 
-    # # simple plot of net
-    # pp.plotting.simple_plot(net, plot_loads=True, plot_sgens=True)
+    S = S.T  # Recover the original shape of the power
+    v0 = v0.T  # Recover the original shape of the power
+
+    return v0, iteration

@@ -62,6 +62,25 @@ def get_statistics(env) -> Dict:
         energy_user_satisfaction[i] = (e_actual / e_max) * 100
         total_steps_min_emergency_battery_capacity_violation += ev.min_emergency_battery_capacity_metric
 
+    saved_grid_energy = env.saved_grid_energy.sum()
+
+    # find amount of voltage outside 0.95-1.05 p.u.
+    if env.simulate_grid:
+        v_m = np.reshape(env.node_voltage, (-1))
+        voltage_violation = np.minimum(
+            np.zeros_like(v_m), 0.05 - np.abs(1-v_m)).sum()
+        # calculate how many times the voltage is outside 0.95-1.05 p.u.
+        voltage_violation_counter = np.sum(v_m < 0.95) + np.sum(v_m > 1.05)
+                
+        v_m = env.node_voltage
+        # count how many steps have at least one node with voltage outside 0.95-1.05 p.u.
+        voltage_violation_counter_per_step = np.sum(
+            np.any((v_m < 0.95) | (v_m > 1.05), axis=0))
+        #compare dimensions
+        # print(f"Voltage violation counter per step: {voltage_violation_counter_per_step}, shape: {v_m.shape}")
+        # print(f"bool shape: {np.any((v_m < 0.95) | (v_m > 1.05), axis=0).shape}")
+
+
     stats = {'total_ev_served': total_ev_served,
              'total_profits': total_profits,
              'total_energy_charged': total_energy_charged,
@@ -80,6 +99,17 @@ def get_statistics(env) -> Dict:
              'battery_degradation_cycling': battery_degradation_cycling,
              'total_reward': env.total_reward,
              }
+
+    if env.simulate_grid:
+        stats['saved_grid_energy'] = saved_grid_energy,
+        stats['voltage_violation'] = voltage_violation,
+        stats['voltage_violation_counter'] = voltage_violation_counter
+        stats['voltage_violation_counter_per_step'] = voltage_violation_counter_per_step
+    else:
+        stats['saved_grid_energy'] = 0
+        stats['voltage_violation'] = 0
+        stats['voltage_violation_counter'] = 0
+        stats['voltage_violation_counter_per_step'] = 0
 
     if env.eval_mode != "optimal" and env.replay is not None:
         if env.replay.optimal_stats is not None:
@@ -271,7 +301,7 @@ def spawn_single_EV(env,
                   max_ac_charge_power=env.ev_specs[sampled_ev]["max_ac_charge_power"],
                   max_dc_charge_power=env.ev_specs[sampled_ev]["max_dc_charge_power"],
                   max_discharge_power=-
-                  env.ev_specs[sampled_ev]["max_dc_discharge_power"],
+                  env.ev_specs[sampled_ev]["max_ac_discharge_power"],
                   min_emergency_battery_capacity=min_emergency_battery_capacity,
                   charge_efficiency=charge_efficiency,
                   discharge_efficiency=discharge_efficiency,
@@ -280,6 +310,7 @@ def spawn_single_EV(env,
                                           (np.random.rand()+0.00001)/5, 3),  # [0.7-0.9]
                   transition_soc_multiplier=transition_soc_multiplier,
                   battery_capacity=battery_capacity,
+                  min_battery_capacity = env.config["ev"]["min_battery_capacity"],
                   desired_capacity=env.config["ev"]['desired_capacity'] *
                   battery_capacity,
                   time_of_arrival=step+1,
@@ -301,6 +332,7 @@ def spawn_single_EV(env,
                   max_dc_charge_power=env.config["ev"]['max_dc_charge_power'],
                   max_discharge_power=env.config["ev"]['max_discharge_power'],
                   min_discharge_power=env.config["ev"]['min_discharge_power'],
+                  min_battery_capacity = env.config["ev"]["min_battery_capacity"],
                   time_of_arrival=step+1,
                   time_of_departure=int(
                       time_of_stay + step + 3),
@@ -401,7 +433,7 @@ def spawn_single_EV_GF(env,
                   max_ac_charge_power=env.ev_specs[sampled_ev]["max_ac_charge_power"],
                   max_dc_charge_power=env.ev_specs[sampled_ev]["max_dc_charge_power"],
                   max_discharge_power=-
-                  env.ev_specs[sampled_ev]["max_dc_discharge_power"],
+                  env.ev_specs[sampled_ev]["max_ac_discharge_power"],
                   discharge_efficiency=np.round(1 -
                                                 (np.random.rand()+0.00001)/20, 3),  # [0.95-1]
                   transition_soc=np.round(0.9 -
@@ -410,6 +442,7 @@ def spawn_single_EV_GF(env,
                   battery_capacity=battery_capacity,
                   desired_capacity=env.config["ev"]['desired_capacity'] *
                   battery_capacity,
+                  min_battery_capacity=env.config["ev"]["min_battery_capacity"],
                   time_of_arrival=step+1,
                   time_of_departure=int(
                       time_of_stay + step + 3),
@@ -428,6 +461,7 @@ def spawn_single_EV_GF(env,
                   max_dc_charge_power=env.config["ev"]['max_dc_charge_power'],
                   max_discharge_power=env.config["ev"]['max_discharge_power'],
                   min_discharge_power=env.config["ev"]['min_discharge_power'],
+                  min_battery_capacity=env.config["ev"]["min_battery_capacity"],
                   time_of_arrival=step+1,
                   time_of_departure=int(
                       time_of_stay + step + 3),
@@ -755,3 +789,73 @@ def calculate_charge_power_potential(env) -> float:
             power_potential += cs_power_potential
 
     return power_potential
+
+
+def init_statistic_variables(env):
+    '''
+    Initializes the variables used for keeping simulation statistics
+    '''
+    env.current_step = 0
+    env.total_evs_spawned = 0
+    env.total_reward = 0
+
+    env.current_ev_departed = 0
+    env.current_ev_arrived = 0
+    env.current_evs_parked = 0
+
+    env.current_power_usage = np.zeros(env.simulation_length)
+    env.saved_grid_energy = np.zeros(env.simulation_length)
+    env.charge_power_potential = np.zeros(env.simulation_length)
+
+    if env.simulate_grid:
+        env.node_active_power = np.zeros(
+            [env.grid.node_num, env.simulation_length])
+        env.node_reactive_power = np.zeros(
+            [env.grid.node_num, env.simulation_length])
+        env.node_voltage = np.zeros(
+            [env.grid.node_num, env.simulation_length])
+        env.node_ev_power = np.zeros(
+            [env.grid.node_num, env.simulation_length])
+
+    env.cs_power = np.zeros([env.cs, env.simulation_length])
+    env.cs_current = np.zeros([env.cs, env.simulation_length])
+
+    env.tr_overload = np.zeros(
+        [env.number_of_transformers, env.simulation_length])
+
+    env.tr_inflexible_loads = np.zeros(
+        [env.number_of_transformers, env.simulation_length])
+
+    env.tr_solar_power = np.zeros(
+        [env.number_of_transformers, env.simulation_length])
+
+    # env.port_power = np.zeros([env.number_of_ports,
+    #                             env.cs,
+    #                             env.simulation_length],
+    #                            dtype=np.float16)
+
+    if not env.lightweight_plots:
+        env.port_current = np.zeros([env.number_of_ports,
+                                     env.cs,
+                                     env.simulation_length],
+                                    dtype=np.float16,
+                                    )
+        env.port_current_signal = np.zeros([env.number_of_ports,
+                                            env.cs,
+                                            env.simulation_length],
+                                           dtype=np.float16,
+                                           )
+
+        env.port_energy_level = np.zeros([env.number_of_ports,
+                                          env.cs,
+                                          env.simulation_length],
+                                         dtype=np.float16)
+        # env.port_charging_cycles = np.zeros([env.number_of_ports,
+        #                                       env.cs,
+        #                                       env.simulation_length],
+        #                                      dtype=np.float16)
+        env.port_arrival = dict({f'{j}.{i}': []
+                                 for i in range(env.number_of_ports)
+                                 for j in range(env.cs)})
+
+    env.done = False

@@ -4,6 +4,7 @@ This file contains the Transformer class which is used to model the transformer 
 import numpy as np
 import math
 
+
 class Transformer():
     """
     Transformer class for the ev_city environment
@@ -34,8 +35,9 @@ class Transformer():
 
         """
 
-        self.id = id        
-        self.voltage = env.config['charging_station']['voltage'] * math.sqrt(env.config['charging_station']['phases'])
+        self.id = id
+        self.voltage = env.config['charging_station']['voltage'] * \
+            math.sqrt(env.config['charging_station']['phases'])
         max_current = max_power * 1000 / self.voltage
 
         self.max_current = np.ones(simulation_length)*max_current
@@ -172,8 +174,8 @@ class Transformer():
 
         load_forecast = self.inflexible_load_forecast[step:step+horizon]
         pv_forecast = self.pv_generation_forecast[step:step+horizon]
-        
-        if step < len(self.inflexible_load_forecast):                        
+
+        if step < len(self.inflexible_load_forecast):
             load_forecast[0] = self.inflexible_load[step]
             pv_forecast[0] = self.solar_power[step]
 
