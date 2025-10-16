@@ -12,14 +12,15 @@ Develop and evaluate **any type of smart charging algorithm**: from simple heuri
 
 EV2Gym is **fully customizable** and easily **configurable**! Now can also **simulate the grid**, thanks to [RL-ADN](https://github.com/EnergyQuantResearch/RL-ADN)!
 
-The EV2Gym **Paper** can be found at: [link](https://arxiv.org/abs/2404.01849) and [link](https://dl.acm.org/doi/abs/10.1109/TITS.2024.3510945).
+The EV2Gym **Paper** can be found at: [arXiv](https://arxiv.org/abs/2404.01849) and [IEEE](https://dl.acm.org/doi/abs/10.1109/TITS.2024.3510945).
 
 **Highly recommended** related works and repositories:
-- Physics-Informed Reinforcement Learning for Large-Scale EV Smart Charging Considering Distribution Network Voltage Constraints [link](https://arxiv.org/abs/2510.12335) repository: https://github.com/StavrosOrf/EV2Gym_PI-TD3
-- GNN-DT: Graph Neural Network Enhanced Decision Transformer for Efficient Optimization in Dynamic Environments [Paper link](https://arxiv.org/abs/2502.01778) https://github.com/StavrosOrf/DT4EVs
-- Scalable Reinforcement Learning for Dynamic Electric Vehicle Charging Optimization Using Graph Neural Networks [Paper link](https://github.com/StavrosOrf/EV-GNN) repo https://github.com/StavrosOrf/EV-GNN
-- Open source algorithms for maximizing V2G flexibility based on modelpredictive contro [Paper link](https://www.sciencedirect.com/science/article/pii/S0378779625006704) repo https://github.com/CesarDiazLondono/MPC-G2V-V2G
-
+| Title                                                                                                                          | Paper                                                                                | GitHub repository                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Physics-Informed Reinforcement Learning for Large-Scale EV Smart Charging Considering Distribution Network Voltage Constraints | [arXiv](https://arxiv.org/abs/2510.12335)                                            | [https://github.com/StavrosOrf/EV2Gym_PI-TD3](https://github.com/StavrosOrf/EV2Gym_PI-TD3)         |
+| GNN-DT: Graph Neural Network Enhanced Decision Transformer for Efficient Optimization in Dynamic Environments                  | [arXiv](https://arxiv.org/abs/2502.01778)                                            | [https://github.com/StavrosOrf/DT4EVs](https://github.com/StavrosOrf/DT4EVs)                       |
+| Scalable Reinforcement Learning for Dynamic Electric Vehicle Charging Optimization Using Graph Neural Networks                 | [Paper link](https://github.com/StavrosOrf/EV-GNN)                                   | [https://github.com/StavrosOrf/EV-GNN](https://github.com/StavrosOrf/EV-GNN)                       |
+| Open-source algorithms for maximizing V2G flexibility based on model predictive control                                        | [ScienceDirect](https://www.sciencedirect.com/science/article/pii/S0378779625006704) | [https://github.com/CesarDiazLondono/MPC-G2V-V2G](https://github.com/CesarDiazLondono/MPC-G2V-V2G) |
 
 
 ## Installation
