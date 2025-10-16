@@ -13,6 +13,7 @@ from typing import List, Tuple
 from ev2gym.models.ev_charger import EV_Charger
 from ev2gym.models.ev import EV
 from ev2gym.models.transformer import Transformer
+from ev2gym.models.grid import PowerGrid
 
 from ev2gym.utilities.utils import EV_spawner, generate_power_setpoints, EV_spawner_GF
 
@@ -22,13 +23,13 @@ def load_ev_spawn_scenarios(env) -> None:
 
     # Load the EV specs
     if env.config['heterogeneous_ev_specs']:
-        
+
         if "ev_specs_file" in env.config:
             ev_specs_file = env.config['ev_specs_file']
-        else:            
+        else:
             ev_specs_file = pkg_resources.resource_filename(
                 'ev2gym', 'data/ev_specs.json')
-        
+
         with open(ev_specs_file) as f:
             env.ev_specs = json.load(f)
 
@@ -96,7 +97,10 @@ def load_power_setpoints(env) -> np.ndarray:
     if env.load_from_replay_path:
         return env.replay.power_setpoints
     else:
-        return generate_power_setpoints(env)
+        if not env.config['power_setpoint_enabled']:
+            return np.zeros(env.simulation_length)
+        else:
+            return generate_power_setpoints(env)
 
 
 def generate_residential_inflexible_loads(env) -> np.ndarray:
@@ -272,9 +276,9 @@ def load_transformers(env) -> List[Transformer]:
             transformers.append(transformer)
 
     else:
-        if env.number_of_transformers > env.cs:
-            raise ValueError(
-                'The number of transformers cannot be greater than the number of charging stations')
+        # if env.number_of_transformers > env.cs:
+        #     raise ValueError(
+        #         'The number of transformers cannot be greater than the number of charging stations')
         for i in range(env.number_of_transformers):
             # get indexes where the transformer is connected
             transformer = Transformer(id=i,
@@ -311,7 +315,7 @@ def load_ev_charger_profiles(env) -> List[EV_Charger]:
         for i, tr in enumerate(env.charging_network_topology):
             for cs in env.charging_network_topology[tr]['charging_stations']:
                 ev_charger = EV_Charger(id=cs_counter,
-                                        connected_bus=0,
+                                        connected_bus=i,
                                         connected_transformer=i,
                                         min_charge_current=env.charging_network_topology[tr][
                                             'charging_stations'][cs]['min_charge_current'],
@@ -345,7 +349,7 @@ def load_ev_charger_profiles(env) -> List[EV_Charger]:
 
         for i in range(env.cs):
             ev_charger = EV_Charger(id=i,
-                                    connected_bus=0,  # env.cs_buses[i],
+                                    connected_bus=env.cs_transformers[i],
                                     connected_transformer=env.cs_transformers[i],
                                     n_ports=env.number_of_ports_per_cs,
                                     max_charge_current=env.config['charging_station']['max_charge_current'],
@@ -384,6 +388,7 @@ def load_ev_profiles(env) -> List[EV]:
     else:
         return env.replay.EVs
 
+
 def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
     '''Loads the electricity prices of the simulation
     If load_from_replay_path is None, then the electricity prices are created randomly
@@ -400,13 +405,20 @@ def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
         file_path = pkg_resources.resource_filename(
             'ev2gym', 'data/Netherlands_day-ahead-2015-2024.csv')
         env.price_data = pd.read_csv(file_path, sep=',', header=0)
-        drop_columns = ['Country', 'Datetime (Local)']        
+        # import polars as pl
+        # env.price_data = pl.read_csv(file_path).to_pandas()
+
+        drop_columns = ['Country', 'Datetime (Local)']
 
         env.price_data.drop(drop_columns, inplace=True, axis=1)
-        env.price_data['year'] = pd.DatetimeIndex(env.price_data['Datetime (UTC)']).year
-        env.price_data['month'] = pd.DatetimeIndex(env.price_data['Datetime (UTC)']).month
-        env.price_data['day'] = pd.DatetimeIndex(env.price_data['Datetime (UTC)']).day
-        env.price_data['hour'] = pd.DatetimeIndex(env.price_data['Datetime (UTC)']).hour
+        env.price_data['year'] = pd.DatetimeIndex(
+            env.price_data['Datetime (UTC)']).year
+        env.price_data['month'] = pd.DatetimeIndex(
+            env.price_data['Datetime (UTC)']).month
+        env.price_data['day'] = pd.DatetimeIndex(
+            env.price_data['Datetime (UTC)']).day
+        env.price_data['hour'] = pd.DatetimeIndex(
+            env.price_data['Datetime (UTC)']).hour
 
     # assume charge and discharge prices are the same
     # assume prices are the same for all charging stations
@@ -435,7 +447,7 @@ def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
             year = 2022
             if day > 28:
                 day -= 1
-            print("Debug:", year, month, day, hour)
+            # print("Debug:", year, month, day, hour)
             charge_prices[:, i] = -data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
                                             'Price (EUR/MWhe)'].iloc[0]/1000  # €/kWh
             discharge_prices[:, i] = data.loc[(data['year'] == year) & (data['month'] == month) & (data['day'] == day) & (data['hour'] == hour),
@@ -447,3 +459,81 @@ def load_electricity_prices(env) -> Tuple[np.ndarray, np.ndarray]:
 
     discharge_prices = discharge_prices * env.config['discharge_price_factor']
     return charge_prices, discharge_prices
+
+
+def load_grid(env):
+    '''Loads the grid of the simulation'''
+
+    if env.load_from_replay_path is not None:
+        env.cs_transformers = env.replay.cs_transformers
+        return env.replay.grid
+
+    # Simulate grid
+    if env.simulate_grid:
+        if env.load_from_replay_path is None:
+            pv_profile = load_pv_profiles(env)
+            
+        grid = PowerGrid(env.config,
+                         env=env,
+                         pv_profile=pv_profile,
+                         )
+
+        env.number_of_transformers = grid.node_num-1
+        env.cs_transformers = [
+            *np.arange(env.number_of_transformers)] * (env.cs // env.number_of_transformers)
+        env.cs_transformers += np.arange(
+            env.cs % env.number_of_transformers).tolist()
+        # print(f'cs_transformers: {env.cs_transformers}')
+
+        assert env.charging_network_topology is None, "Charging network topology is not supported with grid simulation."
+
+        
+
+        return grid
+
+    if env.charging_network_topology is None:
+        env.cs_transformers = [
+            *np.arange(env.number_of_transformers)] * (env.cs // env.number_of_transformers)
+        env.cs_transformers += np.arange(
+            env.cs % env.number_of_transformers).tolist()
+
+    return None
+
+
+def load_pv_profiles(env) -> np.ndarray:
+
+    # Load the data
+    data_path = pkg_resources.resource_filename(
+        'ev2gym', 'data/pv_netherlands.csv')
+    data = pd.read_csv(data_path, sep=',', header=0)
+    data.drop(['time', 'local_time'], inplace=True, axis=1)
+
+    desired_timescale = env.timescale
+
+    dataset_timescale = 60
+    dataset_starting_date = '2019-01-01 00:00:00'
+
+    if desired_timescale > dataset_timescale:
+        data = data.groupby(
+            data.index // (desired_timescale/dataset_timescale)).max()
+    elif desired_timescale < dataset_timescale:
+        data = data.loc[data.index.repeat(
+            dataset_timescale/desired_timescale)].reset_index(drop=True)
+
+    # smooth data by taking the mean of every 5 rows
+    data['electricity'] = data['electricity'].rolling(
+        window=60//desired_timescale, min_periods=1).mean()
+    # use other type of smoothing
+    data['electricity'] = data['electricity'].ewm(
+        span=60//desired_timescale, adjust=True).mean()
+
+    # duplicate the data to have two years of data
+    data = pd.concat([data, data], ignore_index=True)
+
+    # add a date column to the dataframe
+    data['date'] = pd.date_range(
+        start=dataset_starting_date, periods=data.shape[0], freq=f'{desired_timescale}min')
+
+    return data
+
+

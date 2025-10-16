@@ -28,46 +28,34 @@ class EvCityReplay():
         self.n_transformers = env.number_of_transformers
         self.timescale = env.timescale
         self.sim_date = env.sim_starting_date
-        # self.cs_transformers = env.cs_transformers
+        self.cs_transformers = env.cs_transformers
         self.power_setpoints = env.power_setpoints
         self.scenario = env.scenario
         self.heterogeneous_specs = env.heterogeneous_specs
         self.ev_load_potential = env.current_power_usage
+        self.simulate_grid = env.simulate_grid
 
         self.transformers = env.transformers
         self.charging_stations = env.charging_stations
-        self.EVs = env.EVs
+        self.EVs = env.EVs_profiles
+        self.grid = env.grid
+        if env.simulate_grid:
+            self.load_data = env.grid.load_data
+            self.pv_data = env.grid.pv_data
+            self.K = env.grid.net._K_
+            self.L = env.grid.net._L_
+            self.s_base = env.grid.net.s_base
+            self.active_power = env.node_active_power
+            self.reactive_power = env.node_reactive_power
         
         self.unstirred_EVs = None
         self.unstirred_stats = None
         self.optimal_EVs = None
         self.optimal_stats = None
         
-        #save unstirred and optimal EVs and stats for evaluation
-        # if env.eval_mode =="unstirred":
-        #     self.unstirred_EVs = env.EVs
-        #     self.unstirred_stats = self.stats
-        
         if env.eval_mode =="optimal":
             self.optimal_EVs = env.EVs
             self.optimal_stats = self.stats
-            
-        #     if env.load_from_replay_path is not None:            
-        #         self.unstirred_EVs = env.replay.unstirred_EVs
-        #         self.unstirred_stats = env.replay.unstirred_stats
-        # else:
-        #     if env.load_from_replay_path is not None:            
-        #         self.unstirred_EVs = env.replay.unstirred_EVs
-        #         self.unstirred_stats = env.replay.unstirred_stats                    
-        #         self.optimal_EVs = env.replay.optimal_EVs
-        #         self.optimal_stats = env.replay.optimal_stats            
-    
-        
-        # self.transformer_amps  = env.transformer_amps
-        # self.cs_power = env.cs_power
-        # self.port_power = env.port_power
-        
-        self.simulate_grid = env.simulate_grid
 
         self.charge_prices = env.charge_prices
         self.discharge_prices = env.discharge_prices

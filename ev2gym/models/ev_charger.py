@@ -196,7 +196,8 @@ class EV_Charger:
                 self.current_power_output += actual_energy * 60/self.timescale
                 self.current_total_amps += actual_amps
 
-            # print(f'CS {self.id} port {i} action {action} amps {amps} energy {actual_energy} total_amps {self.current_total_amps}')
+            # print(f'CS {self.id} port {i} action {action} amps {amps} energy {actual_energy} total_amps {self.current_total_amps}| profit {profit}')
+            # print(f'prices {charge_price} {discharge_price}')
             self.current_signal.append(amps)
 
             if self.current_total_amps - 0.0001 > self.max_charge_current:

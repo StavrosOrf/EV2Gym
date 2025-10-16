@@ -63,15 +63,15 @@ def ev_city_plot(env):
     # close plt ion
     plt.ioff()
     plt.close('all')
-    
+
     # light weight plots when there are too many charging stations
     if not env.lightweight_plots:
         # Plot the energy level of each EV for each charging station
-        plt.figure(figsize=(20, 17))        
-        # plt.style.use('seaborn-darkgrid')        
+        plt.figure(figsize=(20, 17))
+        # plt.style.use('seaborn-darkgrid')
         plt.rcParams.update({'font.size': 16})
         plt.rcParams['font.family'] = ['serif']
-        
+
         counter = 1
         dim_x = int(np.ceil(np.sqrt(env.cs)))
         dim_y = int(np.ceil(env.cs/dim_x))
@@ -125,7 +125,7 @@ def ev_city_plot(env):
         # save in pdf format
         plt.savefig(fig_name, format='png',  # svg
                     dpi=60, bbox_inches='tight')
-        
+
         plt.close('all')
         # Plot the charging and discharging prices
         plt.figure(figsize=(20, 17))
@@ -160,19 +160,19 @@ def ev_city_plot(env):
             plt.subplot(dim_x, dim_y, counter)
             df = pd.DataFrame([],
                               index=date_range)
-            
+
             colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)+1))
 
             if env.config['inflexible_loads']['include']:
-                df['inflexible'] = env.tr_inflexible_loads[tr.id, :] * 1000 / tr.voltage
-                blue = np.array([0.529, 0.808, 0.922, 1])                
+                df['inflexible'] = env.tr_inflexible_loads[tr.id, :] * \
+                    1000 / tr.voltage
+                blue = np.array([0.529, 0.808, 0.922, 1])
                 colors = np.insert(colors, 0, blue, axis=0)
-                
+
             if env.config['solar_power']['include']:
                 df['solar'] = env.tr_solar_power[tr.id, :] * 1000 / tr.voltage
                 gold = np.array([1, 0.843, 0, 1])
                 colors = np.insert(colors, 0, gold, axis=0)
-                
 
             for cs in tr.cs_ids:
                 df[cs] = env.cs_current[cs, :]
@@ -182,7 +182,6 @@ def ev_city_plot(env):
             df_pos[df_pos <= 0] = 0
             df_neg = df.copy()
             df_neg[df_neg > 0] = 0
-            
 
             # Add another row with one datetime step to make the plot look better
             df_pos.loc[df_pos.index[-1] +
@@ -335,6 +334,178 @@ def ev_city_plot(env):
         fig_name = f'results/{env.sim_name}/CS_Current_signals.png'
         plt.savefig(fig_name, format='png', dpi=60, bbox_inches='tight')
 
+    if env.simulate_grid:
+        plt.close('all')
+        # Plot the total power of the CPO
+        plt.figure(figsize=(16, 12))
+
+        # plt.style.use('seaborn-darkgrid')
+        # plt.rcParams.update({'font.size': 16})
+        plt.rcParams['font.family'] = ['serif']
+
+        number_of_nodes = env.grid.node_num
+
+        # split into subplots for each node
+        counter = 1
+        dim_x = int(np.ceil(np.sqrt(number_of_nodes)))
+        dim_y = int(np.ceil(number_of_nodes/dim_x))
+
+        for node in range(number_of_nodes):
+
+            plt.subplot(dim_x, dim_y, counter)
+            
+            plt.step(date_range,
+                     env.node_active_power[node, :] + env.node_ev_power[node, :],
+                     label=f'Total Active Power',
+                     where='post',
+                     linewidth=1,
+                     )        
+
+            plt.step(date_range,
+                     env.node_active_power[node, :],
+                     label=f'Node Active Power',
+                     where='post',
+                     linewidth=0.8,
+                     )
+
+            plt.step(date_range,
+                     env.node_ev_power[node, :],
+                     label=f'EV Active Power',
+                     where='post',
+                     linewidth=0.8,
+                     )
+
+            plt.title(f'Node {node}', fontsize=8)
+            # plt.xlabel(f'Time')
+
+            if node % dim_x == 0:
+                plt.ylabel('Power (kW)')
+
+            plt.xlim([env.sim_starting_date, env.sim_date])
+
+            plt.xticks(ticks=date_range_print,
+                       labels=[
+                           f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                       fontsize=4)
+
+            if node == 0:
+                plt.legend(fontsize=8)
+
+            plt.grid(True, which='minor', axis='both')
+            plt.grid(True, which='major', axis='both')
+
+            counter += 1
+
+        plt.tight_layout()
+        fig_name = f'results/{env.sim_name}/grid_active_power.png'
+        plt.savefig(fig_name, format='png',
+                    dpi=120, bbox_inches='tight')
+        
+        plt.close('all')
+        # Plot the total power of the CPO
+        plt.figure(figsize=(16, 12))
+
+        # plt.style.use('seaborn-darkgrid')
+        # plt.rcParams.update({'font.size': 16})
+        plt.rcParams['font.family'] = ['serif']
+
+        number_of_nodes = env.grid.node_num
+
+        # split into subplots for each node
+        counter = 1
+        dim_x = int(np.ceil(np.sqrt(number_of_nodes)))
+        dim_y = int(np.ceil(number_of_nodes/dim_x))
+
+        for node in range(number_of_nodes):
+
+            plt.subplot(dim_x, dim_y, counter)
+            
+            plt.step(date_range,
+                     env.node_reactive_power[node, :],
+                     label=f'Total Reactive Power',
+                     where='post',
+                     linewidth=1,
+                     )        
+
+            plt.title(f'Node {node}', fontsize=8)
+            # plt.xlabel(f'Time')
+
+            if node % dim_x == 0:
+                plt.ylabel('Q (kWA)')
+
+            plt.xlim([env.sim_starting_date, env.sim_date])
+
+            plt.xticks(ticks=date_range_print,
+                       labels=[
+                           f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                       fontsize=4)
+
+            if node == 0:
+                plt.legend(fontsize=8)
+
+            plt.grid(True, which='minor', axis='both')
+            plt.grid(True, which='major', axis='both')
+
+            counter += 1
+
+        plt.tight_layout()
+        fig_name = f'results/{env.sim_name}/grid_reactive_power.png'
+        plt.savefig(fig_name, format='png',
+                    dpi=120, bbox_inches='tight')
+        
+        plt.close('all')
+        # Plot the total power of the CPO
+        plt.figure(figsize=(16, 12))
+
+        # plt.style.use('seaborn-darkgrid')
+        # plt.rcParams.update({'font.size': 16})
+        plt.rcParams['font.family'] = ['serif']
+
+        number_of_nodes = env.grid.node_num
+        # split into subplots for each node
+        counter = 1
+
+        for node in range(number_of_nodes):
+
+            plt.subplot(dim_x, dim_y, counter)
+            
+            plt.step(date_range,
+                     env.node_voltage[node, :],
+                     label=f'V',
+                     where='post',
+                     linewidth=1,
+                     )        
+            # plot the voltage limits at 0.95 and 1.05
+            plt.plot(date_range, [0.95]*len(date_range), 'r--')
+            plt.plot(date_range, [1.05]*len(date_range), 'r--')
+            
+
+            plt.title(f'Node {node}', fontsize=6)
+
+            if node % dim_x == 0:
+                plt.ylabel('Voltage (pu)')
+
+            plt.xlim([env.sim_starting_date, env.sim_date])
+
+            plt.xticks(ticks=date_range_print,
+                       labels=[
+                           f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                       fontsize=4)
+            plt.yticks(fontsize=4)
+            
+            if node == 0:
+                plt.legend(fontsize=5)
+
+            plt.grid(True, which='minor', axis='both')
+            plt.grid(True, which='major', axis='both')
+
+            counter += 1
+
+        plt.tight_layout()
+        fig_name = f'results/{env.sim_name}/grid_voltage.png'
+        plt.savefig(fig_name, format='png',
+                    dpi=120, bbox_inches='tight')
+
     plt.close('all')
     # Plot the total power for each CS group
     df_total_power = pd.DataFrame([], index=date_range)
@@ -349,7 +520,7 @@ def ev_city_plot(env):
         df = pd.DataFrame([],
                           index=date_range)
 
-        colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)))        
+        colors = plt.cm.gist_earth(np.linspace(0.1, 0.8, len(tr.cs_ids)))
         extra_col = 0
 
         if env.config['inflexible_loads']['include']:
@@ -382,23 +553,23 @@ def ev_city_plot(env):
         df_neg.loc[df_neg.index[-1] +
                    datetime.timedelta(minutes=env.timescale)] = df_neg.iloc[-1]
 
-        # plot the positive power        
+        # plot the positive power
         stacks = plt.stackplot(df_pos.index, df_pos.values.T,
-                      interpolate=True,
-                      step='post',
-                      alpha=0.7,
-                      colors=colors,
-                    #   hatch=['//'],#, '\\'],#  +[' ']*len(tr.cs_ids),
-                    # hatch=tuple(['\\'] +[' ']*len(tr.cs_ids)),
-                      linestyle='--')
-        
+                               interpolate=True,
+                               step='post',
+                               alpha=0.7,
+                               colors=colors,
+                               #   hatch=['//'],#, '\\'],#  +[' ']*len(tr.cs_ids),
+                               # hatch=tuple(['\\'] +[' ']*len(tr.cs_ids)),
+                               linestyle='--')
+
         # for index, stack in enumerate(stacks):
         #     if env.config['inflexible_loads']['include']:
-                # stack.set_hatch(['//')
+        # stack.set_hatch(['//')
 
         df['total'] = df.sum(axis=1)
         df_total_power[tr.id] = df['total']
-        
+
         if env.config['demand_response']['include']:
             plt.fill_between(df.index,
                              np.array([tr.max_power.max()] * len(df.index)),
@@ -410,11 +581,10 @@ def ev_city_plot(env):
                              linestyle='--',
                              linewidth=2)
 
-
         plt.step(df.index, df['total'],
                  'darkgreen',
                  where='post',
-                #  linestyle='-',
+                 #  linestyle='-',
                  linewidth=3)
 
         plt.step(df.index,
@@ -430,7 +600,7 @@ def ev_city_plot(env):
                       step='post',
                       colors=colors,
                       alpha=0.7,
-                    #   hatch='-\ ',
+                      #   hatch='-\ ',
                       linestyle='--')
         plt.plot([env.sim_starting_date, env.sim_date], [0, 0], 'black')
 
@@ -442,7 +612,8 @@ def ev_city_plot(env):
         plt.ylabel(f'Power (kW)', fontsize=28)
         plt.xlim([env.sim_starting_date, env.sim_date])
         plt.xticks(ticks=date_range_print,
-                   labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
+                   labels=[
+                       f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print],
                    rotation=45,
                    fontsize=28)
         plt.yticks(fontsize=28)
@@ -450,9 +621,10 @@ def ev_city_plot(env):
         legend_list = [f'CS {i+1}' for i in tr.cs_ids] + \
             ['Total Power (kW)'] + \
             ['Power limit (kW)']
-            
+
         if env.config['demand_response']['include']:
-            legend_list = legend_list[:-2] + ['Demand Response (kW)'] + legend_list[-2:]
+            legend_list = legend_list[:-2] + \
+                ['Demand Response (kW)'] + legend_list[-2:]
 
         if len(tr.cs_ids) < 4:
 
@@ -479,11 +651,11 @@ def ev_city_plot(env):
         plt.tight_layout()
         fig_name = f'results/{env.sim_name}/Transformer_Aggregated_Power.png'
         plt.savefig(fig_name, format='png',
-                    dpi=60, bbox_inches='tight')
+                    dpi=120, bbox_inches='tight')
     else:
         # clear plt canvas
         plt.close('all')
-        
+
     # plt.show()
     # Plot the total power of the CPO
     plt.figure(figsize=(20, 17))
