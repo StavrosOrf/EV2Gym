@@ -222,7 +222,7 @@ def spawn_single_EV(env,
     else:
         initial_battery_capacity = battery_capacity - required_energy
 
-    if initial_battery_capacity > env.config["ev"]['desired_capacity']:
+    if initial_battery_capacity > env.config["ev"]['desired_capacity'] * battery_capacity:
         initial_battery_capacity = np.random.randint(1, battery_capacity)
 
     if initial_battery_capacity < env.config["ev"]['min_battery_capacity'] and battery_capacity > 2*env.config["ev"]['min_battery_capacity']:
@@ -399,7 +399,7 @@ def spawn_single_EV_GF(env,
     else:
         initial_battery_capacity = battery_capacity - required_energy
 
-    if initial_battery_capacity > env.config["ev"]['desired_capacity']:
+    if initial_battery_capacity > env.config["ev"]['desired_capacity'] * battery_capacity:
         initial_battery_capacity = np.random.randint(1, battery_capacity)
 
     if initial_battery_capacity < env.config["ev"]['min_battery_capacity'] and battery_capacity > 2*env.config["ev"]['min_battery_capacity']:
