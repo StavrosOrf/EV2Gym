@@ -108,7 +108,7 @@ charging_station:
   max_charge_current: 56 # Amperes
   min_discharge_current: 0 # Amperes (actual value <=0)
   max_discharge_current: -56 # Amperes (actual value <=0)
-  voltage: 400 # Line-Line Voltage in Volts
+  voltage: 230 # Line-Line Voltage in Volts
   phases: 3 # 1,2, or 3
 
 # Default EV model
