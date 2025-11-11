@@ -118,9 +118,13 @@ class ChargeAsLateAsPossible():
 
                     cs_max_power = cs.max_charge_current * \
                         cs.voltage * math.sqrt(cs.phases) / 1000
+                    
+                    ev_max_power = cs.evs_connected[port].max_ac_charge_power
+                    max_power = min(cs_max_power, ev_max_power)    
+
                     # find minimum steps required to charge the EV
                     min_steps = math.ceil((1 - cs.evs_connected[port].get_soc())
-                                          / (cs_max_power * env.timescale/60 / cs.evs_connected[port].battery_capacity))
+                                          / (max_power * env.timescale/60 / cs.evs_connected[port].battery_capacity))
 
                     start_of_charging_step = cs.evs_connected[port].time_of_departure - min_steps
                     if cs.evs_connected[port].get_soc() < 1 and start_of_charging_step <= env.current_step:
@@ -580,6 +584,10 @@ class ChargeAsLateAsPossibleToDesiredCapacity():
                         cs.evs_connected[port].battery_capacity
                     cs_max_power = cs.max_charge_current * \
                         cs.voltage * math.sqrt(cs.phases) / 1000
+                        
+                    ev_max_power = cs.evs_connected[port].max_ac_charge_power
+                    cs_max_power = min(cs_max_power, ev_max_power)   
+                    
                     # find minimum steps required to charge the EV
                     min_steps = math.ceil((desired_soc - cs.evs_connected[port].get_soc())
                                           / (cs_max_power * env.timescale/60 / cs.evs_connected[port].battery_capacity))
