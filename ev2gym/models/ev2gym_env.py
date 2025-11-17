@@ -239,7 +239,7 @@ class EV2Gym(gym.Env):
         # Observation mask: is a vector of size ("Sum of all ports of all charging stations") showing in which ports an EV is connected
         self.observation_mask = np.zeros(self.number_of_ports)
 
-    def reset(self, seed=None, options=None, **kwargs):
+    def reset(self, seed=None, options=None, power_setpoints=None, **kwargs):
         '''Resets the environment to its initial state'''
 
         if seed is None:
@@ -298,7 +298,10 @@ class EV2Gym(gym.Env):
         self.EVs_profiles = load_ev_profiles(self)        
         self.charge_prices, self.discharge_prices = load_electricity_prices(
             self)
-        self.power_setpoints = load_power_setpoints(self)
+        if power_setpoints is not None:
+            self.power_setpoints = power_setpoints
+        else:   
+            self.power_setpoints = load_power_setpoints(self)
 
         self.EVs = []
         init_statistic_variables(self)
@@ -421,6 +424,8 @@ class EV2Gym(gym.Env):
             unmatched_power = abs(self.current_power_usage[self.current_step] - self.power_setpoints[self.current_step])
             cost_per_kwh = self.config['power_setpoint_cost_multiplier'] * (self.timescale/60) * self.charge_prices[0, self.current_step]
             self.unmatched_power_costs += unmatched_power * cost_per_kwh
+        
+        self.cpo_profits += self.current_power_usage[self.current_step] * (self.timescale/60) * self.config['cost_per_kwh_evs']
 
         self.current_step += 1
         self._step_date()

@@ -21,7 +21,7 @@ def visualize_step(env):
                   f' \u2197 {env.charge_prices[cs.id, env.current_step -1 ]:4.2f} €/kWh ' +
                   f' \u2198 {env.discharge_prices[cs.id, env.current_step - 1]:4.2f} €/kWh |' +
                   f' EVs served: {cs.total_evs_served:3d} ' +
-                  f' {cs.total_profits:4.2f} €')
+                  f' {cs.charging_costs:4.2f} €')
 
             for port in range(cs.n_ports):
                 ev = cs.evs_connected[port]

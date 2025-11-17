@@ -12,8 +12,8 @@ from ev2gym.models.ev import EV
 def get_statistics(env) -> Dict:
     total_ev_served = np.array(
         [cs.total_evs_served for cs in env.charging_stations]).sum()
-    total_profits = np.array(
-        [cs.total_profits for cs in env.charging_stations]).sum()
+    charging_costs = np.array(
+        [cs.charging_costs for cs in env.charging_stations]).sum()
     total_energy_charged = np.array(
         [cs.total_energy_charged for cs in env.charging_stations]).sum()
     total_energy_discharged = np.array(
@@ -83,7 +83,7 @@ def get_statistics(env) -> Dict:
 
 
     stats = {'total_ev_served': total_ev_served,
-             'total_profits': total_profits,
+             'charging_costs': charging_costs,
              'total_energy_charged': total_energy_charged,
              'total_energy_discharged': total_energy_discharged,
              'average_user_satisfaction': average_user_satisfaction,
@@ -100,6 +100,7 @@ def get_statistics(env) -> Dict:
              'battery_degradation_cycling': battery_degradation_cycling,
              'total_reward': env.total_reward,
              'unmatched_power_costs': unmatched_power_costs,
+             'cpo_profits': env.cpo_profits
              }
 
     if env.simulate_grid:
@@ -115,7 +116,7 @@ def get_statistics(env) -> Dict:
 
     if env.eval_mode != "optimal" and env.replay is not None:
         if env.replay.optimal_stats is not None:
-            stats['opt_profits'] = env.replay.optimal_stats["total_profits"]
+            stats['opt_profits'] = env.replay.optimal_stats["charging_costs"]
             stats['opt_tracking_error'] = env.replay.optimal_stats["tracking_error"]
             stats['opt_actual_tracking_error'] = env.replay.optimal_stats["energy_tracking_error"]
             stats['opt_power_tracker_violation'] = env.replay.optimal_stats["power_tracker_violation"]
@@ -132,7 +133,7 @@ def print_statistics(env) -> None:
     stats = env.stats
 
     total_ev_served = stats['total_ev_served']
-    total_profits = stats['total_profits']
+    charging_costs = stats['charging_costs']
     total_energy_charged = stats['total_energy_charged']
     total_energy_discharged = stats['total_energy_discharged']
     average_user_satisfaction = stats['average_user_satisfaction']
@@ -156,7 +157,7 @@ def print_statistics(env) -> None:
         print(cs)
     print(
         f'  - Total EVs spawned: {env.total_evs_spawned} |  served: {total_ev_served}')
-    print(f'  - Total profits: {total_profits:.2f} €')
+    print(f'  - Total profits: {charging_costs:.2f} €')
     print(
         f'  - Average user satisfaction: {average_user_satisfaction*100:.2f} %')
 
@@ -810,6 +811,7 @@ def init_statistic_variables(env):
     env.saved_grid_energy = np.zeros(env.simulation_length)
     env.charge_power_potential = np.zeros(env.simulation_length)
     env.unmatched_power_costs = 0
+    env.cpo_profits = 0
 
     if env.simulate_grid:
         env.node_active_power = np.zeros(

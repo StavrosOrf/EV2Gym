@@ -28,7 +28,7 @@ class EV_Charger:
     Statistics variables:
         - total_energy_charged: the total energy charged by the EV charger  
         - total_energy_discharged: the total energy discharged by the EV charger
-        - total_profits: the total profit of the EV charger
+        - charging_costs: the total profit of the EV charger
         - total_evs_served: the total number of EVs served by the EV charger
         - total_user_satisfaction: the total user satisfaction of the EV charger
 
@@ -87,7 +87,7 @@ class EV_Charger:
         # EV Charger Statistics
         self.total_energy_charged = 0
         self.total_energy_discharged = 0
-        self.total_profits = 0
+        self.charging_costs = 0
         self.total_evs_served = 0
         self.total_user_satisfaction = 0
         self.all_user_satisfaction = []
@@ -106,7 +106,7 @@ class EV_Charger:
         # EV Charger Statistics
         self.total_energy_charged = 0
         self.total_energy_discharged = 0
-        self.total_profits = 0
+        self.charging_costs = 0
         self.total_evs_served = 0
         self.total_user_satisfaction = 0
         self.all_user_satisfaction = []
@@ -204,7 +204,7 @@ class EV_Charger:
                 raise Exception(
                     f'sum of amps {self.current_total_amps} is higher than max charge current {self.max_charge_current}')
 
-        self.total_profits += profit
+        self.charging_costs += profit
 
         departing_evs = []
         # Check if EVs are departing
@@ -244,7 +244,7 @@ class EV_Charger:
             f' Served {self.total_evs_served:4d} EVs' + \
             user_satisfaction_str + \
             f' in {self.current_step: 4d} steps' + \
-            f' |{self.total_profits: 7.1f} € |' + \
+            f' |{self.charging_costs: 7.1f} € |' + \
             f' +{self.total_energy_charged: 5.1f} /' + \
             f' -{self.total_energy_discharged: 5.1f} kWh'
 

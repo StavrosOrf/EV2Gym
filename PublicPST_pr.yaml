@@ -4,7 +4,7 @@
 # Simulation Parameters
 ##############################################################################
 timescale: 15 # in minutes per step
-simulation_length: 300 #90 # in steps per simulation
+simulation_length: 35040 #90 # in steps per simulation
 
 ##############################################################################
 # Date and Time
@@ -27,13 +27,13 @@ simulation_days: both # weekdays, weekends, or both
 
 # EV Spawn Behavior
 scenario: public # public, private, or workplace
-spawn_multiplier: 10 # 1 is default, the higher the number the more EVs spawn. Play somewhere between 3-7. With 1 often only 1/5 EVs show up.
+spawn_multiplier: 7.5 # 1 is default, the higher the number the more EVs spawn. Play somewhere between 3-7. With 1 often only 1/5 EVs show up.
 
 ##############################################################################
 # Prices
 ##############################################################################
 discharge_price_factor: 1 # how many times more abs(expensive/cheaper) it is to discharge than to charge. Are similar, discharging cost could be a bit higher.
-
+cost_per_kwh_evs: 0.35 # in Euro/kWh
 
 ##############################################################################
 # Distribution Network Settings
@@ -66,8 +66,8 @@ pf_solver: 'Laurent' # 'Laurent' or 'PandaPower'
 # How much the total power setpoints can vary in percentage compared to the nominal power
 # The higher the number the easier it is to meet the power setpoints, the opposite for negative numbers
 power_setpoint_enabled: True # True or False
-power_setpoint_flexiblity: -30 # (in percentage +/- %)
-power_setpoint_cost_multiplier: 2 # multiplier for the cost of not meeting the power setpoints multiplied by the unmatched power in kW
+power_setpoint_flexiblity: -10 # (in percentage +/- %)
+power_setpoint_cost_multiplier: 3 # multiplier for the cost of not meeting the power setpoints multiplied by the unmatched power in kW
 
 ##############################################################################
 # Inflexible Loads, Solar Generation, and Demand Response
