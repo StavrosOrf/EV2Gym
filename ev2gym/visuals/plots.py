@@ -759,3 +759,46 @@ def ev_city_plot(env):
     #             dpi=60, bbox_inches='tight')
 
     plt.close('all')
+    
+    
+    
+def plot_power_setpoints(env):
+    '''Plots the power setpoints vs actual power usage'''
+
+    plt.figure(figsize=(5,4))
+
+    date_range = pd.date_range(start=env.sim_starting_date,
+                               end=env.sim_starting_date +
+                               (env.simulation_length - 1) *
+                               datetime.timedelta(
+                                   minutes=env.timescale),
+                               freq=f'{env.timescale}min')
+
+    plt.step(date_range,
+             env.power_setpoints,
+             label='Power Setpoints (kW)',
+             where='post')
+
+    plt.step(date_range,
+             env.current_power_usage,
+             label='Actual Power Usage (kW)',
+             where='post')
+
+    plt.xlabel('Time')
+    plt.ylabel('Power (kW)')
+    plt.title('Power Setpoints vs Actual Power Usage')
+    plt.xlim([env.sim_starting_date, env.sim_date])
+    date_range_print = pd.date_range(start=env.sim_starting_date,
+                                     end=env.sim_date,
+                                     periods=10)
+    plt.xticks(ticks=date_range_print,
+               labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
+    plt.legend()
+    plt.grid(True, which='minor', axis='both')
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_env_results(env):
+    '''Alias for ev_city_plot for backward compatibility'''
+    ev_city_plot(env)
