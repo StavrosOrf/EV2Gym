@@ -368,6 +368,45 @@ class RoundRobin_GF():
         min_power = self.min_power[:counter]
         max_power = self.max_power[:counter]
         
+        # create action list
+        
+        if self.verbose:
+            print(f'Final power used: {total_power_potential}')
+        
+        action_list = np.ones(env.number_of_ports) * self.min_action
+        # round up action list values to 4 decimal places
+        action_list = np.round(action_list, 2)
+
+        # set the action for the EVs to charge
+        given_power = 0
+        for i, ev in enumerate(evs_to_charge):
+            
+            if i == len(evs_to_charge) - 1 and total_power_potential >= power_setpoint:
+                if total_power_potential - power_setpoint < 0:
+                    break
+                # print(f'Total power potential: {total_power_potential}, Power setpoint: {power_setpoint}')                
+                if self.verbose:
+                    print(f'Max power for EV {ev}: {self.max_cs_power[ev]}, Given power: {given_power}, Needed power: {power_setpoint - given_power}')
+
+                    action_list[ev] = (power_setpoint - given_power) / self.max_cs_power[ev]
+            else:
+                if self.verbose:
+                    print(f'Max power for EV {ev}: {self.max_cs_power[ev]}, EV_max {self.max_power[i]}, Given power: {given_power}')
+                action_list[ev] = self.max_power[i] / self.max_cs_power[ev]
+            
+            given_power += action_list[ev] * self.max_cs_power[ev]
+            if self.verbose:
+                print(f'Action for EV {ev}: {action_list[ev]}, Given power after this EV: {given_power}')
+                
+        if self.verbose:
+            print(f'Evs to charge: {evs_to_charge}')      
+            print(f'Action list: {action_list}')  
+            #print the actual power of each EV in a comapct form
+            actual_powers = action_list * self.max_cs_power                            
+            print(f'Actual powers: {actual_powers}')
+            print(f'Total actual power: {sum(actual_powers)}')
+        
+        
         self.ev_buffer = self.ev_buffer[counter:]
         self.min_power = self.min_power[counter:]
         self.max_power = self.max_power[counter:]
@@ -375,27 +414,7 @@ class RoundRobin_GF():
         self.ev_buffer.extend(evs_to_charge)
         self.min_power.extend(min_power)
         self.max_power.extend(max_power)
-
-        # create action list
-        
-        if self.verbose:
-            print(f'Final power used: {total_power_potential}')
-        
-        action_list = np.ones(env.number_of_ports) * self.min_action
-
-        # set the action for the EVs to charge
-        for i, ev in enumerate(evs_to_charge):            
             
-            if i == len(evs_to_charge) - 1 and total_power_potential >= power_setpoint:
-                if total_power_potential - power_setpoint < 0:
-                    break
-                action_list[ev] = 1 - (total_power_potential - power_setpoint) / self.max_cs_power[ev]
-            else:
-                action_list[ev] = 1
-                
-        if self.verbose:
-            print(f'Evs to charge: {evs_to_charge}')      
-            print(f'Action list: {action_list}')  
         return action_list
     
         
