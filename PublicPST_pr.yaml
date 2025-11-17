@@ -67,6 +67,7 @@ pf_solver: 'Laurent' # 'Laurent' or 'PandaPower'
 # The higher the number the easier it is to meet the power setpoints, the opposite for negative numbers
 power_setpoint_enabled: True # True or False
 power_setpoint_flexiblity: -30 # (in percentage +/- %)
+power_setpoint_cost_multiplier: 2 # multiplier for the cost of not meeting the power setpoints multiplied by the unmatched power in kW
 
 ##############################################################################
 # Inflexible Loads, Solar Generation, and Demand Response

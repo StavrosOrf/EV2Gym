@@ -347,7 +347,6 @@ class RoundRobin_GF():
             print(f'EV buffer: {self.ev_buffer}')
             print(f'Min power: {self.min_power}')
             print(f'Max power: {self.max_power}')
-            
         
         total_power_potential = sum(self.min_power)        
         

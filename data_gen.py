@@ -25,6 +25,7 @@ for run in range(n_runs):
     
     metrics_to_keep = ['total_ev_served', 
                        'total_profits',
+                       'unmatched_power_costs',
                        'total_energy_charged',
                        'energy_user_satisfaction',
                        'std_energy_user_satisfaction',

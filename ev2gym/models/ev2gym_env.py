@@ -415,6 +415,12 @@ class EV2Gym(gym.Env):
                 break
 
         self._update_power_statistics(self.departing_evs)
+        
+        if self.config['power_setpoint_enabled']:
+            # self.power_setpoints[self.current_step] = self._calculate_power_setpoint()
+            unmatched_power = abs(self.current_power_usage[self.current_step] - self.power_setpoints[self.current_step])
+            cost_per_kwh = self.config['power_setpoint_cost_multiplier'] * (self.timescale/60) * self.charge_prices[0, self.current_step]
+            self.unmatched_power_costs += unmatched_power * cost_per_kwh
 
         self.current_step += 1
         self._step_date()
@@ -552,6 +558,8 @@ class EV2Gym(gym.Env):
                                            self.current_step] = ev.current_capacity/ev.battery_capacity
                     self.port_current[ev.id, ev.location,
                                       self.current_step] = ev.actual_current
+                    
+        
 
     def _step_date(self):
         '''Steps the simulation date by one timestep'''

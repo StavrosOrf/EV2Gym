@@ -44,6 +44,7 @@ def get_statistics(env) -> Dict:
                 env.power_setpoints[t]
 
     energy_tracking_error *= env.timescale / 60
+    unmatched_power_costs = env.unmatched_power_costs
 
     # calculate total batery degradation
     battery_degradation = np.array(
@@ -98,6 +99,7 @@ def get_statistics(env) -> Dict:
              'battery_degradation_calendar': battery_degradation_calendar,
              'battery_degradation_cycling': battery_degradation_cycling,
              'total_reward': env.total_reward,
+             'unmatched_power_costs': unmatched_power_costs,
              }
 
     if env.simulate_grid:
@@ -141,6 +143,7 @@ def print_statistics(env) -> None:
     energy_user_satisfaction = stats['energy_user_satisfaction']
     std_energy_user_satisfaction = stats['std_energy_user_satisfaction']
     min_energy_user_satisfaction = stats['min_energy_user_satisfaction']
+    unmatched_power_costs = stats['unmatched_power_costs']
 
     total_transformer_overload = stats['total_transformer_overload']
     battery_degradation = stats['battery_degradation']
@@ -806,6 +809,7 @@ def init_statistic_variables(env):
     env.current_power_usage = np.zeros(env.simulation_length)
     env.saved_grid_energy = np.zeros(env.simulation_length)
     env.charge_power_potential = np.zeros(env.simulation_length)
+    env.unmatched_power_costs = 0
 
     if env.simulate_grid:
         env.node_active_power = np.zeros(
