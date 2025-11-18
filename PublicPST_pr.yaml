@@ -14,7 +14,7 @@ year: 2022 # 2015-2023
 month: 1 # 1-12
 day: 1 # 1-31
 # Whether to get a random date every time the environment is reset
-random_day: False # True or False
+random_day: True # True or False
 random_hour: False # True or False
 
 # Simulation Starting Time
@@ -123,8 +123,8 @@ transformer:
 
 # Default Charging Station model
 charging_station:
-  min_charge_current: 0 # Amperes
-  max_charge_current: 32 # Amperes
+  min_charge_current: 8 # Amperes
+  max_charge_current: 16 # Amperes
   min_discharge_current: 0 # Amperes (actual value <=0)
   max_discharge_current: 0 # Amperes (actual value <=0)
   voltage: 400 # Line-Line Voltage in Volts
