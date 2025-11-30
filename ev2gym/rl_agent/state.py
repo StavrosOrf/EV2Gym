@@ -10,10 +10,10 @@ def PublicPST(env, *args):
 
     state = [
         (env.current_step/env.simulation_length),
-        # env.sim_date.weekday() / 7,
+        env.sim_date.weekday() / 7,
         # turn hour and minutes in sin and cos
-        # math.sin(env.sim_date.hour/24*2*math.pi),
-        # math.cos(env.sim_date.hour/24*2*math.pi),
+        math.sin(env.sim_date.hour/24*2*math.pi),
+        math.cos(env.sim_date.hour/24*2*math.pi),
     ]
 
     # the final state of each simulation
@@ -45,16 +45,16 @@ def PublicPST(env, *args):
                         state.append([
                             1 if EV.get_soc() == 1 else 0.5,  # we know if the EV is full
                             EV.total_energy_exchanged,
-                            # EV.max_ac_charge_power*1000 /
-                            # (cs.voltage*math.sqrt(cs.phases))/100,
-                            # EV.min_ac_charge_power*1000 /
-                            # (cs.voltage*math.sqrt(cs.phases))/100,
+                            EV.max_ac_charge_power*1000 /
+                            (cs.voltage*math.sqrt(cs.phases))/100,
+                            EV.min_ac_charge_power*1000 /
+                            (cs.voltage*math.sqrt(cs.phases))/100,
                             (env.current_step-EV.time_of_arrival)
                             ])
 
                     # else if there is no EV connected put zeros
                     else:
-                        state.append(np.zeros(3))
+                        state.append(np.zeros(5))
 
     state = np.array(np.hstack(state))
 
