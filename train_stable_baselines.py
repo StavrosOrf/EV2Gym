@@ -30,9 +30,9 @@ import datetime
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algorithm', type=str, default="td3")
+    parser.add_argument('--algorithm', type=str, default="ddpg")
     parser.add_argument('--device', type=str, default="cuda:0")
-    parser.add_argument('--train_steps', type=int, default=600000)
+    parser.add_argument('--train_steps', type=int, default=480000)
     parser.add_argument('--seed', type=int, default=9)
     parser.add_argument('--run_name', type=str, default="")
     parser.add_argument('--config_file', type=str,

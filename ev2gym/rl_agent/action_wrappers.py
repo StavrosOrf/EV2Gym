@@ -173,20 +173,29 @@ class Rescale_RepairLayer(gym.ActionWrapper, gym.utils.RecordConstructorArgs):
         gym.ActionWrapper.__init__(self, env)
 
         self.verbose = False
+        # keep the wrapper env for stepping, but use the unwrapped/base env for introspection
         self.env = env
-        # find average charging power of the simulation
+        try:
+            self.base_env = env.unwrapped
+        except Exception:
+            # fallback: traverse .env chain
+            e = env
+            while hasattr(e, 'env'):
+                e = e.env
+            self.base_env = e
 
+        # find average charging power of the simulation
         epsilon = 1e-4
         self.threshold = 0  # kW
 
         # initialize the min_action list
-        self.min_action = np.zeros(env.action_space.shape)
-        self.max_cs_power = np.zeros(env.action_space.shape)
+        self.min_action = np.zeros(self.base_env.action_space.shape)
+        self.max_cs_power = np.zeros(self.base_env.action_space.shape)
 
-        assert (env.number_of_ports_per_cs ==
+        assert (self.base_env.number_of_ports_per_cs ==
                 1), "This class is only implemented for one port per charging station"
 
-        for i, cs in enumerate(env.charging_stations):
+        for i, cs in enumerate(self.base_env.charging_stations):
             self.min_action[i] = cs.min_charge_current / \
                 cs.max_charge_current + epsilon
             self.max_cs_power[i] = cs.get_max_power()
@@ -194,21 +203,29 @@ class Rescale_RepairLayer(gym.ActionWrapper, gym.utils.RecordConstructorArgs):
         if self.verbose:
             print(f'Min action: {self.min_action}')
 
-        self.number_of_ports_per_cs = env.number_of_ports_per_cs
+        self.number_of_ports_per_cs = self.base_env.number_of_ports_per_cs
         # list with the ids of EVs that were already served in this round
         self.ev_buffer = []
         self.min_power = []
         self.max_power = []
 
-        self.occupied_ports = [0] * env.number_of_ports
+        self.occupied_ports = [0] * self.base_env.number_of_ports
 
     def update_ev_buffer(self, env) -> None:
         '''
         This function updates the EV buffer list with the EVs that are currently parked by adding or removing them.
         '''
+        # ensure we operate on the unwrapped/base env
+        try:
+            base = env.unwrapped
+        except Exception:
+            base = env
+            while hasattr(base, 'env'):
+                base = base.env
+
         counter = 0
         # iterate over all ports
-        for cs in env.charging_stations:
+        for cs in base.charging_stations:
             for port in range(cs.n_ports):
                 if cs.evs_connected[port] is not None:
                     if cs.evs_connected[port].get_soc() < 1:
@@ -279,14 +296,14 @@ class Rescale_RepairLayer(gym.ActionWrapper, gym.utils.RecordConstructorArgs):
         # this function returns the action list based on the round robin algorithm
 
         # in W
-        power_setpoint = self.env.power_setpoints[self.env.current_step]
+        power_setpoint = self.base_env.power_setpoints[self.base_env.current_step]
 
         # rescale actions from interval (0,1) to interval (min_action,1) for every charger
 
         if self.verbose:
             print("-------------------RR Correction Layer-------------------")
             print(
-                f'Power setpoint: {power_setpoint:.2f} kW | Step: {self.env.current_step}/{self.env.simulation_length}')
+                f'Power setpoint: {power_setpoint:.2f} kW | Step: {self.base_env.current_step}/{self.base_env.simulation_length}')
             print(f'  actions:       { [round(a, 2) for a in action]}')
             print(
                 f' min action:     { [round(a, 2) for a in self.min_action]}')
@@ -297,8 +314,8 @@ class Rescale_RepairLayer(gym.ActionWrapper, gym.utils.RecordConstructorArgs):
         if self.verbose:
             print(f'Rescaled actions:{[round(a, 2) for a in action]}')
 
-        # get currently parked EVs
-        self.update_ev_buffer(self.env)
+        # get currently parked EVs (operate on base/unwrapped env)
+        self.update_ev_buffer(self.base_env)
 
         current_action_power = self.calculate_total_power(action)
         total_power_potential = sum(self.min_power)

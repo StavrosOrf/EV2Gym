@@ -89,8 +89,8 @@ def evaluator():
 
         "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9",           #ddpg
         "./saved_models/10cs_APEN_PST/ddpg_RepairL_STER_BPST_seed=9_SL",        #ddpg_SL
-        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9",            #td3
-        "./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9_SL",         #td3_SL
+        #"./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9",            #td3
+        #"./saved_models/10cs_APEN_PST/td3_RepairL_STER_BPST_seed=9_SL",         #td3_SL
         #"./saved_models/10cs_APEN_PST/ppo_RepairL_STER_BPST_seed=9",             #ppo
         #"./saved_models/10cs_APEN_PST/ppo_RepairL_STER_BPST_seed=9_SL",          #ppo_SL
         #"./saved_models/10cs_APEN_PST/sac_RepairL_STER_BPST_seed=9",             #sac
@@ -198,6 +198,44 @@ def evaluator():
 
     plot_results_dict = {}
     counter = 0
+
+    def _get_base_env_for_plotting(obj):
+        """Return a deepcopy of the underlying base env suitable for plotting.
+
+        Handles wrappers (has .unwrapped or .env chain), VecEnv-like objects with
+        `get_attr('env')`, and falls back to the original object if nothing else.
+        """
+        try:
+            # If it's a VecEnv or similar with get_attr, try to extract the wrapped env
+            if hasattr(obj, 'get_attr'):
+                try:
+                    env_list = obj.get_attr('env')
+                    if isinstance(env_list, (list, tuple)) and len(env_list) > 0:
+                        return deepcopy(_get_base_env_for_plotting(env_list[0]))
+                except Exception:
+                    pass
+
+            # If it already has sim_starting_date, assume it's the right object
+            if hasattr(obj, 'sim_starting_date'):
+                return deepcopy(obj)
+
+            # Unwrap standard wrappers
+            base = obj
+            if hasattr(base, 'unwrapped'):
+                base = base.unwrapped
+
+            # Traverse .env chain if present
+            while hasattr(base, 'env'):
+                base = base.env
+
+            if hasattr(base, 'sim_starting_date'):
+                return deepcopy(base)
+
+        except Exception:
+            pass
+
+        # Fallback to deepcopy of the original object
+        return deepcopy(obj)
 
     for i_a, algorithm in enumerate(algorithms):
         print(' +------- Evaluating', algorithm, " -------+")
@@ -426,13 +464,11 @@ def evaluator():
                         # For string-based RL algorithms, use saved_env if it exists
                         if type(algorithm) == str and any(algo in algorithm for algo in ['ppo', 'a2c', 'ddpg', 'tqc', 'trpo', 'ars', 'rppo', 'td3', 'sac']):
                             if saved_env is not None:
-                                plot_results_dict[str(algorithm)] = deepcopy(
-                                    saved_env)
+                                plot_results_dict[str(algorithm)] = _get_base_env_for_plotting(saved_env)
                             else:
-                                plot_results_dict[str(
-                                    algorithm)] = deepcopy(env)
+                                plot_results_dict[str(algorithm)] = _get_base_env_for_plotting(env)
                         else:
-                            plot_results_dict[str(algorithm)] = deepcopy(env)
+                            plot_results_dict[str(algorithm)] = _get_base_env_for_plotting(env)
 
                     break
     # save the plot_results_dict to a pickle file
