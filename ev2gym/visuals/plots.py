@@ -618,7 +618,7 @@ def ev_city_plot(env):
                    fontsize=28)
         plt.yticks(fontsize=28)
 
-        legend_list = [f'CS {i+1}' for i in tr.cs_ids] + \
+        legend_list = [f'CS {i}' for i in tr.cs_ids] + \
             ['Total Power (kW)'] + \
             ['Power limit (kW)']
 
