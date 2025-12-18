@@ -257,12 +257,6 @@ class EV2Gym(gym.Env):
 
         self.current_step = 0
         self.stats = None
-        # Reset all charging stations
-        for cs in self.charging_stations:
-            cs.reset()
-
-        for tr in self.transformers:
-            tr.reset(step=self.current_step)
 
         if self.load_from_replay_path is not None or not self.config['random_day']:
             self.sim_date = self.sim_starting_date
@@ -295,13 +289,20 @@ class EV2Gym(gym.Env):
                     self.sim_date += datetime.timedelta(days=1)
 
         self.sim_starting_date = self.sim_date
+        self.transformers = load_transformers(self)
         self.EVs_profiles = load_ev_profiles(self)        
-        self.charge_prices, self.discharge_prices = load_electricity_prices(
-            self)
+        self.charge_prices, self.discharge_prices = load_electricity_prices(self)
         self.power_setpoints = load_power_setpoints(self)
 
         self.EVs = []
         init_statistic_variables(self)
+        
+        # Reset all charging stations
+        for cs in self.charging_stations:
+            cs.reset()
+
+        for tr in self.transformers:
+            tr.reset(step=self.current_step)
 
         if self.simulate_grid:
             if self.load_from_replay_path is not None:
