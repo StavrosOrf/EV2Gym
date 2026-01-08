@@ -1,9 +1,9 @@
-pandas==2.2
-numpy==2.3
+pandas==2.0
+numpy==1.24
 numba==0.61
-matplotlib==3.10
 networkx==3.0
-gymnasium==1.1
+gymnasium==1.0
+matplotlib
 gurobipy
 pyyaml
 multicopula
