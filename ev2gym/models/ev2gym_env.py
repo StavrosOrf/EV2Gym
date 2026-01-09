@@ -177,6 +177,7 @@ class EV2Gym(gym.Env):
         try:
             with open(self.config['charging_network_topology']) as json_file:
                 self.charging_network_topology = json.load(json_file)
+                self.number_of_transformers = len(self.charging_network_topology)
 
         except FileNotFoundError:
             if not self.config['charging_network_topology'] == 'None':
