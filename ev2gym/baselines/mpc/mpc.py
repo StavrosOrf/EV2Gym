@@ -234,24 +234,24 @@ class MPC(ABC):
         '''
 
         for i, tr in enumerate(self.env.transformers):
-            self.tr_power_limit[i, :] = tr.get_power_limits(
-                step=t, horizon=self.control_horizon)
+            self.tr_power_limit[i, :] = tr.get_power_limits(step=t, horizon=self.control_horizon)
+
+            length = len(
+                tr.pv_generation_forecast[
+                    tr.current_step + 2 : tr.current_step + self.control_horizon + 1
+                ]
+            )
 
             self.tr_pv[i, :] = np.zeros(self.control_horizon)
-            self.tr_pv[i, 0] = tr.solar_power[tr.current_step+1]
-            l = len(tr.pv_generation_forecast[tr.current_step + 2:
-                                              tr.current_step+self.control_horizon+1])
-
-            if l >= self.control_horizon - 1:
-                l = self.control_horizon - 1
-            else:
-                l = l + 1
-            self.tr_pv[i, 1:l] = tr.pv_generation_forecast[tr.current_step + 2:
-                                                           tr.current_step+self.control_horizon]
+            self.tr_pv[i, 0] = tr.solar_power[tr.current_step + 1]
+            self.tr_pv[i, 1 : length + 1] = tr.pv_generation_forecast[
+                tr.current_step + 2 : tr.current_step + self.control_horizon + 1
+            ]
             self.tr_loads[i, :] = np.zeros(self.control_horizon)
-            self.tr_loads[i, 0] = tr.inflexible_load[tr.current_step+1]
-            self.tr_loads[i, 1:l] = tr.inflexible_load_forecast[tr.current_step + 2:
-                                                                tr.current_step+self.control_horizon]
+            self.tr_loads[i, 0] = tr.inflexible_load[tr.current_step + 1]
+            self.tr_loads[i, 1 : length + 1] = tr.inflexible_load_forecast[
+                tr.current_step + 2 : tr.current_step + self.control_horizon + 1
+            ]
 
     def update_tr_power_oracle(self, t):
         '''
