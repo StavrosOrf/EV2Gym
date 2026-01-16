@@ -298,6 +298,7 @@ class EV2Gym(gym.Env):
         self.EVs_profiles = load_ev_profiles(self)        
         self.charge_prices, self.discharge_prices = load_electricity_prices(
             self)
+        
         if power_setpoints is not None:
             self.power_setpoints = power_setpoints
         else:   

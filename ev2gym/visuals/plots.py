@@ -774,13 +774,25 @@ def plot_power_setpoints(env):
                                    minutes=env.timescale),
                                freq=f'{env.timescale}min')
 
-    plt.step(date_range,
-             env.power_setpoints,
+    # Matplotlib step expects 1-D arrays; env arrays can be 2-D (e.g., shape (1, n)).
+    power_setpoints = np.asarray(env.power_setpoints, dtype=float).ravel()
+    current_power_usage = np.asarray(env.current_power_usage, dtype=float).ravel()
+
+    # Keep lengths aligned in case one array is longer than the simulated horizon.
+    max_len = len(date_range)
+    power_setpoints = power_setpoints[:max_len]
+    current_power_usage = current_power_usage[:max_len]
+
+    # Convert pandas time index to numpy array to avoid pandas multidimensional indexing in matplotlib
+    x_time = np.asarray(date_range.to_numpy())
+
+    plt.step(x_time,
+             power_setpoints,
              label='Power Setpoints (kW)',
              where='post')
 
-    plt.step(date_range,
-             env.current_power_usage,
+    plt.step(x_time,
+             current_power_usage,
              label='Actual Power Usage (kW)',
              where='post')
 
@@ -791,7 +803,7 @@ def plot_power_setpoints(env):
     date_range_print = pd.date_range(start=env.sim_starting_date,
                                      end=env.sim_date,
                                      periods=10)
-    plt.xticks(ticks=date_range_print,
+    plt.xticks(ticks=np.asarray(date_range_print.to_numpy()),
                labels=[f'{d.hour:2d}:{d.minute:02d}' for d in date_range_print], rotation=45)
     plt.legend()
     plt.grid(True, which='minor', axis='both')
