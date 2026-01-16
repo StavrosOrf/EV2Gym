@@ -13,7 +13,7 @@ from typing import List, Tuple
 from ev2gym.models.ev_charger import EV_Charger
 from ev2gym.models.ev import EV
 from ev2gym.models.transformer import Transformer
-from ev2gym.models.grid import PowerGrid
+
 
 from ev2gym.utilities.utils import EV_spawner, generate_power_setpoints, EV_spawner_GF
 
@@ -470,6 +470,9 @@ def load_grid(env):
 
     # Simulate grid
     if env.simulate_grid:
+        
+        from ev2gym.models.grid import PowerGrid
+        
         if env.load_from_replay_path is None:
             pv_profile = load_pv_profiles(env)
             
