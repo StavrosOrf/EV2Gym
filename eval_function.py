@@ -125,13 +125,13 @@ class EV2Gym_eval:
         )
 
         raw_data = {
-            "indices": {
-                "start_idx": self.start_idx,
-                "end_idx": self.end_idx,
-                "history_start": history_start,
-                "history_end": history_end,
-                "steps_per_day": steps_per_day,
-            },
+            # "indices": {
+            #     "start_idx": self.start_idx,
+            #     "end_idx": self.end_idx,
+            #     "history_start": history_start,
+            #     "history_end": history_end,
+            #     "steps_per_day": steps_per_day,
+            # },
             "history": {
                 "time_index": history_time_index,
                 "power_usage": history_power_usage,
@@ -253,7 +253,8 @@ if __name__ == "__main__":
 
     """ Example of using the EV2Gym_eval class for evaluation with your own power setpoints prediction model."""
 
-    eval_days = 5 # you can use more days for a more robust evaluation, 30 random days should be enough
+    eval_days = 5 # you can use more days for a more robust evaluation,
+    # 30 random days should be enough
     # use the same seed so you evaluate over the same days every time
     
     # Initialize the evaluator class only once to save time!!!
@@ -267,8 +268,19 @@ if __name__ == "__main__":
     for t in tqdm(range(eval_days), desc="Evaluation Days"):
 
         input_data_raw = evaluator.get_raw_input()
-
-        print(f'input_data_raw for Evaluation Day {t+1}:', input_data_raw)
+        print(f'imnput_data_raw: {input_data_raw["history"]}')
+        
+        # the input_data_raw have the following format:
+        # {        
+        #   "history": {"time_index", "power_usage", "charge_prices"},
+        #   "forecast": {"time_index", "charge_prices"},
+        #   "evs": [
+        #       {"arrival_time": "yy:mm hh:mm", "departure_time": "yy:mm hh:mm", "required_energy_kwh": float},
+        #       ...
+        #   ],
+        #   "calendar": {"hour", "day", "weekday", "month", "year"},
+        #   "timescale_minutes": int
+        # }
 
         #################################################################################
         # Here, you can process input_data_raw to generate power_setpoints for evaluation
