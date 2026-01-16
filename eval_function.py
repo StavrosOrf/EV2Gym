@@ -6,19 +6,17 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
+from tqdm import tqdm
 
 
+class EV2Gym_eval:
 
+    def __init__(self, eval_episodes, seed=42):
 
+        config_path = "PublicPST_pr_eval.yaml"
 
-class EV2Gym_eval: 
-
-    def __init__(self, eval_episodes, seed = 42):        
-        
-        config_path = "PublicPST_pr_eval.yaml"        
-        
         # Initializing the simulator
-        self.env = EV2Gym(config_file=config_path, 
+        self.env = EV2Gym(config_file=config_path,
                           seed=seed)
 
         # This is the default charging algorithm that maximizes charging fairness among EVs
@@ -29,35 +27,32 @@ class EV2Gym_eval:
 
         self.evaluation_day = 29
         self.eval_episodes = eval_episodes
+        self.seed = seed
+        self.evaluations_done = 0
 
-    def get_raw_input(self):        
-        
-        power_setpoints = np.zeros(self.env.simulation_length)        
-        _,_= self.env.reset(power_setpoints=power_setpoints)
-        
+    def get_raw_input(self):
+
+        power_setpoints = np.zeros(self.env.simulation_length)
+        _, _ = self.env.reset(power_setpoints=power_setpoints,
+                              seed=self.seed +  self.evaluations_done % self.eval_episodes)
+
         self.days_passed = 0
         self.done = False
-                    
-        while not done:
+
+        while not self.done:
             time = self.env.sim_date
             hour = time.hour
-            minutes = time.minute    
-            
+            minutes = time.minute
+
             if hour == 13 and minutes == 00:
-                days_passed += 1
-                if days_passed == self.evaluation_day:
-                    print(f'Selecting Power Setpoints:', days_passed, time)
+                self.days_passed += 1
+                if self.days_passed == self.evaluation_day:
                     # set power setpoint for next day with a vector of random 96 values
-                    start_idx = self.env.current_step # + 1
-                    end_idx = min(start_idx + 96, self.env.simulation_length)                    
+                    self.start_idx = self.env.current_step  # + 1
+                    self.end_idx = min(self.start_idx + 96,
+                                       self.env.simulation_length)    
                     
-                    ####
-                    new_setpoints = np.random.uniform(low=30, high=100, size=end_idx - start_idx)
-                    ####                    
-                    assert len(new_setpoints) == 96, 
-                    #### =================== ######## #### =================== ######## 
-                    self.env.power_setpoints[start_idx:end_idx] = new_setpoints
-                    #### =================== ######## #### =================== ######## 
+                    raw_data = self.get_input_data()                
 
                     # reset profit counters and all stats so evaluation-day metrics are clean
                     self.env.cpo_profits = 0.0
@@ -69,77 +64,227 @@ class EV2Gym_eval:
                         cs.charging_costs = 0.0
                         cs.total_evs_served = 0
                         cs.total_user_satisfaction = 0.0
-                        cs.all_user_satisfaction = []                  
-                
-                if days_passed == (self.evaluation_day + 1):
-                    # end_simulation and get info
-                    print("Ending simulation.",days_passed, time)
-                    self.env.done = True
-                    info = get_statistics(self.env)
-                    self.env.stats = info
-                    done = True
-                    break
-                
+                        cs.all_user_satisfaction = []
+
+                    return raw_data
+
+            action = self.algorithm.get_action(self.env)
+            _, _, self.done, _, _ = self.env.step(action)
+            
+    def get_input_data(self):
+        #dictionary to hold all the raw input data needed for power setpoint prediction model
+        steps_per_day = 96
+        history_days = 21 # past three weeks
+        history_steps = history_days * steps_per_day
+        history_start = max(0, self.start_idx - history_steps)
+        history_end = self.start_idx
+
+        history_power_usage = np.asarray(
+            self.env.current_power_usage[history_start:history_end],
+            dtype=float,
+        )
+        history_charge_prices = np.asarray(
+            self.env.charge_prices[0, history_start:history_end],
+            dtype=float,
+        )
+        forecast_charge_prices = np.asarray(
+            self.env.charge_prices[0, self.start_idx:self.end_idx],
+            dtype=float,
+        )
+
+        # Per-EV arrival/departure times and required energy
+        ev_records = []
+        for ev in self.env.EVs:
+            arrival_time = self.env.sim_starting_date + datetime.timedelta(
+                minutes=ev.time_of_arrival * self.env.timescale
+            )
+            departure_time = self.env.sim_starting_date + datetime.timedelta(
+                minutes=ev.time_of_departure * self.env.timescale
+            )
+            required_energy = float(ev.battery_capacity - ev.battery_capacity_at_arrival)
+            ev_records.append(
+                {
+                    "arrival_time": arrival_time.strftime("%d:%m:%y %H:%M"),
+                    "departure_time": departure_time.strftime("%d:%m:%y %H:%M"),
+                    "required_energy_kwh": required_energy,
+                }
+            )
+
+        sim_time = self.env.sim_date
+        history_time_index = pd.date_range(
+            start=self.env.sim_starting_date
+            + datetime.timedelta(minutes=self.env.timescale * history_start),
+            periods=history_end - history_start,
+            freq=f"{self.env.timescale}min",
+        )
+        forecast_time_index = pd.date_range(
+            start=self.env.sim_starting_date
+            + datetime.timedelta(minutes=self.env.timescale * self.start_idx),
+            periods=self.end_idx - self.start_idx,
+            freq=f"{self.env.timescale}min",
+        )
+
+        raw_data = {
+            "indices": {
+                "start_idx": self.start_idx,
+                "end_idx": self.end_idx,
+                "history_start": history_start,
+                "history_end": history_end,
+                "steps_per_day": steps_per_day,
+            },
+            "history": {
+                "time_index": history_time_index,
+                "power_usage": history_power_usage,
+                "charge_prices": history_charge_prices,
+            },
+            "forecast": {
+                "time_index": forecast_time_index,
+                "charge_prices": forecast_charge_prices,
+            },
+            "evs": ev_records,
+            "calendar": {
+                "hour": sim_time.hour,
+                "day": sim_time.day,
+                "weekday": sim_time.weekday(),
+                "month": sim_time.month,
+                "year": sim_time.year,
+            },
+            "timescale_minutes": self.env.timescale,
+        }
+        return raw_data
+
+    def eval(self, power_setpoints, verbose=False):
+
+        assert len(
+            power_setpoints) == 96, "The length of power_setpoints must be 96."
+
+        self.env.power_setpoints[self.start_idx:self.end_idx] = power_setpoints
+        steps_passed = 0
+
+        while not self.done:
+            time = self.env.sim_date
+
+            if steps_passed == 96:
+                # end_simulation and get info
+                self.env.done = True
+                info = get_statistics(self.env)
+                self.env.stats = info
+                self.done = True
+                break
+
             action = self.algorithm.get_action(self.env)
             _, _, done, _, info = self.env.step(action)
+            steps_passed += 1
 
-        print("\nDetailed Simulation Results:")
-        print("-" * 70)
-        print(f'Total EVs Served               : {info["total_ev_served"]:10.0f} EVs')
-        print(f'Total Energy Charged           : {info["total_energy_charged"]:10.2f} kWh')
-        print("-" * 70)
-        # Show costs and profits
-        print(f'Day-Ahead Energy Costs         : {info["charging_costs"]:10.2f} €')
-        print(f'Unmatched Power Costs          : {info["unmatched_power_costs"]:10.2f} €')
-        print(f'EV Charging Profits            : {info["cpo_profits"]:10.2f} €')
-        print(f'Total profits of CPO           : {info["cpo_profits"] + info["unmatched_power_costs"] + info["charging_costs"]:10.2f} €')
-        print("-" * 70)
-        # The tracking error shows how well the power setpoints were tracked
-        print(f'Tracking Error                 : {info["energy_tracking_error"]/4:10.2f} kWh')
-        print("-" * 70)
+        if verbose:
+            print("\nDetailed Simulation Results:")
+            print("-" * 70)
+            print(
+                f'Total EVs Served               : {info["total_ev_served"]:10.0f} EVs')
+            print(
+                f'Total Energy Charged           : {info["total_energy_charged"]:10.2f} kWh')
+            print("-" * 70)
+            # Show costs and profits
+            print(
+                f'Day-Ahead Energy Costs         : {info["charging_costs"]:10.2f} €')
+            print(
+                f'Unmatched Power Costs          : {info["unmatched_power_costs"]:10.2f} €')
+            print(
+                f'EV Charging Profits            : {info["cpo_profits"]:10.2f} €')
+            print(
+                f'Total profits of CPO           : {info["cpo_profits"] + info["unmatched_power_costs"] + info["charging_costs"]:10.2f} €')
+            print("-" * 70)
+            # The tracking error shows how well the power setpoints were tracked
+            print(
+                f'Tracking Error                 : {info["energy_tracking_error"]/4:10.2f} kWh')
+            print("-" * 70)
 
+        info_dict = {
+            "total_ev_served": info["total_ev_served"],
+            "total_energy_charged": info["total_energy_charged"],
+            "charging_costs": info["charging_costs"],
+            "unmatched_power_costs": info["unmatched_power_costs"],
+            "cpo_incomes": info["cpo_profits"],
+            "cpo_profits": info["cpo_profits"] + info["unmatched_power_costs"] + info["charging_costs"],
+            # convert to kWh
+            "energy_tracking_error": info["energy_tracking_error"]/4,
+        }
 
+        return info_dict
 
     def plot_single_day(self):
-        
+
         env = self.env
         # Plot only the last day's power setpoints and usage
         steps_per_day = int(24 * 60 / env.timescale)
         end_idx = env.current_step
         start_idx = max(0, end_idx - steps_per_day)
         last_day_range = pd.date_range(
-            start=env.sim_starting_date + datetime.timedelta(minutes=env.timescale * start_idx),
+            start=env.sim_starting_date +
+            datetime.timedelta(minutes=env.timescale * start_idx),
             periods=end_idx - start_idx,
             freq=f"{env.timescale}min",
         )
         x_time = np.asarray(last_day_range.to_numpy())
-        power_setpoints_last = np.asarray(env.power_setpoints, dtype=float).ravel()[start_idx:end_idx]
-        power_usage_last = np.asarray(env.current_power_usage, dtype=float).ravel()[start_idx:end_idx]
+        power_setpoints_last = np.asarray(env.power_setpoints, dtype=float).ravel()[
+            start_idx:end_idx]
+        power_usage_last = np.asarray(env.current_power_usage, dtype=float).ravel()[
+            start_idx:end_idx]
 
         plt.figure(figsize=(6, 4))
-        plt.step(x_time, power_setpoints_last, label='Power Setpoints (kW)', where='post')
-        plt.step(x_time, power_usage_last, label='Actual Power Usage (kW)', where='post')
+        plt.step(x_time, power_setpoints_last,
+                 label='Power Setpoints (kW)', where='post')
+        plt.step(x_time, power_usage_last,
+                 label='Actual Power Usage (kW)', where='post')
         plt.xlabel('Time')
         plt.ylabel('Power (kW)')
         plt.title('Last Day: Power Setpoints vs Actual Power Usage')
-        tick_times = pd.date_range(start=last_day_range[0], end=last_day_range[-1], periods=8)
-        plt.xticks(ticks=np.asarray(tick_times.to_numpy()), labels=[t.strftime('%H:%M') for t in tick_times], rotation=45)
+        tick_times = pd.date_range(
+            start=last_day_range[0], end=last_day_range[-1], periods=8)
+        plt.xticks(ticks=np.asarray(tick_times.to_numpy()), labels=[
+                   t.strftime('%H:%M') for t in tick_times], rotation=45)
         plt.legend()
         plt.grid(True, which='minor', axis='both')
         plt.tight_layout()
         plt.show()
-        
-        
+
+
 if __name__ == "__main__":
+
+    """ Example of using the EV2Gym_eval class for evaluation with your own power setpoints prediction model."""
+
+    eval_days = 5 # you can use more days for a more robust evaluation, 30 random days should be enough
+    # use the same seed so you evaluate over the same days every time
     
-    eval_days = 3
+    # Initialize the evaluator class only once to save time!!!
+    evaluator = EV2Gym_eval(eval_episodes=eval_days, seed=42)
+
+    # Start of evaluation
     
-    evaluator = EV2Gym_eval(eval_episodes=eval_days)
-    
-    #Start of evaluation
-    
-    for t in eval_days:
+    average_cpo_profits = 0.0
+
+    print("Starting Evaluation over", eval_days, "days...\n")
+    for t in tqdm(range(eval_days), desc="Evaluation Days"):
+
         input_data_raw = evaluator.get_raw_input()
+
+        print(f'input_data_raw for Evaluation Day {t+1}:', input_data_raw)
+
+        #################################################################################
+        # Here, you can process input_data_raw to generate power_setpoints for evaluation
+        #################################################################################
+        # For demonstration, we will use random power setpoints
+        random_power_setpoints = np.random.uniform(
+            low=0.0, high=50.0, size=96)
+        #################################################################################
+        #################################################################################
+
+        info = evaluator.eval(random_power_setpoints)
         
+        ### plotting the last day if needed
+        # evaluator.plot_single_day()
         
-    
+        average_cpo_profits += info["cpo_profits"]
+        
+    average_cpo_profits /= eval_days
+    print(f"Average CPO Profits over {eval_days} days: {average_cpo_profits:.2f}€")
