@@ -6,4 +6,5 @@ gymnasium==1.0
 matplotlib
 gurobipy
 pyyaml
+pandapower
 multicopula
