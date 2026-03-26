@@ -172,8 +172,8 @@ class Transformer():
 
     def get_load_pv_forecast(self, step, horizon) -> np.array:
 
-        load_forecast = self.inflexible_load_forecast[step:step+horizon]
-        pv_forecast = self.pv_generation_forecast[step:step+horizon]
+        load_forecast = self.inflexible_load_forecast[step:step+horizon].copy()
+        pv_forecast = self.pv_generation_forecast[step:step+horizon].copy()
 
         if step < len(self.inflexible_load_forecast):
             load_forecast[0] = self.inflexible_load[step]
