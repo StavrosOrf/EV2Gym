@@ -154,7 +154,12 @@ class EV_Charger:
         # Update EVs connected to the EV charger and get profits/costs
         for i, action in enumerate(normalized_actions):
             actual_energy = 0
-            action = round(action, 5)
+            # Truncate towards zero instead of rounding: round() can round the
+            # normalized actions up, making them sum to slightly more than 1
+            # and current_total_amps exceed max_charge_current beyond the
+            # 0.0001 A tolerance below. Truncation never increases |action|,
+            # so the sum stays within the limit.
+            action = math.trunc(action * 1e5) / 1e5
             assert (action >= -1 and action <= 1,
                     f'Action {action} is not in range [-1,1]')
 
