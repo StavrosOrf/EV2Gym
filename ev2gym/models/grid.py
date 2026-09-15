@@ -44,6 +44,7 @@ class PowerGrid():
         self.s_base = self.network_info['s_base']
 
         network_bus_info = pd.read_csv(self.network_info['bus_info_file'])
+        self.bus_ids = network_bus_info.NODES.tolist()
         self.node_num = len((network_bus_info.NODES))
 
         # Conditional initialization of the distribution network based on the chosen algorithm

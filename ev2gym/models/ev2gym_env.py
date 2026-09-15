@@ -386,8 +386,8 @@ class EV2Gym(gym.Env):
 
         if self.simulate_grid:
             for tr in self.transformers:
-                self.node_ev_power[tr.id + 1:,
-                                   self.current_step] = tr.current_power
+                self.node_ev_power[getattr(tr, 'connected_bus', tr.id) + 1,
+                                   self.current_step] += tr.current_power
 
             active_power, reactive_power, vm = self.grid.step(
                 self.node_ev_power[1:, self.current_step])

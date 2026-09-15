@@ -1,0 +1,67 @@
+{
+    "area_north": {
+        "_comments": {
+            "id": "Descriptive transformer/area ID; runtime transformer indexes follow top-level JSON order.",
+            "bus_id": "Physical grid bus from the NODES column. It must exist and cannot be the slack bus.",
+            "max_power": "Maximum aggregate transformer power in kW.",
+            "charging_stations": "Every station nested here is connected to this transformer and bus."
+        },
+        "id": 0,
+        "bus_id": 5,
+        "max_power": 150,
+        "charging_stations": {
+            "north_charger_1": {
+                "_comments": {
+                    "id": "Descriptive station ID; runtime station IDs are assigned sequentially.",
+                    "min_charge_current/max_charge_current": "Allowed charging-current range in amperes.",
+                    "min_discharge_current/max_discharge_current": "Allowed V2G-current range in amperes; discharge values are non-positive.",
+                    "voltage": "Station voltage in volts.",
+                    "n_ports": "Number of EVs that can connect simultaneously.",
+                    "charger_type": "Charging interface type, normally AC or DC.",
+                    "phases": "Number of electrical phases used by the station."
+                },
+                "id": 0,
+                "min_charge_current": 0,
+                "max_charge_current": 32,
+                "min_discharge_current": 0,
+                "max_discharge_current": -32,
+                "voltage": 400,
+                "n_ports": 1,
+                "charger_type": "AC",
+                "phases": 3
+            },
+            "north_charger_2": {
+                "id": 1,
+                "min_charge_current": 0,
+                "max_charge_current": 32,
+                "min_discharge_current": 0,
+                "max_discharge_current": -32,
+                "voltage": 400,
+                "n_ports": 1,
+                "charger_type": "AC",
+                "phases": 3
+            }
+        }
+    },
+    "area_south": {
+        "_comments": {
+            "schema": "This area and its stations use the same fields documented under area_north."
+        },
+        "id": 1,
+        "bus_id": 17,
+        "max_power": 100,
+        "charging_stations": {
+            "south_charger_1": {
+                "id": 2,
+                "min_charge_current": 0,
+                "max_charge_current": 32,
+                "min_discharge_current": 0,
+                "max_discharge_current": -32,
+                "voltage": 400,
+                "n_ports": 1,
+                "charger_type": "AC",
+                "phases": 3
+            }
+        }
+    }
+}

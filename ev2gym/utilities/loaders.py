@@ -8,6 +8,7 @@ import math
 import datetime
 import pkg_resources
 import json
+import warnings
 from typing import List, Tuple
 
 from ev2gym.models.ev_charger import EV_Charger
@@ -272,6 +273,7 @@ def load_transformers(env) -> List[Transformer]:
                                       solar_power=solar_power[i, :],
                                       simulation_length=env.simulation_length
                                       )
+            transformer.connected_bus = env.tr_bus[i] if env.simulate_grid else i
 
             transformers.append(transformer)
 
@@ -315,7 +317,7 @@ def load_ev_charger_profiles(env) -> List[EV_Charger]:
         for i, tr in enumerate(env.charging_network_topology):
             for cs in env.charging_network_topology[tr]['charging_stations']:
                 ev_charger = EV_Charger(id=cs_counter,
-                                        connected_bus=i,
+                                        connected_bus=env.tr_bus[i] if env.simulate_grid else i,
                                         connected_transformer=i,
                                         min_charge_current=env.charging_network_topology[tr][
                                             'charging_stations'][cs]['min_charge_current'],
@@ -337,6 +339,7 @@ def load_ev_charger_profiles(env) -> List[EV_Charger]:
                 cs_counter += 1
                 charging_stations.append(ev_charger)
         env.cs = len(charging_stations)
+        env.cs_transformers = [cs.connected_transformer for cs in charging_stations]
         return charging_stations
 
     else:
@@ -478,14 +481,26 @@ def load_grid(env):
                          pv_profile=pv_profile,
                          )
 
+        if env.charging_network_topology is not None:
+            if env.number_of_transformers > grid.node_num-1:
+                warnings.warn("More topology transformers than available non-slack grid buses.")
+                raise ValueError("More topology transformers than available non-slack grid buses.")
+            bus_ids = [env.charging_network_topology[tr].get('bus_id', grid.bus_ids[i+1])
+                       for i, tr in enumerate(env.charging_network_topology)]
+            invalid_bus_ids = [bus_id for bus_id in bus_ids if bus_id not in grid.bus_ids[1:]]
+            if invalid_bus_ids:
+                message = f"Topology bus IDs {invalid_bus_ids} are unavailable; choose from {grid.bus_ids[1:]}."
+                warnings.warn(message)
+                raise ValueError(message)
+            env.tr_bus = [grid.bus_ids.index(bus_id)-1 for bus_id in bus_ids]
+            return grid
+
         env.number_of_transformers = grid.node_num-1
         env.cs_transformers = [
             *np.arange(env.number_of_transformers)] * (env.cs // env.number_of_transformers)
         env.cs_transformers += np.arange(
             env.cs % env.number_of_transformers).tolist()
         # print(f'cs_transformers: {env.cs_transformers}')
-
-        assert env.charging_network_topology is None, "Charging network topology is not supported with grid simulation."
 
         
 

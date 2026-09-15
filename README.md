@@ -194,7 +194,7 @@ number_of_ports_per_cs: 1
 # Provide path if you want to load a specific charging topology
 # *(where chargers are located and what are their characteristics),
 # else write None for a randomized one with the above parameters
-charging_network_topology: None #./config_files/charging_topology_10.json
+charging_network_topology: None #./ev2gym/example_config_files/charging_topology_two_areas.json
 
 simulate_grid: True # True or False
 network_info: 
